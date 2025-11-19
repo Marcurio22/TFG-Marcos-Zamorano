@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Trazas de Herbívoros{% endblock %}
+
+{% block content %}
+
+<section class="status-bar">
+  <p>{{ status_message }}</p>
+</section>
+
+<section class="controls">
+  <!-- INSERTAR IMAGEN -->
+  <form action="{{ url_for('trazas.upload_image') }}" method="post"
+        enctype="multipart/form-data" class="control-form upload-form">
+    <label class="file-input">
+      <span>Seleccionar imagen (.jpg, .jpeg, .png)</span>
+      <input type="file" name="image" accept=".jpg,.jpeg,.png" required>
+    </label>
+    <button type="submit">INSERTAR IMAGEN</button>
+  </form>
+
+  <!-- BORRAR IMAGEN -->
+  <form action="{{ url_for('trazas.delete_image') }}" method="post" class="control-form">
+    <button type="submit">BORRAR IMAGEN</button>
+  </form>
+
+  <!-- CALCULAR TRAZAS -->
+  <form id="calculate-form"
+      action="{{ url_for('trazas.calculate_traces') }}"
+      method="post"
+      class="control-form">
+  <button type="submit">CALCULAR TRAZAS</button>
+  </form>
+
+  <!-- DIBUJAR TRAZAS -->
+  <form action="{{ url_for('trazas.draw_traces') }}" method="post" class="control-form">
+    <button type="submit">DIBUJAR TRAZAS</button>
+  </form>
+</section>
+
+<section class="image-area">
+  {% if traced_image_url %}
+    <img src="{{ traced_image_url }}" alt="Imagen con trazas" class="main-image">
+  {% elif image_url %}
+    <img src="{{ image_url }}" alt="Imagen subida" class="main-image">
+  {% else %}
+    <div class="placeholder">Upload image</div>
+  {% endif %}
+</section>
+
+<!-- Modal de error -->
+{% if error_message %}
+  <div class="modal is-visible">
+    <div class="modal-content">
+      <h2>ERROR</h2>
+      <p>{{ error_message }}</p>
+      <p>Por favor, reintente de nuevo con una imagen válida.</p>
+      <button onclick="this.closest('.modal').classList.remove('is-visible');">
+        Close
+      </button>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Modal Trazas Calculadas -->
+{% if traces_calculated %}
+  <div class="modal is-visible">
+    <div class="modal-content">
+      <h2>Trazas calculadas</h2>
+      <p>Las trazas de la imagen han sido calculadas.</p>
+      <p>Para visualizarlas, por favor pulse en el botón: <strong>Dibujar Trazas</strong> o cierre esta ventana.</p>
+      <button onclick="this.closest('.modal').classList.remove('is-visible');">
+        Close
+      </button>
+      <p class="debug-link">
+        (Dev) Puedes ver el JSON en:
+        <a href="{{ url_for('trazas.traces_json') }}" target="_blank">/traces.json</a>
+      </p>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Modal "Calculando trazas..." que se muestra mientras se envía el formulario -->
+<div id="calculando-modal" class="modal">
+  <div class="modal-content">
+    <h2>Calculando trazas...</h2>
+    <p>Por favor, espera unos instantes.</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const calcForm = document.querySelector("#calculate-form");
+    if (calcForm) {
+      calcForm.addEventListener("submit", function () {
+        const modal = document.getElementById("calculando-modal");
+        if (modal) {
+          modal.classList.add("is-visible");
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}
