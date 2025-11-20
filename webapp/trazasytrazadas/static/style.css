@@ -1,3 +1,13 @@
+/* ========================================================================
+Archivo: style.css
+Autor: Marcos Zamorano Lasso
+Since: 19/11/2025
+Descripción:
+Estilos principales del proyecto: tipografías, layout, botones,
+modales, imágenes, placeholders y barras de estado.
+=========================================================================== */
+
+/* RESET */
 * {
   box-sizing: border-box;
 }

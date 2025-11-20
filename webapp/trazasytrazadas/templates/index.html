@@ -1,13 +1,27 @@
+<!-- ========================================================================
+Archivo: index.html
+Autor: Marcos Zamorano Lasso
+Since: 19/11/2025
+Descripción:
+Vista principal. Contiene:
+- Barra de estado
+- Botones de control
+- Imagen actual (original o con trazas)
+- Modales de error, cálculo y progreso
+=========================================================================== -->
+
 {% extends "base.html" %}
 
 {% block title %}Trazas de Herbívoros{% endblock %}
 
 {% block content %}
 
+<!-- Barra de estado -->
 <section class="status-bar">
   <p>{{ status_message }}</p>
 </section>
 
+<!-- Botonera principal -->
 <section class="controls">
   <!-- INSERTAR IMAGEN -->
   <form action="{{ url_for('trazas.upload_image') }}" method="post"
@@ -38,6 +52,7 @@
   </form>
 </section>
 
+<!-- Mostrar imagen -->
 <section class="image-area">
   {% if traced_image_url %}
     <img src="{{ traced_image_url }}" alt="Imagen con trazas" class="main-image">
@@ -80,7 +95,7 @@
   </div>
 {% endif %}
 
-<!-- Modal "Calculando trazas..." que se muestra mientras se envía el formulario -->
+<!-- Modal "Calculando trazas..." -->
 <div id="calculando-modal" class="modal">
   <div class="modal-content">
     <h2>Calculando trazas...</h2>
