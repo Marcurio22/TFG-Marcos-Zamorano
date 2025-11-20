@@ -19,9 +19,18 @@ body {
   color: #222;
 }
 
+/* ============================================================================
+   Header principal
+   Autor: Marcos Zamorano Lasso
+   Since: 20/11/2025
+   Nota:
+       Se elimina el subtítulo/enlace de la web y se ajusta el alto del header
+       para que no quede espacio vacío.
+============================================================================ */
+
 .main-header {
   text-align: center;
-  padding: 1.5rem 1rem;
+  padding: 1rem 1rem;        /* antes 1.5rem; ahora más compacto */
   background: #283593;
   color: #fff;
 }
@@ -30,32 +39,78 @@ body {
   margin: 0;
 }
 
-.subtitle {
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
 .main-content {
   max-width: 960px;
   margin: 2rem auto;
   padding: 0 1rem 3rem;
 }
 
+
+
+/* ============================================================================
+   Botonera principal — HORIZONTAL FIJA
+   Autor: Marcos Zamorano Lasso
+   Since: 21/11/2025
+   Objetivo:
+       - 4 botones SIEMPRE en línea horizontal en escritorio.
+       - Separación clara entre botones.
+       - Solo se permite salto de línea si la pantalla es realmente pequeña.
+       - Overrides con !important para anular reglas anteriores conflictivas.
+============================================================================ */
+
 .controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 2rem;
+  display: flex !important;          /* fila */
+  flex-direction: row !important;    /* horizontal */
+  flex-wrap: nowrap !important;      /* NO apilar en escritorio */
+  justify-content: center !important;
+  align-items: flex-start !important;
+  gap: 1.6rem !important;            /* espacio entre botones */
+  margin: 1rem 0 1.6rem !important;  /* aire arriba/abajo */
+  width: 100% !important;
 }
 
-.control-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+/* Cada formulario es un “bloque” de botón sin crecer */
+.controls > form {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
+
+/* Formato interno del form (botón + hint debajo solo en insertar) */
+.control-form {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  width: auto !important;            /* evita que se estire */
+}
+
+/* Botones: ancho constante, 4 en fila como el mockup */
+.control-form button {
+  width: 180px !important;
+  height: 44px !important;
+  white-space: nowrap !important;    /* texto sin saltos */
+}
+
+/* Hint de formatos bajo INSERTAR sin romper la fila */
+.formats-hint {
+  font-size: 0.78rem !important;
+  margin-top: 0.25rem !important;
+  white-space: nowrap !important;
+}
+
+/* Solo en pantallas pequeñas dejamos que bajen a otra fila */
+@media (max-width: 760px) {
+  .controls {
+    flex-wrap: wrap !important;      /* aquí sí pueden bajar */
+  }
+
+  .control-form button {
+    width: 100% !important;
+    max-width: 240px !important;
+  }
+}
+
 
 .upload-form {
   flex-direction: row;
@@ -160,4 +215,12 @@ button:hover {
   background: #e8eaf6;
   color: #1a237e;
   font-size: 0.9rem;
+}
+
+.formats-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: #555;
+  text-align: center;
 }

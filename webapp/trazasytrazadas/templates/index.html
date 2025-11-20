@@ -21,33 +21,61 @@ Vista principal. Contiene:
   <p>{{ status_message }}</p>
 </section>
 
-<!-- Botonera principal -->
-<section class="controls">
+<!-- ============================================================================
+     Botonera principal (mockup horizontal)
+     Autor: Marcos Zamorano Lasso
+     Since: 21/11/2025
+     Nota:
+         - Los 4 botones deben ser hermanos directos dentro de .controls.
+         - Ningún form debe estar anidado dentro de otro.
+         - Evitamos cierres mal colocados que rompan el layout.
+============================================================================ -->
+<section class="controls" aria-label="Acciones principales">
+
   <!-- INSERTAR IMAGEN -->
-  <form action="{{ url_for('trazas.upload_image') }}" method="post"
-        enctype="multipart/form-data" class="control-form upload-form">
-    <label class="file-input">
-      <span>Seleccionar imagen (.jpg, .jpeg, .png)</span>
-      <input type="file" name="image" accept=".jpg,.jpeg,.png" required>
-    </label>
-    <button type="submit">INSERTAR IMAGEN</button>
+  <form id="upload-form"
+        action="{{ url_for('trazas.upload_image') }}"
+        method="post"
+        enctype="multipart/form-data"
+        class="control-form">
+
+    <!-- Input oculto -->
+    <input id="image-input"
+           type="file"
+           name="image"
+           accept=".jpg,.jpeg,.png"
+           hidden>
+
+    <!-- Botón visible -->
+    <button type="button" id="upload-btn">INSERTAR IMAGEN</button>
+
+    <!-- Hint de formatos -->
+    <small class="formats-hint">
+      Formatos permitidos: .jpg, .jpeg, .png
+    </small>
   </form>
 
   <!-- BORRAR IMAGEN -->
-  <form action="{{ url_for('trazas.delete_image') }}" method="post" class="control-form">
+  <form id="delete-form"
+        action="{{ url_for('trazas.delete_image') }}"
+        method="post"
+        class="control-form">
     <button type="submit">BORRAR IMAGEN</button>
   </form>
 
   <!-- CALCULAR TRAZAS -->
   <form id="calculate-form"
-      action="{{ url_for('trazas.calculate_traces') }}"
-      method="post"
-      class="control-form">
-  <button type="submit">CALCULAR TRAZAS</button>
+        action="{{ url_for('trazas.calculate_traces') }}"
+        method="post"
+        class="control-form">
+    <button type="submit">CALCULAR TRAZAS</button>
   </form>
 
   <!-- DIBUJAR TRAZAS -->
-  <form action="{{ url_for('trazas.draw_traces') }}" method="post" class="control-form">
+  <form id="draw-form"
+        action="{{ url_for('trazas.draw_traces') }}"
+        method="post"
+        class="control-form">
     <button type="submit">DIBUJAR TRAZAS</button>
   </form>
 </section>
@@ -82,8 +110,8 @@ Vista principal. Contiene:
   <div class="modal is-visible">
     <div class="modal-content">
       <h2>Trazas calculadas</h2>
-      <p>Las trazas de la imagen han sido calculadas.</p>
-      <p>Para visualizarlas, por favor pulse en el botón: <strong>Dibujar Trazas</strong> o cierre esta ventana.</p>
+      <p>Las trazas de la imagen han sido calculadas correctamente.</p>
+      <p>Para visualizarlas, pulsa el botón: <strong>Dibujar Trazas</strong>.</p>
       <button onclick="this.closest('.modal').classList.remove('is-visible');">
         Close
       </button>
@@ -111,6 +139,36 @@ Vista principal. Contiene:
         const modal = document.getElementById("calculando-modal");
         if (modal) {
           modal.classList.add("is-visible");
+        }
+      });
+    }
+  });
+</script>
+
+<script>
+  /* ==========================================================================
+     Subida de imagen con botón único
+     Autor: Marcos Zamorano Lasso
+     Since: 20/11/2025
+     Nota:
+         - Al pulsar INSERTAR IMAGEN → abre explorador.
+         - Al elegir archivo → se envía el form automáticamente.
+  ========================================================================== */
+  document.addEventListener("DOMContentLoaded", function () {
+    const uploadBtn = document.getElementById("upload-btn");
+    const imageInput = document.getElementById("image-input");
+    const uploadForm = document.getElementById("upload-form");
+
+    if (uploadBtn && imageInput && uploadForm) {
+      // 1) Botón abre explorador
+      uploadBtn.addEventListener("click", () => {
+        imageInput.click();
+      });
+
+      // 2) Cuando se elige archivo, auto-submit
+      imageInput.addEventListener("change", () => {
+        if (imageInput.files.length > 0) {
+          uploadForm.submit();
         }
       });
     }

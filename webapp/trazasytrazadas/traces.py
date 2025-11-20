@@ -337,7 +337,7 @@ def upload_image():
     old_traced = session.pop("traced_filename", None)
     old_traces_file = session.pop("traces_file", None)
 
-    # Borramos físicamente los ficheros antiguos (si existen).
+    # Borramos físicamente los ficheros antiguos (si existen). NOTA: Preguntar Álvar
     for old, folder_key in [
         (old_image, "UPLOAD_FOLDER"),
         (old_traced, "OUTPUT_FOLDER"),
