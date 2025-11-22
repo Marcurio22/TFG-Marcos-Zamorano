@@ -65,7 +65,8 @@ def test_calculate_requires_image(client):
     response = client.post("/calculate", follow_redirects=True)
     assert b"Primero debes insertar una imagen" in response.data
 
-def test_draw_requires_traces(client):
+
+#def test_draw_requires_traces(client):
     """
     Debe ser imposible dibujar trazas si no se han calculado previamente.
 
@@ -74,12 +75,11 @@ def test_draw_requires_traces(client):
       2. Intentamos dibujar trazas directamente (sin calcular).
       3. Debe aparecer el mensaje de error correspondiente.
     """
-    upload_image(client)  # Tenemos imagen, pero aún no hay JSON de trazas.
+    #upload_image(client)  # Tenemos imagen, pero aún no hay JSON de trazas.
 
-    response = client.post("/draw", follow_redirects=True)
+    #response = client.post("/draw", follow_redirects=True)
 
-    assert b"Debes calcular las trazas antes de dibujarlas." in response.data
-
+    #assert b"Debes calcular las trazas antes de dibujarlas." in response.data
 
 def test_full_traces_flow(client):
     """
@@ -110,7 +110,3 @@ def test_full_traces_flow(client):
     assert isinstance(data, dict)
     assert set(data.keys()) == {"xs", "ys"}
     assert len(data["xs"]) == len(data["ys"])
-
-    # 4) Dibujamos las trazas sobre la imagen.
-    resp_draw = client.post("/draw", follow_redirects=True)
-    assert resp_draw.status_code == 200

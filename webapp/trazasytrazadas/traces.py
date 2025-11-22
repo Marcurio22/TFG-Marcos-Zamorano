@@ -179,42 +179,7 @@ def compute_traces(image_path: str) -> dict:
     return {"xs": xs, "ys": ys}
 
 
-def draw_traces_on_image(image_path: str, traces: dict) -> str:
-    """
-    Dibuja las trazas sobre la imagen original y la guarda como nuevo fichero.
 
-    Args:
-        image_path (str): ruta absoluta de la imagen original.
-        traces (dict): diccionario con las listas "xs" y "ys".
-
-    Returns:
-        str: nombre de fichero de la imagen resultante con las trazas dibujadas.
-    """
-    base_name = os.path.basename(image_path)
-    name, ext = os.path.splitext(base_name)
-
-    # El nombre de salida será algo como 'original_xxx_trazas.jpg'.
-    output_filename = f"{name}_trazas{ext}"
-
-    output_folder = current_app.config["OUTPUT_FOLDER"]
-    os.makedirs(output_folder, exist_ok=True)
-    output_path = os.path.join(output_folder, output_filename)
-
-    # Abrimos la imagen y la convertimos a RGB para evitar problemas con modos.
-    img = Image.open(image_path).convert("RGB")
-    draw = ImageDraw.Draw(img)
-
-    # Convertimos el JSON de trazas a lista de tuplas (x, y).
-    points = list(zip(traces["xs"], traces["ys"]))
-
-    # Dibujamos todos los puntos en rojo. Podríamos usar círculos o líneas,
-    # pero para esta versión nos basta con 'point'.
-    draw.point(points, fill=(255, 0, 0))
-
-    # Guardamos la nueva imagen en disco.
-    img.save(output_path)
-
-    return output_filename
 
 def _set_error(message: str):
     """
@@ -242,21 +207,13 @@ def index():
     # Nombre del fichero de la imagen original subida por el usuario.
     image_filename = session.get("image_filename")
 
-    # Nombre del fichero de la imagen con trazas dibujadas (si existe).
-    traced_filename = session.get("traced_filename")
-
     # Nombre del fichero JSON de trazas (se guarda en OUTPUT_FOLDER).
     traces_file = session.get("traces_file")
 
-    # URLs públicas para las imágenes (usadas en la plantilla).
+    # URL pública para la imagen original (usada en la plantilla).
     image_url = (
         url_for("trazas.uploaded_file", filename=image_filename)
         if image_filename
-        else None
-    )
-    traced_image_url = (
-        url_for("trazas.traced_file", filename=traced_filename)
-        if traced_filename
         else None
     )
 
@@ -269,17 +226,12 @@ def index():
     elif image_filename and not traces_file:
         status = "image_uploaded"
         status_message = "Estado: imagen cargada. Pulsa «Calcular trazas»."
-    elif traces_file and not traced_filename:
+    else:
+        # Hay imagen y JSON de trazas calculado.
         status = "traces_calculated"
         status_message = (
             "Estado: trazas calculadas. Al cerrar el mensaje se dibujarán sobre la imagen."
         )
-    else:
-        status = "traces_drawn"
-        status_message = "Estado: trazas dibujadas sobre la imagen."
-
-    # Estado del indicador de trazas dibujadas.
-    traces_drawn = bool(traced_filename)
 
     # Recuperamos mensajes de error y flag de "trazas calculadas" para
     # mostrar modales. Usamos pop() para que se consuman una sola vez.
@@ -289,12 +241,10 @@ def index():
     return render_template(
         "index.html",
         image_url=image_url,
-        traced_image_url=traced_image_url,
         error_message=error_message,
         traces_calculated=traces_modal,
         status=status,
         status_message=status_message,
-        traces_drawn=traces_drawn,
     )
 
 
@@ -437,52 +387,6 @@ def calculate_traces():
 
     # 5) Flag para mostrar modal "Trazas calculadas".
     session["traces_calculated"] = True
-
-    return redirect(url_for("trazas.index"))
-
-
-@bp.route("/draw", methods=["POST"])
-def draw_traces():
-    """
-    Ruta para dibujar las trazas sobre la imagen actual.
-
-    Condiciones:
-        - Debe haber imagen cargada.
-        - Debe haberse calculado previamente un fichero de trazas (traces_file).
-
-    Efectos:
-        - Carga el JSON desde disco.
-        - Dibuja cada punto sobre la imagen original.
-        - Guarda una nueva imagen con sufijo '_trazas'.
-        - Actualiza la sesión con el nombre de esa imagen.
-    """
-    image_filename = session.get("image_filename")
-    if not image_filename:
-        _set_error("No hay imagen sobre la que dibujar trazas.")
-        return redirect(url_for("trazas.index"))
-
-    traces_file = session.get("traces_file")
-    if not traces_file:
-        _set_error("Debes calcular las trazas antes de dibujarlas.")
-        return redirect(url_for("trazas.index"))
-
-    traces_path = os.path.join(current_app.config["OUTPUT_FOLDER"], traces_file)
-    if not os.path.exists(traces_path):
-        _set_error("No se ha encontrado el archivo de trazas. Vuelve a calcularlas.")
-        session.pop("traces_file", None)
-        return redirect(url_for("trazas.index"))
-
-    # Leemos el JSON de trazas desde disco.
-    with open(traces_path, "r", encoding="utf-8") as f:
-        traces = json.load(f)
-
-    image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], image_filename)
-
-    # Dibuja y devuelve el nombre de la imagen resultante.
-    traced_filename = draw_traces_on_image(image_path, traces)
-
-    # Guardamos el nombre en sesión para mostrarla en el index.
-    session["traced_filename"] = traced_filename
 
     return redirect(url_for("trazas.index"))
 

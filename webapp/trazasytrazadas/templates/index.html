@@ -76,8 +76,8 @@ Vista principal. Contiene:
     <label class="checkbox-indicator">
       <input
         type="checkbox"
+        id="traces-drawn-checkbox"
         disabled
-        {% if traces_drawn %}checked{% endif %}
       >
       <span>TRAZAS DIBUJADAS</span>
     </label>
@@ -86,10 +86,12 @@ Vista principal. Contiene:
 
 <!-- Mostrar imagen -->
 <section class="image-area">
-  {% if traced_image_url %}
-    <img src="{{ traced_image_url }}" alt="Imagen con trazas" class="main-image">
-  {% elif image_url %}
-    <img src="{{ image_url }}" alt="Imagen subida" class="main-image">
+  {% if image_url %}
+    <div class="image-wrapper">
+      <img id="main-image" src="{{ image_url }}" class="main-image">
+      <!-- Canvas donde la web dibujará las trazas usando el JSON -->
+      <canvas id="traces-canvas" class="traces-canvas"></canvas>
+    </div>
   {% else %}
     <div class="placeholder">Upload image</div>
   {% endif %}
@@ -111,18 +113,16 @@ Vista principal. Contiene:
 
 <!-- Modal Trazas Calculadas -->
 {% if traces_calculated %}
-<div class="modal is-visible">
+<div class="modal is-visible" id="traces-modal">
   <div class="modal-content">
     <h2>Trazas calculadas</h2>
     <p>Las trazas de la imagen han sido calculadas correctamente.</p>
     <p>
       Al pulsar <strong>Close</strong>, se dibujarán las trazas sobre la imagen.
     </p>
-    <!-- Al cerrar, enviamos un POST a /draw para pintar las trazas
-         y recargar la página ya con la imagen trazada. -->
-    <form action="{{ url_for('trazas.draw_traces') }}" method="post">
-      <button type="submit">Close</button>
-    </form>
+
+    <button type="button" id="traces-modal-close">Close</button>
+
     <p class="debug-link">
       (Dev) Puedes ver el JSON en:
       <a href="{{ url_for('trazas.traces_json') }}" target="_blank">/traces.json</a>
@@ -141,31 +141,121 @@ Vista principal. Contiene:
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const calcForm = document.querySelector("#calculate-form");
-    if (calcForm) {
-      calcForm.addEventListener("submit", function () {
-        const modal = document.getElementById("calculando-modal");
-        if (modal) {
-          modal.classList.add("is-visible");
-        }
+    // -----------------------------------------------------------------------
+    // 1) Modal "Calculando trazas..."
+    // -----------------------------------------------------------------------
+    const calculateForm = document.getElementById("calculate-form");
+    const calculandoModal = document.getElementById("calculando-modal");
+
+    if (calculateForm && calculandoModal) {
+      calculateForm.addEventListener("submit", () => {
+        calculandoModal.classList.add("is-visible");
       });
     }
-  });
-</script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
+    // -----------------------------------------------------------------------
+    // 2) Preparar canvas con mismo tamaño que la imagen
+    // -----------------------------------------------------------------------
+    const img = document.getElementById("main-image");
+    const canvas = document.getElementById("traces-canvas");
+
+    function resizeCanvasToImage() {
+      if (!img || !canvas) return;
+      // Usamos dimensiones mostradas
+      const w = img.clientWidth;
+      const h = img.clientHeight;
+      if (w && h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+    }
+
+    if (img && canvas) {
+      // Ajustamos cuando cargue la imagen
+      img.addEventListener("load", resizeCanvasToImage);
+      resizeCanvasToImage();
+    }
+
+    // -----------------------------------------------------------------------
+    // 3) Al cerrar el modal de "Trazas calculadas" dibujamos las trazas.
+    // -----------------------------------------------------------------------
+    const tracesModal = document.getElementById("traces-modal");
+    const tracesModalClose = document.getElementById("traces-modal-close");
+    const tracesCheckbox = document.getElementById("traces-drawn-checkbox");
+
+    async function drawTracesFromJson() {
+      if (!img || !canvas) return;
+
+      // Aseguramos que el canvas tiene tamaño correcto
+      resizeCanvasToImage();
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      try {
+        const resp = await fetch("/traces.json");
+        if (!resp.ok) {
+          console.error("Error al obtener /traces.json");
+          return;
+        }
+        const data = await resp.json();
+        const xs = data.xs || [];
+        const ys = data.ys || [];
+
+        if (xs.length !== ys.length) {
+          console.error("JSON de trazas inconsistente.");
+          return;
+        }
+
+        // Limpiamos cualquier dibujo previo
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Suponemos que las coordenadas del JSON corresponden al tamaño original
+        // y que la imagen se ha escalado manteniendo proporción.
+        const scaleX = canvas.width / img.naturalWidth;
+        const scaleY = canvas.height / img.naturalHeight;
+
+        ctx.fillStyle = "red"; // color de los puntos
+
+        for (let i = 0; i < xs.length; i++) {
+          const x = xs[i] * scaleX;
+          const y = ys[i] * scaleY;
+          // Dibujamos un pequeño rectángulo para que se vea bien
+          ctx.fillRect(x, y, 1.5, 1.5);
+        }
+
+        // Marcamos el checkbox de "TRAZAS DIBUJADAS"
+        if (tracesCheckbox) {
+          tracesCheckbox.checked = true;
+        }
+      } catch (err) {
+        console.error("Error dibujando trazas desde JSON:", err);
+      }
+    }
+
+    if (tracesModalClose) {
+      tracesModalClose.addEventListener("click", async () => {
+        // Ocultamos el modal
+        if (tracesModal) {
+          tracesModal.classList.remove("is-visible");
+        }
+        // Dibujamos trazas
+        await drawTracesFromJson();
+      });
+    }
+
+    // -----------------------------------------------------------------------
+    // 4) Lógica de subida de imagen (INSERTAR IMAGEN)
+    // -----------------------------------------------------------------------
     const uploadBtn = document.getElementById("upload-btn");
     const imageInput = document.getElementById("image-input");
     const uploadForm = document.getElementById("upload-form");
 
     if (uploadBtn && imageInput && uploadForm) {
-      // 1) Botón abre explorador
       uploadBtn.addEventListener("click", () => {
         imageInput.click();
       });
 
-      // 2) Cuando se elige archivo, auto-submit
       imageInput.addEventListener("change", () => {
         if (imageInput.files.length > 0) {
           uploadForm.submit();

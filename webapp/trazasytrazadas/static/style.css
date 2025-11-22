@@ -149,7 +149,7 @@ button:hover {
   justify-content: center;
   align-items: center;
   min-height: 360px;
-  border-radius: 1rem;
+  border-radius: 0;
   background: #fff;
   border: 1px dashed #bbb;
 }
@@ -157,7 +157,20 @@ button:hover {
 .main-image {
   max-width: 100%;
   max-height: 480px;
-  border-radius: 0.75rem;
+  border-radius: 0;
+  display: block;
+}
+
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.traces-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
 }
 
 .placeholder {
