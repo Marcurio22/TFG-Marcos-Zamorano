@@ -38,8 +38,6 @@ body {
   padding: 0 1rem 3rem;
 }
 
-
-
 /* Botonera principal */
 
 .controls {
@@ -76,11 +74,14 @@ body {
   white-space: nowrap !important;    /* texto sin saltos */
 }
 
-/* Hint de formatos bajo INSERTAR sin romper la fila */
+/* Hint de formatos */
 .formats-hint {
-  font-size: 0.78rem !important;
-  margin-top: 0.25rem !important;
-  white-space: nowrap !important;
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: #555;
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* Solo en pantallas pequeñas dejamos que bajen a otra fila */
@@ -106,26 +107,6 @@ body {
 .checkbox-indicator input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
-}
-
-.upload-form {
-  flex-direction: row;
-  align-items: stretch;
-  gap: 0.5rem;
-}
-
-.file-input {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: #fff;
-  border-radius: 0.5rem;
-  border: 1px solid #ccc;
-  font-size: 0.9rem;
-}
-
-.file-input input[type="file"] {
-  display: none;
 }
 
 button {
@@ -224,12 +205,4 @@ button:hover {
   background: #e8eaf6;
   color: #1a237e;
   font-size: 0.9rem;
-}
-
-.formats-hint {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.8rem;
-  color: #555;
-  text-align: center;
 }

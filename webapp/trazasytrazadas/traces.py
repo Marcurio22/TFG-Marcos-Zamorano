@@ -5,19 +5,33 @@ Autor: Marcos Zamorano Lasso
 Since: 19/11/2025
 Descripción:
 Contiene el blueprint principal de la aplicación, incluyendo las rutas:
-- / → Página principal
-- /upload → Insertar imagen
-- /delete → Borrar imagen
-- /calculate → Calcular trazas
-- /draw → Dibujar trazas
-- /traces.json → Exponer JSON con resultados
 
+- /               → Página principal
+- /upload         → Insertar imagen
+- /delete         → Borrar imagen
+- /calculate      → Calcular trazas
+- /traces.json    → Exponer JSON con las trazas calculadas
+
+Funcionalidad:
+    Este módulo gestiona todo el flujo del lado servidor. La aplicación 
+    funciona siguiendo este proceso:
+        1. Se sube una imagen original.
+        2. El servidor calcula las trazas (puntos) usando la función
+           compute_traces() y genera un JSON con coordenadas {xs, ys}.
+        3. El JSON se sirve mediante /traces.json.
+        4. El frontend (JavaScript) usa el JSON para dibujar las trazas en un
+           <canvas> superpuesto sobre la imagen original.
 
 Incluye utilidades para:
-- Validar archivos
-- Calcular puntos a pintar (diagonales, esquinas, centro)
-- Dibujar trazas sobre la imagen
-- Gestionar estado por sesión
+    - Validar archivos de imagen.
+    - Calcular los puntos de prueba mediante el algoritmo de Bresenham.
+    - Gestionar el estado de sesión.
+    - Mostrar modales en la interfaz.
+
+Notas:
+    • Se ha eliminado la generación de imágenes con trazas desde el servidor.
+    • Ya no existe la ruta /draw ni la imagen "_trazas".
+    • El JSON es el único resultado persistente del cálculo.
 ===============================================================================
 """
 
@@ -37,7 +51,7 @@ from flask import (
     jsonify,
 )
 from werkzeug.utils import secure_filename
-from PIL import Image, ImageDraw
+from PIL import Image #, ImageDraw
 
 # -----------------------------------------------------------------------------
 # Declaración del blueprint
@@ -288,13 +302,11 @@ def upload_image():
 
     # Limpieza de estado anterior (imagen, trazas, imagen trazada).
     old_image = session.pop("image_filename", None)
-    old_traced = session.pop("traced_filename", None)
     old_traces_file = session.pop("traces_file", None)
 
     # Borramos físicamente los ficheros antiguos (si existen).
     for old, folder_key in [
         (old_image, "UPLOAD_FOLDER"),
-        (old_traced, "OUTPUT_FOLDER"),
         (old_traces_file, "OUTPUT_FOLDER"),
     ]:
         if old:
@@ -323,13 +335,11 @@ def delete_image():
         _set_error("No hay ninguna imagen cargada para borrar.")
         return redirect(url_for("trazas.index"))
 
-    traced_filename = session.get("traced_filename")
     traces_file = session.get("traces_file")
 
     # Lista de (nombre_de_fichero, clave_de_carpeta) a eliminar.
     for old, folder_key in [
         (image_filename, "UPLOAD_FOLDER"),
-        (traced_filename, "OUTPUT_FOLDER"),
         (traces_file, "OUTPUT_FOLDER"),
     ]:
         if old:
@@ -340,7 +350,6 @@ def delete_image():
 
     # Limpiamos las claves de sesión asociadas.
     session.pop("image_filename", None)
-    session.pop("traced_filename", None)
     session.pop("traces_file", None)
 
     return redirect(url_for("trazas.index"))
@@ -382,10 +391,7 @@ def calculate_traces():
     # 3) Guardamos en sesión solo el nombre del fichero JSON.
     session["traces_file"] = traces_filename
 
-    # 4) Invalidamos posible imagen con trazas previa, si la hubiera.
-    session["traced_filename"] = None
-
-    # 5) Flag para mostrar modal "Trazas calculadas".
+    # 4) Flag para mostrar modal "Trazas calculadas".
     session["traces_calculated"] = True
 
     return redirect(url_for("trazas.index"))
@@ -402,15 +408,6 @@ def uploaded_file(filename: str):
     Sirve la imagen original subida por el usuario.
     """
     return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
-
-
-@bp.route("/outputs/<filename>")
-def traced_file(filename: str):
-    """
-    Sirve archivos de salida (imagen con trazas, JSON, etc.) si fuera necesario.
-    Ahora mismo se usa para la imagen con trazas.
-    """
-    return send_from_directory(current_app.config["OUTPUT_FOLDER"], filename)
 
 
 @bp.route("/traces.json")

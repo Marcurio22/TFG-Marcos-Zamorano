@@ -3,11 +3,32 @@ Archivo: index.html
 Autor: Marcos Zamorano Lasso
 Since: 19/11/2025
 Descripción:
-Vista principal. Contiene:
-- Barra de estado
-- Botones de control
-- Imagen actual (original o con trazas)
-- Modales de error, cálculo y progreso
+Vista principal de la aplicación.
+
+Incluye:
+  - Barra de estado (muestra el estado actual del flujo).
+  - Botonera de control:
+        • Insertar imagen
+        • Borrar imagen
+        • Calcular trazas
+        • Indicador (checkbox) "Trazas Dibujadas" administrado por la web.
+  - Imagen original seleccionada por el usuario.
+  - Un <canvas> superpuesto donde el frontend dibuja las trazas obtenidas
+    desde /traces.json.
+  - Modales de error, progreso y confirmación de "Trazas calculadas".
+
+Funcionamiento:
+  - El usuario sube una imagen. El servidor la guarda y limpia el estado previo.
+  - Al pulsar "Calcular trazas", se genera el JSON con coordenadas (xs, ys) y
+    se almacena en OUTPUT_FOLDER.
+  - Al cerrarse el modal "Trazas calculadas", JavaScript obtiene el JSON desde
+    /traces.json y dibuja las trazas en el canvas (no en el servidor).
+  - El checkbox "Trazas Dibujadas" se activa automáticamente cuando el canvas
+    ha terminado de pintar. No es interactivo para el usuario.
+
+Notas:
+  • No existe generación de imágenes desde el backend.
+  • Toda la parte visual del pintado se realiza únicamente en el navegador.
 =========================================================================== -->
 
 {% extends "base.html" %}
@@ -21,15 +42,7 @@ Vista principal. Contiene:
   <p>{{ status_message }}</p>
 </section>
 
-<!-- ============================================================================
-     Botonera principal (mockup horizontal)
-     Autor: Marcos Zamorano Lasso
-     Since: 21/11/2025
-     Nota:
-         - Los 4 botones deben ser hermanos directos dentro de .controls.
-         - Ningún form debe estar anidado dentro de otro.
-         - Evitamos cierres mal colocados que rompan el layout.
-============================================================================ -->
+<!-- Botonera principal -->
 <section class="controls" aria-label="Acciones principales">
 
   <!-- INSERTAR IMAGEN -->

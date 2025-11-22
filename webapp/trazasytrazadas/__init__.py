@@ -4,10 +4,26 @@ Archivo: __init__.py
 Autor: Marcos Zamorano Lasso
 Since: 19/11/2025
 Descripción:
-Archivo principal del paquete trazasytrazadas. Define la application
-factory siguiendo el tutorial oficial de Flask. Configura rutas, carpetas
-de subida, carpeta de salida para imágenes con trazas y registra el
-blueprint principal del proyecto.
+Archivo principal del paquete trazasytrazadas. Define la application factory
+siguiendo el tutorial oficial de Flask. Se encarga de:
+
+    - Crear la instancia principal de la aplicación Flask.
+    - Cargar la configuración por defecto y, opcionalmente, una configuración
+      específica de tests o desde instance/config.py.
+    - Configurar las rutas y carpetas base de trabajo:
+          • UPLOAD_FOLDER  → almacenamiento de las imágenes originales
+                             subidas por el usuario.
+          • OUTPUT_FOLDER  → almacenamiento de los resultados de cálculo,
+                             concretamente los ficheros JSON con las trazas.
+    - Asegurar la existencia de la carpeta instance/ y sus subcarpetas.
+    - Registrar el blueprint principal del proyecto (traces.bp).
+    - Asociar la ruta raíz (/) con la vista trazas.index.
+
+Notas:
+    • La lógica de cálculo de trazas y la gestión del JSON se encuentran en
+      trazasytrazadas/traces.py.
+    • La aplicación utiliza instance_relative_config=True para separar código
+      fuente y datos generados.
 ===============================================================================
 """
 
@@ -32,9 +48,11 @@ def create_app(test_config=None):
     # Configuración por defecto.
     app.config.from_mapping(
         SECRET_KEY="dev",  # NOTA: Debo cambiar esto en producción.
-        MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16 MB.
+        MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16 MB para subidas.
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},
+        # Carpeta para almacenar las imágenes originales subidas.
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
+        # Carpeta para resultados de cálculo (JSON de trazas, etc.).
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
     )
 
