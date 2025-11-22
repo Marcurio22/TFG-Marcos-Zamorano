@@ -19,14 +19,7 @@ body {
   color: #222;
 }
 
-/* ============================================================================
-   Header principal
-   Autor: Marcos Zamorano Lasso
-   Since: 20/11/2025
-   Nota:
-       Se elimina el subtítulo/enlace de la web y se ajusta el alto del header
-       para que no quede espacio vacío.
-============================================================================ */
+/*  Header principal */
 
 .main-header {
   text-align: center;
@@ -47,16 +40,7 @@ body {
 
 
 
-/* ============================================================================
-   Botonera principal — HORIZONTAL FIJA
-   Autor: Marcos Zamorano Lasso
-   Since: 21/11/2025
-   Objetivo:
-       - 4 botones SIEMPRE en línea horizontal en escritorio.
-       - Separación clara entre botones.
-       - Solo se permite salto de línea si la pantalla es realmente pequeña.
-       - Overrides con !important para anular reglas anteriores conflictivas.
-============================================================================ */
+/* Botonera principal */
 
 .controls {
   display: flex !important;          /* fila */
@@ -111,6 +95,18 @@ body {
   }
 }
 
+/* Indicador de trazas dibujadas (checkbox deshabilitado) */
+.checkbox-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.checkbox-indicator input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+}
 
 .upload-form {
   flex-direction: row;

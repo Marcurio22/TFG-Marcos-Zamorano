@@ -100,7 +100,7 @@ def test_full_traces_flow(client):
 
     # 2) Calculamos trazas.
     resp_calc = client.post("/calculate", follow_redirects=True)
-    assert b"Las trazas de la imagen han sido calculadas." in resp_calc.data
+    assert b"Las trazas de la imagen han sido calculadas correctamente." in resp_calc.data
 
     # 3) Consultamos el JSON de trazas.
     resp_json = client.get("/traces.json")

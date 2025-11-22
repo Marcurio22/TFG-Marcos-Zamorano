@@ -272,11 +272,14 @@ def index():
     elif traces_file and not traced_filename:
         status = "traces_calculated"
         status_message = (
-            "Estado: trazas calculadas. Pulsa «Dibujar trazas» para verlas."
+            "Estado: trazas calculadas. Al cerrar el mensaje se dibujarán sobre la imagen."
         )
     else:
         status = "traces_drawn"
         status_message = "Estado: trazas dibujadas sobre la imagen."
+
+    # Estado del indicador de trazas dibujadas.
+    traces_drawn = bool(traced_filename)
 
     # Recuperamos mensajes de error y flag de "trazas calculadas" para
     # mostrar modales. Usamos pop() para que se consuman una sola vez.
@@ -291,6 +294,7 @@ def index():
         traces_calculated=traces_modal,
         status=status,
         status_message=status_message,
+        traces_drawn=traces_drawn,
     )
 
 
@@ -337,7 +341,7 @@ def upload_image():
     old_traced = session.pop("traced_filename", None)
     old_traces_file = session.pop("traces_file", None)
 
-    # Borramos físicamente los ficheros antiguos (si existen). NOTA: Preguntar Álvar
+    # Borramos físicamente los ficheros antiguos (si existen).
     for old, folder_key in [
         (old_image, "UPLOAD_FOLDER"),
         (old_traced, "OUTPUT_FOLDER"),

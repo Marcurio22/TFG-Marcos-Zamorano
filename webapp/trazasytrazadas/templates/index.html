@@ -71,13 +71,17 @@ Vista principal. Contiene:
     <button type="submit">CALCULAR TRAZAS</button>
   </form>
 
-  <!-- DIBUJAR TRAZAS -->
-  <form id="draw-form"
-        action="{{ url_for('trazas.draw_traces') }}"
-        method="post"
-        class="control-form">
-    <button type="submit">DIBUJAR TRAZAS</button>
-  </form>
+  <!-- INDICADOR DE TRAZAS DIBUJADAS -->
+  <div class="control-form">
+    <label class="checkbox-indicator">
+      <input
+        type="checkbox"
+        disabled
+        {% if traces_drawn %}checked{% endif %}
+      >
+      <span>TRAZAS DIBUJADAS</span>
+    </label>
+  </div>
 </section>
 
 <!-- Mostrar imagen -->
@@ -107,20 +111,24 @@ Vista principal. Contiene:
 
 <!-- Modal Trazas Calculadas -->
 {% if traces_calculated %}
-  <div class="modal is-visible">
-    <div class="modal-content">
-      <h2>Trazas calculadas</h2>
-      <p>Las trazas de la imagen han sido calculadas correctamente.</p>
-      <p>Para visualizarlas, pulsa el botón: <strong>Dibujar Trazas</strong>.</p>
-      <button onclick="this.closest('.modal').classList.remove('is-visible');">
-        Close
-      </button>
-      <p class="debug-link">
-        (Dev) Puedes ver el JSON en:
-        <a href="{{ url_for('trazas.traces_json') }}" target="_blank">/traces.json</a>
-      </p>
-    </div>
+<div class="modal is-visible">
+  <div class="modal-content">
+    <h2>Trazas calculadas</h2>
+    <p>Las trazas de la imagen han sido calculadas correctamente.</p>
+    <p>
+      Al pulsar <strong>Close</strong>, se dibujarán las trazas sobre la imagen.
+    </p>
+    <!-- Al cerrar, enviamos un POST a /draw para pintar las trazas
+         y recargar la página ya con la imagen trazada. -->
+    <form action="{{ url_for('trazas.draw_traces') }}" method="post">
+      <button type="submit">Close</button>
+    </form>
+    <p class="debug-link">
+      (Dev) Puedes ver el JSON en:
+      <a href="{{ url_for('trazas.traces_json') }}" target="_blank">/traces.json</a>
+    </p>
   </div>
+</div>
 {% endif %}
 
 <!-- Modal "Calculando trazas..." -->
@@ -146,14 +154,6 @@ Vista principal. Contiene:
 </script>
 
 <script>
-  /* ==========================================================================
-     Subida de imagen con botón único
-     Autor: Marcos Zamorano Lasso
-     Since: 20/11/2025
-     Nota:
-         - Al pulsar INSERTAR IMAGEN → abre explorador.
-         - Al elegir archivo → se envía el form automáticamente.
-  ========================================================================== */
   document.addEventListener("DOMContentLoaded", function () {
     const uploadBtn = document.getElementById("upload-btn");
     const imageInput = document.getElementById("image-input");
