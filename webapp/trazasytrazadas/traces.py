@@ -10,7 +10,7 @@ Contiene el blueprint principal de la aplicación, incluyendo las rutas:
 - /upload         → Insertar imagen
 - /delete         → Borrar imagen
 - /calculate      → Calcular trazas
-- /traces.json    → Exponer JSON con las trazas calculadas
+- /traces    → Exponer JSON con las trazas calculadas
 
 Funcionalidad:
     Este módulo gestiona todo el flujo del lado servidor. La aplicación 
@@ -18,7 +18,7 @@ Funcionalidad:
         1. Se sube una imagen original.
         2. El servidor calcula las trazas (puntos) usando la función
            compute_traces() y genera un JSON con coordenadas {xs, ys}.
-        3. El JSON se sirve mediante /traces.json.
+        3. El JSON se sirve mediante /traces.
         4. El frontend (JavaScript) usa el JSON para dibujar las trazas en un
            <canvas> superpuesto sobre la imagen original.
 
@@ -410,7 +410,7 @@ def uploaded_file(filename: str):
     return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
 
-@bp.route("/traces.json")
+@bp.route("/traces")
 def traces_json():
     """
     Endpoint para consultar el JSON de trazas actual.

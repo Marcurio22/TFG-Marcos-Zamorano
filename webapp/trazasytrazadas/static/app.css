@@ -1,9 +1,0 @@
-
-/* Tailwind v4 */
-@import "tailwindcss";
-
-/* DaisyUI: componentes (btn, checkbox, etc.) */
-@plugin "daisyui" {
-  /* dejamos el tema por defecto; usaremos tus colores con utilidades */
-  themes: light --default, dark --prefersdark;
-}

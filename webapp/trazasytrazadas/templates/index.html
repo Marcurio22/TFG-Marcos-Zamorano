@@ -4,7 +4,7 @@ Autor: Marcos Zamorano Lasso
 Descripción:
 Vista principal de la aplicación. Incluye subir/borrar imagen, calcular trazas,
 canvas para dibujar resultados y modales de estado. Todo el pintado ocurre en
-el navegador usando JSON de /traces.json.
+el navegador usando JSON de /traces.
 ========================================================================== -->
 
 {% extends "base.html" %}
@@ -147,7 +147,7 @@ el navegador usando JSON de /traces.json.
       <p class="mt-4 text-xs text-[#666]">
         (Dev) JSON en:
         <a href="{{ url_for('trazas.traces_json') }}" target="_blank" class="underline">
-          /traces.json
+          /traces
         </a>
       </p>
 
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* -------------------------------------------------------------
-     3) Dibujar trazas desde /traces.json
+     3) Dibujar trazas desde /traces
   -------------------------------------------------------------- */
   async function drawTracesFromJson() {
     if (!img || !canvas) return;
@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ctx) return;
 
     try {
-      const response = await fetch("/traces.json");
+      const response = await fetch("/traces");
       const data = await response.json();
 
       const xs = data.xs || [];
