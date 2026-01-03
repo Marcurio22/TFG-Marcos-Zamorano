@@ -27,11 +27,6 @@ Incluye utilidades para:
     - Calcular los puntos de prueba mediante el algoritmo de Bresenham.
     - Gestionar el estado de sesión.
     - Mostrar modales en la interfaz.
-
-Notas:
-    • Se ha eliminado la generación de imágenes con trazas desde el servidor.
-    • Ya no existe la ruta /draw ni la imagen "_trazas".
-    • El JSON es el único resultado persistente del cálculo.
 ===============================================================================
 """
 
@@ -60,7 +55,6 @@ from PIL import Image #, ImageDraw
 # el flujo de imágenes y trazas.
 bp = Blueprint("trazas", __name__)
 
-
 # ---------------------------------------------------------------------------
 # UTILIDADES INTERNAS
 # ---------------------------------------------------------------------------
@@ -68,10 +62,8 @@ bp = Blueprint("trazas", __name__)
 def allowed_file(filename: str) -> bool:
     """
     Comprueba si el fichero tiene una extensión permitida.
-
     Args:
         filename (str): nombre de fichero proporcionado por el usuario.
-
     Returns:
         bool: True si la extensión es válida, False en caso contrario.
     """
@@ -87,11 +79,9 @@ def bresenham_line(x0, y0, x1, y1):
     enteros que forman una línea entre (x0, y0) y (x1, y1).
 
     Se usa para generar las diagonales en la imagen.
-
     Args:
         x0, y0 (int): coordenadas del punto inicial.
         x1, y1 (int): coordenadas del punto final.
-
     Returns:
         list[tuple[int, int]]: lista de puntos (x, y) a lo largo de la línea.
     """
@@ -130,19 +120,15 @@ def bresenham_line(x0, y0, x1, y1):
 def compute_traces(image_path: str) -> dict:
     """
     Calcula las trazas de prueba sobre una imagen.
-
     En esta versión inicial, las trazas consisten en:
         - Las 4 esquinas de la imagen.
         - El punto central.
         - Dos diagonales que cruzan la imagen pasando por el centro.
-
     Nota:
         En futuras versiones, aquí es donde se sustituirá esta lógica de prueba
         por el algoritmo real de detección de trazas de herbívoros.
-
     Args:
         image_path (str): ruta absoluta de la imagen original.
-
     Returns:
         dict: diccionario JSON con dos listas:
               {
@@ -192,13 +178,9 @@ def compute_traces(image_path: str) -> dict:
 
     return {"xs": xs, "ys": ys}
 
-
-
-
 def _set_error(message: str):
     """
     Guarda un mensaje de error en la sesión.
-
     Se mostrará en un modal en la siguiente petición al index.
     """
     session["error_message"] = message
@@ -207,6 +189,7 @@ def _set_error(message: str):
 # Rutas principales
 # -----------------------------------------------------------------------------
 
+#---------------- Ruta raíz ----------------------
 @bp.route("/", methods=["GET"])
 def index():
     """
@@ -261,7 +244,7 @@ def index():
         status_message=status_message,
     )
 
-
+#---------------- Ruta upload ----------------------
 @bp.route("/upload", methods=["POST"])
 def upload_image():
     """
@@ -321,7 +304,7 @@ def upload_image():
 
     return redirect(url_for("trazas.index"))
 
-
+#---------------- Ruta delete ----------------------
 @bp.route("/delete", methods=["POST"])
 def delete_image():
     """
@@ -329,6 +312,7 @@ def delete_image():
 
     Si no hay imagen cargada, se genera un error.
     """
+    # Comprueba que hay imagen cargada en sesión.
     image_filename = session.get("image_filename")
 
     if not image_filename:
@@ -354,7 +338,7 @@ def delete_image():
 
     return redirect(url_for("trazas.index"))
 
-
+#---------------- Ruta calculate ----------------------
 @bp.route("/calculate", methods=["POST"])
 def calculate_traces():
     """
@@ -396,12 +380,11 @@ def calculate_traces():
 
     return redirect(url_for("trazas.index"))
 
-
 # -----------------------------------------------------------------------------
 # Rutas auxiliares (servir imágenes y JSON)
 # -----------------------------------------------------------------------------
 
-
+# ----------- Ruta GET/uploads/<filename> ------------
 @bp.route("/uploads/<filename>")
 def uploaded_file(filename: str):
     """
@@ -409,7 +392,7 @@ def uploaded_file(filename: str):
     """
     return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
-
+# -------------------- Ruta traces -----------------------
 @bp.route("/traces")
 def traces_json():
     """
@@ -418,11 +401,17 @@ def traces_json():
     Útil para depuración y para verificar que el cálculo se realiza
     correctamente. El JSON se lee desde el fichero guardado en OUTPUT_FOLDER.
     """
+    # Obtiene traces_file desde la sesión actual.
     traces_file = session.get("traces_file")
+
+    # Si no, devuelve error.
     if not traces_file:
         return jsonify({"error": "No hay trazas calculadas todavía."}), 404
 
+    # Busca archivo en output, si existe, devuelve traces.
     traces_path = os.path.join(current_app.config["OUTPUT_FOLDER"], traces_file)
+
+    # Si no existe, lanza error.
     if not os.path.exists(traces_path):
         return (
             jsonify(
@@ -433,6 +422,7 @@ def traces_json():
             500,
         )
 
+    # Abre archivo y lo convierte en formato JSON HTTP.
     with open(traces_path, "r", encoding="utf-8") as f:
         traces = json.load(f)
 

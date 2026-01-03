@@ -30,6 +30,8 @@ Notas:
 import os
 from flask import Flask
 
+from . import traces
+
 def create_app(test_config=None):
     """
     Crea y configura la aplicación Flask.
@@ -69,7 +71,6 @@ def create_app(test_config=None):
     os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
 
     # Registrar blueprint principal.
-    from . import traces
     app.register_blueprint(traces.bp)
 
     # Ruta raíz: redirigimos a trazas.index.
