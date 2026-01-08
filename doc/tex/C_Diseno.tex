@@ -89,6 +89,43 @@ A la luz de este análisis comparativo, la solución adoptada en el proyecto con
 \section{Diseño arquitectónico}
 \includegraphics{../assets/mockup/Mockup web}
 
+\subsection{Arquitectura general de la aplicación}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{figuras/diagrama_flujo_aplicacion.png}
+	\caption{Diagrama de flujo de la arquitectura de la aplicación}
+	\label{fig:diagrama_flujo}
+\end{figure}
+
+La Figura \ref{fig:diagrama_flujo} representa la arquitectura general de la aplicación y las interacciones entre sus distintos componentes, diferenciando claramente el lado cliente y el lado servidor.
+
+El usuario interactúa con la aplicación a través del navegador web, que actúa como intermediario entre la interfaz gráfica y el backend. En el cliente se distinguen dos responsabilidades bien separadas. Por un lado, el HTML renderizado mediante Jinja se encarga de mostrar la estructura de la interfaz, incluyendo botones, imágenes y modales informativos. Por otro lado, la lógica implementada en JavaScript, apoyada en un elemento \textit{canvas}, gestiona la descarga de los resultados en formato JSON y su representación gráfica, sin delegar operaciones de modificación visual al servidor.
+
+El servidor, implementado con Flask, centraliza la lógica de negocio y expone los distintos endpoints a través de un \textit{Blueprint} dedicado a la gestión de trazas. Para mantener el estado de la aplicación entre peticiones HTTP, se utiliza una \textit{session cookie} que almacena información relativa a la imagen activa y a la disponibilidad de resultados calculados. Asimismo, el sistema emplea almacenamiento en disco, dentro del directorio \textit{instance}, tanto para persistir las imágenes subidas por el usuario como para guardar los resultados intermedios en formato JSON.
+
+Este diseño garantiza una separación clara de responsabilidades, evitando que el cliente modifique directamente recursos en el servidor y relegando el procesamiento visual al navegador, lo que mejora la escalabilidad y simplifica la arquitectura.
+
+\subsection{Flujo temporal de interacción entre componentes}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{figuras/diagrama_secuencia_aplicacion.png}
+	\caption{Diagrama de secuencia de la aplicación}
+	\label{fig:diagrama_secuencia}
+\end{figure}
+
+La Figura \ref{fig:diagrama_secuencia} describe de forma cronológica el flujo de interacción entre el usuario, el navegador, el servidor Flask y el sistema de almacenamiento, permitiendo comprender el comportamiento dinámico de la aplicación.
+
+El proceso se inicia cuando el usuario selecciona una imagen desde la interfaz. El navegador envía dicha imagen al servidor mediante una petición \textit{POST upload}, tras lo cual Flask la persiste en disco y actualiza el estado de la sesión. A continuación, el servidor responde con una redirección que provoca la recarga de la página principal, mostrando la imagen cargada.
+
+Posteriormente, cuando el usuario solicita el cálculo de trazas, el servidor ejecuta la lógica correspondiente, genera los resultados en formato JSON y los almacena en el sistema de ficheros, actualizando de nuevo la sesión para reflejar el nuevo estado. La respuesta se materializa en una recarga de la interfaz que incluye un modal de confirmación.
+
+Una vez cerrado el modal, el navegador solicita explícitamente los resultados mediante una petición \textit{GET traces}. El servidor lee el fichero JSON previamente generado y lo devuelve al cliente, donde el código JavaScript se encarga de dibujar las trazas sobre el \textit{canvas} y reflejar visualmente el estado de la aplicación.
+
+Finalmente, si el usuario decide eliminar la imagen, se envía una petición \textit{POST delete}. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
+
+
 \section{Diseño procedimental}
 
 \subsection{Comparativa de extensiones para la gestión de bases de datos en Visual Studio Code}
