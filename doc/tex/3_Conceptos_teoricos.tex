@@ -14,95 +14,97 @@ Además de secciones tenemos subsecciones.
 
 Y subsecciones. 
 
-\section{Conceptos teóricos de la Segmentación Semántica}
+\section{Visión por computadora}
 
 \subsection{Visión por computadora}
 La Visión por Computadora, en el contexto de la Inteligencia Artificial, es la disciplina que se enfoca en el diseño y optimización de arquitecturas computacionales para realizar la proyección no lineal de datos de entrada dados por píxeles hacia espacios de características de alta dimensionalidad~\cite{visionencoder2025} que encapsulan información semántica estratificada.
 
 El objetivo operacional es la predicción densa a nivel de píxel o la clasificación discriminativa de etiquetas~\cite{visionencoder2025, zhang2022constructionautomation}, utilizando mapeos jerárquicos de características y garantizando la solvencia de optimización en estructuras ultra-profundas mediante mecanismos residuales~\cite{he2016resnet}.
 
-\subsection{Aprendizaje Profundo}
+\subsection{Conceptos teóricos de la Segmentación Semántica}
+
+\subsubsection{Aprendizaje Profundo}
 El Aprendizaje Profundo es un paradigma de machine learning basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
 Funciona de una forma que, una clase de hipótesis de altísima capacidad, realizada por composiciones profundas de operadores paramétricos y no linealidades puntuales, aprende representaciones jerárquicas de los datos optimizando un funcional de riesgo empírico.
 
 El éxito del Aprendizaje Profundo se atribuye a su capacidad para trabajar con arquitecturas muy grandes y profundas, con millones de parámetros, logrando avances significativos en el reconocimiento de imágenes~\cite{ronneberger2015unet, diezpastora2025trails, neloy2024autoencoders, he2016resnet}. 
 Este resuelve la necesidad de los sistemas de visión de extraer la representación de características más efectiva a partir de datos complejos~\cite{neloy2024autoencoders}, automatizando lo que antes requería el diseño manual de características.
 
-\subsection{Estructuras ultra-profundas}
+\subsubsection{Estructuras ultra-profundas}
 En el marco del Aprendizaje Profundo, la profundidad de las representaciones y de la red es de importancia crucial para muchas tareas de reconocimiento visual~\cite{he2016resnet, huang2018densenet}. Las arquitecturas modernas han superado significativamente las redes iniciales, con modelos que han rebasado la barrera de las cien capas~\cite{huang2018densenet}. Estas estructuras ultra-profundas buscan enriquecer los niveles de características mediante el aumento del número de capas apiladas~\cite{he2016resnet, huang2018densenet}.
 
 Sin embargo, el aumento de la profundidad introduce un desafío conocido como el problema de la degradación. Esta ocurre cuando, al aumentar las capas apiladas, la precisión del entrenamiento se deteriora. Teóricamente, un modelo más profundo no debería tener un error de entrenamiento mayor que su contraparte menos profunda. El hecho de que esto suceda indica que los algoritmos de optimización actuales tienen dificultades para encontrar soluciones que optimicen estas estructuras ultra-profundas~\cite{he2016resnet}. 
 
 Esto debido a que, a medida que la información o el gradiente pasan por muchas capas, pueden desvanecerse antes de alcanzar el inicio o el final de la red~\cite{huang2018densenet}.
 
-\subsection{Predición Densa, denominada: Dense prediction}
+\subsubsection{Predición Densa, denominada: Dense prediction}
 La predicción densa es una formulación de inferencia estructurada en la que el sistema estima, para cada ubicación del dominio espacial de la entrada, una variable de salida perteneciente a un espacio de etiquetas o a un espacio continuo~\cite{zhang2022constructionautomation}. En visión por computador abarca tanto clasificación por elemento, como regresión por elemento, dando lugar a campos de salida con fuerte dependencia local y coherencia geométrica~\cite{zhao2017pspnet, lin2017fpn}. 
 
-Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del output stride para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por downsampling~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
+Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por downsampling~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
 
-Operativamente, la predicción densa se implementa con encoders–decoders convolucionales que combinan downsampling para agregar contexto y upsampling para reconstruir resolución, asistidos por skip connections por concatenación para preservar información de detalle~\cite{ronneberger2015unet, bala2025visiontranscoder, badrinarayanan2016segnet}.
+Operativamente, la predicción densa se implementa con \textit{encoders–decoders} convolucionales que combinan \textit{downsampling} para agregar contexto y \textit{upsampling} para reconstruir resolución, asistidos por \textit{skip connections} por concatenación para preservar información de detalle~\cite{ronneberger2015unet, bala2025visiontranscoder, badrinarayanan2016segnet}.
 
-\subsection{Segmentación Semántica}
+\subsubsection{Segmentación Semántica}
 La segmentación semántica es una tarea de predicción densa en Visión por Computadora cuyo objetivo es la clasificación a nivel de píxel~\cite{bala2025visiontranscoder, ji2022automation}, mediante la asignación de una etiqueta de clase semántica a cada píxel de una imagen de entrada. A diferencia de tareas como la clasificación, la segmentación semántica proporciona una comprensión completa del escenario, prediciendo así la categoría, ubicación y forma de cada elemento.
 
-Este proceso típicamente se implementa a través de una arquitectura de red neuronal profunda de codificador-decodificador, llamada encoder-decoder de manera tradicional~\cite{ji2022automation, neloy2024autoencoders, bala2025visiontranscoder}.
+Este proceso típicamente se implementa a través de una arquitectura de red neuronal profunda de codificador-decodificador, llamada \textit{encoder-decoder} de manera tradicional~\cite{ji2022automation, neloy2024autoencoders, bala2025visiontranscoder}.
 
 \begin{enumerate}
 	\item \textbf{Codificación mediante encoder:} 
-	El codificador, a menudo basado en una Red Neuronal Convolucional (CNN)~\cite{visionencoder2025} o un Vision Transformer (ViT)~\cite{bala2025visiontranscoder}, toma la imagen de entrada y transforma los datos de esta en una representación de características de alto nivel mediante una reducción de la resolución espacial a través de diversas operaciones como podrían ser el max-pooling o el uso de capas convolucionales, obteniendo así como resultado unas capas de características de baja resolución pero semánticamente ricas.
+	El codificador, a menudo basado en una Red Neuronal Convolucional (CNN)~\cite{visionencoder2025} o un \textit{Vision Transformer (ViT)}~\cite{bala2025visiontranscoder}, toma la imagen de entrada y transforma los datos de esta en una representación de características de alto nivel mediante una reducción de la resolución espacial a través de diversas operaciones como podrían ser el \textit{max-pooling} o el uso de capas convolucionales, obteniendo así como resultado unas capas de características de baja resolución pero semánticamente ricas.
 	
-	\item \textbf{Decodificación por decoder:} El decodificador opera con las características comprimidas del codificador para reconstruir la predicción final. Esto lo hará mediante la utilización de operaciones de sobremuestreo, a menudo implementadas mediante upsampling~\cite{badrinarayanan2016segnet, lin2017fpn} o mediante el uso de índices de max-pooling~\cite{neloy2024autoencoders, zhang2022constructionautomation}, agrandando la entrada para extraer características de alta resolución~\cite{neloy2024autoencoders, ji2022automation, badrinarayanan2016segnet}.
+	\item \textbf{Decodificación por decoder:} El decodificador opera con las características comprimidas del codificador para reconstruir la predicción final. Esto lo hará mediante la utilización de operaciones de sobremuestreo, a menudo implementadas mediante \textit{upsampling}~\cite{badrinarayanan2016segnet, lin2017fpn} o mediante el uso de índices de \textit{max-pooling}~\cite{neloy2024autoencoders, zhang2022constructionautomation}, agrandando la entrada para extraer características de alta resolución~\cite{neloy2024autoencoders, ji2022automation, badrinarayanan2016segnet}.
 	
-	\item \textbf{Salida y Optimización:} La salida final es un mapa de segmentación que se alimenta a una capa Softmax para asignar probabilidades de clasificación a cada píxel de forma independiente~\cite{ji2022automation, bala2025visiontranscoder, neloy2024autoencoders}, generando una predicción densa~\cite{neloy2024autoencoders, bala2025visiontranscoder}.
+	\item \textbf{Salida y Optimización:} La salida final es un mapa de segmentación que se alimenta a una capa \textit{Softmax} para asignar probabilidades de clasificación a cada píxel de forma independiente~\cite{ji2022automation, bala2025visiontranscoder, neloy2024autoencoders}, generando una predicción densa~\cite{neloy2024autoencoders, bala2025visiontranscoder}.
 \end{enumerate}
 
-\subsection{Kernel}
-En el ámbito de las redes neuronales, un kernel es un conjunto de filtros con pesos aprendibles que constituyen el componente fundamental de las capas convolucionales para convertir datos de entrada en mapas de características~\cite{ji2022automation}. Operativamente, el kernel se desliza sobre la entrada utilizando un \textit{stride}, realizando una operación matemática que produce una salida espacial encargada de capturar jerarquías de información, desde bordes simples hasta formas complejas~\cite{he2016resnet, ji2022automation, liu2022convnext}. Esta estrategia es intrínseca al procesamiento visual, permitiendo que las computaciones se compartan y que el sistema sea eficiente al manejar imágenes de alta resolución~\cite{liu2022convnext}.
+\subsubsection{Kernel}
+En el ámbito de las redes neuronales, un \textit{kernel} es un conjunto de filtros con pesos aprendibles que constituyen el componente fundamental de las capas convolucionales para convertir datos de entrada en mapas de características~\cite{ji2022automation}. Operativamente, el \textit{kernel} se desliza sobre la entrada utilizando un \textit{stride}, realizando una operación matemática que produce una salida espacial encargada de capturar jerarquías de información, desde bordes simples hasta formas complejas~\cite{he2016resnet, ji2022automation, liu2022convnext}. Esta estrategia es intrínseca al procesamiento visual, permitiendo que las computaciones se compartan y que el sistema sea eficiente al manejar imágenes de alta resolución~\cite{liu2022convnext}.
 
-El diseño del kernel, es una decisión arquitectónica crítica que determina el campo receptivo; por ejemplo, mientras que los kernels de 3x3 son el estándar por su eficiencia en hardware, modelos modernos han demostrado que los kernels de 7x7 pueden capturar un contexto global mucho más amplio~\cite{liu2022convnext}. 
+El diseño del \textit{kernel}, es una decisión arquitectónica crítica que determina el campo receptivo; por ejemplo, mientras que los \textit{kernels} de $3 \times 3$ son el estándar por su eficiencia en \textit{hardware}, modelos modernos han demostrado que los \textit{kernels} de $7 \times 7$ pueden capturar un contexto global mucho más amplio~\cite{liu2022convnext}. 
 
-Además de la extracción de características, el concepto de kernel se extiende a funciones matemáticas de comparación, como el Central Kernel Alignment (CKA), que utiliza un kernel lineal para medir la similitud de representación entre los espacios de embebido latente de diferentes arquitecturas~\cite{iana2024peeling}.
+Además de la extracción de características, el concepto de \textit{kernel} se extiende a funciones matemáticas de comparación, como el \textit{Central Kernel Alignment (CKA)}, que utiliza un \textit{kernel} lineal para medir la similitud de representación entre los espacios de embebido latente de diferentes arquitecturas~\cite{iana2024peeling}.
 
-\subsection{Stride}
-El stride es un parámetro crítico que define la magnitud del desplazamiento de un kernel a medida que recorre los datos de entrada en una red neuronal~\cite{ji2022automation, dumoulin2018guide}. En las capas del codificador, el uso de un \textit{stride} mayor a uno constituye una técnica de downsampling que reduce progresivamente la resolución espacial de los mapas de características~\cite{badrinarayanan2016segnet, ronneberger2015unet}. Esta operación permite que los píxeles resultantes abarquen un contexto de imagen de entrada más amplio, facilitando la extracción de características semánticas de alto nivel y mejorando la invarianza traslacional del modelo~\cite{ji2022automation, badrinarayanan2016segnet, liu2022convnext}.
+\subsubsection{Stride}
+El \textit{stride} es un parámetro crítico que define la magnitud del desplazamiento de un \textit{kernel} a medida que recorre los datos de entrada en una red neuronal~\cite{ji2022automation, dumoulin2018guide}. En las capas del codificador, el uso de un \textit{stride} mayor a uno constituye una técnica de \textit{downsampling} que reduce progresivamente la resolución espacial de los mapas de características~\cite{badrinarayanan2016segnet, ronneberger2015unet}. Esta operación permite que los píxeles resultantes abarquen un contexto de imagen de entrada más amplio, facilitando la extracción de características semánticas de alto nivel y mejorando la invarianza traslacional del modelo~\cite{ji2022automation, badrinarayanan2016segnet, liu2022convnext}.
 
-En el decodificador, el \textit{stride} es esencial para las operaciones de upsampling, donde se utiliza para expandir representaciones comprimidas hacia mapas de alta resolución~\cite{ji2022automation, badrinarayanan2016segnet}. El tamaño final de la salida depende de la interacción matemática entre las dimensiones de entrada, el padding, el tamaño del kernel y el valor del \textit{stride} aplicado~\cite{ji2022automation, tan2019efficientnet}. La gestión precisa de este paso es vital para reconstruir con fidelidad la información espacial y asegurar una delineación precisa de los límites de los objetos en tareas de segmentación densa~\cite{ronneberger2015unet, howard2019mobilenetv3, bala2025visiontranscoder}.
+En el decodificador, el \textit{stride} es esencial para las operaciones de \textit{upsampling}, donde se utiliza para expandir representaciones comprimidas hacia mapas de alta resolución~\cite{ji2022automation, badrinarayanan2016segnet}. El tamaño final de la salida depende de la interacción matemática entre las dimensiones de entrada, el \textit{padding}, el tamaño del \textit{kernel} y el valor del \textit{stride} aplicado~\cite{ji2022automation, tan2019efficientnet}. La gestión precisa de este paso es vital para reconstruir con fidelidad la información espacial y asegurar una delineación precisa de los límites de los objetos en tareas de segmentación densa~\cite{ronneberger2015unet, howard2019mobilenetv3, bala2025visiontranscoder}.
 
-\subsection{Transformer}
-La arquitectura del Transformer es un modelo de procesamiento de secuencias basado íntegramente en mecanismos de autoatención, eliminando la necesidad de recurrencia o convoluciones para capturar dependencias~\cite{vaswani2017attention, khan2022transformersvision}. A diferencia de las redes recurrentes que procesan elementos de forma secuencial, el Transformer permite el procesamiento en paralelo de toda la secuencia, lo que facilita el modelado de relaciones de largo alcance y mejora significativamente la escalabilidad en grandes conjuntos de datos~\cite{khan2022transformersvision, mamba2023linear}. 
+\subsubsection{Transformer}
+La arquitectura del \textit{Transformer} es un modelo de procesamiento de secuencias basado íntegramente en mecanismos de autoatención, eliminando la necesidad de recurrencia o convoluciones para capturar dependencias~\cite{vaswani2017attention, khan2022transformersvision}. A diferencia de las redes recurrentes que procesan elementos de forma secuencial, el \textit{Transformer} permite el procesamiento en paralelo de toda la secuencia, lo que facilita el modelado de relaciones de largo alcance y mejora significativamente la escalabilidad en grandes conjuntos de datos~\cite{khan2022transformersvision, mamba2023linear}. 
 
-Su estructura estándar se compone de un codificador y un decodificador que apilan múltiples bloques idénticos, cada uno equipado con capas de atención de múltiples cabezales y redes de alimentación feed-forward~\cite{vaswani2017attention, bala2025visiontranscoder}.
+Su estructura estándar se compone de un codificador y un decodificador que apilan múltiples bloques idénticos, cada uno equipado con capas de atención de múltiples cabezales y redes de alimentación \textit{feed-forward}~\cite{vaswani2017attention, bala2025visiontranscoder}.
 
-\subsection{Mecanismos Residuales}
-Los mecanismos residuales son esquemas de conexión aditiva que introducen skip connections a través de los bloques de una red profunda, de modo que la transformación aprendida se formula como una corrección respecto de la señal que fluye sin distorsión por el atajo~\cite{he2016resnet}. 
+\subsubsection{Mecanismos Residuales}
+Los mecanismos residuales son esquemas de conexión aditiva que introducen \textit{skip connections} a través de los bloques de una red profunda, de modo que la transformación aprendida se formula como una corrección respecto de la señal que fluye sin distorsión por el atajo~\cite{he2016resnet}. 
 
 Esta arquitectura estabiliza la propagación hacia delante y hacia atrás, mejora el acondicionamiento efectivo del problema de optimización y habilita redes sustancialmente más profundas; cuando existe desajuste de dimensionalidad, la ruta de identidad se implementa mediante proyecciones, mientras que otras variantes con saltos de identidad estrictos refuerzan el transporte directo de información y gradientes.
 
 En conjunto, los mecanismos residuales facilitan el aprendizaje de funciones de alta complejidad al mantener rutas de baja impedancia para el flujo de señales~\cite{srivastava2015highway}.
 
-\subsection{Skip Connections}
-Conexiones encargadas de mitigar la pérdida de información espacial que ocurre durante el downsampling en el codificador~\cite{bala2025visiontranscoder}. Transfieren características de alta resolución desde las capas tempranas del codificador a las capas correspondientes del decodificador, fusionando las características codificadas con los detalles espaciales finos, siendo estos los límites y contornos, del inicio de la red~\cite{badrinarayanan2016segnet, ronneberger2015unet}. 
+\subsubsection{Skip Connections}
+Conexiones encargadas de mitigar la pérdida de información espacial que ocurre durante el \textit{downsampling} en el codificador~\cite{bala2025visiontranscoder}. Transfieren características de alta resolución desde las capas tempranas del codificador a las capas correspondientes del decodificador, fusionando las características codificadas con los detalles espaciales finos, siendo estos los límites y contornos, del inicio de la red~\cite{badrinarayanan2016segnet, ronneberger2015unet}. 
 
-Para lograr esto, se emplea una capa de concatenación que fusiona la salida de las capas convolucionales del encoder con las capas de deconvolución del decoder~\cite{ronneberger2015unet, ji2022automation}.
+Para lograr esto, se emplea una capa de concatenación que fusiona la salida de las capas convolucionales del \textit{encoder} con las capas de deconvolución del \textit{decoder}~\cite{ronneberger2015unet, ji2022automation}.
 
-\subsection{Upsampling}
-El upsampling, también denominado deconvolución, es la función principal del decodificador, definida como la operación de mapeo que transforma representaciones de características comprimidas de baja resolución en mapas de características de alta resolución espacial para la clasificación a nivel de píxel~\cite{badrinarayanan2016segnet, ji2022automation}. 
+\subsubsection{Upsampling}
+El \textit{upsampling}, también denominado deconvolución, es la función principal del decodificador, definida como la operación de mapeo que transforma representaciones de características comprimidas de baja resolución en mapas de características de alta resolución espacial para la clasificación a nivel de píxel~\cite{badrinarayanan2016segnet, ji2022automation}. 
 
 Esto puede implementarse mediante interpolación, convolución transpuesta o decodificadores MLP~\cite{ji2022automation, cai2023efficientvit}. La implementación también puede optar por utilizar métodos sin aprendizaje, aunque esto puede resultar en un rendimiento inferior en comparación con los métodos que sí aprenden del entorno~\cite{badrinarayanan2016segnet}.
 
-Para preservar los contornos finos y garantizar la localización precisa, el decodificador se basa en la fusión de características de niveles previos del codificador mediante skip connections~\cite{ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}.
+Para preservar los contornos finos y garantizar la localización precisa, el decodificador se basa en la fusión de características de niveles previos del codificador mediante \textit{skip connections}~\cite{ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}.
 
-\subsection{Downsampling}
-El downsampling es una técnica fundamental utilizada en las redes neuronales convolucionales y en el encoder de las arquitecturas de codificador-decodificador para transformar la información de entrada en una representación de características reducida de alto nivel~\cite{ji2022automation, badrinarayanan2016segnet}. 
+\subsubsection{Downsampling}
+El \textit{downsampling} es una técnica fundamental utilizada en las redes neuronales convolucionales y en el \textit{encoder} de las arquitecturas de codificador-decodificador para transformar la información de entrada en una representación de características reducida de alto nivel~\cite{ji2022automation, badrinarayanan2016segnet}. 
 
-El propósito central de esta operación es doble: por un lado, aliviar la carga computacional y prevenir el overfitting; por otro lado, lograr una mayor invarianza traslacional sobre pequeños desplazamientos espaciales en la imagen de entrada, lo cual robustece la clasificación. Esto se realiza a costa de una pérdida progresiva de la resolución espacial en los mapas de características, lo cual reduce el detalle de los límites, un factor que debe compensarse en la fase de decodificación~\cite{badrinarayanan2016segnet, ronneberger2015unet, bala2025visiontranscoder}.
+El propósito central de esta operación es doble: por un lado, aliviar la carga computacional y prevenir el \textit{overfitting}; por otro lado, lograr una mayor \textit{invarianza traslacional} sobre pequeños desplazamientos espaciales en la imagen de entrada, lo cual robustece la clasificación. Esto se realiza a costa de una pérdida progresiva de la resolución espacial en los mapas de características, lo cual reduce el detalle de los límites, un factor que debe compensarse en la fase de decodificación~\cite{badrinarayanan2016segnet, ronneberger2015unet, bala2025visiontranscoder}.
 
-El mecanismo principal para lograr el submuestreo es la operación de max-pooling, que es el núcleo del downsampling y se utiliza para disminuir el tamaño del mapa de características~\cite{ji2022automation, ronneberger2015unet}. Lo que hace para llevarlo a cabo es dividir dicho mapa de entrada en pequeñas regiones o ventanas. Tras ello, extrae el valor máximo dentro de una de las ventanas, utilizándolo como el único valor representativo para esa área en el nuevo mapa de características reducido. Finalmente, la ventana se desliza a lo largo de la entrada con un \textit{stride} predefinido, permitiendo que cada píxel resultante abarque un contexto de imagen de entrada más amplio a medida que se reduce la resolución~\cite{zhang2022constructionautomation, ji2022automation, badrinarayanan2016segnet}. 
+El mecanismo principal para lograr el submuestreo es la operación de \textit{max-pooling}, que es el núcleo del \textit{downsampling} y se utiliza para disminuir el tamaño del mapa de características~\cite{ji2022automation, ronneberger2015unet}. Lo que hace para llevarlo a cabo es dividir dicho mapa de entrada en pequeñas regiones o ventanas. Tras ello, extrae el valor máximo dentro de una de las ventanas, utilizándolo como el único valor representativo para esa área en el nuevo mapa de características reducido. Finalmente, la ventana se desliza a lo largo de la entrada con un \textit{stride} predefinido, permitiendo que cada píxel resultante abarque un contexto de imagen de entrada más amplio a medida que se reduce la resolución~\cite{zhang2022constructionautomation, ji2022automation, badrinarayanan2016segnet}. 
 
-Aunque las sucesivas capas de max-pooling y submuestreo pueden lograr una mayor invarianza para una clasificación robusta, la contraparte es una pérdida progresiva de la resolución espacial en los mapas de características. Esta pérdida resulta en una representación cada vez más inexacta en cuanto al detalle de los límites de los objetos, lo cual es perjudicial para tareas de predicción densa, como la segmentación, donde la delineación precisa es vital~\cite{badrinarayanan2016segnet, bala2025visiontranscoder}. Sin embargo, el downsampling tiene un beneficio inherente: logra que cada píxel en el mapa de características posterior abarque un contexto de imagen de entrada más grande.
+Aunque las sucesivas capas de \textit{max-pooling} y submuestreo pueden lograr una mayor invarianza para una clasificación robusta, la contraparte es una pérdida progresiva de la resolución espacial en los mapas de características. Esta pérdida resulta en una representación cada vez más inexacta en cuanto al detalle de los límites de los objetos, lo cual es perjudicial para tareas de predicción densa, como la segmentación, donde la delineación precisa es vital~\cite{badrinarayanan2016segnet, bala2025visiontranscoder}. Sin embargo, el \textit{downsampling} tiene un beneficio inherente: logra que cada píxel en el mapa de características posterior abarque un contexto de imagen de entrada más grande.
 
 
-\subsection{Red Neuronal Convolucional (CNN)}
+\subsubsection{Red Neuronal Convolucional (CNN)}
 Una Red Neuronal Convolucional es una arquitectura de aprendizaje profundo que se ha convertido en el enfoque dominante para el reconocimiento visual de objetos~\cite{huang2018densenet, he2016resnet}. Implementa sesgos inductivos inherentes, como la covarianza traslacional, para la extracción eficiente de características jerárquicas, integrando naturalmente características de nivel bajo, medio y alto~\cite{liu2022convnext}. En un contexto de predicción densa, como la segmentación semántica, la CNN se extiende típicamente en un marco de codificador-decodificador para realizar una clasificación a nivel de píxel~\cite{zhang2022constructionautomation, ji2022automation, badrinarayanan2016segnet}.
 
 El funcionamiento en la segmentación se basa en este marco bifásico de codificación y decodificación:
@@ -110,13 +112,13 @@ El funcionamiento en la segmentación se basa en este marco bifásico de codific
 \begin{enumerate}
 \item \textbf{Capas Convolucionales, conocidas como: Convolutional Layers}
 
-Las capas convolucionales son el núcleo de la CNN y componen la ruta principal del codificador~\cite{ji2022automation, badrinarayanan2016segnet}. En estas, se realiza la operación de convolución, que utiliza un conjunto de kernels con pesos entrenables para convertir los datos de entrada en mapas de características~\cite{ji2022automation}. 
+Las capas convolucionales son el núcleo de la CNN y componen la ruta principal del codificador~\cite{ji2022automation, badrinarayanan2016segnet}. En estas, se realiza la operación de convolución, que utiliza un conjunto de \textit{kernels} con pesos entrenables para convertir los datos de entrada en mapas de características~\cite{ji2022automation}. 
 
-El kernel se desliza sobre la entrada con un \textit{stride} para producir la salida espacial~\cite{he2016resnet}. Mediante este proceso de downsampling codifica la información de entrada en una representación de características de alto nivel downsampleada~\cite{ji2022automation, badrinarayanan2016segnet}.
+El \textit{kernel} se desliza sobre la entrada con un \textit{stride} para producir la salida espacial~\cite{he2016resnet}. Mediante este proceso de \textit{downsampling} codifica la información de entrada en una representación de características de alto nivel downsampleada~\cite{ji2022automation, badrinarayanan2016segnet}.
 
 \item \textbf{Capas Deconvolucionales, también conocidas como: Deconvolutional Layers}
 
-Las capas deconvolucionales son el mecanismo de upsampling más común utilizado en la ruta del decodificador~\cite{zhang2022constructionautomation, badrinarayanan2016segnet}. Mediante el uso de esta técnica, también referida como convolución transpuesta, consiguen mapear los mapas de características comprimidos de baja resolución a mapas de características densos que se aproximan a la resolución de entrada original para la clasificación por elemento~\cite{badrinarayanan2016segnet, ji2022automation}. 
+Las capas deconvolucionales son el mecanismo de \textit{upsampling} más común utilizado en la ruta del decodificador~\cite{zhang2022constructionautomation, badrinarayanan2016segnet}. Mediante el uso de esta técnica, también referida como convolución transpuesta, consiguen mapear los mapas de características comprimidos de baja resolución a mapas de características densos que se aproximan a la resolución de entrada original para la clasificación por elemento~\cite{badrinarayanan2016segnet, ji2022automation}. 
 
 El desafío al que se deben enfrentar estas capas es que la red puede tender a ignorar los detalles debido a la naturaleza de la amplificación, lo que conlleva una salida insatisfactoria~\cite{ji2022automation}.
 
@@ -124,18 +126,30 @@ El desafío al que se deben enfrentar estas capas es que la red puede tender a i
 
 La capa de concatenación es un componente de fusión de características utilizado en el decodificador para mejorar la precisión espacial~\cite{ ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}. Para lograr este objetivo, fusiona las características de salida de las capas convolucionales del codificador con las características de las capas deconvolucionales del decodificador.
 
-Dicha fusión se logra a través del uso de skip connections, que copian los mapas de características de alta resolución y bajo nivel semántico desde el codificador hacia el decodificador~\cite{ ronneberger2015unet, badrinarayanan2016segnet, ji2022automation}. La concatenación expande estos mapas y, al combinar las características espaciales detalladas con las características semánticas restauradas, asegura una delineación precisa de los límites en la predicción final~\cite{ ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}.
+Dicha fusión se logra a través del uso de \textit{skip connections}, que copian los mapas de características de alta resolución y bajo nivel semántico desde el codificador hacia el decodificador~\cite{ ronneberger2015unet, badrinarayanan2016segnet, ji2022automation}. La concatenación expande estos mapas y, al combinar las características espaciales detalladas con las características semánticas restauradas, asegura una delineación precisa de los límites en la predicción final~\cite{ ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}.
 
 \end{enumerate}
 
-\subsection{Vision Transformer (ViT)}
-La arquitectura del Vision Transformer (ViT) se erige como el paradigma dominante después de las CNN en tareas de reconocimiento visual~\cite{liu2022convnext, khan2022transformersvision, bala2025visiontranscoder}. Opera al inicio con una fase de tokenización no superpuesta, donde la imagen de entrada es segmentada en parches, aplanados, y proyectados linealmente mediante una transformación a un espacio embebido~\cite{bala2025visiontranscoder}. A estos embeddings se les adjuntan codificaciones posicionales para conservar la información espacial~\cite{bala2025visiontranscoder}.
+\subsubsection{Vision Transformer (ViT)}
+La arquitectura del \textit{Vision Transformer (ViT)} se erige como el paradigma dominante después de las CNN en tareas de reconocimiento visual~\cite{liu2022convnext, khan2022transformersvision, bala2025visiontranscoder}. Opera al inicio con una fase de tokenización no superpuesta, donde la imagen de entrada es segmentada en parches, aplanados, y proyectados linealmente mediante una transformación a un espacio embebido~\cite{bala2025visiontranscoder}. A estos \textit{embeddings} se les adjuntan codificaciones posicionales para conservar la información espacial~\cite{bala2025visiontranscoder}.
 
-Esta secuencia de tokens enriquecida se introduce en un encoder de Transformer que consiste en múltiples bloques idénticos, equipados con el mecanismo de Multi-Head Self-Attention. El self-attention permite que cada token capture relaciones de largo alcance y el contexto global con todos los demás tokens, facilitando una interpretación más inclusiva de patrones intrincados en los datos~\cite{khan2022transformersvision, bala2025visiontranscoder}.
+Esta secuencia de \textit{tokens} enriquecida se introduce en un \textit{encoder} de \textit{Transformer} que consiste en múltiples bloques idénticos, equipados con el mecanismo de \textit{Multi-Head Self-Attention}. El \textit{self-attention} permite que cada \textit{token} capture relaciones de largo alcance y el contexto global con todos los demás \textit{tokens}, facilitando una interpretación más inclusiva de patrones intrincados en los datos~\cite{khan2022transformersvision, bala2025visiontranscoder}.
 
-En el contexto de la segmentación densa, el encoder ViT finaliza su proceso entregando características codificadas de bajo nivel espacial pero semánticamente ricas. La arquitectura completa luego emplea un decodificador para reconstruir el mapa de segmentación~\cite{bala2025visiontranscoder}. Este decodificador típicamente incluye capas de upsampling para aumentar la resolución espacial de las características comprimidas y utiliza skip connections para transferir características de alta resolución desde el encoder y así reconstruir el mapa de segmentación con alta fidelidad~\cite{bala2025visiontranscoder}. 
+En el contexto de la segmentación densa, el \textit{encoder ViT} finaliza su proceso entregando características codificadas de bajo nivel espacial pero semánticamente ricas. La arquitectura completa luego emplea un decodificador para reconstruir el mapa de segmentación~\cite{bala2025visiontranscoder}. Este decodificador típicamente incluye capas de \textit{upsampling} para aumentar la resolución espacial de las características comprimidas y utiliza \textit{skip connections} para transferir características de alta resolución desde el \textit{encoder} y así reconstruir el mapa de segmentación con alta fidelidad~\cite{bala2025visiontranscoder}. 
 
-La salida final se genera a través de una capa convolucional seguida de una activación Softmax, proporcionando un mapa de probabilidades detallado para la clasificación a nivel de píxel~\cite{zhang2022constructionautomation, bala2025visiontranscoder}. 
+La salida final se genera a través de una capa convolucional seguida de una activación \textit{Softmax}, proporcionando un mapa de probabilidades detallado para la clasificación a nivel de píxel~\cite{zhang2022constructionautomation, bala2025visiontranscoder}. 
+
+\subsection{Arquitecturas de Segmentación Semántica}
+
+\subsubsection{U-Net}
+
+\subsubsection{Feature Pyramid Network}
+
+\subsubsection{UPerNet}
+
+\subsubsection{SegFormer}
+
+\subsubsection{PSPNet (Pyramid Scene Parsing Network)}
 
 \section{Referencias}
 
