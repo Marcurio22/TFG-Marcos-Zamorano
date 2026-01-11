@@ -22,6 +22,8 @@ La Visión por Computadora, en el contexto de la Inteligencia Artificial, es la 
 El objetivo operacional es la predicción densa a nivel de píxel o la clasificación discriminativa de etiquetas~\cite{visionencoder2025, zhang2022constructionautomation}, utilizando mapeos jerárquicos de características y garantizando la solvencia de optimización en estructuras ultra-profundas mediante mecanismos residuales~\cite{he2016resnet}.
 
 \subsection{Conceptos teóricos de la Segmentación Semántica}
+En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica moderna en visión por computador, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
+
 
 \subsubsection{Aprendizaje Profundo}
 El Aprendizaje Profundo es un paradigma de machine learning basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
@@ -140,6 +142,8 @@ En el contexto de la segmentación densa, el \textit{encoder ViT} finaliza su pr
 La salida final se genera a través de una capa convolucional seguida de una activación \textit{Softmax}, proporcionando un mapa de probabilidades detallado para la clasificación a nivel de píxel~\cite{zhang2022constructionautomation, bala2025visiontranscoder}. 
 
 \subsection{Arquitecturas de Segmentación Semántica}
+En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como U-Net, Feature Pyramid Network y UPerNet, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como SegFormer. Asimismo, se incluye PSPNet, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
+
 
 \subsubsection{U-Net}
 
