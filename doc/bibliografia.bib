@@ -1,3 +1,5 @@
+% --- Fuentes por defecto ---
+
 @book{koza92,
 		author    = "Koza, John R.",
 		title     = "Genetic Programming: On the Programming of Computers by Means of Natural Selection",
@@ -14,16 +16,7 @@
        note = "[Internet; descargado 30-septiembre-2015]"
 }
 
-@article{bortolot2005,
-  title={Estimating forest biomass using small footprint LiDAR data: An individual tree-based approach that incorporates training data},
-  author={Bortolot, Zachary J and Wynne, Randolph H},
-  journal={ISPRS Journal of Photogrammetry and Remote Sensing},
-  volume={59},
-  number={6},
-  pages={342--360},
-  year={2005},
-  publisher={Elsevier}
-}
+% --- Artículo base y artículos relacionados ---
 
 @article{diezpastora2025trails,
 	author    = {Jos{\'e} Francisco D{\'i}ez-Pastora and Francisco Javier Gonz{\'a}lez-Moya and Pedro Latorre-Carmona and Francisco Javier P{\'e}rez-Barber{\'i}a and Ludmila Kuncheva and Antonio Canepa-Oneto and {\'A}lvar Arnaiz-Gonz{\'a}lez and C{\'e}sar Garc{\'i}a-Osorio},
@@ -34,6 +27,139 @@
 	institution = {Universidad de Burgos, Spanish Research Council (CSIC), Bangor University},
 	keywords  = {semantic segmentation, remote sensing, grazing trails, UNet, deep learning}
 }
+
+@article{bortolot2005,
+	title={Estimating forest biomass using small footprint LiDAR data: An individual tree-based approach that incorporates training data},
+	author={Bortolot, Zachary J and Wynne, Randolph H},
+	journal={ISPRS Journal of Photogrammetry and Remote Sensing},
+	volume={59},
+	number={6},
+	pages={342--360},
+	year={2005},
+	publisher={Elsevier}
+}
+
+% --- Plataformas y fuentes geoespaciales ---
+
+@misc{googleearthengine_web,
+	author       = {{Google LLC}},
+	title        = {Google Earth Engine},
+	howpublished = {\url{https://earthengine.google.com/}},
+	year         = {2024},
+	note         = {Plataforma web para an{\'a}lisis geoespacial a gran escala basada en computaci{\'o}n en la nube. Acceso a cat{\'a}logos de datos satelitales y herramientas de procesamiento},
+}
+
+@article{gorelick2017google,
+	author    = {Gorelick, Noel and Hancher, Matt and Dixon, Mike and Ilyushchenko, Simon and Thau, David and Moore, Rebecca},
+	title     = {Google Earth Engine: Planetary-Scale Geospatial Analysis for Everyone},
+	journal   = {Remote Sensing of Environment},
+	volume    = {202},
+	pages     = {18--27},
+	year      = {2017},
+	doi       = {10.1016/j.rse.2017.06.031}
+}
+
+@misc{pnoa_ign,
+	author       = {{Instituto Geogr{\'a}fico Nacional (IGN) de Espa{\~n}a}},
+	title        = {Plan Nacional de Ortofot{\'\i}a A{\'e}rea (PNOA) - Ortofotograf{\'\i}as RGB de Espa{\~n}a},
+	howpublished = {\url{https://pnoa.ign.es/}},
+	note         = {Ortofotograf{\'\i}as a{\'e}reas de alta resoluci{\'o}n disponibles para an{\'a}lisis geoespacial; datos accesibles tambi{\'e}n a trav{\'e}s del Earth Engine Data Catalog} % Descripción general PNOA :contentReference[oaicite:2]{index=2}
+}
+
+% --- Teledetección aplicada a biodiversidad y monitorización ecológica ---
+
+@article{turner2003remoteBiodiversity,
+	author  = {Turner, Woody and Spector, Stephen and Gardiner, Nate and Fladeland, Matt and Sterling, Emily and Steininger, Marc},
+	title   = {Remote sensing for biodiversity science and conservation},
+	journal = {Trends in Ecology \& Evolution},
+	year    = {2003},
+	volume  = {18},
+	number  = {6},
+	pages   = {306--314},
+	doi     = {10.1016/S0169-5347(03)00070-3}
+}
+
+@article{kerr2003fromSpaceToSpecies,
+	author  = {Kerr, Jeremy T. and Ostrovsky, Marsha},
+	title   = {From space to species: Ecological applications for remote sensing},
+	journal = {Trends in Ecology \& Evolution},
+	year    = {2003},
+	volume  = {18},
+	number  = {6},
+	pages   = {299--305},
+	doi     = {10.1016/S0169-5347(03)00071-5}
+}
+
+@article{wang2010remoteSensingEBC,
+	author  = {Wang, Kai and Franklin, Steven E. and Guo, Xulin and Cattet, Marc},
+	title   = {Remote Sensing of Ecology, Biodiversity and Conservation: A Review from the Perspective of Remote Sensing Specialists},
+	journal = {Sensors},
+	year    = {2010},
+	volume  = {10},
+	number  = {11},
+	pages   = {9647--9667},
+	doi     = {10.3390/s101109647}
+}
+
+@article{pettorelli2014appliedEcologists,
+	author  = {Pettorelli, Nathalie and Laurance, William F. and O'Brien, Timothy G. and Wegmann, Martin and Nagendra, Harini and Turner, Woody},
+	title   = {Satellite remote sensing for applied ecologists: opportunities and challenges},
+	journal = {Journal of Applied Ecology},
+	year    = {2014},
+	volume  = {51},
+	number  = {4},
+	pages   = {839--848},
+	doi     = {10.1111/1365-2664.12261}
+}
+
+@article{cavenderbares2022integratingRemoteSensing,
+	author  = {Cavender-Bares, Jeannine and Schneider, Fabian D. and Santos, Maria Jo{\~a}o and Armstrong, Amanda and Carnaval, Ana and Hurtt, George C. and Schimel, David and Townsend, Philip A. and Ustin, Susan L. and Wilson, Adam M. and others},
+	title   = {Integrating remote sensing with ecology and evolution to advance biodiversity conservation},
+	journal = {Nature Ecology \& Evolution},
+	year    = {2022},
+	volume  = {6},
+	pages   = {506--519},
+	doi     = {10.1038/s41559-022-01702-5}
+}
+
+@inproceedings{long2015fcn,
+	author    = {Long, Jonathan and Shelhamer, Evan and Darrell, Trevor},
+	title     = {Fully Convolutional Networks for Semantic Segmentation},
+	booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+	year      = {2015},
+	pages     = {3431--3440},
+	doi       = {10.1109/CVPR.2015.7298965}
+}
+
+@article{minaee2022segmentationSurvey,
+	author  = {Minaee, Shervin and Boykov, Yuri and Porikli, Fatih and Plaza, Antonio and Kehtarnavaz, Nasser and Terzopoulos, Demetri},
+	title   = {Image Segmentation Using Deep Learning: A Survey},
+	journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+	year    = {2022},
+	volume  = {44},
+	number  = {7},
+	pages   = {3523--3542},
+	doi     = {10.1109/TPAMI.2021.3059968}
+}
+
+@article{lv2023remoteSensingSegReview,
+	author  = {Lv, Jinna and Shen, Qi and Lv, Mingzheng and Li, Yiran and Shi, Lei and Zhang, Peiying},
+	title   = {Deep learning-based semantic segmentation of remote sensing images: a review},
+	journal = {Frontiers in Ecology and Evolution},
+	year    = {2023},
+	volume  = {11},
+	doi     = {10.3389/fevo.2023.1201125}
+}
+
+@article{li2024digitalEarthSegReview,
+	author  = {Li, Jiangyun and Cai, Yuanxiu and Li, Qing and Kou, Mingyin and Zhang, Tianxiang and others},
+	title   = {A review of remote sensing image segmentation by deep learning methods},
+	journal = {International Journal of Digital Earth},
+	year    = {2024},
+	doi     = {10.1080/17538947.2024.2328827}
+}
+
+% --- Revisar luego ---
 
 @inproceedings{lin2017fpn,
 	author    = {Tsung-Yi Lin and Piotr Doll{\'a}r and Ross Girshick and Kaiming He and Bharath Hariharan and Serge Belongie},

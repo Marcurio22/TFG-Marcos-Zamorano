@@ -14,12 +14,15 @@ Además de secciones tenemos subsecciones.
 
 Y subsecciones. 
 
-\section{Visión por computadora}
+\section{Visión por computador}
 
-\subsection{Visión por computadora}
-La Visión por Computadora, en el contexto de la Inteligencia Artificial, es la disciplina que se enfoca en el diseño y optimización de arquitecturas computacionales para realizar la proyección no lineal de datos de entrada dados por píxeles hacia espacios de características de alta dimensionalidad~\cite{visionencoder2025} que encapsulan información semántica estratificada.
+\subsection{Visión por Computador}
+La Visión por Computador es la rama de la Inteligencia Artificial que estudia cómo dotar a un sistema de la capacidad de interpretar imágenes y vídeo, de modo que una matriz de píxeles se transforme en información estructurada y accionable sobre el entorno, como categorías, localizaciones, contornos u otras magnitudes geométricas relevantes. 
 
-El objetivo operacional es la predicción densa a nivel de píxel o la clasificación discriminativa de etiquetas~\cite{visionencoder2025, zhang2022constructionautomation}, utilizando mapeos jerárquicos de características y garantizando la solvencia de optimización en estructuras ultra-profundas mediante mecanismos residuales~\cite{he2016resnet}.
+Esta disciplina se apoya, por un lado, en la modelización del proceso de formación de imagen y de la geometría de proyección, lo cual permite relacionar el mundo tridimensional con el plano imagen, tal y como se ilustra en la Figura~\ref{fig:Pinhole_camera_model_technical_version}. Por otro lado, operacionaliza ese conocimiento mediante un \textit{pipeline} de procesamiento que convierte progresivamente la señal visual en representaciones más informativas, encadenando transformaciones que filtran, realzan y reorganizan la información hasta hacerla útil para una tarea concreta, como se aprecia en la Figura~\ref{fig:Image_processing_pipeline}. 
+
+En el enfoque contemporáneo, estas transformaciones dejan de diseñarse manualmente y pasan a aprenderse a partir de datos mediante redes profundas, donde capas sucesivas construyen descriptores jerárquicos con creciente carga semántica, un esquema típico se resume en la Figura~\ref{fig:DFVC}. Sobre estas representaciones, el sistema ejecuta tareas como clasificación, detección o segmentación, y en particular la segmentación semántica permite asignar una etiqueta a cada región de la imagen preservando estructura espacial, tal y como ejemplifica el proceso de la Figura~\ref{fig:Image-segmentation-example}
+y la Figura~\ref{fig:Image-segmentation-example-segmented}, conectando de forma natural con los fundamentos que se desarrollan en las secciones posteriores.
 
 \subsection{Conceptos teóricos de la Segmentación Semántica}
 En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica moderna en visión por computador, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
@@ -39,7 +42,7 @@ Sin embargo, el aumento de la profundidad introduce un desafío conocido como el
 
 Esto debido a que, a medida que la información o el gradiente pasan por muchas capas, pueden desvanecerse antes de alcanzar el inicio o el final de la red~\cite{huang2018densenet}.
 
-\subsubsection{Predición Densa, denominada: Dense prediction}
+\subsubsection{Predición Densa (Dense prediction)}
 La predicción densa es una formulación de inferencia estructurada en la que el sistema estima, para cada ubicación del dominio espacial de la entrada, una variable de salida perteneciente a un espacio de etiquetas o a un espacio continuo~\cite{zhang2022constructionautomation}. En visión por computador abarca tanto clasificación por elemento, como regresión por elemento, dando lugar a campos de salida con fuerte dependencia local y coherencia geométrica~\cite{zhao2017pspnet, lin2017fpn}. 
 
 Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por downsampling~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
@@ -185,6 +188,17 @@ Las referencias se incluyen en el texto usando cite~\cite{wiki:latex}. Para cita
 Se pueden incluir imágenes con los comandos standard de \LaTeX, pero esta plantilla dispone de comandos propios como por ejemplo el siguiente:
 
 \imagen{escudoInfor}{Autómata para una expresión vacía}{.5}
+
+\imagen{Pinhole_camera_model_technical_version}{Modelo de cámara \textit{pinhole} como abstracción geométrica del proceso de formación de imagen. Fuente: Olaf Peters, licencia CC BY-SA 4.0.}{1}
+
+\imagen{Image_processing_pipeline}{Ejemplo de \textit{pipeline} de procesamiento de imagen, donde la entrada se transforma mediante etapas sucesivas. Fuente: Nzebro12, licencia CC BY-SA 4.0.}{1}
+
+\imagen{DFVC}{Diagrama que detalla el flujo correspondiente a un sistema que emplea el uso de visión por computador}{1}
+
+\imagen{Image-segmentation-example}{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena (imagen original). Fuente: MartinThoma, licencia CC0 1.0.}{1}
+
+\imagen{Image-segmentation-example-segmented}{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena (imagen segmentada). Fuente: MartinThoma, licencia CC0 1.0.}{1}
+
 
 
 
