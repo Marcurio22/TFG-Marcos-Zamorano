@@ -1,27 +1,29 @@
 \capitulo{2}{Objetivos del proyecto}
 
-Este apartado concreta los objetivos que se persiguen con la realización del proyecto, distinguiendo entre aquellos derivados de los requisitos del software a construir y los objetivos de carácter técnico necesarios para materializar la propuesta. En conjunto, el trabajo pretende trasladar a un contexto de uso real la capacidad de detectar sendas de herbívoros en ortoimágenes mediante segmentación semántica, apoyándose en el enfoque descrito en el artículo base~\cite{diezpastora2025trails}, y encapsulando el proceso completo en una aplicación web orientada al usuario final. De este modo, se busca no solo demostrar la viabilidad del \textit{pipeline} de inferencia y visualización sobre imágenes aportadas por el usuario, sino también lograr una evolución posterior hacia fuentes geoespaciales de mayor escala, como Google Earth Engine~\cite{googleearthengine_web} o los servicios del PNOA~\cite{pnoa_ign}.
+Este apartado concreta los objetivos que se persiguen con la realización del proyecto, distinguiendo entre aquellos derivados de los requisitos del software a construir y los objetivos de carácter técnico necesarios para materializar la propuesta. En conjunto, el trabajo pretende trasladar a un contexto de uso real la capacidad de detectar sendas de herbívoros en ortoimágenes mediante segmentación semántica, apoyándose en el enfoque descrito en el artículo base~\cite{diezpastora2025trails}, y encapsulando el proceso completo en una aplicación web orientada al usuario final. 
+
+De este modo, se busca no solo demostrar la viabilidad del \textit{pipeline} de inferencia y visualización sobre imágenes aportadas por el usuario, sino también lograr una evolución posterior hacia fuentes geoespaciales de mayor escala, como Google Earth Engine~\cite{googleearthengine_web}.
 
 \section{Objetivos del software}
 
 Los objetivos del software se formulan como metas funcionales y de experiencia de uso. Se centran en definir qué capacidades debe ofrecer la aplicación y qué flujo de interacción debe soportar para que la detección automática de sendas sea accesible, interpretable y reutilizable en múltiples ejecuciones.
 
 \begin{itemize}
-	\item \textbf{Ingesta de datos mediante carga de imagen:} permitir al usuario cargar una imagen aérea, preferentemente en formato estándar y ampliamente soportado, y validar de forma robusta tamaño, formato y consistencia básica del fichero antes de su procesamiento.
+	\item \textbf{Carga de imagen para predicción:} permitir al usuario cargar una imagen aérea, preferentemente en formato estándar y ampliamente soportado, y validar el fichero antes de su procesamiento.
 	
-	\item \textbf{Ejecución del proceso de inferencia:} incorporar el \textit{pipeline} proporcionado por el equipo docente como motor de inferencia de la aplicación, habilitando la carga de la imagen aportada por el usuario, el preprocesado compatible con el modelo y la obtención de la máscara de salida, incluyendo la gestión de predicción con varios modelos por \textit{fold} cuando proceda, como, por ejemplo mediante agregación o selección de modelo.
+	\item \textbf{Ejecución del proceso de inferencia:} incorporar el \textit{pipeline} proporcionado por el equipo docente~\cite{diezpastora2025trails} como motor de inferencia de la aplicación, habilitando la carga de la imagen aportada por el usuario, el preprocesado compatible con el modelo y la obtención de la máscara de salida, incluyendo la gestión de predicción con varios modelos por \textit{fold} cuando proceda.
 	
-	\item \textbf{Postprocesado orientado a la interpretabilidad:} adaptar y extender las rutinas de visualización ya incluidas en el \textit{notebook}, integrándolas en la interfaz web, de modo que la superposición de la máscara y el resaltado de sendas sean claros, configurables y consistentes con el flujo de usuario.
+	\item \textbf{Postprocesado orientado a la interpretabilidad:} adaptar y extender las rutinas de visualización ya incluidas en el \textit{notebook}~\cite{diezpastora2025trails}, integrándolas en la interfaz web, de modo que la superposición de la máscara y el resaltado de sendas sean claramente visibles para el usuario.
 		
-	\item \textbf{Modo de inferencia y control de salida:} integrar opciones de ejecución que permitan elegir un modo de inferencia, por ejemplo, entre un modelo individual o un conjunto por \textit{folds}, y parametrizar la salida visual, como umbral, opacidad y estilo de dibujo, con el objetivo de mejorar la experiencia y la inspección cualitativa.
+	\item \textbf{Modo de inferencia y control de salida:} integrar opciones de ejecución que permitan elegir un modo de inferencia, por ejemplo, entre un modelo individual o un conjunto por \textit{folds}, y parametrizar la salida visual.
 	
-	\item \textbf{Visualización interactiva del resultado:} proporcionar una interfaz web que muestre la imagen de entrada y el resultado segmentado de manera sincronizada, habilitando operaciones de inspección como zoom, desplazamiento y ajuste de opacidad de la superposición, con el fin de facilitar la verificación cualitativa.
+	\item \textbf{Visualización interactiva del resultado:} proporcionar una interfaz web que muestre la imagen de entrada y el resultado segmentado de manera sincronizada, habilitando operaciones de inspección como zoom, desplazamiento y ajuste de opacidad de la superposición.
 	
-	\item \textbf{Flujo de trabajo iterativo:} permitir que el usuario elimine la imagen procesada y repita el procedimiento con nuevas entradas, manteniendo una experiencia consistente y evitando estados residuales que puedan afectar a ejecuciones posteriores.
+	\item \textbf{Flujo de trabajo iterativo:} permitir que el usuario elimine la imagen procesada y repita el procedimiento con nuevas entradas.
 	
-	\item \textbf{Gestión básica del resultado:} habilitar, al menos a nivel de prototipo, la descarga local del resultado visual, incluyendo la imagen con la superposición, y lograr unas exportaciones futuras de mayor valor, como máscaras en formato ráster o trazas en formato vectorial.
+	\item \textbf{Gestión básica del resultado:} permitir la descarga local de la imagen resultante con la superposición generada.
 	
-	\item \textbf{Proyección funcional hacia escenarios geoespaciales:} definir el encaje funcional de una evolución en la que la entrada no sea una imagen aislada, sino una región seleccionada por el usuario sobre un visor cartográfico, de manera que el sistema obtenga la ortoimagen correspondiente, ejecute la segmentación y represente automáticamente la red de sendas en el área escogida~\cite{googleearthengine_web, pnoa_ign}.
+	\item \textbf{Proyección funcional hacia escenarios geoespaciales:} lograr una evolución funcional en la que la entrada sea un área seleccionada en un visor cartográfico, permitiendo la obtención automática de la ortoimagen, su segmentación y la visualización de la red de sendas resultante.~\cite{googleearthengine_web, pnoa_ign}.
 \end{itemize}
 
 \section{Objetivos técnicos}
@@ -29,24 +31,23 @@ Los objetivos del software se formulan como metas funcionales y de experiencia d
 Los objetivos técnicos describen las decisiones de ingeniería necesarias para garantizar que el sistema sea mantenible, reproducible y eficiente, además de suficientemente flexible como para escalar hacia fuentes geoespaciales y flujos de trabajo más exigentes.
 
 \begin{itemize}
-	\item \textbf{Integración y operacionalización del \textit{pipeline} de inferencia proporcionado:} industrializar el \textit{pipeline} entregado, transformándolo desde un \textit{notebook} de demostración a un componente software reutilizable, desacoplado de la interfaz, con configuración parametrizable, control de dependencias y ejecución reproducible.
+	\item \textbf{Integración del \textit{pipeline} de inferencia} 
+	adaptar el \textit{pipeline} proporcionado~\cite{diezpastora2025trails}, inicialmente desarrollado como \textit{notebook}, a un componente software, desacoplado de la interfaz y con una ejecución replicable.
 	
-	\item \textbf{Refactorización a módulo y servicio:} extraer la lógica de inferencia y visualización a un módulo python, con interfaces estables para ser invocado desde el \textit{backend}, evitando dependencias implícitas del entorno del \textit{notebook} y permitiendo pruebas automatizadas y despliegue controlado.
+	\item \textbf{Modularización de la lógica de inferencia:} extraer la lógica de inferencia y visualización a un módulo Python con interfaces claras, apto para su invocación desde el \textit{backend}.
 	
-	\item \textbf{Diseño de una arquitectura web modular:} implementar una separación clara entre interfaz de usuario, \textit{backend} de servicios y módulo de inferencia, de modo que la lógica de negocio y el cómputo intensivo queden desacoplados de la presentación, facilitando la mantenibilidad y la evolución del sistema.
+	\item \textbf{Diseño de una arquitectura web modular:} definir una arquitectura clara con separación entre interfaz de usuario, \textit{backend} de servicios y módulo de inferencia.
 	
-	\item \textbf{Definición de una API de procesamiento:} exponer un conjunto mínimo de \textit{endpoints} para subir imágenes, lanzar inferencia, consultar el estado del procesamiento y recuperar resultados, contemplando la validación de entradas y el tratamiento de errores con mensajes diagnósticos útiles.
+	\item \textbf{Definición de una API de procesamiento:} diseñar una API que permita la carga de imágenes, la ejecución de la inferencia, la consulta del estado del procesamiento y la recuperación de resultados.
 	
-	\item \textbf{Gestión del cómputo y recursos:} contemplar explícitamente el coste adicional de cargar y ejecutar varios modelos por \textit{fold}, proponiendo estrategias como precarga, caché de modelos, ejecución asíncrona o limitación configurable del número de modelos aplicados por petición.
+	\item \textbf{Gestión del cómputo y recursos:} considerar el impacto computacional de la ejecución de múltiples modelos y definir mecanismos básicos de control del uso de recursos.
 	
-	\item \textbf{Persistencia temporal y limpieza de datos:} definir una estrategia de almacenamiento transitorio para imágenes y resultados, con políticas explícitas de expiración o eliminación al finalizar la sesión, priorizando privacidad, minimización de datos y control del espacio en disco.
+	\item \textbf{Persistencia temporal de datos:} definir una estrategia de almacenamiento temporal para imágenes y resultados, considerando una eliminación tras su uso.
 	
-	\item \textbf{Trazabilidad del \textit{pipeline}:} registrar información relevante de cada ejecución, incluyendo parámetros de preprocesado, versión del modelo, tiempos de cómputo y métricas básicas de salida, con el fin de facilitar depuración, evaluación y comparación entre ejecuciones.
+	\item \textbf{Trazabilidad del \textit{pipeline}:} registrar información básica de cada ejecución, como parámetros utilizados, versión del modelo y tiempos de cómputo.
 	
-	\item \textbf{Estrategia de validación y evaluación:} priorizar la evaluación funcional y cualitativa sobre imágenes sin anotación, verificando coherencia geométrica, continuidad de trazas y ausencia de artefactos en la superposición, y complementar con métricas cuantitativas únicamente cuando se disponga de un subconjunto con anotaciones o datos de validación adecuados.
+	\item \textbf{Integración con fuentes geoespaciales:} diseñar el sistema de forma que permita sustituir la carga manual de imágenes por la obtención automática desde fuentes geoespaciales~\cite{googleearthengine_web}.
 	
-	\item \textbf{Integración con fuentes geoespaciales:} diseñar el sistema de forma que el componente de adquisición de datos pueda sustituirse, pasando de la carga manual de imágenes a la obtención automática desde servicios geoespaciales, lo cual exige contemplar la gestión por teselas, la selección de región de interés y la normalización de resoluciones de entrada~\cite{googleearthengine_web, pnoa_ign}.
-	
-	\item \textbf{Despliegue y reproducibilidad:} empaquetar la aplicación con una configuración de entorno reproducible, incluyendo dependencias, scripts de ejecución y documentación de instalación, de manera que el tribunal pueda desplegar el sistema con fricción mínima y se facilite la continuidad del proyecto.
+	\item \textbf{Despliegue y reproducibilidad:} empaquetar la aplicación con una configuración de entorno reproducible y documentación básica de instalación y ejecución.
 
 \end{itemize}

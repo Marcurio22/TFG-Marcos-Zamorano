@@ -1,28 +1,24 @@
 \capitulo{3}{Conceptos teóricos}
 
-Algunos conceptos teóricos de \LaTeX{} \footnote{Créditos a los proyectos de Álvaro López Cantero: Configurador de Presupuestos y Roberto Izquierdo Amo: PLQuiz}.
-
-\section{Secciones}
-
-Las secciones se incluyen con el comando section.
-
-\subsection{Subsecciones}
-
-Además de secciones tenemos subsecciones.
-
-\subsubsection{Subsubsecciones}
-
-Y subsecciones. 
-
 \section{Visión por computador}
 
 \subsection{Visión por Computador}
 La Visión por Computador es la rama de la Inteligencia Artificial que estudia cómo dotar a un sistema de la capacidad de interpretar imágenes y vídeo, de modo que una matriz de píxeles se transforme en información estructurada y accionable sobre el entorno, como categorías, localizaciones, contornos u otras magnitudes geométricas relevantes. 
 
-Esta disciplina se apoya, por un lado, en la modelización del proceso de formación de imagen y de la geometría de proyección, lo cual permite relacionar el mundo tridimensional con el plano imagen, tal y como se ilustra en la Figura~\ref{fig:Pinhole_camera_model_technical_version}. Por otro lado, operacionaliza ese conocimiento mediante un \textit{pipeline} de procesamiento que convierte progresivamente la señal visual en representaciones más informativas, encadenando transformaciones que filtran, realzan y reorganizan la información hasta hacerla útil para una tarea concreta, como se aprecia en la Figura~\ref{fig:Image_processing_pipeline}. 
+Esta disciplina se apoya, por un lado, en la modelización del proceso de formación de imagen y de la geometría de proyección, lo cual permite relacionar el mundo tridimensional con el plano imagen. Por otro lado, operacionaliza ese conocimiento mediante un \textit{pipeline} de procesamiento que convierte progresivamente la señal visual en representaciones más informativas, encadenando transformaciones que filtran, realzan y reorganizan la información hasta hacerla útil para una tarea concreta, como se aprecia en la Figura~\ref{fig:Image_processing_pipeline}.
 
-En el enfoque contemporáneo, estas transformaciones dejan de diseñarse manualmente y pasan a aprenderse a partir de datos mediante redes profundas, donde capas sucesivas construyen descriptores jerárquicos con creciente carga semántica, un esquema típico se resume en la Figura~\ref{fig:DFVC}. Sobre estas representaciones, el sistema ejecuta tareas como clasificación, detección o segmentación, y en particular la segmentación semántica permite asignar una etiqueta a cada región de la imagen preservando estructura espacial, tal y como ejemplifica el proceso de la Figura~\ref{fig:Image-segmentation-example}
+\imagen{Image_processing_pipeline}{Ejemplo de \textit{pipeline} de procesamiento de imagen, donde la entrada se transforma mediante etapas sucesivas. Fuente: Nzebro12, licencia CC BY-SA 4.0.}{1} 
+
+En el enfoque contemporáneo, estas transformaciones dejan de diseñarse manualmente y pasan a aprenderse a partir de datos mediante redes profundas, donde capas sucesivas construyen descriptores jerárquicos con creciente carga semántica, un esquema típico se resume en la Figura~\ref{fig:DFVC}.
+
+\imagen{DFVC}{Diagrama que detalla el flujo correspondiente a un sistema que emplea el uso de visión por computador}{1}
+
+Sobre estas representaciones, el sistema ejecuta tareas como clasificación, detección o segmentación, y en particular la segmentación semántica permite asignar una etiqueta a cada región de la imagen preservando estructura espacial, tal y como ejemplifica el proceso de la Figura~\ref{fig:Image-segmentation-example}
 y la Figura~\ref{fig:Image-segmentation-example-segmented}, conectando de forma natural con los fundamentos que se desarrollan en las secciones posteriores.
+
+\imagen{Image-segmentation-example}{Ejemplo para segmentación. Fuente: MartinThoma, licencia CC0 1.0.}{1}
+
+\imagen{Image-segmentation-example-segmented}{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena. Fuente: MartinThoma, licencia CC0 1.0.}{1}
 
 \subsection{Conceptos teóricos de la Segmentación Semántica}
 En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica moderna en visión por computador, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
@@ -80,12 +76,12 @@ La arquitectura del \textit{Transformer} es un modelo de procesamiento de secuen
 
 Su estructura estándar se compone de un codificador y un decodificador que apilan múltiples bloques idénticos, cada uno equipado con capas de atención de múltiples cabezales y redes de alimentación \textit{feed-forward}~\cite{vaswani2017attention, bala2025visiontranscoder}.
 
-\subsubsection{Mecanismos Residuales}
-Los mecanismos residuales son esquemas de conexión aditiva que introducen \textit{skip connections} a través de los bloques de una red profunda, de modo que la transformación aprendida se formula como una corrección respecto de la señal que fluye sin distorsión por el atajo~\cite{he2016resnet}. 
+\subsubsection{Mecanismos residuales}
 
-Esta arquitectura estabiliza la propagación hacia delante y hacia atrás, mejora el acondicionamiento efectivo del problema de optimización y habilita redes sustancialmente más profundas; cuando existe desajuste de dimensionalidad, la ruta de identidad se implementa mediante proyecciones, mientras que otras variantes con saltos de identidad estrictos refuerzan el transporte directo de información y gradientes.
+Los mecanismos residuales introducen conexiones aditivas, conocidas como \textit{skip connections}, que permiten que la señal de entrada de un bloque se sume directamente a su salida. De este modo, el bloque no aprende una transformación completa, sino una corrección respecto a la señal original, formalizando la salida como la suma entre la entrada y una función residual aprendida~\cite{he2016resnet}. Este planteamiento facilita que la información fluya sin alteraciones innecesarias a través de la red y reduce la degradación del rendimiento a medida que aumenta la profundidad.
 
-En conjunto, los mecanismos residuales facilitan el aprendizaje de funciones de alta complejidad al mantener rutas de baja impedancia para el flujo de señales~\cite{srivastava2015highway}.
+Desde el punto de vista del entrenamiento, estas conexiones mejoran la propagación de gradientes durante la retropropagación y estabilizan el proceso de optimización, lo que permite entrenar redes considerablemente más profundas. Cuando las dimensiones de entrada y salida no coinciden, la conexión residual se implementa mediante proyecciones lineales; en otros casos, se emplean saltos de identidad directos que preservan completamente la señal original. En conjunto, estos mecanismos mantienen rutas de transmisión eficientes para la información y los gradientes, facilitando el aprendizaje de funciones complejas en arquitecturas profundas~\cite{srivastava2015highway}.
+
 
 \subsubsection{Skip Connections}
 Conexiones encargadas de mitigar la pérdida de información espacial que ocurre durante el \textit{downsampling} en el codificador~\cite{bala2025visiontranscoder}. Transfieren características de alta resolución desde las capas tempranas del codificador a las capas correspondientes del decodificador, fusionando las características codificadas con los detalles espaciales finos, siendo estos los límites y contornos, del inicio de la red~\cite{badrinarayanan2016segnet, ronneberger2015unet}. 
@@ -115,19 +111,19 @@ Una Red Neuronal Convolucional es una arquitectura de aprendizaje profundo que s
 El funcionamiento en la segmentación se basa en este marco bifásico de codificación y decodificación:
 
 \begin{enumerate}
-\item \textbf{Capas Convolucionales, conocidas como: Convolutional Layers}
+\item \textbf{Capas Convolucionales (Convolutional Layers)}
 
 Las capas convolucionales son el núcleo de la CNN y componen la ruta principal del codificador~\cite{ji2022automation, badrinarayanan2016segnet}. En estas, se realiza la operación de convolución, que utiliza un conjunto de \textit{kernels} con pesos entrenables para convertir los datos de entrada en mapas de características~\cite{ji2022automation}. 
 
 El \textit{kernel} se desliza sobre la entrada con un \textit{stride} para producir la salida espacial~\cite{he2016resnet}. Mediante este proceso de \textit{downsampling} codifica la información de entrada en una representación de características de alto nivel downsampleada~\cite{ji2022automation, badrinarayanan2016segnet}.
 
-\item \textbf{Capas Deconvolucionales, también conocidas como: Deconvolutional Layers}
+\item \textbf{Capas Deconvolucionales (Deconvolutional Layers)}
 
 Las capas deconvolucionales son el mecanismo de \textit{upsampling} más común utilizado en la ruta del decodificador~\cite{zhang2022constructionautomation, badrinarayanan2016segnet}. Mediante el uso de esta técnica, también referida como convolución transpuesta, consiguen mapear los mapas de características comprimidos de baja resolución a mapas de características densos que se aproximan a la resolución de entrada original para la clasificación por elemento~\cite{badrinarayanan2016segnet, ji2022automation}. 
 
 El desafío al que se deben enfrentar estas capas es que la red puede tender a ignorar los detalles debido a la naturaleza de la amplificación, lo que conlleva una salida insatisfactoria~\cite{ji2022automation}.
 
-\item \textbf{Capa de Concatenación, comunmente: Concatenation Layer}
+\item \textbf{Capa de Concatenación (Concatenation Layer)}
 
 La capa de concatenación es un componente de fusión de características utilizado en el decodificador para mejorar la precisión espacial~\cite{ ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}. Para lograr este objetivo, fusiona las características de salida de las capas convolucionales del codificador con las características de las capas deconvolucionales del decodificador.
 
@@ -140,7 +136,7 @@ La arquitectura del \textit{Vision Transformer (ViT)} se erige como el paradigma
 
 Esta secuencia de \textit{tokens} enriquecida se introduce en un \textit{encoder} de \textit{Transformer} que consiste en múltiples bloques idénticos, equipados con el mecanismo de \textit{Multi-Head Self-Attention}. El \textit{self-attention} permite que cada \textit{token} capture relaciones de largo alcance y el contexto global con todos los demás \textit{tokens}, facilitando una interpretación más inclusiva de patrones intrincados en los datos~\cite{khan2022transformersvision, bala2025visiontranscoder}.
 
-En el contexto de la segmentación densa, el \textit{encoder ViT} finaliza su proceso entregando características codificadas de bajo nivel espacial pero semánticamente ricas. La arquitectura completa luego emplea un decodificador para reconstruir el mapa de segmentación~\cite{bala2025visiontranscoder}. Este decodificador típicamente incluye capas de \textit{upsampling} para aumentar la resolución espacial de las características comprimidas y utiliza \textit{skip connections} para transferir características de alta resolución desde el \textit{encoder} y así reconstruir el mapa de segmentación con alta fidelidad~\cite{bala2025visiontranscoder}. 
+En tareas de segmentación semántica, los modelos basados en ViT se emplean habitualmente como extractores de características globales. El \textit{encoder} procesa la imagen y genera representaciones con un alto contenido semántico, pero con una resolución espacial reducida. Para obtener un mapa de segmentación a nivel de píxel, estas representaciones se combinan con un decodificador que permite recuperar la resolución espacial y producir la salida final~\cite{bala2025visiontranscoder}.
 
 La salida final se genera a través de una capa convolucional seguida de una activación \textit{Softmax}, proporcionando un mapa de probabilidades detallado para la clasificación a nivel de píxel~\cite{zhang2022constructionautomation, bala2025visiontranscoder}. 
 
@@ -177,77 +173,3 @@ Esta arquitectura surge como respuesta a la limitación intrínseca de las redes
 Operacionalmente, el PPM divide el mapa de características generado por un codificador basado en bloques residuales en cuatro niveles de granularidad distintos, aplicando operaciones de \textit{pooling} con tamaños de bin de $1\times 1$, $2\times 2$, $3\times 3$ y $6\times 6$~\cite{zhao2017pspnet, he2016resnet}. A continuación, cada nivel se somete a una convolución de $1\times 1$ para realizar una reducción de dimensionalidad y se remuestrea mediante interpolación bilineal hasta alcanzar la resolución original de la etapa~\cite{zhao2017pspnet, lin2017fpn}. Estos mapas enriquecidos se concatenan con el flujo de información original para formar una representación final que encapsula tanto el detalle geométrico local como la coherencia semántica global, mitigando errores comunes en la identificación de objetos con apariencias similares pero contextos dispares~\cite{zhao2017pspnet, diezpastora2025trails}.
 
 Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de PSPNet se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
-
-\section{Referencias}
-
-Las referencias se incluyen en el texto usando cite~\cite{wiki:latex}. Para citar webs, artículos o libros~\cite{koza92}, si se desean citar más de uno en el mismo lugar~\cite{bortolot2005, koza92}.
-
-
-\section{Imágenes}
-
-Se pueden incluir imágenes con los comandos standard de \LaTeX, pero esta plantilla dispone de comandos propios como por ejemplo el siguiente:
-
-\imagen{escudoInfor}{Autómata para una expresión vacía}{.5}
-
-\imagen{Pinhole_camera_model_technical_version}{Modelo de cámara \textit{pinhole} como abstracción geométrica del proceso de formación de imagen. Fuente: Olaf Peters, licencia CC BY-SA 4.0.}{1}
-
-\imagen{Image_processing_pipeline}{Ejemplo de \textit{pipeline} de procesamiento de imagen, donde la entrada se transforma mediante etapas sucesivas. Fuente: Nzebro12, licencia CC BY-SA 4.0.}{1}
-
-\imagen{DFVC}{Diagrama que detalla el flujo correspondiente a un sistema que emplea el uso de visión por computador}{1}
-
-\imagen{Image-segmentation-example}{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena (imagen original). Fuente: MartinThoma, licencia CC0 1.0.}{1}
-
-\imagen{Image-segmentation-example-segmented}{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena (imagen segmentada). Fuente: MartinThoma, licencia CC0 1.0.}{1}
-
-
-\section{Listas de items}
-
-Existen tres posibilidades:
-
-\begin{itemize}
-	\item primer item.
-	\item segundo item.
-\end{itemize}
-
-\begin{enumerate}
-	\item primer item.
-	\item segundo item.
-\end{enumerate}
-
-\begin{description}
-	\item[Primer item] más información sobre el primer item.
-	\item[Segundo item] más información sobre el segundo item.
-\end{description}
-	
-\begin{itemize}
-\item 
-\end{itemize}
-
-\section{Tablas}
-
-Igualmente se pueden usar los comandos específicos de \LaTeX o bien usar alguno de los comandos de la plantilla.
-
-\tablaSmall{Herramientas y tecnologías utilizadas en cada parte del proyecto}{l c c c c}{herramientasportipodeuso}
-{ \multicolumn{1}{l}{Herramientas} & App AngularJS & API REST & BD & Memoria \\}{ 
-HTML5 & X & & &\\
-CSS3 & X & & &\\
-BOOTSTRAP & X & & &\\
-JavaScript & X & & &\\
-AngularJS & X & & &\\
-Bower & X & & &\\
-PHP & & X & &\\
-Karma + Jasmine & X & & &\\
-Slim framework & & X & &\\
-Idiorm & & X & &\\
-Composer & & X & &\\
-JSON & X & X & &\\
-PhpStorm & X & X & &\\
-MySQL & & & X &\\
-PhpMyAdmin & & & X &\\
-Git + BitBucket & X & X & X & X\\
-Mik\TeX{} & & & & X\\
-\TeX{}Maker & & & & X\\
-Astah & & & & X\\
-Balsamiq Mockups & X & & &\\
-VersionOne & X & X & X & X\\
-} 

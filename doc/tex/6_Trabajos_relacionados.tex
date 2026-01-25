@@ -1,5 +1,9 @@
 \capitulo{6}{Trabajos relacionados}
 
+Este capítulo presenta una revisión de los principales trabajos y herramientas relacionados con el problema abordado en este TFG. Por un lado, se analizan artículos científicos recientes que aplican técnicas de teledetección y aprendizaje profundo a la detección de estructuras lineales en entornos naturales, con especial atención a sendas de fauna y caminos poco definidos en imágenes aéreas o satelitales. Por otro lado, se describen herramientas software ampliamente utilizadas para la visualización y análisis de imágenes remotas, relevantes en contextos de ecología del paisaje y conservación. 
+
+Esta revisión permite situar el proyecto dentro del estado del arte, identificar enfoques metodológicos afines y justificar las decisiones técnicas adoptadas a lo largo del desarrollo.
+
 \section{Artículos científicos relacionados}
 
 En este apartado se revisan los avances recientes en segmentación semántica aplicada a la detección de estructuras lineales, como lo son las sendas de fauna o los caminos rurales en imágenes aéreas o satelitales, especialmente en contextos ecológicos y de conservación. Se incluyen trabajos enfocados en el uso de aprendizaje profundo mediante redes neuronales convolucionales para identificar tales patrones lineales en terreno natural, con casos de estudio internacionales.
@@ -44,11 +48,25 @@ Un Sistema de Información Geográfica open source\footnote{\url{https://qgis.or
 
 QGIS es ideal para proyectos de conservación pues permite superponer capas y realizar análisis espaciales en un entorno unificado. Su capacidad de \textit{scripting} mediante Python y sus múltiples plugins facilitan la automatización de tareas como detección de caminos rurales o generación de mapas de densidad de sendas. Al ser software libre, es altamente personalizable y cuenta con una gran comunidad, con casos de uso en administraciones ambientales, universidades de España para gestión de hábitats y planificación territorial.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/QGIS}
+	\caption[Interfaz de la herramienta QGIS]{Interfaz de la herramienta QGIS. Se visualiza un mapa de Google Satelite ya cargado.}
+	\label{fig:qgis}
+\end{figure}
+
 \item\textbf{USGS EarthExplorer~\cite{usgs_earthexplorer_web}}
 
 Es el portal web de la agencia geológica estadounidense (USGS)\footnote{\url{https://earthexplorer.usgs.gov/}} para buscar, visualizar y descargar imágenes de satélite y fotografía aérea de múltiples fuentes. EarthExplorer funciona como una interfaz de descubrimiento de datos: el usuario delimita un área de interés en un mapa interactivo, define rangos de fechas y tipos de producto, como, por ejemplo, colecciones Landsat, Sentinel-2 y fotografías aéreas históricas, y el sistema devuelve las escenas disponibles. Incluye opciones avanzadas de filtrado, siendo algunas: por cobertura de nubes, ángulo solar, etc..., y permite examinar imágenes de baja resolución antes de ordenar la descarga. Es necesario un registro gratuito para obtener los datos. 
 
 EarthExplorer da acceso a millones de imágenes de archivo desde los años 1960 en adelante, incluyendo datos de libre acceso como Landsat de niveles L1/L2, imágenes desclasificadas de satélites espía (CORONA), fotografías aéreas USDA, modelos digitales de elevación, entre otros. Su utilidad en proyectos ecológicos radica en compilar series temporales de imágenes históricas de un área. Un ejemplo aplicado a nuestro caso, podría ser el observar la apertura de nuevos caminos o sendas a lo largo de décadas y visualizar los cambios en cobertura vegetal asociados a herbívoros. También facilita obtener imágenes multiespectrales calibradas con las que aplicar algoritmos de segmentación entrenados en diferentes fuentes. Si bien EarthExplorer no permite un análisis geoespacial complejo por sí mismo, es un nodo central de acceso a datos de teledetección clásicos indispensable en flujos de trabajo reproducibles.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/UGS}
+	\caption[Interfaz de la herramienta UGCS]{Vista topográfica del mapa de E.E.U.U. mediante la herramienta UGCS.}
+	\label{fig:ugs}
+\end{figure}
 
 \item\textbf{Sentinel Hub EO Browser~\cite{sentinelhub_eobrowser_web}} 
 
@@ -65,14 +83,14 @@ Un punto fuerte es que no requiere experiencia GIS: está diseñado para que inc
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\linewidth]{Copernicus_Browser}
-	\caption[Vista de la interfaz web de Copernicus Browser, mostrando un mosaico satelital en color real sobre Europa.]{}
+	\caption[Interfaz de la herramienta Copernicus Browser]{Vista de la interfaz web de Copernicus Browser. Se muestra un mosaico satelital en color real sobre Europa.}
 	\label{fig:copernicus-browser}
 \end{figure}
 
 
 \item\textbf{Otras herramientas}
 
-Además de las anteriores, cabe mencionar brevemente otras plataformas útiles según la finalidad: ESA SNAP\cite{esa_snap_web}\footnote{\url{https://step.esa.int/main/download/snap-download/}}, que consiste en un software de escritorio para procesado avanzado de imágenes de radar y ópticas, muy usado en investigación, Google Earth Pro\cite{googleearthpro_web}\footnote{\url{https://www.google.com/earth/about/versions/}}, que permite la visualización 3D de imágenes históricas, aunque con limitaciones de resolución temporal en áreas naturales, NASA Worldview\cite{nasa_worldview_web}\footnote{\url{https://worldview.earthdata.nasa.gov/}}, un visor web de imágenes globales diarias, útil para ver rápidamente incendios, inundaciones u otros eventos, o visores regionales como el Centro de Descargas del CNIG\cite{cnig_centrodescargas_web}\footnote{\url{https://centrodedescargas.cnig.es/}} en España. 
+Además de las anteriores, cabe mencionar brevemente otras plataformas útiles según la finalidad: ESA SNAP~\cite{esa_snap_web}\footnote{\url{https://step.esa.int/main/download/snap-download/}}, que consiste en un software de escritorio para procesado avanzado de imágenes de radar y ópticas, muy usado en investigación, Google Earth Pro~\cite{googleearthpro_web}\footnote{\url{https://www.google.com/earth/about/versions/}}, que permite la visualización 3D de imágenes históricas, aunque con limitaciones de resolución temporal en áreas naturales, NASA Worldview~\cite{nasa_worldview_web}\footnote{\url{https://worldview.earthdata.nasa.gov/}}, un visor web de imágenes globales diarias, útil para ver rápidamente incendios, inundaciones u otros eventos, o visores regionales como el Centro de Descargas del CNIG~\cite{cnig_centrodescargas_web}\footnote{\url{https://centrodedescargas.cnig.es/}} en España. 
 
 No obstante, para este proyecto centrado en sendas ecológicas, las herramientas ya descritas, QGIS, EarthExplorer, Sentinel Hub EO Browser y Copernicus Browser, cubren un espectro completo: desde el análisis GIS exhaustivo offline, pasando por la búsqueda masiva de datos brutos, hasta la visualización interactiva online. Integrar estas herramientas en el flujo de trabajo permitirá identificar, segmentar y validar las estructuras lineales de interés con mayor eficacia y rigor.
 
