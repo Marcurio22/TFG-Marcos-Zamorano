@@ -173,3 +173,82 @@ Esta arquitectura surge como respuesta a la limitación intrínseca de las redes
 Operacionalmente, el PPM divide el mapa de características generado por un codificador basado en bloques residuales en cuatro niveles de granularidad distintos, aplicando operaciones de \textit{pooling} con tamaños de bin de $1\times 1$, $2\times 2$, $3\times 3$ y $6\times 6$~\cite{zhao2017pspnet, he2016resnet}. A continuación, cada nivel se somete a una convolución de $1\times 1$ para realizar una reducción de dimensionalidad y se remuestrea mediante interpolación bilineal hasta alcanzar la resolución original de la etapa~\cite{zhao2017pspnet, lin2017fpn}. Estos mapas enriquecidos se concatenan con el flujo de información original para formar una representación final que encapsula tanto el detalle geométrico local como la coherencia semántica global, mitigando errores comunes en la identificación de objetos con apariencias similares pero contextos dispares~\cite{zhao2017pspnet, diezpastora2025trails}.
 
 Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de PSPNet se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
+
+\subsection{Métricas de evaluación de la Segmentación Semántica}
+En esta sección se introducen los conceptos y criterios que permiten evaluar, de forma rigurosa, el rendimiento de un sistema de segmentación semántica, entendiendo la evaluación como un proceso que abarca tanto la capacidad de generalización del modelo como la calidad geométrica de las máscaras predichas. Para ello, se revisan nociones fundamentales del aprendizaje profundo que condicionan el comportamiento durante el entrenamiento, como el \textit{overfitting} y el papel de propiedades espaciales como la invarianza y la equivarianza traslacional, junto con mecanismos de decisión habituales en la salida del modelo, como la función \textit{Softmax} y las funciones de activación. Sobre esta base, se presentan estrategias de validación, como la validación cruzada, y métricas específicas de segmentación, entre ellas IoU, precisión, \textit{recall} y $F_1$, formuladas a partir de los conteos de verdaderos y falsos positivos y negativos, con el objetivo de cuantificar de manera interpretable el equilibrio entre detecciones correctas, omisiones y falsas alarmas en escenarios de predicción densa.
+
+\subsubsection{Overfitting} 
+El sobreajuste, comúnmente denominado \textit{overfitting}, es un fenómeno estadístico indeseado donde el modelo de aprendizaje profundo memoriza el ruido y los detalles específicos de los datos de entrenamiento en detrimento de su capacidad de generalización ante nuevas muestras~\cite{Goodfellow-et-al-2016}.
+
+Este comportamiento se manifiesta cuando la red neuronal alcanza un rendimiento excepcionalmente alto en el conjunto de entrenamiento pero falla al procesar datos de validación o prueba. Para mitigar este efecto en arquitecturas de codificador-decodificador, se emplean técnicas de regularización como el abandono de neuronas y operaciones de reducción de dimensionalidad como el \textit{max-pooling}, las cuales fuerzan a la red a aprender características más robustas y abstractas~\cite{ji2022automation, bala2025visiontranscoder}.
+
+\subsubsection{Invarianza traslacional}
+La invarianza traslacional describe la capacidad de un modelo de visión por computador para reconocer una misma característica u objeto aunque aparezca desplazado a distintas posiciones dentro de la imagen. En el contexto de las redes neuronales convolucionales, esta propiedad permite que ciertos patrones visuales como bordes, texturas o estructuras se identifiquen de forma consistente con independencia de su localización exacta en la escena~\cite{ji2022automation}.
+
+Esta propiedad no surge de manera estricta en una sola capa, sino que se construye progresivamente a través de la combinación de convoluciones locales y operaciones de submuestreo mediante \textit{pooling} o \textit{downsampling}. Las capas convolucionales comparten pesos en toda la imagen, lo que hace que un mismo filtro responda de igual manera ante un patrón dado, esté donde esté. A medida que se incrementa el campo receptivo en capas más profundas, la red integra información de regiones cada vez más amplias, reduciendo la sensibilidad a pequeños desplazamientos espaciales. En aplicaciones de clasificación y segmentación semántica, esta propiedad es clave para garantizar que la predicción asociada a un objeto o región no dependa de su posición absoluta dentro de la imagen~\cite{badrinarayanan2016segnet}.
+
+\subsubsection{Equivarianza traslacional}
+La equivarianza traslacional describe la propiedad por la cual una transformación aplicada a la entrada de un modelo se refleja de forma coherente en su salida. En el caso de traslaciones espaciales, esto implica que si un objeto se desplaza dentro de la imagen de entrada, la representación o predicción generada por el modelo se desplaza en la misma dirección y magnitud, preservando la correspondencia espacial entre entrada y salida~\cite{khan2022transformersvision}.
+
+En redes neuronales convolucionales, esta propiedad se deriva directamente de la operación de convolución y de la compartición de pesos, que garantizan que un mismo patrón visual active respuestas equivalentes en distintas posiciones de la imagen. En tareas de segmentación semántica, la equivarianza traslacional es esencial, ya que el objetivo no es únicamente reconocer la presencia de una clase, sino asignar una etiqueta correcta a cada píxel. Gracias a esta propiedad, los mapas de segmentación mantienen una alineación precisa con la geometría de la escena, permitiendo que las estructuras detectadas conserven su forma y localización relativas respecto a la imagen original~\cite{liu2022convnext}.
+
+En contraste con la invarianza traslacional, que busca reducir la sensibilidad del modelo a la posición absoluta de los objetos para favorecer el reconocimiento global, la equivarianza preserva explícitamente la información espacial. Ambas propiedades no son excluyentes, sino complementarias: mientras la invarianza resulta clave en tareas de clasificación, la equivarianza constituye un requisito fundamental en problemas de predicción densa, como la segmentación semántica, donde la coherencia espacial de la salida es crítica.
+
+\subsubsection{Función Softmax}
+La función \textit{Softmax} se emplea habitualmente en la capa final de redes neuronales de clasificación y segmentación para transformar las salidas no normalizadas del modelo, conocidas como \textit{logits}, en una distribución de probabilidad. Esta transformación garantiza que los valores resultantes sean no negativos y que su suma sea igual a uno, lo que permite interpretarlos directamente como probabilidades asociadas a cada clase~\cite{Goodfellow-et-al-2016}.
+
+En el contexto de la segmentación semántica, la función Softmax se aplica de forma independiente a cada píxel, produciendo para cada uno de ellos un vector de probabilidades sobre las clases posibles. La etiqueta final asignada corresponde a la clase con mayor probabilidad, lo que da lugar a mapas de segmentación interpretables y coherentes. Este mecanismo resulta especialmente adecuado en problemas multiclase, donde es necesario modelar explícitamente la competencia entre clases en cada posición espacial de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}.
+
+
+\subsubsection{Función de activación}
+Las funciones de activación son componentes esenciales de las redes neuronales, ya que introducen no linealidades tras las operaciones lineales de convolución o proyección. Gracias a estas no linealidades, la red es capaz de aproximar funciones complejas y aprender representaciones jerárquicas que capturan patrones visuales de distinta escala y complejidad~\cite{Goodfellow-et-al-2016}.
+
+Sin la aplicación de funciones de activación, la composición de múltiples capas lineales se reduciría a una única transformación lineal, limitando severamente la capacidad expresiva del modelo. Para prácticas de segmentación semántica, estas funciones permiten discriminar estructuras complejas y no lineales, como bordes irregulares o sendas difusas, contribuyendo a la coherencia espacial de las predicciones generadas~\cite{neloy2024autoencoders}.
+
+
+\subsubsection{Unidad Lineal Rectificada (ReLU)}
+La Unidad Lineal Rectificada (\textit{ReLU}) es una función de activación no lineal definida por una relación simple que conserva los valores positivos de la entrada y anula los negativos. Su simplicidad computacional y su comportamiento no saturante han favorecido su adopción generalizada en arquitecturas profundas modernas~\cite{ji2022automation}.
+
+Desde el punto de vista del entrenamiento, \textit{ReLU} contribuye a mitigar el problema del desvanecimiento del gradiente, facilitando una propagación más estable de la información durante la retropropagación. En arquitecturas de segmentación como U-Net o SegNet, se emplea de forma sistemática tras las convoluciones para introducir no linealidad sin comprometer la eficiencia, permitiendo el aprendizaje efectivo de patrones espaciales complejos~\cite{liu2022convnext}.
+
+\subsubsection{Validación cruzada}
+La validación cruzada es una técnica de evaluación diseñada para estimar la capacidad de generalización de un modelo mediante la partición sistemática del conjunto de datos en varios subconjuntos o \textit{folds}. En cada iteración, el modelo se entrena sobre una parte de los datos y se evalúa sobre el subconjunto restante, de forma que todas las muestras participan tanto en entrenamiento como en validación a lo largo del proceso~\cite{Goodfellow-et-al-2016}.
+
+En visión por computador, y especialmente en segmentación semántica, esta estrategia resulta útil cuando el tamaño del conjunto de datos es limitado o presenta alta variabilidad espacial. La validación cruzada permite obtener estimaciones de rendimiento más robustas y menos dependientes de una única partición, reduciendo el riesgo de conclusiones sesgadas sobre la calidad del modelo.
+
+\subsubsection{Intersección sobre la Unión (IoU)}
+La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU), también conocida como índice de Jaccard~\cite{minaee2022segmentationSurvey}, es una medida ampliamente empleada para evaluar la calidad de las predicciones en tareas de segmentación semántica. Se define como la razón entre el área de solapamiento y el área total cubierta por la segmentación predicha y la máscara de referencia, tomando valores comprendidos entre cero y uno~\cite{Dimitrovski2024}.
+
+Esta métrica cuantifica directamente la coherencia espacial entre la predicción del modelo y los datos de referencia, penalizando tanto las detecciones espurias como las omisiones. Por ello, la IoU resulta especialmente adecuada para analizar la fidelidad geométrica de las segmentaciones obtenidas, ya que es sensible a desplazamientos, errores en los bordes y discontinuidades, aspectos estrechamente relacionados con la preservación de la correspondencia espacial en el modelo~\cite{TahaHanbury2015, long2015fcn}.
+
+\subsubsection{Precisión}
+La precisión es una métrica que cuantifica la proporción de predicciones positivas correctas respecto al total de píxeles que el modelo ha etiquetado como pertenecientes a una clase determinada. En segmentación semántica, esta medida evalúa hasta qué punto las regiones segmentadas por el modelo corresponden realmente a la clase de interés, penalizando la presencia de falsos positivos~\cite{Dimitrovski2024, powers2020}.
+
+Un valor alto de precisión indica que el modelo es selectivo al asignar una clase, reduciendo la sobre-segmentación de áreas incorrectas. Esta propiedad resulta especialmente relevante cuando la presencia de falsas detecciones puede inducir interpretaciones erróneas del resultado, como la identificación indebida de estructuras inexistentes en la imagen~\cite{ji2022automation}.
+
+\subsubsection{Recall}
+El \textit{recall}, también conocido como sensibilidad, evalúa hasta qué punto un modelo es capaz de detectar correctamente los píxeles que pertenecen a una clase determinada. Esta métrica mide la fracción de elementos de la clase objetivo que han sido identificados por el modelo en relación con el total de píxeles de dicha clase presentes en los datos de referencia~\cite{Dimitrovski2024, powers2020}.
+
+En el ámbito de la segmentación semántica, un valor alto de \textit{recall} indica que el modelo cubre adecuadamente las estructuras de interés, reduciendo la cantidad de regiones omitidas. Esta propiedad resulta especialmente relevante en aplicaciones donde la pérdida de información es crítica, como en la detección de sendas, infraestructuras lineales o patrones espaciales de baja visibilidad~\cite{ji2022automation}.
+
+\subsubsection{F1 Score}
+El F1 Score es una métrica compuesta que combina la precisión y el \textit{recall} mediante su media armónica, proporcionando una medida equilibrada del rendimiento del modelo. A diferencia de la media aritmética, esta formulación penaliza fuertemente los casos en los que una de las dos métricas presenta valores bajos~\cite{Dimitrovski2024}.
+
+En tareas de segmentación semántica con desequilibrio entre clases, el F1 Score ofrece una evaluación más representativa que la exactitud global, ya que refleja simultáneamente la capacidad del modelo para detectar correctamente una clase y para evitar falsas detecciones. Por ello, es especialmente útil cuando se analizan clases minoritarias o estructuras de pequeña extensión espacial~\cite{ji2022automation}.
+
+% Métricas de evaluación
+\subsubsection{Verdadero positivo (TP)}
+Un valor se considera como un verdadero positivo cuando el modelo asigna correctamente la clase de interés a un píxel o región y dicha asignación coincide con la etiqueta correspondiente en los datos de referencia. En segmentación semántica, los verdaderos positivos representan las zonas del objeto final que han sido correctamente delimitadas por el modelo.
+
+\subsubsection{Falso positivo (FP)}
+Un falso positivo se produce cuando el modelo clasifica como perteneciente a la clase de interés un píxel o región que, según los datos de referencia, no forma parte de dicha clase. Dentro del contexto de la segmentación semántica, este tipo de error se traduce en la detección incorrecta de áreas o estructuras que no deberían haber sido segmentadas.
+
+\subsubsection{Falso negativo (FN)}
+Un falso negativo ocurre cuando el modelo no identifica un píxel o región que sí pertenece a la clase de interés de acuerdo con los datos de referencia. En términos prácticos, los falsos negativos reflejan omisiones en la segmentación, donde partes relevantes del objeto o estructura no han sido capturadas por la predicción.
+
+
+\subsubsection{Verdadero negativo (TN)}
+Un verdadero negativo corresponde a aquellos píxeles o regiones que el modelo clasifica correctamente como no pertenecientes a la clase de interés, en concordancia con los datos de referencia. Aunque en segmentación semántica esta categoría suele ser mayoritaria, su consideración resulta necesaria para el cálculo de métricas globales y para analizar el comportamiento del modelo frente a clases predominantes.
+
+
+
