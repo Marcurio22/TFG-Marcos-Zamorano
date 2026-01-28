@@ -49,13 +49,27 @@ def create_app(test_config=None):
 
     # Configuración por defecto.
     app.config.from_mapping(
-        SECRET_KEY="dev",  # NOTA: Debo cambiar esto en producción.
-        MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16 MB para subidas.
+        SECRET_KEY="dev",
+        MAX_CONTENT_LENGTH=16 * 1024 * 1024,
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},
-        # Carpeta para almacenar las imágenes originales subidas.
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
-        # Carpeta para resultados de cálculo (JSON de trazas, etc.).
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
+
+        # ------------------ Configuración ML ------------------
+        # Carpeta donde van los pesos por fold.
+        SEG_MODELS_DIR=os.path.join(app.root_path, "model"),
+
+        # Template de pesos por fold.
+        SEG_MODEL_TEMPLATE="data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr.9e-05_epochs.60_fold.{fold}",
+
+        # Número de folds/modelos que intentará cargar.
+        SEG_N_FOLDS=10,
+
+        # Encoder usado al entrenar (debe coincidir).
+        SEG_ENCODER_NAME="tu-mambaout_base_wide_rw",
+
+        # Usar GPU si existe (si no hay GPU, caerá a CPU automáticamente).
+        SEG_USE_GPU=True,
     )
 
     # Configuración de tests, en caso de ser proporcionada.
@@ -69,6 +83,7 @@ def create_app(test_config=None):
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["SEG_MODELS_DIR"], exist_ok=True)
 
     # Registrar blueprint principal.
     app.register_blueprint(traces.bp)

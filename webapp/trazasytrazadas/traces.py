@@ -46,6 +46,7 @@ from flask import (
     jsonify,
 )
 from werkzeug.utils import secure_filename
+from .segmentation_inference import compute_traces_from_segmentation
 from PIL import Image #, ImageDraw
 
 # -----------------------------------------------------------------------------
@@ -72,111 +73,25 @@ def allowed_file(filename: str) -> bool:
     ext = filename.rsplit(".", 1)[1].lower()
     return ext in current_app.config["ALLOWED_EXTENSIONS"]
 
-
-def bresenham_line(x0, y0, x1, y1):
-    """
-    Implementación del algoritmo de Bresenham para obtener todos los puntos
-    enteros que forman una línea entre (x0, y0) y (x1, y1).
-
-    Se usa para generar las diagonales en la imagen.
-    Args:
-        x0, y0 (int): coordenadas del punto inicial.
-        x1, y1 (int): coordenadas del punto final.
-    Returns:
-        list[tuple[int, int]]: lista de puntos (x, y) a lo largo de la línea.
-    """
-    points = []
-
-    # Diferencias absolutas.
-    dx = abs(x1 - x0)
-    dy = -abs(y1 - y0)
-
-    # Dirección de avance.
-    sx = 1 if x0 < x1 else -1
-    sy = 1 if y0 < y1 else -1
-
-    # Error acumulado.
-    err = dx + dy
-
-    x, y = x0, y0
-    while True:
-        points.append((x, y))
-        
-        # Condición de parada: hemos llegado al punto final.
-        if x == x1 and y == y1:
-            break
-        e2 = 2 * err
-        # Ajuste de error y coordenadas según el signo.
-        if e2 >= dy:
-            err += dy
-            x += sx
-        if e2 <= dx:
-            err += dx
-            y += sy
-
-    return points
-
-
 def compute_traces(image_path: str) -> dict:
     """
-    Calcula las trazas de prueba sobre una imagen.
-    En esta versión inicial, las trazas consisten en:
-        - Las 4 esquinas de la imagen.
-        - El punto central.
-        - Dos diagonales que cruzan la imagen pasando por el centro.
-    Nota:
-        En futuras versiones, aquí es donde se sustituirá esta lógica de prueba
-        por el algoritmo real de detección de trazas de herbívoros.
-    Args:
-        image_path (str): ruta absoluta de la imagen original.
-    Returns:
-        dict: diccionario JSON con dos listas:
-              {
-                  "xs": [x0, x1, ...],
-                  "ys": [y0, y1, ...],
-              }
-              donde (xs[i], ys[i]) son las coordenadas de cada píxel a pintar.
+    Calcula trazas reales usando segmentación semántica (U-Net + encoder timm)
+    y ensemble multi-fold.
+
+    Devuelve:
+      {"xs": [...], "ys": [...]}
+    donde (xs[i], ys[i]) son píxeles a pintar en el canvas del frontend.
     """
-    # Abrimos la imagen solo para obtener ancho y alto, ya que aquí no se modifica.
-    with Image.open(image_path) as img:
-        width, height = img.size
+    cfg = current_app.config
 
-    points = []
-
-    # 1) Esquinas: (0,0), (ancho-1, 0), (0, alto-1), (ancho-1, alto-1).
-    points.extend(
-        [
-            (0, 0),
-            (width - 1, 0),
-            (0, height - 1),
-            (width - 1, height - 1),
-        ]
+    return compute_traces_from_segmentation(
+        image_path=image_path,
+        models_dir=cfg["SEG_MODELS_DIR"],
+        model_template=cfg["SEG_MODEL_TEMPLATE"],
+        n_folds=cfg["SEG_N_FOLDS"],
+        encoder_name=cfg["SEG_ENCODER_NAME"],
+        use_gpu=cfg["SEG_USE_GPU"],
     )
-
-    # 2) Punto central.
-    cx = width // 2
-    cy = height // 2
-    points.append((cx, cy))
-
-    # 3) Diagonal principal: esquina superior izq → esquina inferior dcha.
-    points.extend(bresenham_line(0, 0, width - 1, height - 1))
-
-    # 4) Diagonal secundaria: esquina inferior izq → esquina superior dcha.
-    points.extend(bresenham_line(0, height - 1, width - 1, 0))
-
-    # Eliminamos puntos duplicados manteniendo el orden original.
-    seen = set()
-    unique_points = []
-    for p in points:
-        if p not in seen:
-            seen.add(p)
-            unique_points.append(p)
-
-    # Separamos en dos listas (xs, ys) para el JSON final.
-    xs = [p[0] for p in unique_points]
-    ys = [p[1] for p in unique_points]
-
-    return {"xs": xs, "ys": ys}
 
 def _set_error(message: str):
     """
@@ -361,7 +276,14 @@ def calculate_traces():
     image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], image_filename)
 
     # 1) Calculamos las trazas (diccionario con xs/ys).
-    traces = compute_traces(image_path)
+    try:
+        traces = compute_traces(image_path)
+    except FileNotFoundError as e:
+        _set_error(str(e))
+        return redirect(url_for("trazas.index"))
+    except Exception as e:
+        _set_error(f"Error ejecutando segmentación: {e}")
+        return redirect(url_for("trazas.index"))
 
     # 2) Guardamos el JSON en un archivo dentro de OUTPUT_FOLDER.
     name, _ = os.path.splitext(image_filename)
