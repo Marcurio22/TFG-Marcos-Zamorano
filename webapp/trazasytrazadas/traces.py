@@ -89,7 +89,6 @@ def compute_traces(image_path: str) -> dict:
         models_dir=cfg["SEG_MODELS_DIR"],
         model_template=cfg["SEG_MODEL_TEMPLATE"],
         n_folds=cfg["SEG_N_FOLDS"],
-        encoder_name=cfg["SEG_ENCODER_NAME"],
         use_gpu=cfg["SEG_USE_GPU"],
     )
 

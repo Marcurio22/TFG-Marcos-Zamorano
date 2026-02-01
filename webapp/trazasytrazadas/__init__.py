@@ -60,24 +60,20 @@ def create_app(test_config=None):
         SEG_MODELS_DIR=os.path.join(app.root_path, "model"),
 
         # Template de pesos por fold.
-        SEG_MODEL_TEMPLATE="data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr.9e-05_epochs.60_fold.{fold}",
+        SEG_MODEL_TEMPLATE="unet_fold_{fold}_infer.pt",
 
         # Número de folds/modelos que intentará cargar.
         SEG_N_FOLDS=10,
 
-        # Encoder usado al entrenar (debe coincidir).
-        SEG_ENCODER_NAME="tu-mambaout_base_wide_rw",
-
-        # Usar GPU si existe (si no hay GPU, caerá a CPU automáticamente).
+        # Usar GPU si existe.
         SEG_USE_GPU=True,
     )
 
     # Configuración de tests, en caso de ser proporcionada.
-    if test_config is not None:
-        app.config.update(test_config)
-    else:
-        # Si existe instance/config.py, lo cargamos.
-        app.config.from_pyfile("config.py", silent=True)
+    # if test_config is not None:
+    #     app.config.update(test_config)
+    # else:
+    #     app.config.from_pyfile("config.py", silent=True)
 
     # Crear las carpetas necesarias.
     os.makedirs(app.instance_path, exist_ok=True)

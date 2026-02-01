@@ -15,13 +15,12 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict
 
 import numpy as np
 from PIL import Image
 
 import torch
-import segmentation_models_pytorch as smp
 
 # ---------------------------
 # Utilidades de preprocesado
@@ -57,90 +56,37 @@ def _pil_to_tensor_rgb(pil_img: Image.Image) -> torch.Tensor:
     t = torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0)  # 1,3,H,W
     return t
 
+def _normalize_imagenet(img_t: torch.Tensor, device: torch.device) -> torch.Tensor:
+    """
+    Normalización usada en encoders.
+    """
+    mean = torch.tensor([0.485, 0.456, 0.406], dtype=torch.float32, device=device).view(1, 3, 1, 1)
+    std = torch.tensor([0.229, 0.224, 0.225], dtype=torch.float32, device=device).view(1, 3, 1, 1)
+    return (img_t - mean) / std
+
 # ---------------------------
-# Carga de modelos por fold
+# Carga de modelos TorchScript
 # ---------------------------
-
-def _build_fold_paths(models_dir: str, template: str, n_folds: int) -> List[str]:
-    """
-    Construye la ruta de fichero para cada fold usando template.
-    El template debe contener {fold}.
-    """
-    paths = []
-    for fold in range(n_folds):
-        fname = template.format(fold=fold)
-        paths.append(os.path.join(models_dir, fname))
-    return paths
-
-
-def _create_unet_model(encoder_name: str) -> torch.nn.Module:
-    """
-    Crea el U-Net con el encoder.
-    classes=1 => segmentación binaria.
-    """
-    model = smp.create_model(
-        "Unet",
-        encoder_name=encoder_name,
-        in_channels=3,
-        classes=1,
-    )
-    model.eval()
-    return model
-
-def _get_preprocess_mean_std(encoder_name: str) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
-    Mean/std del encoder (SMP) para normalizar igual que se entrenó.
-    """
-    params = smp.encoders.get_preprocessing_params(encoder_name)
-    mean = torch.tensor(params["mean"], dtype=torch.float32).view(1, 3, 1, 1)
-    std = torch.tensor(params["std"], dtype=torch.float32).view(1, 3, 1, 1)
-    return mean, std
 
 @lru_cache(maxsize=1)
-def load_fold_models_from_config(
-    models_dir: str,
-    model_template: str,
-    n_folds: int,
-    encoder_name: str,
-    use_gpu: bool,
-) -> Tuple[List[torch.nn.Module], torch.device, torch.Tensor, torch.Tensor]:
-    """
-    Carga y deja listos los modelos, usando uno por fold, y los mueve al dispositivo.
-
-    IMPORTANTE:
-    - Espera pesos en formato state_dict (torch.save(model.state_dict(), path)).
-    - Si falta algún fold, lo ignora, pero si no hay ninguno, lanza error.
-    """
+def load_fold_torchscript_models(models_dir: str, model_template: str, n_folds: int, use_gpu: bool):
     device = torch.device("cuda" if (use_gpu and torch.cuda.is_available()) else "cpu")
 
-    mean, std = _get_preprocess_mean_std(encoder_name)
-    mean = mean.to(device)
-    std = std.to(device)
-
-    fold_paths = _build_fold_paths(models_dir, model_template, n_folds)
-
-    models: List[torch.nn.Module] = []
-    missing = []
-
-    for p in fold_paths:
+    models = []
+    for fold in range(n_folds):
+        p = os.path.join(models_dir, model_template.format(fold=fold))
         if not os.path.exists(p):
-            missing.append(p)
             continue
-
-        model = _create_unet_model(encoder_name).to(device)
-        state = torch.load(p, map_location=device)
-        model.load_state_dict(state)
-        model.eval()
-        models.append(model)
+        m = torch.jit.load(p, map_location=device)
+        m.eval()
+        models.append(m)
 
     if not models:
         raise FileNotFoundError(
-            "No se encontró ningún modelo de segmentación. "
-            f"Busqué en: {models_dir} usando template: {model_template}. "
-            f"Ejemplos esperados: {fold_paths[:2]}"
+            f"No se encontró ningún modelo TorchScript en {models_dir} con template {model_template}"
         )
 
-    return models, device, mean, std
+    return models, device
 
 # ---------------------------
 # Inferencia + ensemble
@@ -151,57 +97,37 @@ def predict_mask_ensemble(
     models_dir: str,
     model_template: str,
     n_folds: int,
-    encoder_name: str,
     use_gpu: bool,
     threshold: float = 0.5,
 ) -> np.ndarray:
-    """
-    Devuelve máscara binaria final (H,W) sobre el tamaño ORIGINAL de la imagen.
-
-    Proceso:
-      - PIL -> tensor
-      - padding a múltiplo de 32
-      - normalización mean/std encoder
-      - predicción por fold (probabilidades)
-      - promedio probs
-      - threshold -> máscara 0/1
-      - recorte a tamaño original
-    """
     pil = Image.open(image_path)
     w0, h0 = pil.size
 
-    img_t = _pil_to_tensor_rgb(pil)  # 1,3,H,W (H=h0, W=w0)
-    img_t, pad_h, pad_w = _pad_to_multiple_of_32(img_t)
+    img_t = _pil_to_tensor_rgb(pil)
+    img_t, _, _ = _pad_to_multiple_of_32(img_t)
 
-    models, device, mean, std = load_fold_models_from_config(
+    models, device = load_fold_torchscript_models(
         models_dir=models_dir,
         model_template=model_template,
         n_folds=n_folds,
-        encoder_name=encoder_name,
         use_gpu=use_gpu,
     )
 
     img_t = img_t.to(device)
-    img_t = (img_t - mean) / std
+    # img_t = _normalize_imagenet(img_t, device)
 
     probs_sum = None
 
     with torch.no_grad():
         for m in models:
-            logits = m(img_t)            # 1,1,Hpad,Wpad
-            probs = torch.sigmoid(logits)  # prob [0..1]
-            if probs_sum is None:
-                probs_sum = probs
-            else:
-                probs_sum = probs_sum + probs
+            probs = m(img_t)
+            probs_sum = probs if probs_sum is None else (probs_sum + probs)
 
     probs_avg = probs_sum / float(len(models))
-    mask = (probs_avg > threshold).float()  # 1,1,Hpad,Wpad
+    mask = (probs_avg > threshold).float()
 
-    mask_np = mask.squeeze().detach().cpu().numpy()  # Hpad,Wpad
-
-    # Recortar padding para volver al tamaño original
-    mask_np = mask_np[:h0, :w0]
+    mask_np = mask.squeeze().detach().cpu().numpy()
+    mask_np = mask_np[:h0, :w0]  # recorte a tamaño original
 
     return mask_np.astype(np.uint8)
 
@@ -214,12 +140,6 @@ def mask_to_traces_points(
     max_points: int = 150_000,
     stride: int = 2,
 ) -> Dict[str, List[int]]:
-    """
-    Convierte máscara binaria (H,W) en listas xs/ys.
-    Para evitar JSON gigantes:
-      - stride: muestrea cada N píxeles
-      - max_points: límite duro
-    """
     ys, xs = np.where(mask > 0)
 
     if xs.size == 0:
@@ -238,23 +158,22 @@ def mask_to_traces_points(
 
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}
 
+
 def compute_traces_from_segmentation(
     image_path: str,
     models_dir: str,
     model_template: str,
     n_folds: int,
-    encoder_name: str,
     use_gpu: bool,
 ) -> Dict[str, List[int]]:
     """
-    Función “puente” a la que llama la app desde /calculate.
+    Función puente a la que llama la app desde /calculate.
     """
     mask = predict_mask_ensemble(
         image_path=image_path,
         models_dir=models_dir,
         model_template=model_template,
         n_folds=n_folds,
-        encoder_name=encoder_name,
         use_gpu=use_gpu,
         threshold=0.5,
     )
