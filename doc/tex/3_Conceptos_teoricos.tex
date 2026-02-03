@@ -248,9 +248,10 @@ Un verdadero negativo corresponde a aquellos píxeles o regiones que el modelo c
 			TN_c &= \sum_{i\in\Omega} \mathbb{1}[y_i\neq c \ \wedge\ \hat{y}_i\neq c].
 		\end{align}
 	\end{minipage}
-	\caption{Definición de $TP_c$, $FP_c$, $FN_c$ y $TN_c$ para una clase $c$ a partir de la función indicadora $\mathbb{1}[\cdot]$ sobre el conjunto de píxeles $\Omega$.}
 	\label{fig:tp-fp-fn-tn-def}
 \end{figure}
+
+% begin equation o dos corchetes de apertura y de cierre
 
 \begin{table}[H]
 	\centering
@@ -322,22 +323,22 @@ El $F_1$ Score es una métrica compuesta que combina la precisión y el \textit{
 
 En tareas de segmentación semántica con desequilibrio entre clases, el $F_1$ Score ofrece una evaluación más representativa que la exactitud global, ya que refleja simultáneamente la capacidad del modelo para detectar correctamente una clase y para evitar falsas detecciones. Por ello, es especialmente útil cuando se analizan clases minoritarias o estructuras de pequeña extensión espacial~\cite{ji2022automation, sokolova2009systematic}.
 
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.35}
-	\begin{tabular}{@{}ll@{}}
-		\toprule
-		\textbf{Métrica} & \textbf{Expresión} \\
-		\midrule
-		$\mathrm{IoU}_c$ & $\dfrac{TP_c}{TP_c + FP_c + FN_c}$ \\
-		$\mathrm{Precisión}_c$ & $\dfrac{TP_c}{TP_c + FP_c}$ \\
-		$\mathrm{Recall}_c$ & $\dfrac{TP_c}{TP_c + FN_c}$ \\
-		$F_{1,c}$ & $2\cdot \dfrac{\mathrm{Precisión}_c\cdot \mathrm{Recall}_c}{\mathrm{Precisión}_c + \mathrm{Recall}_c}$ \\
-		\bottomrule
-	\end{tabular}
-	\caption{Resumen de métricas derivadas a partir de $TP$, $FP$, $FN$ y $TN$.}
-	\label{tab:metrics-summary}
-\end{table}
+%\begin{table}[H]
+%	\centering
+%	\renewcommand{\arraystretch}{1.35}
+%	\begin{tabular}{@{}ll@{}}
+%		\toprule
+%		\textbf{Métrica} & \textbf{Expresión} \\
+%		\midrule
+%		$\mathrm{IoU}_c$ & $\dfrac{TP_c}{TP_c + FP_c + FN_c}$ \\
+%		$\mathrm{Precisión}_c$ & $\dfrac{TP_c}{TP_c + FP_c}$ \\
+%		$\mathrm{Recall}_c$ & $\dfrac{TP_c}{TP_c + FN_c}$ \\
+%		$F_{1,c}$ & $2\cdot \dfrac{\mathrm{Precisión}_c\cdot \mathrm{Recall}_c}{\mathrm{Precisión}_c + \mathrm{Recall}_c}$ \\
+%		\bottomrule
+%	\end{tabular}
+%	\caption{Resumen de métricas derivadas a partir de $TP$, $FP$, $FN$ y $TN$.}
+%	\label{tab:metrics-summary}
+%\end{table}
 
 
 
