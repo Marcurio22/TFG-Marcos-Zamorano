@@ -37,70 +37,75 @@ Desde una perspectiva metodológica, este trabajo resulta relevante para el pres
 
 \end{itemize}
 
-\begin{table}[H]
-	\centering
-	\footnotesize
-	\setlength{\tabcolsep}{4pt}
-	\renewcommand{\arraystretch}{1.2}
-	
-	\begin{tabularx}{\linewidth}{@{}P{2.7cm}L P{2.9cm}L P{2.0cm}L@{}}
-		\toprule
-		\textbf{Trabajo} &
-		\textbf{Objetivo} &
-		\textbf{Datos} &
-		\textbf{\makecell[l]{Enfoque\\/ Modelo}} &
-		\textbf{Salida} &
-		\textbf{\makecell[l]{Aportación\\y relación con el TFG}} \\
-		\midrule
+
+\begin{landscape}
+	\begin{table}[!ht]
+		\centering
+		\scriptsize
+		\setlength{\tabcolsep}{4pt}
+		\renewcommand{\arraystretch}{1.15}
+		\setlength{\emergencystretch}{2em}
 		
-		Stears et al. (2025)~\cite{Stears2025} &
-		Inferir uso de hábitat a partir de redes de sendas y su densidad. &
-		Ortoimágenes de alta resolución en sabana africana. &
-		Cuantificación de densidad de sendas (\(\mathrm{m/ha}\)) y modelado frente a covariables ambientales. &
-		Métricas de densidad y relaciones ecológicas. &
-		Justifica el valor ecológico de las sendas como huella observable y motivación para su detección automática. \\
+		\begin{tabularx}{\linewidth}{@{}p{2.6cm}X p{3.0cm}X p{2.6cm}X@{}}
+			\toprule
+			\textbf{Trabajo} &
+			\textbf{Objetivo} &
+			\textbf{Datos} &
+			\textbf{\makecell[l]{Enfoque\\/ Modelo}} &
+			\textbf{Salida} &
+			\textbf{\makecell[l]{Aportación\\y relación con el TFG}} \\
+			\midrule
+			
+			Stears et al. (2025)~\cite{Stears2025} &
+			Inferir uso de hábitat a partir de redes de sendas y su densidad. &
+			Ortoimágenes de alta resolución en sabana africana. &
+			Cuantificación de densidad de sendas (\(\mathrm{m/ha}\)) y modelado frente a covariables ambientales. &
+			Métricas de densidad y relaciones ecológicas. &
+			Justifica el valor ecológico de las sendas como huella observable y motivación para su detección automática. \\
+			
+			Backman et al. (2025)~\cite{Backman2025} &
+			Detección y clasificación de fauna en campañas con dron. &
+			Imágenes térmicas UAS en Australia. &
+			\textit{Deep learning} con \textit{CNN} para detección multiespecie. &
+			Localización y clase de individuos. &
+			Ejemplifica automatización en monitorización ecológica y despliegue práctico de visión por computador. \\
+			
+			M\"uller et al. (2025)~\cite{Muller2025} &
+			Segmentación automática de sendas de fauna en terreno natural. &
+			Mosaicos RGB UAS, Parque Kruger (Sudáfrica). &
+			Segmentación semántica con \textit{U-Net}; etiquetado semiautomático apoyado en elevación fotogramétrica. &
+			Máscara de sendas y red continua. &
+			Antecedente directo por formulación como segmentación densa de sendas, alineado con el \textit{pipeline} del TFG. \\
+			
+			McDermid et al. (2025)~\cite{McDermid2025} &
+			Mapeo de senderos y huellas en entornos boreales. &
+			\textit{LiDAR} alta densidad y DTM, Canadá. &
+			\textit{U-Net} sobre DTM multi-resolución; extracción de rasgos lineales sutiles. &
+			Red de senderos; \(F_1 \approx 0.74\)--\(0.77\). &
+			Evidencia que la combinación de sensores y \textit{deep learning} cartografía estructuras lineales débiles a gran escala. \\
+			
+			Bortolot \& Wynne (2005)~\cite{bortolot2005} &
+			Estimación de biomasa forestal a nivel de árbol. &
+			\textit{Small-footprint LiDAR}. &
+			Modelado individual por árbol con datos de entrenamiento. &
+			Biomasa estimada por árbol. &
+			Base metodológica en explotación de \textit{LiDAR} ecológico, relevante como antecedente instrumental, no centrado en sendas. \\
+			
+			Wang et al. (2024)~\cite{Wang2024} &
+			Estimación automática de daño foliar por herbivoría. &
+			Imágenes de hojas individuales. &
+			GAN condicionada tipo \textit{pix2pix} para reconstrucción y cálculo de área perdida. &
+			Porcentaje de daño y salida visual reconstruida. &
+			Relacionado por la cuantificación automática de huellas de herbivoría y su orientación a usuario final mediante aplicación web. \\
+			
+			\bottomrule
+		\end{tabularx}
 		
-		Backman et al. (2025)~\cite{Backman2025} &
-		Detección y clasificación de fauna en campañas con dron. &
-		Imágenes térmicas UAS en Australia. &
-		\textit{Deep learning} con \textit{CNN} para detección multiespecie. &
-		Localización y clase de individuos. &
-		Ejemplifica automatización en monitorización ecológica y despliegue práctico de visión por computador. \\
-		
-		M\"uller et al. (2025)~\cite{Muller2025} &
-		Segmentación automática de sendas de fauna en terreno natural. &
-		Mosaicos RGB UAS, Parque Kruger (Sudáfrica). &
-		Segmentación semántica con \textit{U-Net}; etiquetado semiautomático apoyado en elevación fotogramétrica. &
-		Máscara de sendas y red continua. &
-		Antecedente directo por formulación como segmentación densa de sendas, alineado con el \textit{pipeline} del TFG. \\
-		
-		McDermid et al. (2025)~\cite{McDermid2025} &
-		Mapeo de senderos y huellas en entornos boreales. &
-		\textit{LiDAR} alta densidad y DTM, Canadá. &
-		\textit{U-Net} sobre DTM multi-resolución; extracción de rasgos lineales sutiles. &
-		Red de senderos; \(F_1 \approx 0.74\)--\(0.77\). &
-		Evidencia que la combinación de sensores y \textit{deep learning} cartografía estructuras lineales débiles a gran escala. \\
-		
-		Bortolot \& Wynne (2005)~\cite{bortolot2005} &
-		Estimación de biomasa forestal a nivel de árbol. &
-		\textit{Small-footprint LiDAR}. &
-		Modelado individual por árbol con datos de entrenamiento. &
-		Biomasa estimada por árbol. &
-		Base metodológica en explotación de \textit{LiDAR} ecológico, relevante como antecedente instrumental, no centrado en sendas. \\
-		
-		Wang et al. (2024)~\cite{Wang2024} &
-		Estimación automática de daño foliar por herbivoría. &
-		Imágenes de hojas individuales. &
-		GAN condicionada tipo \textit{pix2pix} para reconstrucción y cálculo de área perdida. &
-		Porcentaje de daño y salida visual reconstruida. &
-		Relacionado por la cuantificación automática de huellas de herbivoría y su orientación a usuario final mediante aplicación web. \\
-		
-		\bottomrule
-	\end{tabularx}
-	
-	\caption{Comparativa de trabajos relacionados según objetivo, datos, enfoque metodológico y relación con el presente TFG.}
-	\label{tab:related-work-comparison}
-\end{table}
+		\caption{Comparativa de trabajos relacionados según objetivo, datos, enfoque metodológico y relación con el presente TFG.}
+		\label{tab:related-work-comparison}
+	\end{table}
+\end{landscape}
+
 
 
 \section{Herramientas Visuales para Imágenes Satelitales y Aéreas}
