@@ -70,10 +70,10 @@ def create_app(test_config=None):
     )
 
     # Configuración de tests, en caso de ser proporcionada.
-    # if test_config is not None:
-    #     app.config.update(test_config)
-    # else:
-    #     app.config.from_pyfile("config.py", silent=True)
+    if test_config is not None:
+        app.config.update(test_config)
+    else:
+        app.config.from_pyfile("config.py", silent=True)
 
     # Crear las carpetas necesarias.
     os.makedirs(app.instance_path, exist_ok=True)

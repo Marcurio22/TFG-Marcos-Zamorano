@@ -22,9 +22,11 @@ from trazasytrazadas import create_app
 
 @pytest.fixture
 def app():
+    """Crea una app Flask aislada por test run con carpetas temporales."""
     tmpdir = tempfile.TemporaryDirectory()
     upload = os.path.join(tmpdir.name, "uploads")
     output = os.path.join(tmpdir.name, "outputs")
+    models = os.path.join(tmpdir.name, "models")
 
     app = create_app(
         {
@@ -32,13 +34,40 @@ def app():
             "SECRET_KEY": "test",
             "UPLOAD_FOLDER": upload,
             "OUTPUT_FOLDER": output,
+            "SEG_MODELS_DIR": models,
+            "SEG_USE_GPU": False,
         }
     )
 
     yield app
     tmpdir.cleanup()
 
-
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+@pytest.fixture
+def mock_compute_traces(monkeypatch):
+    """Parcha trazasytrazadas.traces.compute_traces para no depender de ML real.
+
+    Uso:
+        mock_compute_traces()  -> devuelve trazas deterministas.
+        mock_compute_traces(result={...})
+        mock_compute_traces(exc=FileNotFoundError("..."))
+    """
+    from trazasytrazadas import traces as traces_module
+
+    def _apply(result=None, exc: Exception | None = None):
+        if exc is not None:
+            def _raise(_image_path: str):
+                raise exc
+            monkeypatch.setattr(traces_module, "compute_traces", _raise)
+            return None
+
+        if result is None:
+            result = {"xs": [1, 2, 3], "ys": [4, 5, 6]}
+
+        monkeypatch.setattr(traces_module, "compute_traces", lambda _image_path: result)
+        return result
+
+    return _apply

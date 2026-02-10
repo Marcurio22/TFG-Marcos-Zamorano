@@ -1,0 +1,19 @@
+# Requisitos del proyecto "trazasytrazadas" (app + tests)
+
+Flask==3.1.2
+Werkzeug==3.1.4
+Jinja2==3.1.6
+itsdangerous==2.2.0
+click==8.3.1
+blinker==1.9.0
+MarkupSafe==3.0.3
+
+Pillow==11.3.0
+numpy==1.24.0
+
+# Nota: la variante +cpu depende de cómo instales PyTorch (CPU/GPU). Si usas GPU,
+# instala la build correspondiente de PyTorch para tu plataforma.
+torch==2.5.1+cpu
+
+# Tests
+pytest==8.2.2

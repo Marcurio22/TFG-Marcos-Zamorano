@@ -32,7 +32,6 @@ def create_test_image_bytes(size=(10, 10)) -> io.BytesIO:
     buf.seek(0)
     return buf
 
-
 def test_upload_image_ok(client):
     """
     Comprueba que subir una imagen JPEG válida:
@@ -52,7 +51,6 @@ def test_upload_image_ok(client):
     # La vista redirige siempre al index tras procesar la subida.
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/")
-
 
 def test_upload_invalid_extension(client):
     """
@@ -75,3 +73,24 @@ def test_upload_invalid_extension(client):
 
     # El mensaje de error se pinta en la plantilla cuando la extensión no es válida.
     assert b"Formato de archivo no permitido" in response.data
+
+def test_upload_missing_image_field(client):
+    """Si no se envía el campo 'image' en request.files, debe mostrar error."""
+    response = client.post(
+        "/upload",
+        data={},
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert "No se ha enviado ningún archivo.".encode("utf-8") in response.data
+
+def test_upload_empty_filename(client):
+    """Si se envía 'image' pero con filename vacío, debe mostrar error."""
+    data = {"image": (io.BytesIO(b"contenido"), "")}
+    response = client.post(
+        "/upload",
+        data=data,
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert "No se ha seleccionado ningún archivo.".encode("utf-8") in response.data
