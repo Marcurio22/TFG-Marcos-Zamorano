@@ -17,55 +17,95 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{figure}
 	\centering
 	\includegraphics[width=1\linewidth]{img/CasosDeUso}
-	\caption[Diagrama de casos de uso de la aplicación]{}
+	\caption[Diagrama de Casos de Uso]{Diagrama de casos de uso de la aplicación}
 	\label{fig:casosdeuso}
 \end{figure}
+
+\section{Actores del sistema}
+
+En esta sección se describen los distintos actores que interactúan con la aplicación web de detección de trazas. 
+Los actores representan los perfiles de usuario y roles funcionales que acceden al sistema, diferenciándose en función de sus permisos y capacidades dentro de la aplicación. 
+Esta distinción permite modelar de forma clara las responsabilidades y el alcance de cada tipo de usuario.
+
+\subsection{Usuario Anónimo}
+
+El \textbf{Usuario Anónimo} representa a cualquier persona que accede a la aplicación sin haber iniciado sesión ni disponer de una cuenta registrada. 
+Este actor tiene acceso a las funcionalidades básicas del sistema, orientadas a la demostración y uso general de la herramienta de detección.
+
+Concretamente, el Usuario Anónimo puede:
+\begin{itemize}
+	\item Cargar una imagen para su análisis.
+	\item Ejecutar el proceso de detección y segmentación de trazas.
+	\item Visualizar el resultado obtenido.
+	\item Borrar la imagen cargada y reiniciar el flujo de procesamiento.
+	\item Registrarse en el sistema.
+\end{itemize}
+
+Este perfil permite el uso inmediato de la aplicación sin barreras de acceso, manteniendo restringidas aquellas funcionalidades que requieren persistencia de datos o integración con servicios externos.
+
+\subsection{Usuario Registrado}
+
+El \textbf{Usuario Registrado} es un agente que dispone de una cuenta en el sistema y ha iniciado sesión correctamente. 
+Este actor hereda todas las capacidades del Usuario Anónimo y, adicionalmente, puede acceder a funcionalidades avanzadas que requieren autenticación.
+
+Además de las acciones disponibles para el Usuario Anónimo, el Usuario Registrado puede:
+\begin{itemize}
+	\item Iniciar y cerrar sesión en el sistema.
+	\item Administrar su perfil de usuario.
+	\item Descargar los resultados obtenidos tras el proceso de detección y segmentación.
+	\item Acceder al módulo de integración GIS mediante Google Earth Engine.
+	\item Definir una zona de interés y visualizar trazas dentro de dicha zona.
+\end{itemize}
+
+Este actor representa el perfil principal de uso de la aplicación, proporcionando acceso a funcionalidades de mayor valor añadido y a la integración con servicios externos.
+
+\subsection{Administrador}
+
+El \textbf{Administrador} es un usuario registrado con privilegios adicionales orientados a la gestión y mantenimiento del sistema. 
+Este actor hereda todas las capacidades del Usuario Registrado y dispone de permisos específicos para la configuración interna de la aplicación.
+
+Las funciones exclusivas del Administrador incluyen:
+\begin{itemize}
+	\item Administrar los modelos de detección utilizados por el sistema.
+	\item Seleccionar el modelo o \textit{fold} activo que se empleará en el proceso de detección y segmentación.
+\end{itemize}
+
+La existencia de este rol permite separar claramente las tareas de uso del sistema de aquellas relacionadas con su configuración y control, facilitando la mantenibilidad y escalabilidad de la aplicación.
 
 \subsubsection{Explicación de los casos de uso}
 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-01 Cargar imagen} & \\
+		\multicolumn{2}{l}{\textbf{CU-01 Cargar imagen}} \\
 		\midrule
-		Actores & Usuario anónimo, Usuario registrado, Administrador \\
-		Descripción & Permite al usuario cargar una imagen aérea que será utilizada como entrada para el proceso de detección y segmentación de trazas. \\
-		Precondición & El usuario ha accedido a la interfaz de procesamiento. \\
+		Actores &
+		Usuario anónimo, Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite al usuario cargar una imagen aérea que será utilizada como entrada para el proceso de detección y segmentación de trazas. \\
+		
+		Precondición &
+		El usuario ha accedido a la interfaz de procesamiento. \\
+		
 		Flujo principal &
-		1) El usuario selecciona una imagen desde su dispositivo.\\
-		2) El sistema valida el formato y tamaño del archivo.\\
-		3) La imagen queda cargada y disponible para su procesamiento. \\
-		Postcondición & Imagen cargada correctamente en el sistema. \\
-		Relaciones & Incluido por CU-02 Ejecutar detección y segmentación. \\
-		Importancia & Alta \\
-		\bottomrule
-	\end{tabular}
-\end{table}
-
-\begin{table}[H]
-	\centering
-	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
-		\toprule
-		\textbf{CU-02 Ejecutar detección y segmentación} & \\
-		\midrule
-		Actores & Usuario anónimo, Usuario registrado, Administrador \\
-		Descripción & Ejecuta el modelo de detección y segmentación de trazas sobre la imagen cargada. \\
-		Precondición & Existe una imagen cargada (CU-01). \\
-		Flujo principal &
-		1) El usuario inicia el proceso de análisis.\\
-		2) El sistema aplica el modelo de detección configurado.\\
-		3) Se generan los resultados de segmentación. \\
-		Postcondición & Resultado de detección disponible para su visualización. \\
+		\parbox[t]{11cm}{
+			1) El usuario selecciona una imagen desde su dispositivo.\\
+			2) El sistema valida el formato y tamaño del archivo.\\
+			3) La imagen queda cargada y disponible para su procesamiento.
+		} \\
+		
+		Postcondición &
+		Imagen cargada correctamente en el sistema. \\
+		
 		Relaciones &
-		Incluye CU-01 Cargar imagen.\\
-		Es incluido por CU-03 Visualizar resultado.\\
-		Es extendido por CU-04 Descargar resultado. \\
-		Importancia & Alta \\
+		Incluido por CU-02 Ejecutar detección y segmentación. \\
+		
+		Importancia &
+		Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -73,21 +113,39 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-03 Visualizar resultado} & \\
+		\multicolumn{2}{l}{\textbf{CU-02 Ejecutar detección y segmentación}} \\
 		\midrule
-		Actores & Usuario anónimo, Usuario registrado, Administrador \\
-		Descripción & Permite visualizar el resultado de la detección y segmentación superpuesto sobre la imagen original. \\
-		Precondición & El proceso de detección se ha ejecutado correctamente (CU-02). \\
+		Actores &
+		Usuario anónimo, Usuario registrado, Administrador \\
+		
+		Descripción &
+		Ejecuta el modelo de detección y segmentación de trazas sobre la imagen cargada. \\
+		
+		Precondición &
+		Existe una imagen cargada (CU-01). \\
+		
 		Flujo principal &
-		1) El sistema renderiza la imagen original.\\
-		2) El sistema superpone el resultado de segmentación.\\
-		3) El usuario inspecciona visualmente el resultado. \\
-		Postcondición & Resultado visualizado en pantalla. \\
-		Relaciones & Incluye CU-02 Ejecutar detección y segmentación. \\
-		Importancia & Alta \\
+		\parbox[t]{11cm}{
+			1) El usuario inicia el proceso de análisis.\\
+			2) El sistema aplica el modelo de detección configurado.\\
+			3) Se generan los resultados de segmentación.
+		} \\
+		
+		Postcondición &
+		Resultado de detección disponible para su visualización. \\
+		
+		Relaciones &
+		\parbox[t]{11cm}{
+			Incluye CU-01 Cargar imagen.\\
+			Es incluido por CU-03 Visualizar resultado.\\
+			Es extendido por CU-04 Descargar resultado.
+		} \\
+		
+		Importancia &
+		Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -95,21 +153,35 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-04 Descargar resultado} & \\
+		\multicolumn{2}{l}{\textbf{CU-03 Visualizar resultado}} \\
 		\midrule
-		Actores & Usuario registrado, Administrador \\
-		Descripción & Permite descargar el resultado de la detección y segmentación para su uso externo. \\
-		Precondición & El resultado ha sido generado y visualizado (CU-03). \\
+		Actores &
+		Usuario anónimo, Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite visualizar el resultado de la detección y segmentación superpuesto sobre la imagen original. \\
+		
+		Precondición &
+		El proceso de detección se ha ejecutado correctamente (CU-02). \\
+		
 		Flujo principal &
-		1) El usuario solicita la descarga del resultado.\\
-		2) El sistema genera el archivo correspondiente.\\
-		3) El archivo es descargado por el usuario. \\
-		Postcondición & Resultado almacenado localmente por el usuario. \\
-		Relaciones & Extiende CU-02 Ejecutar detección y segmentación. \\
-		Importancia & Media-Alta \\
+		\parbox[t]{11cm}{
+			1) El sistema renderiza la imagen original.\\
+			2) El sistema superpone el resultado de segmentación.\\
+			3) El usuario inspecciona visualmente el resultado.
+		} \\
+		
+		Postcondición &
+		Resultado visualizado en pantalla. \\
+		
+		Relaciones &
+		Incluye CU-02 Ejecutar detección y segmentación. \\
+		
+		Importancia &
+		Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -117,20 +189,35 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-05 Borrar imagen} & \\
+		\multicolumn{2}{l}{\textbf{CU-04 Descargar resultado}} \\
 		\midrule
-		Actores & Usuario anónimo, Usuario registrado, Administrador \\
-		Descripción & Permite eliminar la imagen cargada y reiniciar el flujo de procesamiento. \\
-		Precondición & Existe una imagen cargada o un resultado generado. \\
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite descargar el resultado de la detección y segmentación para su uso externo. \\
+		
+		Precondición &
+		El resultado ha sido generado y visualizado (CU-03). \\
+		
 		Flujo principal &
-		1) El usuario solicita borrar la imagen.\\
-		2) El sistema elimina la imagen y resultados asociados.\\
-		3) El sistema vuelve al estado inicial. \\
-		Postcondición & Sistema preparado para una nueva ejecución. \\
-		Importancia & Media \\
+		\parbox[t]{11cm}{
+			1) El usuario solicita la descarga del resultado.\\
+			2) El sistema genera el archivo correspondiente.\\
+			3) El archivo es descargado por el usuario.
+		} \\
+		
+		Postcondición &
+		Resultado almacenado localmente por el usuario. \\
+		
+		Relaciones &
+		Extiende CU-02 Ejecutar detección y segmentación. \\
+		
+		Importancia &
+		Media-Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -138,21 +225,32 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-06 Acceder a Google Earth Engine} & \\
+		\multicolumn{2}{l}{\textbf{CU-05 Borrar imagen}} \\
 		\midrule
-		Actores & Usuario registrado \\
-		Descripción & Permite acceder al módulo de integración con Google Earth Engine para trabajar sobre una zona geográfica. \\
-		Precondición & El usuario ha iniciado sesión. \\
+		Actores &
+		Usuario anónimo, Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite eliminar la imagen cargada y reiniciar el flujo de procesamiento. \\
+		
+		Precondición &
+		Existe una imagen cargada o un resultado generado. \\
+		
 		Flujo principal &
-		1) El usuario accede al módulo GIS.\\
-		2) El sistema establece conexión con Google Earth Engine.\\
-		3) Se habilitan las funcionalidades de recorte y visualización. \\
-		Postcondición & Sesión GIS activa. \\
-		Relaciones & Incluye CU-06.1 y CU-06.2. \\
-		Importancia & Media-Alta \\
+		\parbox[t]{11cm}{
+			1) El usuario solicita borrar la imagen.\\
+			2) El sistema elimina la imagen y resultados asociados.\\
+			3) El sistema vuelve al estado inicial.
+		} \\
+		
+		Postcondición &
+		Sistema preparado para una nueva ejecución. \\
+		
+		Importancia &
+		Media \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -160,20 +258,35 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-06.1 Recortar zona de interés} & \\
+		\multicolumn{2}{l}{\textbf{CU-06 Acceder a Google Earth Engine}} \\
 		\midrule
-		Actores & Usuario registrado \\
-		Descripción & Permite definir una zona geográfica de interés mediante un recorte sobre el visor. \\
-		Precondición & Acceso al módulo GEE (CU-06). \\
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite acceder al módulo de integración con Google Earth Engine para trabajar sobre una zona geográfica. \\
+		
+		Precondición &
+		El usuario ha iniciado sesión. \\
+		
 		Flujo principal &
-		1) El usuario define el área de recorte.\\
-		2) El sistema valida la geometría.\\
-		3) La zona queda establecida como área activa. \\
-		Postcondición & Zona de interés definida. \\
-		Importancia & Media \\
+		\parbox[t]{11cm}{
+			1) El usuario accede al módulo GIS.\\
+			2) El sistema establece conexión con Google Earth Engine.\\
+			3) Se habilitan las funcionalidades de recorte y visualización.
+		} \\
+		
+		Postcondición &
+		Sesión GIS activa. \\
+		
+		Relaciones &
+		Incluye CU-06.1 Recortar zona de interés y CU-06.2 Visualizar trazas en la zona. \\
+		
+		Importancia &
+		Media-Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -181,20 +294,65 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 \begin{table}[H]
 	\centering
 	\footnotesize
-	\renewcommand{\arraystretch}{1.2}
-	\begin{tabular}{p{3.5cm} p{11cm}}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\textbf{CU-06.2 Visualizar trazas en la zona} & \\
+		\multicolumn{2}{l}{\textbf{CU-06.1 Recortar zona de interés}} \\
 		\midrule
-		Actores & Usuario registrado \\
-		Descripción & Permite visualizar las trazas detectadas dentro de la zona de interés seleccionada. \\
-		Precondición & Zona de interés definida (CU-06.1). \\
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite definir una zona geográfica de interés mediante un recorte sobre el visor. \\
+		
+		Precondición &
+		Acceso al módulo GEE (CU-06). \\
+		
 		Flujo principal &
-		1) El sistema consulta las trazas dentro de la zona.\\
-		2) El sistema renderiza las trazas sobre el visor.\\
-		3) El usuario inspecciona el resultado. \\
-		Postcondición & Trazas visualizadas en la zona seleccionada. \\
-		Importancia & Media-Alta \\
+		\parbox[t]{11cm}{
+			1) El usuario define el área de recorte.\\
+			2) El sistema valida la geometría.\\
+			3) La zona queda establecida como área activa.
+		} \\
+		
+		Postcondición &
+		Zona de interés definida. \\
+		
+		Importancia &
+		Media \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-06.2 Visualizar trazas en la zona}} \\
+		\midrule
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite visualizar las trazas detectadas dentro de la zona de interés seleccionada. \\
+		
+		Precondición &
+		Zona de interés definida (CU-06.1). \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El sistema consulta las trazas dentro de la zona.\\
+			2) El sistema renderiza las trazas sobre el visor.\\
+			3) El usuario inspecciona el resultado.
+		} \\
+		
+		Postcondición &
+		Trazas visualizadas en la zona seleccionada. \\
+		
+		Importancia &
+		Media-Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
