@@ -2,7 +2,47 @@
 
 \section{Introducción}
 
+La planificación de un proyecto software constituye un proceso de gestión organizado que permite coordinar actividades, recursos y plazos con el fin de garantizar una ejecución controlada y la consecución de los objetivos definidos. En el contexto de este TFG, donde se desarrolla una aplicación web para la inferencia y visualización de sendas de herbívoros a partir de imágenes aéreas, disponer de un plan de proyecto resulta especialmente relevante para estructurar el trabajo y registrar el avance de forma verificable.
+
+Este apartado presenta, en primer lugar, la planificación temporal seguida durante el desarrollo, desglosando el proyecto en tareas e hitos y estableciendo su evolución cronológica. Para ello, se adopta un enfoque iterativo e incremental inspirado en metodologías ágiles, particularmente \textit{Scrum}, organizando el trabajo en ciclos cortos llamados \textit{Sprints} con los que se busca conseguir una correcta revisión del progreso y una posible adaptación ante incidencias o cambios de alcance, manteniendo una visión continua del conjunto de tareas pendientes y completadas mediante el denominado \textit{Product Backlog}, que funciona como un registro de las labores a llevar a cabo.
+
+Finalmente, el plan se completa con un estudio de viabilidad que analiza el proyecto desde una perspectiva económica y legal. En esta parte se consideran los costes asociados al desarrollo y despliegue, así como las implicaciones derivadas del uso de herramientas, librerías y recursos de terceros, prestando especial atención a licencias software y condiciones de uso, con el objetivo de asegurar que la solución propuesta sea sostenible, reutilizable y coherente con un escenario de explotación real.
+
 \section{Planificación temporal}
+
+\subsection{Sprint 7}
+El \textit{Sprint 7} abarcó el periodo comprendido entre el 21 de enero y el 10 de febrero. Se trató de un intervalo especialmente amplio, en el que se concentraron cambios relevantes tanto en la memoria como en la implementación, en consonancia con el cierre de mi periodo de prácticas y el consecuente incremento del tiempo dedicado al TFG. En conjunto, planifiqué una dedicación total de 39,5~horas para este \textit{sprint}, aunque finalmente empleé 54~horas.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{enumerate}
+	\item Revisar y reformular el apartado de objetivos del proyecto, con el propósito de mejorar su claridad y consistencia.
+	\item Refinar explicaciones del Capítulo 3, \textit{Conceptos teóricos}, corrigiendo definiciones puntuales.
+	\item Reestructurar el Capítulo 6, \textit{Trabajos relacionados}, incorporando mayor apoyo visual y completando explicaciones incompletas.
+	\item Redactar los bloques conceptuales pendientes correspondientes a:
+	\begin{itemize}
+		\item Métricas de evaluación en segmentación semántica,
+		\item Tipos de \textit{encoder}.
+	\end{itemize}
+	\item Integrar en la aplicación web la lógica del algoritmo de inferencia proporcionado.
+	\item Adaptar la batería de tests a los cambios introducidos.
+	\item Generar un fichero \texttt{requirements.txt} con las dependencias de Python del proyecto.
+	\item Elaborar el diagrama de casos de uso y documentar los casos asociados.
+\end{enumerate}
+
+En cuanto a la revisión de los objetivos, la organicé en dos días. El primero lo dediqué a identificar las descripciones que resultaban menos precisas y a analizar memorias de años anteriores para ajustar el estilo al esperado, mientras que el segundo se centró en la reescritura y el refinamiento final del texto.
+
+Paralelamente, corregí definiciones concretas del Capítulo 3, en particular las relativas a \textit{Vision Transformer} y a los mecanismos residuales. Asimismo, incorporé un texto introductorio al Capítulo 6, revisé algunas redacciones y ajusté \textit{captions} de las figuras. Finalmente, añadí una tabla comparativa entre trabajos relacionados, cuya construcción y ajuste visual realicé en dos iteraciones para asegurar su correcta visualización en el documento.
+
+Más adelante, completé los conceptos pendientes, correspondientes a métricas de evaluación y tipos de \textit{encoder}. La elaboración se distribuyó en cinco días: dos destinados a métricas de evaluación, primero para redactar el contenido y después para consolidar bibliografía, fórmulas y recursos visuales, y tres destinados a \textit{encoders}, donde fue necesario realizar una revisión bibliográfica más amplia antes de cerrar la redacción.
+
+El hito central de este \textit{sprint} fue la integración en la aplicación web de la lógica de inferencia del \textit{notebook} proporcionado. Tras analizar el flujo completo, abordé una primera aproximación mediante serialización con \textit{pickle}, la cual no conseguí llegar a implementar del todo correctamente. Por ello, opté por una solución más robusta basada en convertir los modelos por \textit{fold} a módulos \textit{TorchScript} autocontenidos, ya normalizados y directamente integrables en la aplicación. Posteriormente, adapté la lógica del sistema para ejecutar esta inferencia de forma funcional, cerrando esta parte el 1 de febrero.
+
+Como consecuencia de los cambios introducidos, actualicé la batería de tests para alinearla con la nueva integración. Adicionalmente, por recomendación de uno de los tutores, generé el fichero \texttt{requirements.txt} con las versiones de las dependencias utilizadas hasta el momento, al disponer ya de la información necesaria.
+
+Por último, finalicé otra tarea arrastrada de \textit{sprints} anteriores: la creación del diagrama de casos de uso y la documentación asociada. Para ello, me apoyé en los \textit{mockups} y en el flujo de uso previsto, lo que facilitó mantener una estructura coherente y cerrada.
+
+Cabe destacar que, antes de la reunión que dio inicio al siguiente \textit{sprint}, se realizó una reunión intermedia de seguimiento. Sin embargo, al considerar que todavía quedaban varios frentes abiertos y que el avance no era suficientemente cerrado, se decidió prolongar el \textit{sprint} una semana adicional para consolidar entregables y reducir la deuda técnica acumulada.
+
 
 \section{Estudio de viabilidad}
 
