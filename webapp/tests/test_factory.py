@@ -10,7 +10,7 @@
 """
 
 from trazasytrazadas import create_app
-
+from datetime import timedelta
 
 def test_config():
     """
@@ -23,3 +23,10 @@ def test_config():
 
     app_test = create_app({"TESTING": True})
     assert app_test.testing  # Debe respetar la configuración proporcionada
+
+def test_session_lifetime_is_24_hours():
+    app = create_app({"TESTING": True})
+
+    assert app.config["PERMANENT_SESSION_LIFETIME"] == timedelta(hours=24)
+    assert app.config["SESSION_REFRESH_EACH_REQUEST"] is False
+

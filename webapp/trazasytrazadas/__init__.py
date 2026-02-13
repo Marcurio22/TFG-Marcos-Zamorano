@@ -28,7 +28,8 @@ Notas:
 """
 
 import os
-from flask import Flask
+from datetime import timedelta
+from flask import Flask, session
 
 from . import traces
 
@@ -68,6 +69,14 @@ def create_app(test_config=None):
         # Usar GPU si existe.
         SEG_USE_GPU=True,
     )
+
+    # Sesión: 24h máximo (sin extensión por actividad)
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=24)
+    app.config["SESSION_REFRESH_EACH_REQUEST"] = False
+
+    @app.before_request
+    def _make_session_permanent():
+        session.permanent = True
 
     # Configuración de tests, en caso de ser proporcionada.
     if test_config is not None:
