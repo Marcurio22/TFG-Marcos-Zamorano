@@ -8,7 +8,7 @@
 
 \section{Especificación de requisitos}
 
-En esta sección se presenta la especificación funcional de la aplicación mediante casos de uso, describiendo de forma estructurada las interacciones que el usuario puede realizar a través de la interfaz \textit{frontend}. Dado que la aplicación se consume desde el cliente web, el diagrama sintetiza las funcionalidades visibles para cada tipo de actor, mientras que el \textit{backend} se considera un soporte imprescindible para ejecutar la inferencia, gestionar el estado de las imágenes y servir los resultados, sin modelarse explícitamente como actor independiente.
+En esta sección se presenta la especificación funcional de la aplicación mediante casos de uso, describiendo de forma estructurada las interacciones que el usuario puede realizar a través de la interfaz. Dado que la aplicación se consume desde el cliente web, el diagrama sintetiza las funcionalidades visibles para cada tipo de actor, mientras que el \textit{backend} se considera un soporte imprescindible para ejecutar la inferencia, gestionar el estado de las imágenes y servir los resultados, sin modelarse explícitamente como actor independiente.
 
 \subsection{Diagrama de Casos de Uso}
 
@@ -67,7 +67,7 @@ Este actor hereda todas las capacidades del Usuario Registrado y dispone de perm
 Las funciones exclusivas del Administrador incluyen:
 \begin{itemize}
 	\item Administrar los modelos de detección utilizados por el sistema.
-	\item Seleccionar el modelo o \textit{fold} activo que se empleará en el proceso de detección y segmentación.
+	\item Seleccionar el modelo activo que se empleará en el proceso de detección y segmentación.
 \end{itemize}
 
 La existencia de este rol permite separar claramente las tareas de uso del sistema de aquellas relacionadas con su configuración y control, facilitando la mantenibilidad y escalabilidad de la aplicación.

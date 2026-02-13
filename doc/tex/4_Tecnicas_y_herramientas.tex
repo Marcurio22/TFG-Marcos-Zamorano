@@ -1,5 +1,55 @@
 \capitulo{4}{Técnicas y herramientas}
 
+\subsection{Comparativa entre Bootstrap y Tailwind CSS}
+
+En el diseño e implementación de la interfaz web del proyecto resulta necesario seleccionar un \textit{framework} de estilos que aporte productividad sin comprometer la mantenibilidad ni la calidad del código. Entre las alternativas más consolidadas se encuentran Bootstrap, orientado a componentes predefinidos, y Tailwind CSS, basado en un paradigma de utilidades. A continuación se presenta una comparativa crítica entre ambas opciones, justificando la elección final de Tailwind CSS para el desarrollo de esta página.
+
+Bootstrap propone un conjunto amplio de componentes listos para usar, tales como barras de navegación, tarjetas o sistemas de rejilla, acompañados de un diseño visual relativamente homogéneo. Esta aproximación permite, en un primer momento, acelerar el desarrollo, ya que se pueden componer interfaces funcionales mediante la combinación de bloques estándar. Además, Bootstrap ofrece una documentación madura y una comunidad extensa, lo que facilita la resolución de dudas y la búsqueda de ejemplos; sin embargo, esta misma estandarización introduce ciertas limitaciones. Por un lado, la personalización profunda del diseño suele requerir sobrescribir reglas de estilo, lo que incrementa la complejidad de las hojas CSS y genera deuda técnica con facilidad. Por otro lado, las interfaces tienden a parecerse entre sí, de forma que la identidad visual del proyecto puede quedar diluida si no se realiza un esfuerzo considerable de adaptación.
+
+En contraste, Tailwind CSS se basa en clases utilitarias de bajo nivel que describen propiedades concretas, tales como márgenes, tipografía o colores, aplicadas directamente sobre el marcado HTML. Esta filosofía permite construir componentes a medida a partir de combinaciones de utilidades, sin depender de un conjunto rígido de componentes predefinidos. Como consecuencia, el diseño resultante se ajusta mejor a los requisitos específicos del proyecto y favorece la creación de un sistema de diseño propio, más alineado con la identidad visual deseada. Además, Tailwind CSS integra mecanismos de purga de clases no utilizadas, lo que reduce de manera significativa el tamaño del fichero CSS final y mejora el rendimiento en producción.
+
+No obstante, Tailwind CSS presenta también ciertos inconvenientes. Al inicio, la curva de aprendizaje puede parecer más pronunciada, ya que obliga a pensar en términos de propiedades de bajo nivel y no tanto en componentes cerrados. Asimismo, la presencia de múltiples clases en cada elemento puede dar lugar a un marcado aparentemente más denso, pero, cuando se interioriza el conjunto de utilidades y se adoptan buenas prácticas, como la extracción de componentes reutilizables y el uso de configuración centralizada, el resultado es un código más predecible y coherente, con menos necesidad de sobrescrituras complejas.
+
+Desde una perspectiva de la ingeniería del software, la elección entre ambos enfoques afecta de forma directa a la mantenibilidad y escalabilidad del proyecto. Bootstrap ofrece rapidez inicial, pero puede derivar en hojas de estilo difíciles de gestionar cuando se requiere un alto grado de personalización. En cambio, Tailwind CSS promueve una relación más estrecha entre el diseño y el código, ya que el sistema de diseño se expresa mediante utilidades consistentes que se reutilizan en toda la aplicación. Esto reduce la duplicidad de estilos, minimiza el riesgo de efectos colaterales al modificar clases existentes y facilita la evolución del producto a largo plazo.
+
+Finalmente, he optado por Tailwind CSS debido a su capacidad para generar interfaces más ligeras, a su enfoque modular y a su mejor integración con patrones modernos de desarrollo basado en componentes. Gracias a su sistema de utilidades, ha sido posible definir un diseño adaptado a las necesidades concretas del proyecto, mantener un control fino sobre el \textit{bundle} de estilos y reducir la deuda técnica asociada a la personalización del \textit{frontend}. En definitiva, Tailwind CSS proporciona un equilibrio más adecuado entre flexibilidad, rendimiento y mantenibilidad, lo que lo convierte en la opción más idónea para este desarrollo.
+
+\begin{table}[h]
+	\centering
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{p{0.18\textwidth}p{0.36\textwidth}p{0.36\textwidth}}
+		\hline
+		\textbf{Aspecto} & \textbf{Bootstrap} & \textbf{Tailwind CSS} \\
+		\hline
+		Enfoque & Conjunto de componentes predefinidos y estilos de alto nivel &
+		Clases utilitarias de bajo nivel que permiten construir componentes a medida \\
+		\hline
+		Curva de aprendizaje & Accesible al inicio gracias a los componentes estándar y a los ejemplos completos &
+		Inicialmente más exigente, requiere pensar en términos de propiedades y sistemas de diseño \\
+		\hline
+		Productividad inicial & Elevada en prototipos y desarrollos con requisitos visuales genéricos &
+		Crece con el tiempo, especialmente cuando se definen patrones reutilizables y componentes propios \\
+		\hline
+		Personalización del diseño & Personalización profunda costosa, necesidad frecuente de sobrescribir estilos y romper el diseño base &
+		Alta capacidad de personalización mediante combinaciones de utilidades y configuración centralizada \\
+		\hline
+		Mantenibilidad & Riesgo de hojas CSS voluminosas y difíciles de refactorizar en proyectos muy adaptados &
+		Estilos más controlados, menor necesidad de sobrescrituras y reducción de la deuda técnica \\
+		\hline
+		Rendimiento y tamaño del CSS & Tamaño mayor en el fichero final cuando se utilizan muchos componentes sin optimización específica &
+		Tamaño significativamente reducido gracias a la purga de utilidades no utilizadas en el producto final \\
+		\hline
+		Identidad visual & Interfaces con aspecto reconocible y similar a otros proyectos basados en el mismo \textit{framework} &
+		Mayor capacidad para definir una identidad visual propia y diferenciada \\
+		\hline
+		Comunidad y ecosistema & Comunidad muy amplia, gran cantidad de plantillas, ejemplos y recursos formativos &
+		Comunidad en fuerte crecimiento, ecosistema consolidado en proyectos modernos basados en componentes \\
+		\hline
+	\end{tabular}
+	\caption{Comparativa de ventajas e inconvenientes entre Bootstrap y Tailwind CSS}
+	\label{tab:bootstrap_tailwind}
+\end{table}
+
 \subsection{Comparativa de motores y fuentes de datos geoespaciales}
 
 La elección del motor geoespacial y de la fuente de datos constituye una decisión crítica en el diseño de aplicaciones web orientadas al análisis terrenal y a la detección de elementos lineales, ya que condiciona de forma directa tanto el nivel de detalle alcanzable como la escalabilidad, la reproducibilidad y la viabilidad legal del sistema. En este contexto, se han analizado cinco alternativas representativas del estado del arte actual, valorando sus capacidades técnicas, sus limitaciones y su adecuación a los objetivos del proyecto.
