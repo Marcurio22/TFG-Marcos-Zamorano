@@ -73,13 +73,26 @@ def load_fold_torchscript_models(models_dir: str, model_template: str, n_folds: 
     device = torch.device("cuda" if (use_gpu and torch.cuda.is_available()) else "cpu")
 
     models = []
-    for fold in range(n_folds):
-        p = os.path.join(models_dir, model_template.format(fold=fold))
-        if not os.path.exists(p):
-            continue
-        m = torch.jit.load(p, map_location=device)
-        m.eval()
-        models.append(m)
+    # for fold in range(n_folds):
+    #     p = os.path.join(models_dir, model_template.format(fold=fold))
+    #     if not os.path.exists(p):
+    #         continue
+    #     m = torch.jit.load(p, map_location=device)
+    #     m.eval()
+    #     models.append(m)
+    
+    # ============================================================
+    # PRUEBA: cargar SOLO un fold
+    # ============================================================
+    fold = 0
+    p = os.path.join(models_dir, model_template.format(fold=fold))
+
+    if not os.path.exists(p):
+        raise FileNotFoundError(f"No se encontró el modelo del fold {fold}: {p}")
+
+    m = torch.jit.load(p, map_location=device)
+    m.eval()
+    models.append(m)
 
     if not models:
         raise FileNotFoundError(
@@ -151,10 +164,10 @@ def mask_to_traces_points(
         ys = ys[::stride]
 
     # Límite de puntos
-    if xs.size > max_points:
-        idx = np.linspace(0, xs.size - 1, max_points).astype(int)
-        xs = xs[idx]
-        ys = ys[idx]
+    # if xs.size > max_points:
+    #     idx = np.linspace(0, xs.size - 1, max_points).astype(int)
+    #     xs = xs[idx]
+    #     ys = ys[idx]
 
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}
 

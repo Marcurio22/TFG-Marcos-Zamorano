@@ -1,6 +1,9 @@
 """
-Tests para la ruta /delete (borrado de imagen y trazas asociadas).
-(Falta cabecera buena)
+Tests para el pipeline /upload_and_calculate.
+
+Este endpoint permite al frontend:
+  - Previsualizar una imagen (sin backend)
+  - Y, al pulsar "Calcular trazas", subir + calcular en una sola petición.
 """
 
 import io
@@ -18,24 +21,20 @@ def upload_image(client):
     data = {"image": (create_test_image_bytes(), "test.jpg")}
     client.post("/upload", data=data, content_type="multipart/form-data")
 
-def test_delete_requires_image(client):
-    resp = client.post("/delete", follow_redirects=True)
-    assert "No hay ninguna imagen cargada para borrar.".encode("utf-8") in resp.data
-
-def test_delete_cleans_files_and_session(client, mock_compute_traces):
-    # Patch ML para poder calcular sin pesos reales
+def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
     mock_compute_traces()
 
-    # 1) Upload + calculate para generar image + JSON
     data = {"image": (create_test_image_bytes(), "test.jpg")}
-    client.post(
+    resp = client.post(
         "/upload_and_calculate",
         data=data,
         content_type="multipart/form-data",
         follow_redirects=True,
     )
 
-    # 2) Capturamos nombres en sesión y comprobamos que existen en disco
+    assert b"Las trazas de la imagen han sido calculadas correctamente." in resp.data
+
+    # Verifica sesión y artefactos en disco.
     with client.session_transaction() as sess:
         image_filename = sess.get("image_filename")
         traces_file = sess.get("traces_file")
@@ -49,17 +48,13 @@ def test_delete_cleans_files_and_session(client, mock_compute_traces):
     assert os.path.exists(upload_path)
     assert os.path.exists(traces_path)
 
-    # 3) Delete
-    client.post("/delete", follow_redirects=True)
+def test_pipeline_calculate_without_file_uses_session_image(client, mock_compute_traces):
+    mock_compute_traces()
+    upload_image(client)
 
-    assert not os.path.exists(upload_path)
-    assert not os.path.exists(traces_path)
+    resp = client.post("/upload_and_calculate", follow_redirects=True)
+    assert b"Las trazas de la imagen han sido calculadas correctamente." in resp.data
 
-    # 4) Sesión limpia
-    with client.session_transaction() as sess:
-        assert "image_filename" not in sess
-        assert "traces_file" not in sess
-
-    # 5) /traces vuelve a 404
-    resp = client.get("/traces")
-    assert resp.status_code == 404
+def test_pipeline_requires_image_if_no_file_and_no_session(client):
+    resp = client.post("/upload_and_calculate", follow_redirects=True)
+    assert "Primero debes insertar una imagen antes de calcular trazas.".encode("utf-8") in resp.data

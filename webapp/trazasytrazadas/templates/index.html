@@ -15,40 +15,53 @@ el navegador usando JSON de /traces.
 
 <!-- ====================== Barra de estado ====================== -->
 <section class="mb-4 rounded-lg bg-[#e8eaf6] text-[#1a237e] text-sm px-4 py-3">
-  <p class="m-0">{{ status_message }}</p>
+  <p id="status-message" class="m-0">{{ status_message }}</p>
 </section>
 
 <!-- ====================== Botonera principal ====================== -->
 <section
-  class="flex flex-wrap md:flex-nowrap justify-center items-start gap-6 my-4 w-full"
+  class="flex flex-wrap justify-center items-start gap-6 my-4 w-full"
   aria-label="Acciones principales"
 >
 
-  <!-- INSERTAR IMAGEN -->
-  <form id="upload-form"
-        action="{{ url_for('trazas.upload_image') }}"
+  <!-- PIPELINE: Insertar + Calcular -->
+  <form id="pipeline-form"
+        action="{{ url_for('trazas.upload_and_calculate') }}"
         method="post"
         enctype="multipart/form-data"
-        class="flex flex-col items-center gap-1">
+        class="flex flex-row items-start gap-6">
 
+    <!-- INSERTAR IMAGEN -->
+    <div class="flex flex-col items-center gap-1">
+      <button
+        id="upload-btn"
+        type="button"
+        class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
+               w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+      >
+        INSERTAR IMAGEN
+      </button>
+
+      <input id="image-input"
+             type="file"
+             name="image"
+             accept=".jpg,.jpeg,.png"
+             hidden>
+
+      <span class="text-[0.8rem] text-[#555] text-center whitespace-nowrap mt-1">
+        Formatos permitidos: .jpg, .jpeg, .png
+      </span>
+    </div>
+
+    <!-- CALCULAR TRAZAS -->
     <button
-      id="upload-btn"
-      type="button"
+      id="calculate-btn"
+      type="submit"
       class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
              w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
     >
-      INSERTAR IMAGEN
+      CALCULAR TRAZAS
     </button>
-
-    <input id="image-input"
-           type="file"
-           name="image"
-           accept=".jpg,.jpeg,.png"
-           hidden>
-
-    <span class="text-[0.8rem] text-[#555] text-center whitespace-nowrap mt-1">
-      Formatos permitidos: .jpg, .jpeg, .png
-    </span>
   </form>
 
   <!-- BORRAR IMAGEN -->
@@ -65,22 +78,8 @@ el navegador usando JSON de /traces.
     </button>
   </form>
 
-  <!-- CALCULAR TRAZAS -->
-  <form id="calculate-form"
-        action="{{ url_for('trazas.calculate_traces') }}"
-        method="post"
-        class="flex flex-col items-center">
-    <button
-      type="submit"
-      class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-             w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
-    >
-      CALCULAR TRAZAS
-    </button>
-  </form>
-
   <!-- Checkbox "TRAZAS DIBUJADAS" -->
-  <div class="flex flex-col items-center">
+  <div class="flex flex-col items-center pt-2">
     <label class="inline-flex items-center gap-2 text-[0.9rem]">
       <input
         type="checkbox"
@@ -91,28 +90,27 @@ el navegador usando JSON de /traces.
       <span>TRAZAS DIBUJADAS</span>
     </label>
   </div>
+
 </section>
 
 <!-- ====================== Imagen + Canvas ====================== -->
 <section class="flex justify-center items-center min-h-[360px] rounded-none bg-white border border-dashed border-[#bbb]">
-  {% if image_url %}
-    <div class="relative inline-block">
-      <img
-        id="main-image"
-        src="{{ image_url }}"
-        alt="Imagen subida"
-        class="block max-w-full max-h-[480px] rounded-none"
-      >
-      <canvas
-        id="traces-canvas"
-        class="absolute inset-0 pointer-events-none"
-      ></canvas>
-    </div>
-  {% else %}
-    <div class="text-[#999] text-[1.1rem]">
-      Upload image
-    </div>
-  {% endif %}
+  <div id="image-stage" class="relative inline-block">
+    <img
+      id="main-image"
+      src="{{ image_url or '' }}"
+      alt="Imagen"
+      class="block max-w-full max-h-[480px] rounded-none {{ '' if image_url else 'hidden' }}"
+    >
+    <canvas
+      id="traces-canvas"
+      class="absolute inset-0 pointer-events-none {{ '' if image_url else 'hidden' }}"
+    ></canvas>
+  </div>
+
+  <div id="placeholder" class="text-[#999] text-[1.1rem] {{ 'hidden' if image_url else '' }}">
+    Upload image
+  </div>
 </section>
 
 <!-- ====================== Modal de error ====================== -->
@@ -177,28 +175,22 @@ el navegador usando JSON de /traces.
 <!-- ====================== JavaScript ====================== -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  const serverHasImage = {{ 'true' if image_url else 'false' }};
   // Reiniciar el checkbox siempre al cargar la página
   const tracesCheckbox = document.getElementById("traces-drawn-checkbox");
   if (tracesCheckbox) tracesCheckbox.checked = false;
 
+  const statusEl = document.getElementById("status-message");
+
   /* -------------------------------------------------------------
      1) Mostrar modal "Calculando..." cuando se pulsa CALCULAR TRAZAS
   -------------------------------------------------------------- */
-  const calculateForm = document.getElementById("calculate-form");
+  const pipelineForm = document.getElementById("pipeline-form");
   const calculandoModal = document.getElementById("calculando-modal");
   const deleteForm = document.getElementById("delete-form");
 
-  if (deleteForm) {
-    deleteForm.addEventListener("submit", () => {
-      // Reiniciamos también el checkbox al borrar imagen
-      if (tracesCheckbox) tracesCheckbox.checked = false;
-      // Adición de console logs
-      document.body.style.opacity = "0";
-    });
-  }
-
-  if (calculateForm && calculandoModal) {
-    calculateForm.addEventListener("submit", () => {
+  if (pipelineForm && calculandoModal) {
+    pipelineForm.addEventListener("submit", () => {
       calculandoModal.classList.remove("hidden");
       calculandoModal.classList.add("flex");
     });
@@ -209,6 +201,9 @@ document.addEventListener("DOMContentLoaded", () => {
   -------------------------------------------------------------- */
   const img = document.getElementById("main-image");
   const canvas = document.getElementById("traces-canvas");
+  const placeholder = document.getElementById("placeholder");
+
+  let localPreviewUrl = null;
 
   function resizeCanvas() {
     if (!img || !canvas) return;
@@ -276,16 +271,73 @@ document.addEventListener("DOMContentLoaded", () => {
   -------------------------------------------------------------- */
   const uploadBtn = document.getElementById("upload-btn");
   const imageInput = document.getElementById("image-input");
-  const uploadForm = document.getElementById("upload-form");
 
-  if (uploadBtn && imageInput && uploadForm) {
+  function clearPreviewOnly() {
+    // Limpia preview local sin tocar backend.
+    if (localPreviewUrl) {
+      URL.revokeObjectURL(localPreviewUrl);
+      localPreviewUrl = null;
+    }
+    if (imageInput) imageInput.value = "";
+
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    if (tracesCheckbox) tracesCheckbox.checked = false;
+
+    // Si no hay imagen en backend, volvemos a placeholder.
+    if (!serverHasImage) {
+      if (img) {
+        img.src = "";
+        img.classList.add("hidden");
+      }
+      if (canvas) canvas.classList.add("hidden");
+      if (placeholder) placeholder.classList.remove("hidden");
+      if (statusEl) {
+        statusEl.textContent = "Estado: ninguna imagen cargada. Inserta una imagen para empezar.";
+      }
+    }
+  }
+
+  if (uploadBtn && imageInput) {
     uploadBtn.addEventListener("click", () => imageInput.click());
     imageInput.addEventListener("change", () => {
-      if (imageInput.files.length > 0) {
-        // Reiniciamos el checkbox al subir una nueva imagen
-        if (tracesCheckbox) tracesCheckbox.checked = false;
-        uploadForm.submit();
+      if (imageInput.files.length === 0) return;
+
+      // Preview local (sin backend)
+      if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+      localPreviewUrl = URL.createObjectURL(imageInput.files[0]);
+
+      if (placeholder) placeholder.classList.add("hidden");
+      if (img) {
+        img.src = localPreviewUrl;
+        img.classList.remove("hidden");
       }
+      if (canvas) canvas.classList.remove("hidden");
+
+      // Reiniciamos trazas/canvas al cambiar de imagen
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      if (tracesCheckbox) tracesCheckbox.checked = false;
+      if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
+    });
+  }
+
+  // BORRAR: si estamos en preview local y no hay imagen en backend, borramos sólo frontend.
+  if (deleteForm) {
+    deleteForm.addEventListener("submit", (e) => {
+      const hasLocalPreview = imageInput && imageInput.files && imageInput.files.length > 0;
+      if (!serverHasImage && hasLocalPreview) {
+        e.preventDefault();
+        clearPreviewOnly();
+        return;
+      }
+
+      // Si se va a borrar en backend, al menos reiniciamos el checkbox.
+      if (tracesCheckbox) tracesCheckbox.checked = false;
     });
   }
 

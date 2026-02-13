@@ -99,6 +99,52 @@ def _set_error(message: str):
     """
     session["error_message"] = message
 
+
+def _cleanup_previous_state(old_image: str | None, old_traces_file: str | None) -> None:
+    """Elimina de disco los artefactos previos (si existen)."""
+    for old, folder_key in [
+        (old_image, "UPLOAD_FOLDER"),
+        (old_traces_file, "OUTPUT_FOLDER"),
+    ]:
+        if not old:
+            continue
+        try:
+            os.remove(os.path.join(current_app.config[folder_key], old))
+        except OSError:
+            # Si no existe o no se puede borrar, ignoramos.
+            pass
+
+
+def _save_uploaded_image(file) -> str:
+    """Guarda una imagen subida y devuelve el filename final (con UUID)."""
+    # Usamos secure_filename para evitar nombres de fichero peligrosos.
+    filename = secure_filename(file.filename)
+    name, ext = os.path.splitext(filename)
+
+    # Añadimos un sufijo UUID para garantizar unicidad.
+    filename = f"{name}_{uuid.uuid4().hex}{ext}"
+
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+    os.makedirs(upload_folder, exist_ok=True)
+    file_path = os.path.join(upload_folder, filename)
+    file.save(file_path)
+    return filename
+
+
+def _calculate_and_store_traces(image_filename: str) -> str:
+    """Calcula y persiste el JSON de trazas; devuelve el nombre del JSON."""
+    image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], image_filename)
+
+    traces = compute_traces(image_path)
+
+    name, _ = os.path.splitext(image_filename)
+    traces_filename = f"{name}_traces.json"
+    traces_path = os.path.join(current_app.config["OUTPUT_FOLDER"], traces_filename)
+    os.makedirs(current_app.config["OUTPUT_FOLDER"], exist_ok=True)
+    with open(traces_path, "w", encoding="utf-8") as f:
+        json.dump(traces, f)
+    return traces_filename
+
 # -----------------------------------------------------------------------------
 # Rutas principales
 # -----------------------------------------------------------------------------
@@ -185,35 +231,13 @@ def upload_image():
         _set_error("Formato de archivo no permitido. Usa .jpg, .jpeg o .png.")
         return redirect(url_for("trazas.index"))
 
-    # Usamos secure_filename para evitar nombres de fichero peligrosos.
-    filename = secure_filename(file.filename)
-    name, ext = os.path.splitext(filename)
-
-    # Añadimos un sufijo UUID para garantizar unicidad.
-    filename = f"{name}_{uuid.uuid4().hex}{ext}"
-
-    upload_folder = current_app.config["UPLOAD_FOLDER"]
-    os.makedirs(upload_folder, exist_ok=True)
-    file_path = os.path.join(upload_folder, filename)
-    file.save(file_path)
-
-    # Limpieza de estado anterior (imagen, trazas, imagen trazada).
+    # Limpieza de estado anterior (imagen, trazas, ...)
     old_image = session.pop("image_filename", None)
     old_traces_file = session.pop("traces_file", None)
+    _cleanup_previous_state(old_image, old_traces_file)
 
-    # Borramos físicamente los ficheros antiguos (si existen).
-    for old, folder_key in [
-        (old_image, "UPLOAD_FOLDER"),
-        (old_traces_file, "OUTPUT_FOLDER"),
-    ]:
-        if old:
-            try:
-                os.remove(os.path.join(current_app.config[folder_key], old))
-            except OSError:
-                # Si no existe o no se puede borrar, ignoramos silenciosamente.
-                pass
-
-    # Guardamos en sesión el nombre de la nueva imagen.
+    # Guardamos la nueva imagen y persistimos en sesión.
+    filename = _save_uploaded_image(file)
     session["image_filename"] = filename
 
     return redirect(url_for("trazas.index"))
@@ -235,16 +259,7 @@ def delete_image():
 
     traces_file = session.get("traces_file")
 
-    # Lista de (nombre_de_fichero, clave_de_carpeta) a eliminar.
-    for old, folder_key in [
-        (image_filename, "UPLOAD_FOLDER"),
-        (traces_file, "OUTPUT_FOLDER"),
-    ]:
-        if old:
-            try:
-                os.remove(os.path.join(current_app.config[folder_key], old))
-            except OSError:
-                pass
+    _cleanup_previous_state(image_filename, traces_file)
 
     # Limpiamos las claves de sesión asociadas.
     session.pop("image_filename", None)
@@ -272,11 +287,9 @@ def calculate_traces():
         _set_error("Primero debes insertar una imagen antes de calcular trazas.")
         return redirect(url_for("trazas.index"))
 
-    image_path = os.path.join(current_app.config["UPLOAD_FOLDER"], image_filename)
-
-    # 1) Calculamos las trazas (diccionario con xs/ys).
+    # 1) Calculamos y guardamos trazas.
     try:
-        traces = compute_traces(image_path)
+        traces_filename = _calculate_and_store_traces(image_filename)
     except FileNotFoundError as e:
         _set_error(str(e))
         return redirect(url_for("trazas.index"))
@@ -284,19 +297,61 @@ def calculate_traces():
         _set_error(f"Error ejecutando segmentación: {e}")
         return redirect(url_for("trazas.index"))
 
-    # 2) Guardamos el JSON en un archivo dentro de OUTPUT_FOLDER.
-    name, _ = os.path.splitext(image_filename)
-    traces_filename = f"{name}_traces.json"
-    traces_path = os.path.join(current_app.config["OUTPUT_FOLDER"], traces_filename)
-    os.makedirs(current_app.config["OUTPUT_FOLDER"], exist_ok=True)
-
-    with open(traces_path, "w", encoding="utf-8") as f:
-        json.dump(traces, f)
-
-    # 3) Guardamos en sesión solo el nombre del fichero JSON.
+    # 2) Guardamos en sesión solo el nombre del fichero JSON.
     session["traces_file"] = traces_filename
 
     # 4) Flag para mostrar modal "Trazas calculadas".
+    session["traces_calculated"] = True
+
+    return redirect(url_for("trazas.index"))
+
+
+# ---------------- Ruta upload + calculate (pipeline) ----------------------
+@bp.route("/upload_and_calculate", methods=["POST"])
+def upload_and_calculate():
+    """Pipeline usado por el frontend:
+
+    - Si viene un fichero en request.files['image'], lo guarda (equivalente a /upload).
+    - Si no viene fichero, usa la imagen ya presente en sesión (equivalente a /calculate).
+    - En ambos casos calcula y persiste el JSON de trazas.
+
+    Esta ruta permite separar en la UI:
+        * INSERTAR IMAGEN → preview local (sin backend)
+        * CALCULAR TRAZAS → (subir si hace falta) + calcular
+    """
+
+    file = request.files.get("image")
+
+    # Si llega fichero: validamos y subimos.
+    if file and file.filename:
+        if not allowed_file(file.filename):
+            _set_error("Formato de archivo no permitido. Usa .jpg, .jpeg o .png.")
+            return redirect(url_for("trazas.index"))
+
+        # Limpieza del estado anterior antes de sustituir por una imagen nueva.
+        old_image = session.pop("image_filename", None)
+        old_traces_file = session.pop("traces_file", None)
+        _cleanup_previous_state(old_image, old_traces_file)
+
+        filename = _save_uploaded_image(file)
+        session["image_filename"] = filename
+
+    image_filename = session.get("image_filename")
+    if not image_filename:
+        _set_error("Primero debes insertar una imagen antes de calcular trazas.")
+        return redirect(url_for("trazas.index"))
+
+    # Calculamos trazas para la imagen actual.
+    try:
+        traces_filename = _calculate_and_store_traces(image_filename)
+    except FileNotFoundError as e:
+        _set_error(str(e))
+        return redirect(url_for("trazas.index"))
+    except Exception as e:
+        _set_error(f"Error ejecutando segmentación: {e}")
+        return redirect(url_for("trazas.index"))
+
+    session["traces_file"] = traces_filename
     session["traces_calculated"] = True
 
     return redirect(url_for("trazas.index"))

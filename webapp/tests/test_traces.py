@@ -23,15 +23,6 @@ def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
     buf.seek(0)
     return buf
 
-def upload_image(client):
-    """Helper para subir automáticamente una imagen de prueba."""
-    data = {"image": (create_test_image_bytes(), "test.jpg")}
-    client.post(
-        "/upload",
-        data=data,
-        content_type="multipart/form-data",
-    )
-
 def test_calculate_requires_image(client):
     """Debe ser imposible calcular trazas sin haber subido una imagen."""
     response = client.post("/calculate", follow_redirects=True)
@@ -45,9 +36,13 @@ def test_full_traces_flow(client, mock_compute_traces):
     """
     mock_compute_traces()
 
-    upload_image(client)
-
-    resp_calc = client.post("/calculate", follow_redirects=True)
+    data = {"image": (create_test_image_bytes(), "test.jpg")}
+    resp_calc = client.post(
+        "/upload_and_calculate",
+        data=data,
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
     assert b"Las trazas de la imagen han sido calculadas correctamente." in resp_calc.data
 
     resp_json = client.get("/traces")
