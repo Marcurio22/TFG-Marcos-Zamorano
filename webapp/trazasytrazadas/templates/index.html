@@ -19,25 +19,23 @@ el navegador usando JSON de /traces.
 </section>
 
 <!-- ====================== Botonera principal ====================== -->
-<section
-  class="flex flex-wrap justify-center items-start gap-6 my-4 w-full"
-  aria-label="Acciones principales"
->
+<section class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-stretch sm:items-start gap-3 sm:gap-6 my-4 w-full"
+         aria-label="Acciones principales">
 
   <!-- PIPELINE: Insertar + Calcular -->
   <form id="pipeline-form"
         action="{{ url_for('trazas.upload_and_calculate') }}"
         method="post"
         enctype="multipart/form-data"
-        class="flex flex-row items-start gap-6">
+        class="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-6 w-full sm:w-auto">
 
     <!-- INSERTAR IMAGEN -->
-    <div class="flex flex-col items-center gap-1">
+    <div class="flex flex-col items-stretch sm:items-center gap-1 w-full sm:w-auto">
       <button
         id="upload-btn"
         type="button"
         class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-               w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+               w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
       >
         INSERTAR IMAGEN
       </button>
@@ -58,7 +56,7 @@ el navegador usando JSON de /traces.
       id="calculate-btn"
       type="submit"
       class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-             w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+             w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
     >
       CALCULAR TRAZAS
     </button>
@@ -68,18 +66,18 @@ el navegador usando JSON de /traces.
   <form id="delete-form"
         action="{{ url_for('trazas.delete_image') }}"
         method="post"
-        class="flex flex-col items-center">
+        class="flex flex-col items-stretch sm:items-center w-full sm:w-auto">
     <button
       type="submit"
       class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-             w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+             w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
     >
       BORRAR IMAGEN
     </button>
   </form>
 
   <!-- Checkbox "TRAZAS DIBUJADAS" -->
-  <div class="flex flex-col items-center pt-2">
+  <div class="flex items-center justify-center w-full sm:w-auto sm:pt-2">
     <label class="inline-flex items-center gap-2 text-[0.9rem]">
       <input
         type="checkbox"
@@ -94,13 +92,13 @@ el navegador usando JSON de /traces.
 </section>
 
 <!-- ====================== Imagen + Canvas ====================== -->
-<section class="flex justify-center items-center min-h-[360px] rounded-none bg-white border border-dashed border-[#bbb]">
+<section class="flex justify-center items-center min-h-[240px] sm:min-h-[360px] rounded-none bg-white border border-dashed border-[#bbb]">
   <div id="image-stage" class="relative inline-block">
     <img
       id="main-image"
       src="{{ image_url or '' }}"
       alt="Imagen"
-      class="block max-w-full max-h-[480px] rounded-none {{ '' if image_url else 'hidden' }}"
+      class="block max-w-full max-h-[320px] sm:max-h-[480px] rounded-none {{ '' if image_url else 'hidden' }}"
     >
     <canvas
       id="traces-canvas"
@@ -123,7 +121,7 @@ el navegador usando JSON de /traces.
 
       <button
         class="btn mt-4 bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-               w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+               w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
         onclick="this.closest('[data-modal]').remove();"
       >
         Close
@@ -153,7 +151,7 @@ el navegador usando JSON de /traces.
         id="traces-modal-close"
         type="button"
         class="btn mt-4 bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-               w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+               w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
       >
         Close
       </button>

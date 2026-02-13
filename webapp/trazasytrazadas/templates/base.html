@@ -11,17 +11,18 @@ cabecera, estilos, layout común y bloques que heredan las vistas.
 <html lang="es">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="min-h-screen bg-[#f5f5f5] text-[#222]">
   <header class="bg-[#283593] text-white py-4 px-4">
-    <h1 class="max-w-4xl mx-auto text-center text-2xl font-semibold tracking-tight m-0">
+    <h1 class="max-w-4xl mx-auto text-center text-xl sm:text-2xl font-semibold tracking-tight m-0">
       Trazas de Herbívoros
     </h1>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-8">
+  <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
     {% block content %}{% endblock %}
   </main>
 </body>
