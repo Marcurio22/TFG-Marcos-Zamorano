@@ -17,9 +17,26 @@ cabecera, estilos, layout común y bloques que heredan las vistas.
 </head>
 <body class="min-h-screen bg-[#f5f5f5] text-[#222]">
   <header class="bg-[#283593] text-white py-4 px-4">
-    <h1 class="max-w-4xl mx-auto text-center text-xl sm:text-2xl font-semibold tracking-tight m-0">
-      Trazas de Herbívoros
-    </h1>
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-center text-2xl font-semibold tracking-tight m-0">
+        Trazas de Herbívoros
+      </h1>
+
+      <div class="mt-3 flex justify-center">
+        <form method="get" class="flex items-center gap-2">
+          <label for="lang" class="text-sm opacity-90">Idioma</label>
+          <select id="lang" name="lang"
+                  class="select select-sm text-black"
+                  onchange="this.form.submit()">
+            {% for code, name in LANGUAGES.items() %}
+              <option value="{{ code }}" {% if code == current_lang %}selected{% endif %}>
+                {{ name }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+    </div>
   </header>
 
   <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">

@@ -29,9 +29,39 @@ Notas:
 
 import os
 from datetime import timedelta
-from flask import Flask, session
+from flask import Flask, request, session
+from flask_babel import Babel, get_locale
 
 from . import traces
+
+# Babel (i18n)
+babel = Babel()
+
+LANGUAGES = {
+    "es": "Español",
+    "en": "English",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch",
+}
+
+def select_locale():
+    """Selecciona idioma por request en este orden:
+    1) Querystring ?lang=xx
+    2) session["lang"]
+    3) Accept-Language header del navegador
+    4) fallback a 'es'
+    """
+    lang = request.args.get("lang")
+    if lang in LANGUAGES:
+        session["lang"] = lang
+        return lang
+
+    lang = session.get("lang")
+    if lang in LANGUAGES:
+        return lang
+
+    return request.accept_languages.best_match(LANGUAGES.keys()) or "es"
 
 def create_app(test_config=None):
     """
@@ -83,6 +113,18 @@ def create_app(test_config=None):
         app.config.update(test_config)
     else:
         app.config.from_pyfile("config.py", silent=True)
+
+    # ------------------ Configuración i18n (Flask-Babel) ------------------
+    app.config.setdefault("BABEL_DEFAULT_LOCALE", "es")
+    app.config.setdefault("BABEL_DEFAULT_TIMEZONE", "Europe/Madrid")
+
+    babel.init_app(app, locale_selector=select_locale)
+
+    @app.context_processor
+    def _inject_i18n():
+        loc = get_locale()
+        current_lang = getattr(loc, "language", str(loc))
+        return {"LANGUAGES": LANGUAGES, "current_lang": current_lang}
 
     # Crear las carpetas necesarias.
     os.makedirs(app.instance_path, exist_ok=True)

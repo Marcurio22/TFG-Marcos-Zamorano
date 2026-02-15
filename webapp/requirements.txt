@@ -11,8 +11,12 @@ MarkupSafe==3.0.3
 Pillow==11.3.0
 numpy==1.24.0
 
-# Nota: la variante +cpu depende de cómo instales PyTorch (CPU/GPU). Si usas GPU,
-# instala la build correspondiente de PyTorch para tu plataforma.
+# i18n
+Flask-Babel==4.0.0
+Babel==2.14.0
+
+# Nota: la variante +cpu depende de cómo instales PyTorch (CPU/GPU). 
+# Si usases GPU, instala la build correspondiente de PyTorch para tu plataforma.
 torch==2.5.1+cpu
 
 # Tests
