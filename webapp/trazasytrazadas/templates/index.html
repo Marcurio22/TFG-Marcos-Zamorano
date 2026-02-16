@@ -45,20 +45,30 @@ el navegador usando JSON de /traces.
         enctype="multipart/form-data"
         class="w-full sm:w-auto">
 
-    <!-- Join: file-input + calcular -->
-    <div class="join w-full justify-center">
-      <input
-        id="image-input"
-        type="file"
-        name="image"
-        accept=".jpg,.jpeg,.png"
-        class="file-input file-input-bordered file-input-primary join-item w-full sm:w-[360px]"
-      />
+    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-0 w-full sm:w-auto">
 
+      <!-- File input + textos -->
+      <div class="flex flex-col w-full sm:w-[360px]">
+        <input
+          id="image-input"
+          type="file"
+          name="image"
+          accept=".jpg,.jpeg,.png"
+          class="file-input file-input-bordered file-input-primary w-full sm:rounded-r-none"
+        />
+
+        <div class="mt-1 flex flex-col gap-1">
+          <span class="text-xs opacity-60 text-left">
+            Formatos permitidos: .jpg, .jpeg, .png · Tamaño máximo: 16 MB
+          </span>
+        </div>
+      </div>
+
+      <!-- CALCULAR TRAZAS -->
       <button
         id="calculate-btn"
         type="submit"
-        class="btn btn-primary join-item whitespace-nowrap"
+        class="btn btn-primary whitespace-nowrap sm:rounded-l-none"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
@@ -69,13 +79,7 @@ el navegador usando JSON de /traces.
         <span class="hidden sm:inline">Calcular trazas</span>
         <span class="sm:hidden">Calcular</span>
       </button>
-    </div>
 
-    <!-- Etiquetas bajo el join -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-center gap-2 sm:gap-6 mt-2">
-      <span class="text-xs opacity-60 text-center">
-        Formatos permitidos: .jpg, .jpeg, .png
-      </span>
     </div>
   </form>
 
@@ -123,8 +127,8 @@ el navegador usando JSON de /traces.
     <!-- Cuadro oscuro donde va la imagen -->
     <div
       id="image-frame"
-      class="rounded-none bg-base-200 border border-dashed border-[#bbb] overflow-hidden
-            {% if image_url %}inline-block p-0{% else %}w-full p-0{% endif %}"
+      class="rounded-none bg-base-200 border border-dashed border-base-300 overflow-hidden
+        {% if image_url %}inline-block p-0{% else %}w-full p-0{% endif %}"
     >
       <div class="{% if image_url %}p-0{% else %}min-h-[360px] sm:min-h-[520px] flex items-center justify-center{% endif %}">
         <div id="image-stage" class="relative inline-block">
@@ -215,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("traces-canvas");
   const placeholder = document.getElementById("placeholder");
 
+  const imageFrame = document.getElementById("image-frame");
   const imageInput = document.getElementById("image-input");
   const selectedFileName = document.getElementById("selected-file-name");
 
@@ -319,37 +324,94 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+    function setDropzoneState(state) {
+    if (!imageFrame) return;
+
+    imageFrame.classList.remove("border-base-300", "border-primary", "border-success", "border-error", "bg-primary/5", "bg-success/5", "bg-error/5");
+
+    if (state === "active") {
+      imageFrame.classList.add("border-primary", "bg-primary/5");
+    } else if (state === "success") {
+      imageFrame.classList.add("border-success", "bg-success/5");
+    } else if (state === "error") {
+      imageFrame.classList.add("border-error", "bg-error/5");
+    } else {
+      imageFrame.classList.add("border-base-300");
+    }
+  }
+
+  function isValidImageFile(file) {
+    if (!file) return false;
+    const okTypes = ["image/png", "image/jpeg"];
+    if (okTypes.includes(file.type)) return true;
+    const name = (file.name || "").toLowerCase();
+    return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg");
+  }
+
+  function previewFile(file) {
+    if (!file) return;
+
+    // Nombre de fichero visible
+    if (selectedFileName) selectedFileName.textContent = file.name;
+
+    // Preview local
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    localPreviewUrl = URL.createObjectURL(file);
+
+    if (placeholder) placeholder.classList.add("hidden");
+    if (img) {
+      img.src = localPreviewUrl;
+      img.classList.remove("hidden");
+    }
+    if (canvas) canvas.classList.remove("hidden");
+
+    // Reiniciamos trazas/canvas al cambiar de imagen
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    if (tracesCheckbox) tracesCheckbox.checked = false;
+    if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
+
+    // Asegurar resize aunque la imagen cargue muy rápido
+    if (img && canvas) {
+      if (img.complete && img.naturalWidth > 0) resizeCanvas();
+      else img.addEventListener("load", resizeCanvas, { once: true });
+    }
+  }
+
   if (imageInput) {
     imageInput.addEventListener("change", () => {
       if (!imageInput.files || imageInput.files.length === 0) return;
+      previewFile(imageInput.files[0]);
 
-      // Mostrar nombre real del fichero seleccionado
-      if (selectedFileName) selectedFileName.textContent = imageInput.files[0].name;
+      // // Mostrar nombre real del fichero seleccionado
+      // if (selectedFileName) selectedFileName.textContent = imageInput.files[0].name;
 
-      // Preview local (sin backend)
-      if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
-      localPreviewUrl = URL.createObjectURL(imageInput.files[0]);
+      // // Preview local
+      // if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+      // localPreviewUrl = URL.createObjectURL(imageInput.files[0]);
 
-      if (placeholder) placeholder.classList.add("hidden");
-      if (img) {
-        img.src = localPreviewUrl;
-        img.classList.remove("hidden");
-      }
-      if (canvas) canvas.classList.remove("hidden");
+      // if (placeholder) placeholder.classList.add("hidden");
+      // if (img) {
+      //   img.src = localPreviewUrl;
+      //   img.classList.remove("hidden");
+      // }
+      // if (canvas) canvas.classList.remove("hidden");
 
-      // Reiniciamos trazas/canvas al cambiar de imagen
-      if (canvas) {
-        const ctx = canvas.getContext("2d");
-        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-      if (tracesCheckbox) tracesCheckbox.checked = false;
-      if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
+      // // Reiniciamos trazas/canvas al cambiar de imagen
+      // if (canvas) {
+      //   const ctx = canvas.getContext("2d");
+      //   if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // }
+      // if (tracesCheckbox) tracesCheckbox.checked = false;
+      // if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
 
-      // Asegurar resize aunque la imagen cargue muy rápido
-      if (img && canvas) {
-        if (img.complete && img.naturalWidth > 0) resizeCanvas();
-        else img.addEventListener("load", resizeCanvas, { once: true });
-      }
+      // // Asegurar resize aunque la imagen cargue muy rápido
+      // if (img && canvas) {
+      //   if (img.complete && img.naturalWidth > 0) resizeCanvas();
+      //   else img.addEventListener("load", resizeCanvas, { once: true });
+      // }
     });
   }
 
@@ -368,6 +430,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Listeners de drag y drop para subida de imágenes
+  if (imageFrame) {
+    let dragDepth = 0;
+
+    const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
+
+    imageFrame.addEventListener("dragenter", (e) => {
+      prevent(e);
+      dragDepth++;
+      setDropzoneState("active");
+    });
+
+    imageFrame.addEventListener("dragover", (e) => {
+      prevent(e);
+      setDropzoneState("active");
+    });
+
+    imageFrame.addEventListener("dragleave", (e) => {
+      prevent(e);
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (dragDepth === 0) setDropzoneState("idle");
+    });
+
+    imageFrame.addEventListener("drop", (e) => {
+      prevent(e);
+      dragDepth = 0;
+
+      const file = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files[0] : null;
+
+      if (!isValidImageFile(file)) {
+        setDropzoneState("error");
+        setTimeout(() => setDropzoneState("idle"), 900);
+        return;
+      }
+
+      if (imageInput) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        imageInput.files = dt.files;
+      }
+
+      previewFile(file);
+      setDropzoneState("success");
+      setTimeout(() => setDropzoneState("idle"), 700);
+    });
+
+    // Evita que el navegador abra el archivo si se suelta fuera del frame
+    document.addEventListener("dragover", prevent);
+    document.addEventListener("drop", (e) => {
+      // Solo bloqueamos fuera del frame
+      if (!imageFrame.contains(e.target)) prevent(e);
+    });
+  }
 });
 </script>
 

@@ -1,22 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs><clipPath id="c"><circle cx="32" cy="32" r="32"></circle></clipPath></defs>
+  <defs>
+    <clipPath id="c"><circle cx="32" cy="32" r="32"/></clipPath>
+  </defs>
   <g clip-path="url(#c)">
-    <rect width="64" height="64" fill="#012169"></rect>
-
-    <!-- Diagonales blancas -->
-    <path d="M-6 6 L6 -6 L70 58 L58 70 Z" fill="#ffffff"></path>
-    <path d="M58 -6 L70 6 L6 70 L-6 58 Z" fill="#ffffff"></path>
-
-    <!-- Diagonales rojas -->
-    <path d="M-6 12 L0 6 L58 64 L52 70 Z" fill="#c8102e"></path>
-    <path d="M64 12 L70 6 L12 64 L6 70 Z" fill="#c8102e"></path>
-
-    <!-- Cruz blanca -->
-    <rect x="26" width="12" height="64" fill="#ffffff"></rect>
-    <rect y="26" width="64" height="12" fill="#ffffff"></rect>
-
-    <!-- Cruz roja -->
-    <rect x="28" width="8" height="64" fill="#c8102e"></rect>
-    <rect y="28" width="64" height="8" fill="#c8102e"></rect>
+    <!-- Base -->
+    <rect x="-32.0000" y="0" width="128.0000" height="64.0000" fill="#012169"/>
+    <!-- St Andrew (white diagonals) -->
+    <polygon points="-34.8622,5.7243 93.1378,69.7243 98.8622,58.2757 -29.1378,-5.7243" fill="#ffffff"/>
+    <polygon points="-29.1378,69.7243 98.8622,5.7243 93.1378,-5.7243 -34.8622,58.2757" fill="#ffffff"/>
+    <!-- St Patrick (red diagonals, offset) -->
+    <polygon points="-33.9081,3.8162 94.0919,67.8162 96.0000,64.0000 -32.0000,0.0000" fill="#c8102e"/>
+    <polygon points="-33.9081,60.1838 94.0919,-3.8162 96.0000,0.0000 -32.0000,64.0000" fill="#c8102e"/>
+    <!-- St George (white cross) -->
+    <rect x="21.3333" y="0" width="21.3333" height="64.0000" fill="#ffffff"/>
+    <rect x="-32.0000" y="21.3333" width="128.0000" height="21.3333" fill="#ffffff"/>
+    <!-- St George (red cross) -->
+    <rect x="25.6000" y="0" width="12.8000" height="64.0000" fill="#c8102e"/>
+    <rect x="-32.0000" y="25.6000" width="128.0000" height="12.8000" fill="#c8102e"/>
   </g>
 </svg>
