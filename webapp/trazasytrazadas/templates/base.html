@@ -135,9 +135,8 @@ Plantilla base del proyecto.
       <div class="footer footer-center">
         <div class="grid gap-3">
           <div class="flex items-center justify-center gap-3">
-            <!-- (Tengo que meter el escudo ubu aquí) -->
             <div class="avatar">
-              <div class="w-12 h-12 rounded-full bg-base-100 p-1 shadow-sm">
+              <div class="w-12 h-12 bg-base-100 p-1 shadow-sm">
                 <img
                   src="{{ url_for('static', filename='img/escudo_ubu_tc.svg') }}"
                   alt="Escudo Universidad de Burgos"
@@ -157,6 +156,22 @@ Plantilla base del proyecto.
       </div>
     </div>
   </footer>
+
+<!-- Auto-cierre en 5s de flash messages -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".alert .btn[aria-label='Cerrar']").forEach((closeBtn) => {
+    const alertEl = closeBtn.closest(".alert");
+    if (!alertEl) return;
+
+    setTimeout(() => {
+      alertEl.style.transition = "opacity 250ms ease";
+      alertEl.style.opacity = "0";
+      setTimeout(() => alertEl.remove(), 260);
+    }, 5000);
+  });
+});
+</script>
 
 </body>
 

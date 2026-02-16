@@ -117,22 +117,45 @@ el navegador usando JSON de /traces.
 </section>
 
 <!-- ====================== Imagen + Canvas ====================== -->
-<section class="flex justify-center items-center min-h-[240px] sm:min-h-[360px] rounded-none bg-white border border-dashed border-[#bbb]">
-  <div id="image-stage" class="relative inline-block">
-    <img
-      id="main-image"
-      src="{{ image_url or '' }}"
-      alt="Imagen"
-      class="block max-w-full max-h-[320px] sm:max-h-[480px] rounded-none {{ '' if image_url else 'hidden' }}"
-    >
-    <canvas
-      id="traces-canvas"
-      class="absolute inset-0 pointer-events-none {{ '' if image_url else 'hidden' }}"
-    ></canvas>
-  </div>
+<section class="card bg-base-100 shadow-sm border border-base-200">
+  <div class="card-body p-4 sm:p-5">
 
-  <div id="placeholder" class="text-[#999] text-[1.1rem] {{ 'hidden' if image_url else '' }}">
-    Upload image
+    <!-- Cuadro oscuro donde va la imagen -->
+    <div
+      id="image-frame"
+      class="rounded-none bg-base-200 border border-dashed border-[#bbb] overflow-hidden
+            {% if image_url %}inline-block p-0{% else %}w-full p-0{% endif %}"
+    >
+      <div class="{% if image_url %}p-0{% else %}min-h-[360px] sm:min-h-[520px] flex items-center justify-center{% endif %}">
+        <div id="image-stage" class="relative inline-block">
+          <img
+            id="main-image"
+            src="{{ image_url or '' }}"
+            alt="Imagen"
+            class="block rounded-none {{ '' if image_url else 'hidden' }}"
+          >
+          <canvas
+            id="traces-canvas"
+            class="absolute inset-0 pointer-events-none {{ '' if image_url else 'hidden' }}"
+          ></canvas>
+        </div>
+
+        <div id="placeholder" class="text-center text-[#777] {{ 'hidden' if image_url else '' }}">
+          <div class="mx-auto mb-3 w-12 h-12 rounded-none bg-base-100 border border-base-300 grid place-items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7 opacity-80">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <path d="M7 10l5-5 5 5"/>
+              <path d="M12 5v12"/>
+            </svg>
+          </div>
+
+          <div class="font-semibold">Sube una imagen para empezar</div>
+          <div class="text-sm opacity-70">Luego pulsa <strong>Calcular trazas</strong></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
