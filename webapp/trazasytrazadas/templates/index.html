@@ -13,9 +13,25 @@ el navegador usando JSON de /traces.
 
 {% block content %}
 
+{% set status_badge = {
+  'no_image': ['badge-warning', 'Sin imagen'],
+  'image_uploaded': ['badge-info', 'Lista para calcular'],
+  'traces_calculated': ['badge-success', 'Trazas calculadas']
+} %}
+{% set badge_cls = status_badge.get(status, ['badge-neutral', 'Estado'])[0] %}
+{% set badge_txt = status_badge.get(status, ['badge-neutral', 'Estado'])[1] %}
+
 <!-- ====================== Barra de estado ====================== -->
-<section class="mb-4 rounded-lg bg-[#e8eaf6] text-[#1a237e] text-sm px-4 py-3">
-  <p id="status-message" class="m-0">{{ status_message }}</p>
+<section class="mb-4">
+  <div class="alert bg-base-100 border border-base-200 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+      <span class="badge {{ badge_cls }}">{{ badge_txt }}</span>
+      <p id="status-message" class="m-0 text-sm sm:text-base opacity-80">{{ status_message }}</p>
+      <a class="btn btn-ghost btn-sm ml-auto" href="{{ url_for('trazas.traces_json') }}" target="_blank" title="Ver JSON de trazas (dev)">
+        /traces
+      </a>
+    </div>
+  </div>
 </section>
 
 <!-- ====================== Botonera principal ====================== -->
@@ -27,65 +43,74 @@ el navegador usando JSON de /traces.
         action="{{ url_for('trazas.upload_and_calculate') }}"
         method="post"
         enctype="multipart/form-data"
-        class="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-6 w-full sm:w-auto">
+        class="w-full sm:w-auto">
 
-    <!-- INSERTAR IMAGEN -->
-    <div class="flex flex-col items-stretch sm:items-center gap-1 w-full sm:w-auto">
+    <!-- Join: file-input + calcular -->
+    <div class="join w-full justify-center">
+      <input
+        id="image-input"
+        type="file"
+        name="image"
+        accept=".jpg,.jpeg,.png"
+        class="file-input file-input-bordered file-input-primary join-item w-full sm:w-[360px]"
+      />
+
       <button
-        id="upload-btn"
-        type="button"
-        class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-               w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+        id="calculate-btn"
+        type="submit"
+        class="btn btn-primary join-item whitespace-nowrap"
       >
-        INSERTAR IMAGEN
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 11h.01M12 11h.01M15 11h.01"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 15h.01M12 15h.01M15 15h.01"/>
+        </svg>
+        <span class="hidden sm:inline">Calcular trazas</span>
+        <span class="sm:hidden">Calcular</span>
       </button>
+    </div>
 
-      <input id="image-input"
-             type="file"
-             name="image"
-             accept=".jpg,.jpeg,.png"
-             hidden>
-
-      <span class="text-[0.8rem] text-[#555] text-center whitespace-nowrap mt-1">
+    <!-- Etiquetas bajo el join -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-center gap-2 sm:gap-6 mt-2">
+      <span class="text-xs opacity-60 text-center">
         Formatos permitidos: .jpg, .jpeg, .png
       </span>
     </div>
-
-    <!-- CALCULAR TRAZAS -->
-    <button
-      id="calculate-btn"
-      type="submit"
-      class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-             w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
-    >
-      CALCULAR TRAZAS
-    </button>
   </form>
 
   <!-- BORRAR IMAGEN -->
   <form id="delete-form"
         action="{{ url_for('trazas.delete_image') }}"
         method="post"
-        class="flex flex-col items-stretch sm:items-center w-full sm:w-auto">
+        class="w-full sm:w-auto">
     <button
+      id="delete-btn"
       type="submit"
-      class="btn bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-             w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
+      class="btn btn-outline btn-error w-full sm:w-auto whitespace-nowrap"
     >
-      BORRAR IMAGEN
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M14 11v6"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 7l1 14h10l1-14"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7V4h6v3"/>
+      </svg>
+      <span class="hidden sm:inline">Borrar imagen</span>
+      <span class="sm:hidden">Borrar</span>
     </button>
   </form>
 
   <!-- Checkbox "TRAZAS DIBUJADAS" -->
   <div class="flex items-center justify-center w-full sm:w-auto sm:pt-2">
-    <label class="inline-flex items-center gap-2 text-[0.9rem]">
+    <label class="inline-flex items-center gap-3 text-[0.9rem]">
+      <span class="uppercase tracking-wide font-semibold">TRAZAS DIBUJADAS</span>
       <input
         type="checkbox"
         id="traces-drawn-checkbox"
         disabled
-        class="checkbox w-4 h-4 opacity-100 cursor-not-allowed"
+        class="checkbox checkbox-success disabled:opacity-100 disabled:border-success disabled:bg-success/20"
       />
-      <span>TRAZAS DIBUJADAS</span>
     </label>
   </div>
 
@@ -111,70 +136,27 @@ el navegador usando JSON de /traces.
   </div>
 </section>
 
-<!-- ====================== Modal de error ====================== -->
-{% if error_message %}
-  <div class="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.45)]" data-modal>
-    <div class="bg-white px-8 py-6 rounded-xl max-w-[420px] text-center shadow-[0_10px_25px_rgba(0,0,0,0.25)]">
-      <h2 class="text-xl font-semibold mb-3">ERROR</h2>
-      <p class="mb-2">{{ error_message }}</p>
-      <p>Por favor, reintente de nuevo con una imagen válida.</p>
-
-      <button
-        class="btn mt-4 bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-               w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
-        onclick="this.closest('[data-modal]').remove();"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-{% endif %}
-
-<!-- ====================== Modal Trazas Calculadas ====================== -->
-{% if traces_calculated %}
-  <div class="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(0,0,0,0.45)]"
-       id="traces-modal"
-       data-modal>
-    <div class="bg-white px-8 py-6 rounded-xl max-w-[420px] text-center shadow-[0_10px_25px_rgba(0,0,0,0.25)]">
-      <h2 class="text-xl font-semibold mb-3">Trazas calculadas</h2>
-      <p class="mb-2">Las trazas de la imagen han sido calculadas correctamente.</p>
-      <p>Al pulsar <strong>Close</strong>, se dibujarán las trazas sobre la imagen.</p>
-
-      <p class="mt-4 text-xs text-[#666]">
-        (Dev) JSON en:
-        <a href="{{ url_for('trazas.traces_json') }}" target="_blank" class="underline">
-          /traces
-        </a>
-      </p>
-
-      <button
-        id="traces-modal-close"
-        type="button"
-        class="btn mt-4 bg-[#3949ab] hover:bg-[#303f9f] border-none text-white
-               w-full sm:w-[180px] h-[44px] whitespace-nowrap text-[0.9rem] uppercase tracking-wide"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-{% endif %}
-
 <!-- ====================== Modal "Calculando..." ====================== -->
-<div
-  id="calculando-modal"
-  class="fixed inset-0 z-10 hidden items-center justify-center bg-[rgba(0,0,0,0.45)]"
->
-  <div class="bg-white px-8 py-6 rounded-xl text-center shadow-[0_10px_25px_rgba(0,0,0,0.25)]
-              w-[calc(100vw-2rem)] max-w-[420px] mx-auto">
-    <h2 class="text-xl font-semibold mb-3">Calculando trazas...</h2>
-    <p>Por favor, espera unos instantes.</p>
+<dialog id="calculando-modal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Calculando trazas...</h3>
+    <p class="py-2 opacity-80">Por favor, espera unos instantes.</p>
+
+    <div class="flex items-center justify-center py-4">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
   </div>
-</div>
+  <form method="dialog" class="modal-backdrop">
+    <button aria-label="Cerrar"></button>
+  </form>
+</dialog>
 
 <!-- ====================== JavaScript ====================== -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const serverHasImage = {{ 'true' if image_url else 'false' }};
+  const autoDrawTraces = {{ 'true' if auto_draw_traces else 'false' }};
+
   // Reiniciar el checkbox siempre al cargar la página
   const tracesCheckbox = document.getElementById("traces-drawn-checkbox");
   if (tracesCheckbox) tracesCheckbox.checked = false;
@@ -182,16 +164,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusEl = document.getElementById("status-message");
 
   /* -------------------------------------------------------------
-     1) Mostrar modal "Calculando..." cuando se pulsa CALCULAR TRAZAS
+     1) Mostrar modal "Calculando..."
   -------------------------------------------------------------- */
   const pipelineForm = document.getElementById("pipeline-form");
   const calculandoModal = document.getElementById("calculando-modal");
   const deleteForm = document.getElementById("delete-form");
 
-  if (pipelineForm && calculandoModal) {
+  function openLoadingModal() {
+    if (!calculandoModal) return;
+    if (typeof calculandoModal.showModal === "function") {
+      calculandoModal.showModal();
+    } else {
+      calculandoModal.classList.add("modal-open");
+    }
+  }
+
+  if (pipelineForm) {
     pipelineForm.addEventListener("submit", () => {
-      calculandoModal.classList.remove("hidden");
-      calculandoModal.classList.add("flex");
+      openLoadingModal();
     });
   }
 
@@ -201,6 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const img = document.getElementById("main-image");
   const canvas = document.getElementById("traces-canvas");
   const placeholder = document.getElementById("placeholder");
+
+  const imageInput = document.getElementById("image-input");
+  const selectedFileName = document.getElementById("selected-file-name");
 
   let localPreviewUrl = null;
 
@@ -212,6 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (img && canvas) {
     img.addEventListener("load", resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
   }
 
@@ -226,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ctx) return;
 
     try {
-      const response = await fetch("/traces");
+      const response = await fetch("/traces", { cache: "no-store" });
       const data = await response.json();
 
       const xs = data.xs || [];
@@ -237,7 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const scaleX = canvas.width / img.naturalWidth;
       const scaleY = canvas.height / img.naturalHeight;
 
-      ctx.fillStyle = "red";
+      // Rojo fuerte como en la versión inicial
+      ctx.fillStyle = "#ff0000";
 
       for (let i = 0; i < xs.length; i++) {
         ctx.fillRect(xs[i] * scaleX, ys[i] * scaleY, 1.5, 1.5);
@@ -251,26 +246,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* -------------------------------------------------------------
-     4) Cerrar modal de "Trazas calculadas" + dibujar trazas
+     4) Auto-dibujado tras volver del cálculo
   -------------------------------------------------------------- */
-  const tracesModal = document.getElementById("traces-modal");
-  const tracesModalClose = document.getElementById("traces-modal-close");
+  function maybeAutoDraw() {
+    if (!autoDrawTraces) return;
+    if (!img || !canvas) return;
 
-  if (tracesModalClose) {
-    tracesModalClose.addEventListener("click", async () => {
-      if (tracesModal) {
-        tracesModal.style.display = "none";  // Cierre real
-      }
-      await drawTracesFromJson();
-    });
+    canvas.classList.remove("hidden");
+
+    // Caso cacheado: el evento load ya ocurrió
+    if (img.complete && img.naturalWidth > 0) {
+      drawTracesFromJson();
+    } else {
+      img.addEventListener("load", () => drawTracesFromJson(), { once: true });
+    }
   }
+
+  maybeAutoDraw();
 
   /* -------------------------------------------------------------
      5) Lógica de subida de imagen
   -------------------------------------------------------------- */
-  const uploadBtn = document.getElementById("upload-btn");
-  const imageInput = document.getElementById("image-input");
-
   function clearPreviewOnly() {
     // Limpia preview local sin tocar backend.
     if (localPreviewUrl) {
@@ -278,6 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localPreviewUrl = null;
     }
     if (imageInput) imageInput.value = "";
+    if (selectedFileName) selectedFileName.textContent = "No file chosen";
 
     if (canvas) {
       const ctx = canvas.getContext("2d");
@@ -299,10 +296,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  if (uploadBtn && imageInput) {
-    uploadBtn.addEventListener("click", () => imageInput.click());
+  if (imageInput) {
     imageInput.addEventListener("change", () => {
-      if (imageInput.files.length === 0) return;
+      if (!imageInput.files || imageInput.files.length === 0) return;
+
+      // Mostrar nombre real del fichero seleccionado
+      if (selectedFileName) selectedFileName.textContent = imageInput.files[0].name;
 
       // Preview local (sin backend)
       if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
@@ -322,6 +321,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (tracesCheckbox) tracesCheckbox.checked = false;
       if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
+
+      // Asegurar resize aunque la imagen cargue muy rápido
+      if (img && canvas) {
+        if (img.complete && img.naturalWidth > 0) resizeCanvas();
+        else img.addEventListener("load", resizeCanvas, { once: true });
+      }
     });
   }
 

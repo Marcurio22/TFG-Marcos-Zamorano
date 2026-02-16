@@ -44,6 +44,7 @@ from flask import (
     session,
     send_from_directory,
     jsonify,
+    flash,
 )
 from werkzeug.utils import secure_filename
 from .segmentation_inference import compute_traces_from_segmentation
@@ -94,10 +95,20 @@ def compute_traces(image_path: str) -> dict:
 
 def _set_error(message: str):
     """
-    Guarda un mensaje de error en la sesión.
-    Se mostrará en un modal en la siguiente petición al index.
+    (Legacy) Antes guardaba un mensaje en sesión para pintarlo en un modal.
+    Ahora usamos flash messaging (Flask) para que la UI lo muestre con DaisyUI.
     """
-    session["error_message"] = message
+    flash(message, "error")
+
+
+def _flash_ok(message: str):
+    """Mensajes de éxito (UI: alert-success)."""
+    flash(message, "success")
+
+
+def _flash_info(message: str):
+    """Mensajes informativos (UI: alert-info)."""
+    flash(message, "info")
 
 
 def _cleanup_previous_state(old_image: str | None, old_traces_file: str | None) -> None:
@@ -187,19 +198,16 @@ def index():
         # Hay imagen y JSON de trazas calculado.
         status = "traces_calculated"
         status_message = (
-            "Estado: trazas calculadas. Al cerrar el mensaje se dibujarán sobre la imagen."
+            "Estado: trazas calculadas. Se dibujarán automáticamente sobre la imagen."
         )
 
-    # Recuperamos mensajes de error y flag de "trazas calculadas" para
-    # mostrar modales. Usamos pop() para que se consuman una sola vez.
-    error_message = session.pop("error_message", None)
-    traces_modal = session.pop("traces_calculated", False)
+    # Si hay trazas calculadas, el frontend dibuja automáticamente (ver JS).
+    auto_draw_traces = bool(traces_file)
 
     return render_template(
         "index.html",
         image_url=image_url,
-        error_message=error_message,
-        traces_calculated=traces_modal,
+        auto_draw_traces=auto_draw_traces,
         status=status,
         status_message=status_message,
     )
@@ -240,6 +248,8 @@ def upload_image():
     filename = _save_uploaded_image(file)
     session["image_filename"] = filename
 
+    _flash_ok("Imagen cargada correctamente.")
+
     return redirect(url_for("trazas.index"))
 
 #---------------- Ruta delete ----------------------
@@ -264,6 +274,8 @@ def delete_image():
     # Limpiamos las claves de sesión asociadas.
     session.pop("image_filename", None)
     session.pop("traces_file", None)
+
+    _flash_ok("Imagen borrada correctamente.")
 
     return redirect(url_for("trazas.index"))
 
@@ -300,8 +312,7 @@ def calculate_traces():
     # 2) Guardamos en sesión solo el nombre del fichero JSON.
     session["traces_file"] = traces_filename
 
-    # 4) Flag para mostrar modal "Trazas calculadas".
-    session["traces_calculated"] = True
+    _flash_ok("Trazas calculadas correctamente.")
 
     return redirect(url_for("trazas.index"))
 
@@ -352,7 +363,8 @@ def upload_and_calculate():
         return redirect(url_for("trazas.index"))
 
     session["traces_file"] = traces_filename
-    session["traces_calculated"] = True
+
+    _flash_ok("Trazas calculadas correctamente.")
 
     return redirect(url_for("trazas.index"))
 

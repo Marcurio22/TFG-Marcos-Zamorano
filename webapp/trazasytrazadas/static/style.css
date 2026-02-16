@@ -1,0 +1,21 @@
+/*
+  style.css
+  Complementos mínimos a DaisyUI.
+*/
+
+:root {
+  /* Primary ≈ #3949ab */
+  --p: 232 50% 45%;
+  --pf: 233 57% 37%;
+  --pc: 0 0% 100%;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Canvas encima de la imagen: trazo más nítido */
+#traces-canvas {
+  image-rendering: pixelated;
+}
