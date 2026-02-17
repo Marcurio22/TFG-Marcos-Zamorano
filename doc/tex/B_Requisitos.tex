@@ -16,7 +16,7 @@ En la figura~\ref{fig:casosdeuso} se recoge el diagrama general de casos de uso 
 
 \begin{figure}
 	\centering
-	\includegraphics[width=1\linewidth]{img/CasosDeUso}
+	\includegraphics[width=1\linewidth]{img/casosdeuso}
 	\caption[Diagrama de Casos de Uso]{Diagrama de casos de uso de la aplicación}
 	\label{fig:casosdeuso}
 \end{figure}
@@ -80,29 +80,36 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 	\renewcommand{\arraystretch}{1.3}
 	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\multicolumn{2}{l}{\textbf{CU-01 Cargar imagen}} \\
+		\multicolumn{2}{l}{\textbf{CU-01 Insertar imagen (previsualizar)}} \\
 		\midrule
 		Actores &
 		Usuario anónimo, Usuario registrado, Administrador \\
 		
 		Descripción &
-		Permite al usuario cargar una imagen aérea que será utilizada como entrada para el proceso de detección y segmentación de trazas. \\
+		Permite al usuario seleccionar una imagen desde su dispositivo y previsualizarla en el cliente. La imagen no se envía al backend en este paso. \\
 		
 		Precondición &
 		El usuario ha accedido a la interfaz de procesamiento. \\
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario selecciona una imagen desde su dispositivo.\\
-			2) El sistema valida el formato y tamaño del archivo.\\
-			3) La imagen queda cargada y disponible para su procesamiento.
+			1) El usuario pulsa \textit{Insertar imagen} o la arrastra y selecciona un fichero válido.\\
+			2) El sistema carga la imagen en el cliente y la muestra en pantalla como previsualización.\\
+			3) El sistema actualiza el estado indicando que puede ejecutarse el cálculo de trazas.
 		} \\
 		
 		Postcondición &
-		Imagen cargada correctamente en el sistema. \\
+		Imagen seleccionada y visible en la interfaz. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) El usuario cancela la selección del fichero $\rightarrow$ no se modifica el estado de la interfaz.\\
+			E2) El fichero no es un formato permitido $\rightarrow$ no se carga la previsualización y se informa al usuario.\\
+			E3) Error al leer el fichero $\rightarrow$ se notifica el error y no se actualiza la imagen mostrada.
+		} \\
 		
 		Relaciones &
-		Incluido por CU-02 Ejecutar detección y segmentación. \\
+		Incluye a CU-02 Ejecutar detección y segmentación. \\
 		
 		Importancia &
 		Alta \\
@@ -122,26 +129,34 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		Usuario anónimo, Usuario registrado, Administrador \\
 		
 		Descripción &
-		Ejecuta el modelo de detección y segmentación de trazas sobre la imagen cargada. \\
+		Ejecuta el cálculo de trazas mediante el modelo de detección y segmentación. Si la imagen ha sido seleccionada por el cliente, se envía al backend durante esta operación. \\
 		
 		Precondición &
-		Existe una imagen cargada (CU-01). \\
+		Existe una imagen seleccionada en el cliente (CU-01) o una imagen previamente almacenada en el servidor en sesión. \\
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario inicia el proceso de análisis.\\
-			2) El sistema aplica el modelo de detección configurado.\\
-			3) Se generan los resultados de segmentación.
+			1) El usuario pulsa \textit{Calcular trazas}.\\
+			2) El sistema envía al backend la imagen seleccionada si procede; en caso contrario, reutiliza la imagen existente en servidor.\\
+			3) El backend valida el formato, almacena la imagen y ejecuta la inferencia.\\
+			4) El sistema genera y persiste el JSON de trazas asociado a la imagen.\\
+			5) El sistema deja disponible la visualización del resultado (CU-03).
 		} \\
 		
 		Postcondición &
-		Resultado de detección disponible para su visualización. \\
+		Trazas calculadas y disponibles para su visualización. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) No existe imagen seleccionada en el cliente ni imagen almacenada en el servidor $\rightarrow$ se informa al usuario y no se ejecuta el cálculo.\\
+			E2) Formato no permitido $\rightarrow$ se rechaza la operación y se informa al usuario.\\
+			E3) Error durante la inferencia o la segmentación $\rightarrow$ se muestra un mensaje de error y no se generan trazas.\\
+			E4) La carga excede el tamaño máximo permitido $\rightarrow$ se aborta la petición y se notifica el error.
+		} \\
 		
 		Relaciones &
 		\parbox[t]{11cm}{
-			Incluye CU-01 Cargar imagen.\\
-			Es incluido por CU-03 Visualizar resultado.\\
-			Es extendido por CU-04 Descargar resultado.
+			Incluye CU-03 Visualizar resultado.
 		} \\
 		
 		Importancia &
@@ -169,16 +184,23 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El sistema renderiza la imagen original.\\
-			2) El sistema superpone el resultado de segmentación.\\
-			3) El usuario inspecciona visualmente el resultado.
+			1) El sistema solicita el JSON de trazas al backend.\\
+			2) El sistema renderiza la imagen y superpone las trazas sobre un canvas.\\
+			3) El usuario visualiza el resultado por pantalla.
 		} \\
 		
 		Postcondición &
 		Resultado visualizado en pantalla. \\
 		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) No existen trazas calculadas $\rightarrow$ se informa al usuario y no se dibujan trazas.\\
+			E2) El archivo de trazas no se encuentra o está corrupto $\rightarrow$ se muestra error y se solicita recalcular.\\
+			E3) Error de red o de timeout en la obtención del JSON $\rightarrow$ se notifica y se permite reintentar.
+		} \\
+		
 		Relaciones &
-		Incluye CU-02 Ejecutar detección y segmentación. \\
+		Incluido por CU-02 Ejecutar detección y segmentación. \\
 		
 		Importancia &
 		Alta \\
@@ -213,6 +235,13 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		Postcondición &
 		Resultado almacenado localmente por el usuario. \\
 		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) No existe resultado disponible $\rightarrow$ se informa y se cancela la descarga.\\
+			E2) Usuario no autorizado o no autenticado $\rightarrow$ se deniega el acceso.\\
+			E3) Error generando el recurso descargable $\rightarrow$ se notifica y se permite reintentar.
+		} \\
+		
 		Relaciones &
 		Extiende CU-02 Ejecutar detección y segmentación. \\
 		
@@ -237,17 +266,25 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		Permite eliminar la imagen cargada y reiniciar el flujo de procesamiento. \\
 		
 		Precondición &
-		Existe una imagen cargada o un resultado generado. \\
+		Existe una imagen  una imagen en previsualización local o un resultado generado. \\
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
 			1) El usuario solicita borrar la imagen.\\
-			2) El sistema elimina la imagen y resultados asociados.\\
-			3) El sistema vuelve al estado inicial.
+			2) Si solo existe previsualización local, el sistema limpia la imagen y el canvas en el cliente.\\
+			3) Si existe imagen en servidor, el sistema solicita al backend la eliminación de la imagen y sus trazas asociadas.\\
+			4) El sistema vuelve al estado inicial.
 		} \\
 		
 		Postcondición &
 		Sistema preparado para una nueva ejecución. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) No existe ninguna imagen para borrar $\rightarrow$ se informa al usuario.\\
+			E2) Error eliminando recursos en servidor $\rightarrow$ se notifica y se mantiene el estado consistente.\\
+			E3) Error de comunicación con el backend $\rightarrow$ se informa y se permite reintentar.
+		} \\
 		
 		Importancia &
 		Media \\
@@ -282,6 +319,13 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		Postcondición &
 		Sesión GIS activa. \\
 		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Error de autenticación o de autorización con el servicio $\rightarrow$ se deniega el acceso y se informa al usuario.\\
+			E2) Servicio no disponible o error de red $\rightarrow$ se notifica indisponibilidad temporal.\\
+			E3) Configuración incompleta $\rightarrow$ se informa y se bloquea el acceso al módulo.
+		} \\
+		
 		Relaciones &
 		Incluye CU-06.1 Recortar zona de interés y CU-06.2 Visualizar trazas en la zona. \\
 		
@@ -313,6 +357,13 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 			1) El usuario define el área de recorte.\\
 			2) El sistema valida la geometría.\\
 			3) La zona queda establecida como área activa.
+		} \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Geometría inválida $\rightarrow$ se rechaza el recorte y se solicita corrección.\\
+			E2) Zona fuera de límites permitidos $\rightarrow$ se informa y se requiere ajuste.\\
+			E3) Error comunicándose con el servicio $\rightarrow$ se notifica y se permite reintentar.
 		} \\
 		
 		Postcondición &
@@ -351,10 +402,263 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		Postcondición &
 		Trazas visualizadas en la zona seleccionada. \\
 		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) No existen trazas en la zona $\rightarrow$ se informa al usuario y se muestra la zona sin trazas.\\
+			E2) Error de consulta o de renderizado $\rightarrow$ se notifica y se permite reintentar.\\
+			E3) Zona no definida $\rightarrow$ se solicita definir recorte (CU-06.1).
+		} \\
+		
 		Importancia &
 		Media-Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-07 Registrarse}} \\
+		\midrule
+		Actores &
+		Usuario anónimo \\
+		
+		Descripción &
+		Permite crear una cuenta de usuario para acceder a funcionalidades restringidas del sistema. \\
+		
+		Precondición &
+		El usuario no tiene sesión iniciada. \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El usuario accede al formulario de registro.\\
+			2) El usuario introduce los datos requeridos.\\
+			3) El sistema valida y crea la cuenta.
+		} \\
+		
+		Postcondición &
+		Cuenta registrada y disponible para iniciar sesión. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Datos inválidos o incompletos $\rightarrow$ se informa y no se crea la cuenta.\\
+			E2) Usuario o correo ya existentes $\rightarrow$ se rechaza el registro.\\
+			E3) Error interno de persistencia $\rightarrow$ se notifica y se permite reintentar.
+		} \\
+		
+		Importancia &
+		Media \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-08 Iniciar sesión}} \\
+		\midrule
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite autenticar al usuario y habilitar las funcionalidades según su rol. \\
+		
+		Precondición &
+		El usuario dispone de credenciales válidas. \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El usuario introduce credenciales.\\
+			2) El sistema valida las credenciales.\\
+			3) El sistema inicia sesión y aplica permisos.
+		} \\
+		
+		Postcondición &
+		Sesión iniciada con permisos asociados al rol. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Credenciales incorrectas $\rightarrow$ se informa y no se inicia sesión.\\
+			E2) Cuenta deshabilitada o no verificada $\rightarrow$ se deniega el acceso.\\
+			E3) Error interno de autenticación $\rightarrow$ se notifica y se permite reintentar.
+		} \\
+		
+		Importancia &
+		Media \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-09 Cerrar sesión}} \\
+		\midrule
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Finaliza la sesión activa del usuario. \\
+		
+		Precondición &
+		Sesión iniciada previamente. \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El usuario solicita cerrar sesión.\\
+			2) El sistema invalida la sesión y revoca permisos.\\
+			3) El sistema redirige al estado de usuario anónimo.
+		} \\
+		
+		Postcondición &
+		Sesión finalizada. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Sesión ya expirada $\rightarrow$ el sistema fuerza estado anónimo sin error.\\
+			E2) Error interno al cerrar sesión $\rightarrow$ se notifica y se fuerza cierre.
+		} \\
+		
+		Importancia &
+		Baja-Media \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-10 Administrar perfil}} \\
+		\midrule
+		Actores &
+		Usuario registrado, Administrador \\
+		
+		Descripción &
+		Permite consultar y actualizar la información básica del perfil del usuario. \\
+		
+		Precondición &
+		Sesión iniciada. \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El usuario accede a su perfil.\\
+			2) El sistema muestra la información disponible.\\
+			3) El usuario modifica los campos permitidos.\\
+			4) El sistema valida y guarda los cambios.
+		} \\
+		
+		Postcondición &
+		Perfil actualizado, si procede. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Datos inválidos $\rightarrow$ se rechazan cambios y se informa.\\
+			E2) Error de persistencia $\rightarrow$ se notifica y se mantiene el perfil anterior.\\
+			E3) Sesión no válida $\rightarrow$ se solicita iniciar sesión.
+		} \\
+		
+		Importancia &
+		Baja-Media \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-11 Administrar modelos}} \\
+		\midrule
+		Actores &
+		Administrador \\
+		
+		Descripción &
+		Permite gestionar la configuración del modelo de detección y segmentación utilizada por el sistema. \\
+		
+		Precondición &
+		Sesión iniciada como administrador. \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El administrador accede al módulo de administración.\\
+			2) El sistema muestra las opciones disponibles de configuración de modelos.\\
+			3) El administrador selecciona el modelo activo.\\
+			4) El sistema guarda la configuración.
+		} \\
+		
+		Postcondición &
+		Configuración de modelo actualizada. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Selección inválida $\rightarrow$ se rechaza el cambio y se informa.\\
+			E2) Modelo o pesos no disponibles $\rightarrow$ se notifica y se mantiene la configuración previa.\\
+			E3) Error guardando la configuración $\rightarrow$ se informa y no se aplican cambios.
+		} \\
+		
+		Importancia &
+		Media-Alta \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
+		\toprule
+		\multicolumn{2}{l}{\textbf{CU-12 Gestionar usuarios}} \\
+		\midrule
+		Actores &
+		Administrador \\
+		
+		Descripción &
+		Permite al administrador realizar tareas de administración sobre las cuentas de usuario del sistema, incluyendo consulta del listado, modificación de atributos básicos y gestión del estado de las cuentas. \\
+		
+		Precondición &
+		El actor ha iniciado sesión y dispone de permisos de administrador. \\
+		
+		Flujo principal &
+		\parbox[t]{11cm}{
+			1) El administrador accede a la sección de gestión de usuarios.\\
+			2) El sistema muestra el listado de usuarios registrados y su información básica.\\
+			3) El administrador selecciona un usuario sobre el que operar.\\
+			4) El administrador ejecuta una operación de gestión.\\
+			5) El sistema valida los cambios y los persiste.\\
+			6) El sistema confirma la operación y actualiza el listado.
+		} \\
+		
+		Postcondición &
+		Información y/o estado del usuario actualizado según la operación realizada. \\
+		
+		Excepciones &
+		\parbox[t]{11cm}{
+			E1) Usuario objetivo inexistente o no accesible $\rightarrow$ se informa al administrador y se cancela la operación.\\
+			E2) Operación no permitida $\rightarrow$ se rechaza el cambio y se notifica.\\
+			E3) Datos inválidos en la modificación $\rightarrow$ se rechazan cambios y se solicita corrección.\\
+			E4) Error interno de persistencia o comunicación con la base de datos $\rightarrow$ se notifica el error y no se aplican cambios.
+		} \\
+		
+		Importancia &
+		Media-Alta \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
 
 
