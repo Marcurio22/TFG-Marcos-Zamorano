@@ -24,10 +24,10 @@ el navegador usando JSON de /traces.
 <!-- ====================== Barra de estado ====================== -->
 <section class="mb-4">
   <div class="alert bg-base-100 border border-base-200 shadow-sm">
-    <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full text-center sm:text-left">
       <span class="badge {{ badge_cls }}">{{ badge_txt }}</span>
       <p id="status-message" class="m-0 text-sm sm:text-base opacity-80">{{ status_message }}</p>
-      <a class="btn btn-ghost btn-sm ml-auto" href="{{ url_for('trazas.traces_json') }}" target="_blank" title="Ver JSON de trazas (dev)">
+      <a class="btn btn-ghost btn-sm sm:ml-auto" href="{{ url_for('trazas.traces_json') }}" target="_blank" title="Ver JSON de trazas (dev)">
         /traces
       </a>
     </div>
@@ -45,7 +45,7 @@ el navegador usando JSON de /traces.
         enctype="multipart/form-data"
         class="w-full sm:w-auto">
 
-    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-0 w-full sm:w-auto">
+    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-2 sm:gap-0 w-full sm:w-auto">
 
       <!-- File input + textos -->
       <div class="flex flex-col w-full sm:w-[360px]">
@@ -57,9 +57,14 @@ el navegador usando JSON de /traces.
           class="file-input file-input-bordered file-input-primary w-full sm:rounded-r-none"
         />
 
-        <div class="mt-1 flex flex-col gap-1">
+        <div class="mt-1 mb-2 sm:mb-0 flex flex-col gap-1">
+          
           <span class="text-xs opacity-60 text-left">
-            Formatos permitidos: .jpg, .jpeg, .png · Tamaño máximo: 16 MB
+            Formatos permitidos:
+            <span class="font-semibold">.jpg</span>,
+            <span class="font-semibold">.jpeg</span>,
+            <span class="font-semibold">.png</span>
+            · Tamaño máximo: <span class="font-semibold">16 MB</span>
           </span>
         </div>
       </div>
@@ -68,7 +73,7 @@ el navegador usando JSON de /traces.
       <button
         id="calculate-btn"
         type="submit"
-        class="btn btn-primary whitespace-nowrap sm:rounded-l-none"
+        class="btn btn-primary whitespace-nowrap sm:rounded-l-none mt-2 sm:mt-0"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
@@ -384,34 +389,6 @@ document.addEventListener("DOMContentLoaded", () => {
     imageInput.addEventListener("change", () => {
       if (!imageInput.files || imageInput.files.length === 0) return;
       previewFile(imageInput.files[0]);
-
-      // // Mostrar nombre real del fichero seleccionado
-      // if (selectedFileName) selectedFileName.textContent = imageInput.files[0].name;
-
-      // // Preview local
-      // if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
-      // localPreviewUrl = URL.createObjectURL(imageInput.files[0]);
-
-      // if (placeholder) placeholder.classList.add("hidden");
-      // if (img) {
-      //   img.src = localPreviewUrl;
-      //   img.classList.remove("hidden");
-      // }
-      // if (canvas) canvas.classList.remove("hidden");
-
-      // // Reiniciamos trazas/canvas al cambiar de imagen
-      // if (canvas) {
-      //   const ctx = canvas.getContext("2d");
-      //   if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // }
-      // if (tracesCheckbox) tracesCheckbox.checked = false;
-      // if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
-
-      // // Asegurar resize aunque la imagen cargue muy rápido
-      // if (img && canvas) {
-      //   if (img.complete && img.naturalWidth > 0) resizeCanvas();
-      //   else img.addEventListener("load", resizeCanvas, { once: true });
-      // }
     });
   }
 

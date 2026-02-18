@@ -312,7 +312,7 @@ def calculate_traces():
     # 2) Guardamos en sesión solo el nombre del fichero JSON.
     session["traces_file"] = traces_filename
 
-    _flash_ok("Trazas calculadas correctamente.")
+    _flash_ok("Las trazas de la imagen han sido calculadas correctamente.")
 
     return redirect(url_for("trazas.index"))
 
@@ -364,7 +364,7 @@ def upload_and_calculate():
 
     session["traces_file"] = traces_filename
 
-    _flash_ok("Trazas calculadas correctamente.")
+    _flash_ok("Las trazas de la imagen han sido calculadas correctamente.")
 
     return redirect(url_for("trazas.index"))
 

@@ -22,70 +22,79 @@ Plantilla base del proyecto.
 
 <body class="min-h-screen bg-base-200 text-base-content flex flex-col">
 
-  <!-- ============================ Header ============================ -->
-  <header class="bg-primary text-primary-content shadow-sm">
-    <div class="max-w-5xl mx-auto px-3 sm:px-4">
-      <div class="navbar min-h-0 py-2">
-        <div class="navbar-start w-44"></div>
+  <!-- ============================ Background ============================ -->
+  <div class="pointer-events-none fixed inset-0 z-0">
+    <div
+      class="absolute inset-0 bg-cover bg-center opacity-30 blur-[1.5px] saturate-75"
+      style="background-image:url('{{ url_for('static', filename='img/background.png') }}');"
+    ></div>
+    <div class="absolute inset-0 bg-base-200/65"></div>
+  </div>
 
-        <div class="navbar-center">
-          <h1 class="text-xl sm:text-2xl font-semibold tracking-tight leading-tight">
+  <!-- ============================ Header ============================ -->
+  <header class="bg-primary text-primary-content shadow-sm relative z-50">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4">
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center py-3 gap-y-2">
+        <div class="hidden sm:block"></div>
+
+        <div class="justify-self-center text-center">
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm">
             Trazas de Herbívoros
           </h1>
         </div>
 
-          <div class="navbar-end w-44 justify-end">
-            {% set FLAG_FILES = {
-            'es': 'img/flags/es.svg',
-            'en': 'img/flags/gb.svg',
-            'fr': 'img/flags/fr.svg',
-            'it': 'img/flags/it.svg',
-            'de': 'img/flags/de.svg'
-            } %}
+        <div class="justify-self-center sm:justify-self-end mt-1 sm:mt-0">
+          {% set FLAG_FILES = {
+          'es': 'img/flags/es.svg',
+          'en': 'img/flags/gb.svg',
+          'fr': 'img/flags/fr.svg',
+          'it': 'img/flags/it.svg',
+          'de': 'img/flags/de.svg'
+          } %}
 
-            <div class="dropdown dropdown-end">
-              <label tabindex="0"
-                class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
-                <span class="inline-flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
-                    <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg')) }}"
-                      alt="{{ LANGUAGES.get(current_lang, 'Idioma') }}" class="w-full h-full object-cover" />
+          <div class="dropdown dropdown-end z-50">
+            <label tabindex="0"
+              class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
+              <span class="inline-flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
+                  <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg')) }}"
+                    alt="{{ LANGUAGES.get(current_lang, 'Idioma') }}" class="w-full h-full object-cover" />
+                </span>
+                <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, 'Idioma') }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                  class="w-4 h-4 opacity-90">
+                  <path fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z"
+                    clip-rule="evenodd" />
+                </svg>
+              </span>
+            </label>
+
+            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
+              <li class="menu-title"><span>Idioma</span></li>
+              {% for code, name in LANGUAGES.items() %}
+              <li>
+                <a href="{{ url_for('trazas.index', lang=code) }}"
+                  class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
+                  <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
+                    <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg')) }}"
+                      alt="{{ name }}" class="w-full h-full object-cover" />
                   </span>
-                  <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, 'Idioma') }}</span>
+                  <span class="flex-1">{{ name }}</span>
+                  {% if code == current_lang %}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                    class="w-4 h-4 opacity-90">
+                    class="w-4 h-4 opacity-70">
                     <path fill-rule="evenodd"
-                      d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z"
+                      d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z"
                       clip-rule="evenodd" />
                   </svg>
-                </span>
-              </label>
-
-              <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
-                <li class="menu-title"><span>Idioma</span></li>
-                {% for code, name in LANGUAGES.items() %}
-                <li>
-                  <a href="{{ url_for('trazas.index', lang=code) }}"
-                    class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
-                    <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
-                      <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg')) }}"
-                        alt="{{ name }}" class="w-full h-full object-cover" />
-                    </span>
-                    <span class="flex-1">{{ name }}</span>
-                    {% if code == current_lang %}
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                      class="w-4 h-4 opacity-70">
-                      <path fill-rule="evenodd"
-                        d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z"
-                        clip-rule="evenodd" />
-                    </svg>
-                    {% endif %}
-                  </a>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
+                  {% endif %}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
           </div>
+        </div>
       </div>
     </div>
   </header>
@@ -123,7 +132,7 @@ Plantilla base del proyecto.
   {% endwith %}
 
   <!-- ============================ Main ============================ -->
-  <main class="flex-1">
+  <main class="flex-1 relative z-10">
     <div class="max-w-5xl mx-auto px-3 sm:px-4 py-3">
       {% block content %}{% endblock %}
     </div>
