@@ -10,7 +10,7 @@ Finalmente, el plan se completa con un estudio de viabilidad que analiza el proy
 
 \section{Planificación temporal}
 
-\subsection{Sprint 7}
+\subsection{Sprint 7 - Revisión de la memoria y cumplimiento de objetivos pasados}
 El \textit{Sprint 7} abarcó el periodo comprendido entre el 21 de enero y el 10 de febrero. Se trató de un intervalo especialmente amplio, en el que se concentraron cambios relevantes tanto en la memoria como en la implementación, en consonancia con el cierre de mi periodo de prácticas y el consecuente incremento del tiempo dedicado al TFG. En conjunto, planifiqué una dedicación total de 39,5~horas para este \textit{sprint}, aunque finalmente empleé 54~horas.
 
 Los objetivos definidos para este \textit{sprint} fueron los siguientes:
@@ -43,6 +43,36 @@ Por último, finalicé otra tarea arrastrada de \textit{sprints} anteriores: la 
 
 Cabe destacar que, antes de la reunión que dio inicio al siguiente \textit{sprint}, se realizó una reunión intermedia de seguimiento. Sin embargo, al considerar que todavía quedaban varios frentes abiertos y que el avance no era suficientemente cerrado, se decidió prolongar el \textit{sprint} una semana adicional para consolidar entregables y reducir la deuda técnica acumulada.
 
+\subsection{Sprint 8 - Últimos pasos antes de la release}
+Este \textit{sprint} se desarrolló del 10 al 18 de febrero, finalizando todas las tareas un día antes de lo previsto, ya que, inicialmente se contemplaba el 19 como fecha de fin. El objetivo principal era completar las últimas labores previas a la primera \textit{release} del proyecto. No obstante, durante el avance surgieron varias dudas y fallos que condicionaban el cierre, principalmente porque el modelo que se estaba utilizando para calcular los datos de las trazas no era el adecuado, lo que hizo necesario planificar un \textit{sprint} adicional para consolidar esta parte.
+
+En conjunto, estimé una dedicación total de 27~horas para este \textit{sprint}, y finalmente empleé 28~horas y 35~minutos.
+
+Las tareas abordadas fueron las siguientes:
+\begin{itemize}
+	\item Comparativa del modelo basado en \textit{pickle} con el de PyTorch.
+	\item Modificación de la lógica de \textit{upload} y \textit{calculate} de la aplicación.
+	\item Creación de una \textit{cookie} de sesión con caducidad a las 24~h.
+	\item Adaptación de la aplicación a diseño \textit{responsive}.
+	\item Creación de la infraestructura base para integrar Flask-Babel.
+	\item Revisión de varios puntos de la memoria.
+	\item Actualización del diagrama de casos de uso.
+	\item Sustitución del CSS por DaisyUI.
+\end{itemize}
+
+En cuanto a las labores de documentación, revisé varios puntos de la memoria: añadí el nombre del alumno, el de los tutores y el título del TFG, redacté un párrafo introductorio para el Capítulo 3: \textit{Conceptos teóricos}, corregí detalles del Capítulo 6: \textit{Trabajos relacionados} relacionados con imágenes y redacción, y ajusté el apartado C de anexos correspondiente al diseño. En este último caso, reorganicé contenido ya que gran parte de los puntos estaban realmente vinculados al apartado 4 de la memoria: \textit{Técnicas y Herramientas}. Aunque se trataba de muchas tareas, eran intervenciones cortas y muy localizadas.
+
+También, dentro de los anexos, ajusté el diagrama de casos de uso para mejorar su interpretabilidad desde un punto de vista externo. En concreto, reordené la aparición de los actores, modifiqué algún caso de uso, añadí nuevas tablas para los casos incorporados y completé el campo \textit{exception} en todas ellas para mantener la consistencia del formato.
+
+Por otro lado, en la aplicación se llevaron a cabo varias mejoras. En primer lugar, modifiqué la lógica de las funciones de \textit{upload} y \textit{calculate}. Antes, al insertar una imagen, esta se subía directamente al \textit{backend}, lo que podía provocar subidas innecesarias si el usuario seleccionaba un archivo incorrecto. Para evitarlo, implementé un flujo en el que la imagen se carga en local y solo se envía al servidor cuando el usuario pulsa \textit{calcular trazas}, momento en el que ya ha podido verificarla. Para ello, creé una función nueva que orquestase las dos operaciones ya existentes.
+
+A continuación, establecí un límite de sesión de 24~h mediante \textit{cookies}, de forma que el usuario pudiera mantener su progreso durante un margen razonable. En paralelo, trabajé en el diseño \textit{responsive} para que, en pantallas más pequeñas, como dispositivos móviles o \textit{tablets}, se visualizasen correctamente todos los elementos y la interfaz resultase usable en distintos dispositivos.
+
+Más adelante, preparé la infraestructura de Flask-Babel en dos días: el primero lo dediqué a revisar la documentación y a entender su funcionamiento, y el segundo a implementar los elementos base. En esta fase instalé la biblioteca y la incorporé al \texttt{requirements.txt}, creé el archivo \texttt{Babel.cfg} para la extracción de textos, añadí un desplegable con cinco idiomas: español, inglés, francés, italiano y alemán, generé recursos visuales en formato \texttt{.svg} para las banderas asociadas y dejé definidos algunos campos de Babel, sin llegar todavía a implementar la lógica completa de traducción.
+
+La tarea principal del \textit{sprint} fue migrar toda la interfaz de la aplicación a DaisyUI sobre Tailwind. Este proceso lo realicé de forma progresiva durante todos los días del \textit{sprint}, planteándome pequeños avances diarios hasta completar la migración. Primero investigué los componentes disponibles y los fui aplicando iterativamente: comencé por los botones principales: insertar imagen, calcular trazas y borrar imagen, después ajusté los modales y el sistema de \textit{flash messaging} aprovechando los diseños predefinidos, estableciendo además que los avisos se mostrasen durante cinco segundos antes de desaparecer. Más tarde, reorganicé la zona de visualización de la imagen e incorporé una lógica para permitir el arrastre de archivos desde una carpeta externa, ya que resultaba conveniente para el flujo de uso. Durante este proceso también corregí la cabecera, añadí un \textit{footer} con información del proyecto y del ente académico correspondiente, e incorporé una imagen de fondo suave para aportar una estética más cálida.
+
+Finalmente, el último día realicé la comparativa entre el modelo proporcionado mediante \textit{pickle} y el modelo en PyTorch que yo había generado. Comparé métricas de rendimiento y de salida, incluyendo tiempos de carga desde disco, tiempo medio de inferencia y desviación estándar, \textit{IoU} y \textit{Dice} entre predicciones, número de píxeles clasificados como positivos, longitud del esqueleto en píxeles, cantidad de componentes conexas y grosor medio estimado, entre otros. Tras el análisis, concluí que el modelo en PyTorch perdía demasiada capacidad lógica frente al margen de mejora temporal obtenido, por lo que resultaba conveniente dedicar un \textit{sprint} adicional antes del cierre de la \textit{release} para dejar esta lógica correctamente integrada.
 
 \section{Estudio de viabilidad}
 
