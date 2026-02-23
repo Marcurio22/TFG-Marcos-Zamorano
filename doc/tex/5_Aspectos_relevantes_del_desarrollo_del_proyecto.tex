@@ -5,3 +5,61 @@ Debe incluir desde la exposición del ciclo de vida utilizado, hasta los detalle
 Se busca que no sea una mera operación de copiar y pegar diagramas y extractos del código fuente, sino que realmente se justifiquen los caminos de solución que se han tomado, especialmente aquellos que no sean triviales.
 Puede ser el lugar más adecuado para documentar los aspectos más interesantes del diseño y de la implementación, con un mayor hincapié en aspectos tales como el tipo de arquitectura elegido, los índices de las tablas de la base de datos, normalización y desnormalización, distribución en ficheros3, reglas de negocio dentro de las bases de datos (EDVHV GH GDWRV DFWLYDV), aspectos de desarrollo relacionados con el WWW...
 Este apartado, debe convertirse en el resumen de la experiencia práctica del proyecto, y por sí mismo justifica que la memoria se convierta en un documento útil, fuente de referencia para los autores, los tutores y futuros alumnos.
+
+\subsection{Comparativa de despliegue: modelos \textit{pickle} vs PyTorch}
+
+Durante el desarrollo se plantearon dos formas de ejecutar los modelos entrenados por \textit{fold}: por un lado, cargar el objeto completo serializado con \texttt{pickle}, y, por otro, exportar el modelo a un formato autocontenido en PyTorch mediante TorchScript para inferencia. La motivación inicial de la exportación a PyTorch fue principalmente de despliegue: un módulo TorchScript permite ejecutar la red sin depender del código de entrenamiento, reduce acoplamientos con \textit{frameworks}, como, por ejemplo, mediante PyTorch Lightning y facilita integrar el modelo en otros entornos de ejecución.
+
+Sin embargo, en esta aplicación el criterio prioritario es la calidad de segmentación de las trazas. En la práctica se observó que, aun empleando la misma arquitectura y pesos por \textit{fold}, el resultado de segmentación entre el modelo cargado con \texttt{pickle} y el modelo exportado a TorchScript no es exactamente idéntico. Estas diferencias pueden estar motivadas por detalles de compatibilidad entre versiones debido a cambios internos en \texttt{segmentation\_models\_pytorch}, por pequeñas variaciones numéricas del grafo trazado y por el encapsulado de normalización durante la exportación.
+
+\subsubsection{Metodología de evaluación}
+Para comparar ambos enfoques se midieron dos aspectos:
+\begin{itemize}
+	\item \textbf{Rendimiento}: tiempo de carga del modelo por \textit{fold} (\texttt{load\_ms}) y tiempo de inferencia medio (\texttt{infer\_ms\_mean}) sobre la misma imagen.
+	\item \textbf{Equivalencia de salida}: similitud entre máscaras binarias mediante IoU (\texttt{mask\_iou}) y Dice (\texttt{mask\_dice}).
+\end{itemize}
+
+\subsubsection{Resultados principales}
+La Tabla~\ref{tab:pickle_torch_comp} recoge los resultados por \textit{fold}. En términos de equivalencia, los valores de Dice se sitúan aproximadamente entre 0.96 y 0.98, e IoU alrededor de 0.92 y 0.96. Esto indica que ambos pipelines producen máscaras muy parecidas, pero no idénticas, existiendo discrepancias localizadas, como los bordes finos o algunas trazas débiles, que en este problema pueden ser relevantes.
+
+En rendimiento, TorchScript presenta en general tiempos de carga inferiores a \texttt{pickle} en la mayoría de \textit{folds}. Sin embargo, la carga se ejecuta una vez al inicializar el sistema, mientras que la inferencia se repite para cada imagen. En inferencia, los tiempos medios (\texttt{infer\_ms\_mean}) resultan comparables entre ambos enfoques y no muestran una ventaja suficiente como para justificar sacrificar calidad de segmentación. Además, la dispersión (\texttt{infer\_ms\_std}) es similar, lo que sugiere estabilidad de tiempos en ambos casos.
+
+\begin{table}[htbp]
+	\centering
+	\small
+	
+	\begin{tabularx}{\textwidth}{c *{6}{>{\centering\arraybackslash}X}}
+		\toprule
+		\textbf{Fold} &
+		\textbf{Pickle load (ms)} &
+		\textbf{Torch load (ms)} &
+		\textbf{Pickle infer (ms)} &
+		\textbf{Torch infer (ms)} &
+		\textbf{IoU} &
+		\textbf{Dice} \\
+		\midrule
+		0 & 9688.9270  & 2582.6926 & 11670.0951 & 12658.1951 & 0.945666 & 0.972074 \\
+		1 & 11911.6754 & 2176.9102 & 12172.7896 & 12020.8829 & 0.940291 & 0.969227 \\
+		2 & 16182.8596 & 2024.9250 & 11427.5817 & 11189.1397 & 0.924445 & 0.960739 \\
+		3 & 3221.0618  & 1850.6266 & 11992.3462 & 9148.1268  & 0.940161 & 0.969158 \\
+		4 & 5671.4902  & 2121.5244 & 10151.6132 & 9505.4485  & 0.952786 & 0.975822 \\
+		5 & 30966.5718 & 1421.3755 & 9687.6544  & 9396.5609  & 0.958196 & 0.978652 \\
+		6 & 3187.9480  & 2110.0493 & 9057.2319  & 9505.2108  & 0.950798 & 0.974779 \\
+		7 & 3185.9841  & 1702.9395 & 9748.7258  & 9443.2960  & 0.956938 & 0.977995 \\
+		8 & 3655.5882  & 2171.1234 & 9378.9382  & 9542.1774  & 0.953381 & 0.976134 \\
+		9 & 3552.2571  & 1612.6552 & 9099.5181  & 9268.7714  & 0.949663 & 0.974182 \\
+		\bottomrule
+	\end{tabularx}
+	
+	\caption{Comparativa por \textit{fold} entre carga e inferencia usando modelos serializados con \texttt{pickle} y exportados a TorchScript.}
+	\label{tab:pickle_torch_comp}
+\end{table}
+
+\subsubsection{Decisión de diseño}
+Aunque TorchScript es una opción robusta para despliegue por su independencia del código de entrenamiento, en el contexto de este trabajo se prioriza que la segmentación sea lo más fiel posible al comportamiento validado durante el entrenamiento y evaluación original. Dado que:
+\begin{itemize}
+	\item las salidas no son exactamente iguales (IoU/Dice $< 1$),
+	\item el coste temporal de inferencia es similar,
+	\item y las diferencias en carga no compensan una posible degradación en la clasificación,
+\end{itemize}
+se opta finalmente por emplear el pipeline basado en \texttt{pickle} como referencia en el sistema, garantizando coherencia con los resultados esperados y una segmentación más fiable en la práctica.
