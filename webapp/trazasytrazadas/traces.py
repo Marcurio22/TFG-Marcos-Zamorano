@@ -34,6 +34,8 @@ import os
 import uuid
 import json
 
+import traceback
+
 from flask import (
     Blueprint,
     current_app,
@@ -300,6 +302,7 @@ def calculate_traces():
         _set_error(str(e))
         return redirect(url_for("trazas.index"))
     except Exception as e:
+        current_app.logger.exception("Error ejecutando segmentación")
         _set_error(_("Error ejecutando segmentación: %(error)s", error=str(e)))
         return redirect(url_for("trazas.index"))
 
@@ -374,6 +377,7 @@ def traces_json():
             ),
             500,
         )
+    
 
     # Abre archivo y lo convierte en formato JSON HTTP.
     with open(traces_path, "r", encoding="utf-8") as f:

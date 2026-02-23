@@ -1,0 +1,43 @@
+import os
+import numpy as np
+import torch
+from PIL import Image
+
+import trazasytrazadas.segmentation_inference as si
+
+class DummyModel(torch.nn.Module):
+    def forward(self, x):
+        return torch.ones((1, 1, x.shape[2], x.shape[3]), device=x.device)
+
+def test_predict_uses_only_fold_0(tmp_path, monkeypatch):
+    # 1) Imagen temporal
+    img_path = tmp_path / "img.jpg"
+    Image.new("RGB", (37, 45), color="white").save(img_path)
+
+    called = {"fold_id": None, "times": 0}
+
+    # 2) Parcheamos el loader para capturar fold_id y devolver modelo dummy
+    def fake_loader(models_dir, model_template, fold_id, use_gpu):
+        called["fold_id"] = fold_id
+        called["times"] += 1
+        device = torch.device("cpu")
+        return [DummyModel().to(device).eval()], device
+
+    monkeypatch.setattr(si, "load_fold_pickle_models", fake_loader)
+
+    # 3) Ejecutamos inferencia
+    mask = si.predict_mask_ensemble(
+        image_path=str(img_path),
+        models_dir="X",
+        model_template="Y",
+        use_gpu=False,
+        threshold=0.5,
+    )
+
+    # 4) Aserciones
+    assert called["times"] == 1
+    assert called["fold_id"] == 0
+    assert isinstance(mask, np.ndarray)
+    assert mask.shape == (45, 37)  # H,W original
+    assert mask.dtype == np.uint8
+    assert mask.min() == 1 and mask.max() == 1

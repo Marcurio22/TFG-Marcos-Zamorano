@@ -8,16 +8,19 @@ click==8.3.1
 blinker==1.9.0
 MarkupSafe==3.0.3
 
+# Modificación de imágenes
 Pillow==11.3.0
 numpy==1.24.0
 
-# i18n
+# Babel-i18n
 Flask-Babel==4.0.0
 Babel==2.14.0
 
-# Nota: la variante +cpu depende de cómo instales PyTorch (CPU/GPU). 
-# Si usases GPU, instala la build correspondiente de PyTorch para tu plataforma.
-torch==2.5.1+cpu
+# Torch y segmentación
+torch==2.10.0
+segmentation-models-pytorch==0.4.1
+timm==1.0.19
+torchmetrics==1.8.2
 
 # Tests
 pytest==8.2.2

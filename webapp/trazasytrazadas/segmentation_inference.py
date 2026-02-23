@@ -1,19 +1,24 @@
 """
 segmentation_inference.py
 -------------------------
-Inferencia de segmentación semántica usando U-Net con la biblioteca segmentation_models_pytorch
-con múltiples modelos mediante folds y generación de trazas: xs, ys, para el frontend.
+Inferencia de segmentación semántica usando modelos guardados con pickle
+(multi-fold ensemble) y generación de trazas {xs, ys} para el frontend.
 
 Características:
-- Padding a múltiplos de 32 (requisito típico U-Net/encoders).
+- Padding a múltiplos de 32.
 - Ensemble multi-fold: media de probabilidades -> umbral -> máscara final.
-- Conversión máscara -> lista de coordenadas (xs, ys), con muestreo para no
-  generar JSON gigantes.
+- Carga cacheada (se carga una vez y se reutiliza).
+- NO requiere pytorch_lightning instalado: unpickler personalizado que ignora objetos PL.
+- Compatibilidad con cambios de segmentation_models_pytorch:
+  * UnetDecoderBlock.interpolation_mode
+  * alias DecoderBlock <-> UnetDecoderBlock
 """
 
 from __future__ import annotations
 
 import os
+import sys
+import pickle
 from functools import lru_cache
 from typing import List, Tuple, Dict
 
@@ -21,85 +26,232 @@ import numpy as np
 from PIL import Image
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 
 # ---------------------------
-# Utilidades de preprocesado
+# Preprocesado
 # ---------------------------
 
 def _pad_to_multiple_of_32(img_t: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
-    """
-    Aplica padding (abajo/derecha) para que H y W sean múltiplos de 32.
-    Devuelve el tensor padded y cuánto padding se añadió (pad_h, pad_w).
-
-    img_t: (1, 3, H, W)
-    """
     _, _, h, w = img_t.shape
     new_h = int(np.ceil(h / 32) * 32)
     new_w = int(np.ceil(w / 32) * 32)
     pad_h = new_h - h
     pad_w = new_w - w
-
     if pad_h == 0 and pad_w == 0:
         return img_t, 0, 0
-
-    # Padding formato torch.nn.functional.pad: (left, right, top, bottom)
-    img_t = torch.nn.functional.pad(img_t, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
+    img_t = F.pad(img_t, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
     return img_t, pad_h, pad_w
 
+
 def _pil_to_tensor_rgb(pil_img: Image.Image) -> torch.Tensor:
-    """
-    PIL -> Tensor float32 [0,1], shape (1,3,H,W)
-    """
     if pil_img.mode != "RGB":
         pil_img = pil_img.convert("RGB")
-    arr = np.asarray(pil_img).astype(np.float32) / 255.0  # H,W,3
-    t = torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0)  # 1,3,H,W
-    return t
+    arr = np.asarray(pil_img).astype(np.float32) / 255.0  # H,W,3 in [0,1]
+    return torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0)  # 1,3,H,W
 
-def _normalize_imagenet(img_t: torch.Tensor, device: torch.device) -> torch.Tensor:
-    """
-    Normalización usada en encoders.
-    """
-    mean = torch.tensor([0.485, 0.456, 0.406], dtype=torch.float32, device=device).view(1, 3, 1, 1)
-    std = torch.tensor([0.229, 0.224, 0.225], dtype=torch.float32, device=device).view(1, 3, 1, 1)
+
+def _normalize_imagenet(img_t: torch.Tensor) -> torch.Tensor:
+    mean = img_t.new_tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
+    std = img_t.new_tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
     return (img_t - mean) / std
 
+
 # ---------------------------
-# Carga de modelos TorchScript
+# Stubs mínimos (para pickles guardados desde notebooks/código de entrenamiento)
 # ---------------------------
 
-@lru_cache(maxsize=1)
-def load_fold_torchscript_models(models_dir: str, model_template: str, n_folds: int, use_gpu: bool):
+class BinarySegModel(nn.Module):
+    """
+    Stub para que pickle pueda reconstruir instancias antiguas.
+    En unpickle NO se llama a __init__, pero la clase debe existir.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, image: torch.Tensor) -> torch.Tensor:
+        # Si el pickle trae mean/std embebidos, se normaliza aquí.
+        if hasattr(self, "mean") and hasattr(self, "std"):
+            image = (image - self.mean) / self.std
+        return self.model(image)
+
+    # Métodos típicos de Lightning referenciados en objetos pickled
+    def log(self, *args, **kwargs): return None
+    def log_dict(self, *args, **kwargs): return None
+    def save_hyperparameters(self, *args, **kwargs): return None
+
+
+class SemanticSegmentatorPyTorch:
+    def __init__(self):
+        self.model = None
+        self.trainer = None
+
+class HuggingFaceToTorchDataset:
+    """Stub: solo para satisfacer pickle.load; no se usa en inferencia."""
+    def __init__(self, *args, **kwargs):
+        pass
+
+class HuggingFaceToTorchDataset_onlyImage:
+    """Stub: solo para satisfacer pickle.load; no se usa en inferencia."""
+    def __init__(self, *args, **kwargs):
+        pass
+
+
+def _inject_symbols_into_main():
+    """
+    Muchos pickles de notebook apuntan a __main__.BinarySegModel, etc.
+    """
+    main_mod = sys.modules.get("__main__")
+    if main_mod is None:
+        return
+    setattr(main_mod, "BinarySegModel", BinarySegModel)
+    setattr(main_mod, "SemanticSegmentatorPyTorch", SemanticSegmentatorPyTorch)
+    setattr(main_mod, "HuggingFaceToTorchDataset", HuggingFaceToTorchDataset)
+    setattr(main_mod, "HuggingFaceToTorchDataset_onlyImage", HuggingFaceToTorchDataset_onlyImage)
+
+# ---------------------------
+# Parche SMP (compatibilidad)
+# ---------------------------
+
+def _patch_smp_compat():
+    try:
+        from segmentation_models_pytorch.decoders.unet import decoder as unet_decoder
+        if hasattr(unet_decoder, "UnetDecoderBlock") and not hasattr(unet_decoder, "DecoderBlock"):
+            unet_decoder.DecoderBlock = unet_decoder.UnetDecoderBlock
+    except Exception:
+        pass
+
+
+def _patch_unet_interpolation_mode(net: nn.Module, default: str = "nearest"):
+    for m in net.modules():
+        if m.__class__.__name__ in ("UnetDecoderBlock", "DecoderBlock"):
+            if not hasattr(m, "interpolation_mode"):
+                m.interpolation_mode = default
+
+
+# ---------------------------
+# Unpickler sin pytorch_lightning
+# ---------------------------
+
+# ---------------------------
+# Unpickler sin pytorch_lightning (Dummy robusto)
+# ---------------------------
+
+class _DummyMeta(type):
+    """Permite acceder a atributos de clase: _Dummy.FITTING, etc."""
+    def __getattr__(cls, name):
+        return cls  # devolvemos la propia clase como placeholder
+
+    def __call__(cls, *args, **kwargs):
+        # cuando pickle instancia la clase, devolvemos un objeto dict-like
+        obj = super().__call__()
+        return obj
+
+
+class _Dummy(dict, metaclass=_DummyMeta):
+    """
+    Dummy robusto para reemplazar clases de Lightning durante unpickle.
+    - dict-like (soporta item assignment)
+    - attr access a nivel de instancia y clase
+    - callable
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+        d = _Dummy()
+        self[name] = d
+        return d
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+    def reduce(self, *args, **kwargs):
+        return args[0] if args else None
+
+
+class _SafeUnpickler(pickle.Unpickler):
+    _IGNORE_PREFIXES = (
+        "pytorch_lightning",
+        "lightning",
+    )
+
+    def find_class(self, module, name):
+        if module.startswith(self._IGNORE_PREFIXES):
+            return _Dummy
+        return super().find_class(module, name)
+
+
+def _pickle_load_safe(path: str):
+    with open(path, "rb") as f:
+        return _SafeUnpickler(f).load()
+
+
+def _extract_core_module(obj) -> nn.Module:
+    if isinstance(obj, nn.Module):
+        return obj
+    if hasattr(obj, "model") and isinstance(obj.model, nn.Module):
+        return obj.model
+    raise TypeError(f"No se pudo extraer nn.Module del objeto pickle: {type(obj)}")
+
+
+class _PickleInferWrapper(nn.Module):
+    """
+    Asegura que siempre devolvemos PROBABILIDADES (sigmoid) y normalización correcta.
+    - Si el core trae mean/std -> NO normalizamos fuera.
+    - Si no trae mean/std -> aplicamos ImageNet fuera.
+    - Si el core devuelve logits -> aplicamos sigmoid.
+    """
+    def __init__(self, core: nn.Module):
+        super().__init__()
+        self.core = core
+        self.has_internal_norm = hasattr(core, "mean") and hasattr(core, "std")
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if not self.has_internal_norm:
+            x = _normalize_imagenet(x)
+        y = self.core(x)
+
+        # Convertir a prob si parecen logits
+        y_min = float(y.min().detach().cpu())
+        y_max = float(y.max().detach().cpu())
+        if y_min < 0.0 or y_max > 1.0:
+            y = torch.sigmoid(y)
+        return y
+
+
+# ---------------------------
+# Carga cacheada de folds (pickle)
+# ---------------------------
+
+@lru_cache(maxsize=8)
+def load_fold_pickle_models(models_dir: str, model_template: str, fold_id: int, use_gpu: bool):
     device = torch.device("cuda" if (use_gpu and torch.cuda.is_available()) else "cpu")
 
-    models = []
-    # for fold in range(n_folds):
-    #     p = os.path.join(models_dir, model_template.format(fold=fold))
-    #     if not os.path.exists(p):
-    #         continue
-    #     m = torch.jit.load(p, map_location=device)
-    #     m.eval()
-    #     models.append(m)
-    
-    # ============================================================
-    # PRUEBA: cargar SOLO un fold
-    # ============================================================
-    fold = 0
+    _inject_symbols_into_main()
+    _patch_smp_compat()
+
+    fold = int(fold_id)
     p = os.path.join(models_dir, model_template.format(fold=fold))
-
     if not os.path.exists(p):
-        raise FileNotFoundError(f"No se encontró el modelo del fold {fold}: {p}")
+        raise FileNotFoundError(f"No se encontró el modelo PICKLE del fold {fold}: {p}")
 
-    m = torch.jit.load(p, map_location=device)
-    m.eval()
-    models.append(m)
+    obj = _pickle_load_safe(p)
+    core = _extract_core_module(obj)
+    _patch_unet_interpolation_mode(core, default="nearest")
 
-    if not models:
-        raise FileNotFoundError(
-            f"No se encontró ningún modelo TorchScript en {models_dir} con template {model_template}"
-        )
+    m = _PickleInferWrapper(core).to(device).eval()
+    models = [m]
 
     return models, device
+
 
 # ---------------------------
 # Inferencia + ensemble
@@ -109,66 +261,48 @@ def predict_mask_ensemble(
     image_path: str,
     models_dir: str,
     model_template: str,
-    n_folds: int,
     use_gpu: bool,
     threshold: float = 0.5,
 ) -> np.ndarray:
-    pil = Image.open(image_path)
-    w0, h0 = pil.size
+    with Image.open(image_path) as pil:
+        w0, h0 = pil.size
+        img_t = _pil_to_tensor_rgb(pil)
 
-    img_t = _pil_to_tensor_rgb(pil)
     img_t, _, _ = _pad_to_multiple_of_32(img_t)
 
-    models, device = load_fold_torchscript_models(
+    models, device = load_fold_pickle_models(
         models_dir=models_dir,
         model_template=model_template,
-        n_folds=n_folds,
+        fold_id=0, # Cambiar FOLD
         use_gpu=use_gpu,
     )
 
     img_t = img_t.to(device)
-    # img_t = _normalize_imagenet(img_t, device)
 
     probs_sum = None
-
-    with torch.no_grad():
+    with torch.inference_mode():
         for m in models:
-            probs = m(img_t)
+            probs = m(img_t)  # prob [1,1,H,W]
             probs_sum = probs if probs_sum is None else (probs_sum + probs)
 
     probs_avg = probs_sum / float(len(models))
-    mask = (probs_avg > threshold).float()
+    mask = (probs_avg > threshold).to(torch.uint8)
 
-    mask_np = mask.squeeze().detach().cpu().numpy()
-    mask_np = mask_np[:h0, :w0]  # recorte a tamaño original
+    mask_np = mask.squeeze(0).squeeze(0).detach().cpu().numpy()
+    return mask_np[:h0, :w0]
 
-    return mask_np.astype(np.uint8)
 
 # ---------------------------
 # Máscara -> trazas (xs,ys)
 # ---------------------------
 
-def mask_to_traces_points(
-    mask: np.ndarray,
-    max_points: int = 150_000,
-    stride: int = 2,
-) -> Dict[str, List[int]]:
+def mask_to_traces_points(mask: np.ndarray, max_points: int = 150_000, stride: int = 2) -> Dict[str, List[int]]:
     ys, xs = np.where(mask > 0)
-
     if xs.size == 0:
         return {"xs": [], "ys": []}
-
-    # Muestreo por stride
     if stride > 1:
         xs = xs[::stride]
         ys = ys[::stride]
-
-    # Límite de puntos
-    # if xs.size > max_points:
-    #     idx = np.linspace(0, xs.size - 1, max_points).astype(int)
-    #     xs = xs[idx]
-    #     ys = ys[idx]
-
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}
 
 
@@ -179,14 +313,10 @@ def compute_traces_from_segmentation(
     n_folds: int,
     use_gpu: bool,
 ) -> Dict[str, List[int]]:
-    """
-    Función puente a la que llama la app desde /calculate.
-    """
     mask = predict_mask_ensemble(
         image_path=image_path,
         models_dir=models_dir,
         model_template=model_template,
-        n_folds=n_folds,
         use_gpu=use_gpu,
         threshold=0.5,
     )

@@ -36,6 +36,8 @@ def app():
             "OUTPUT_FOLDER": output,
             "SEG_MODELS_DIR": models,
             "SEG_USE_GPU": False,
+            "SEG_MODEL_TEMPLATE": "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr.9e-05_epochs.60_fold.{fold}",
+            "SEG_N_FOLDS": 1,
         }
     )
 

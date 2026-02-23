@@ -91,7 +91,7 @@ def create_app(test_config=None):
         SEG_MODELS_DIR=os.path.join(app.root_path, "model"),
 
         # Template de pesos por fold.
-        SEG_MODEL_TEMPLATE="unet_fold_{fold}_infer.pt",
+        SEG_MODEL_TEMPLATE="data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr.9e-05_epochs.60_fold.{fold}",
 
         # Número de folds/modelos que intentará cargar.
         SEG_N_FOLDS=10,
