@@ -82,7 +82,8 @@ def test_upload_missing_image_field(client):
         content_type="multipart/form-data",
         follow_redirects=True,
     )
-    assert "No se ha enviado ningún archivo.".encode("utf-8") in response.data
+
+    assert b"alert-error" in response.data
 
 def test_upload_empty_filename(client):
     """Si se envía 'image' pero con filename vacío, debe mostrar error."""

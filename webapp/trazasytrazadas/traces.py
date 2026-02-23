@@ -100,16 +100,13 @@ def _set_error(message: str):
     """
     flash(message, "error")
 
-
 def _flash_ok(message: str):
     """Mensajes de éxito (UI: alert-success)."""
     flash(message, "success")
 
-
 def _flash_info(message: str):
     """Mensajes informativos (UI: alert-info)."""
     flash(message, "info")
-
 
 def _cleanup_previous_state(old_image: str | None, old_traces_file: str | None) -> None:
     """Elimina de disco los artefactos previos (si existen)."""
@@ -124,7 +121,6 @@ def _cleanup_previous_state(old_image: str | None, old_traces_file: str | None) 
         except OSError:
             # Si no existe o no se puede borrar, ignoramos.
             pass
-
 
 def _save_uploaded_image(file) -> str:
     """Guarda una imagen subida y devuelve el filename final (con UUID)."""
@@ -141,6 +137,25 @@ def _save_uploaded_image(file) -> str:
     file.save(file_path)
     return filename
 
+def _handle_upload_file_or_error(file) -> bool:
+    """Valida, limpia estado previo y guarda la imagen subida en sesión.
+    Devuelve True si ha ido bien, False si hay error (ya flasheado).
+    """
+    if not file or not file.filename:
+        _set_error(_("No se ha seleccionado ningún archivo."))
+        return False
+
+    if not allowed_file(file.filename):
+        _set_error(_("Formato de archivo no permitido. Usa .jpg, .jpeg o .png."))
+        return False
+
+    old_image = session.pop("image_filename", None)
+    old_traces_file = session.pop("traces_file", None)
+    _cleanup_previous_state(old_image, old_traces_file)
+
+    filename = _save_uploaded_image(file)
+    session["image_filename"] = filename
+    return True
 
 def _calculate_and_store_traces(image_filename: str) -> str:
     """Calcula y persiste el JSON de trazas; devuelve el nombre del JSON."""
@@ -224,32 +239,11 @@ def upload_image():
         3. Limpia el estado anterior (imagen previa, trazas previas, etc.).
         4. Redirige a la página principal.
     """
-    # Comprobamos que el campo 'image' está presente en la petición.
-    if "image" not in request.files:
-        _set_error(_("No se ha enviado ningún archivo."))
+    file = request.files.get("image")
+    if not _handle_upload_file_or_error(file):
         return redirect(url_for("trazas.index"))
-
-    file = request.files["image"]
-
-    if file.filename == "":
-        _set_error(_("No se ha seleccionado ningún archivo."))
-        return redirect(url_for("trazas.index"))
-
-    if not allowed_file(file.filename):
-        _set_error(_("Formato de archivo no permitido. Usa .jpg, .jpeg o .png."))
-        return redirect(url_for("trazas.index"))
-
-    # Limpieza de estado anterior (imagen, trazas, ...)
-    old_image = session.pop("image_filename", None)
-    old_traces_file = session.pop("traces_file", None)
-    _cleanup_previous_state(old_image, old_traces_file)
-
-    # Guardamos la nueva imagen y persistimos en sesión.
-    filename = _save_uploaded_image(file)
-    session["image_filename"] = filename
 
     _flash_ok(_("Imagen cargada correctamente."))
-
     return redirect(url_for("trazas.index"))
 
 #---------------- Ruta delete ----------------------
@@ -333,40 +327,11 @@ def upload_and_calculate():
 
     file = request.files.get("image")
 
-    # Si llega fichero: validamos y subimos.
     if file and file.filename:
-        if not allowed_file(file.filename):
-            _set_error(_("Formato de archivo no permitido. Usa .jpg, .jpeg o .png."))
+        if not _handle_upload_file_or_error(file):
             return redirect(url_for("trazas.index"))
 
-        # Limpieza del estado anterior antes de sustituir por una imagen nueva.
-        old_image = session.pop("image_filename", None)
-        old_traces_file = session.pop("traces_file", None)
-        _cleanup_previous_state(old_image, old_traces_file)
-
-        filename = _save_uploaded_image(file)
-        session["image_filename"] = filename
-
-    image_filename = session.get("image_filename")
-    if not image_filename:
-        _set_error(_("Primero debes insertar una imagen antes de calcular trazas."))
-        return redirect(url_for("trazas.index"))
-
-    # Calculamos trazas para la imagen actual.
-    try:
-        traces_filename = _calculate_and_store_traces(image_filename)
-    except FileNotFoundError as e:
-        _set_error(str(e))
-        return redirect(url_for("trazas.index"))
-    except Exception as e:
-        _set_error(_("Error ejecutando segmentación: %(error)s", error=str(e)))
-        return redirect(url_for("trazas.index"))
-
-    session["traces_file"] = traces_filename
-
-    _flash_ok(_("Las trazas de la imagen han sido calculadas correctamente."))
-
-    return redirect(url_for("trazas.index"))
+    return calculate_traces()
 
 # -----------------------------------------------------------------------------
 # Rutas auxiliares (servir imágenes y JSON)
