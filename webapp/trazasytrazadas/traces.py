@@ -46,6 +46,7 @@ from flask import (
     jsonify,
     flash,
 )
+from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
 from .segmentation_inference import compute_traces_from_segmentation
 from PIL import Image #, ImageDraw
@@ -95,8 +96,7 @@ def compute_traces(image_path: str) -> dict:
 
 def _set_error(message: str):
     """
-    (Legacy) Antes guardaba un mensaje en sesión para pintarlo en un modal.
-    Ahora usamos flash messaging (Flask) para que la UI lo muestre con DaisyUI.
+    Usamos flash messaging para que la UI lo muestre con DaisyUI.
     """
     flash(message, "error")
 
@@ -188,16 +188,16 @@ def index():
     # Lógica de estado para la barra superior.
     if not image_filename:
         status = "no_image"
-        status_message = (
+        status_message = _(
             "Estado: ninguna imagen cargada. Inserta una imagen para empezar."
         )
     elif image_filename and not traces_file:
         status = "image_uploaded"
-        status_message = "Estado: imagen cargada. Pulsa «Calcular trazas»."
+        status_message = _("Estado: imagen cargada. Pulsa «Calcular trazas».")
     else:
         # Hay imagen y JSON de trazas calculado.
         status = "traces_calculated"
-        status_message = (
+        status_message = _(
             "Estado: trazas calculadas. Se dibujarán automáticamente sobre la imagen."
         )
 
@@ -226,17 +226,17 @@ def upload_image():
     """
     # Comprobamos que el campo 'image' está presente en la petición.
     if "image" not in request.files:
-        _set_error("No se ha enviado ningún archivo.")
+        _set_error(_("No se ha enviado ningún archivo."))
         return redirect(url_for("trazas.index"))
 
     file = request.files["image"]
 
     if file.filename == "":
-        _set_error("No se ha seleccionado ningún archivo.")
+        _set_error(_("No se ha seleccionado ningún archivo."))
         return redirect(url_for("trazas.index"))
 
     if not allowed_file(file.filename):
-        _set_error("Formato de archivo no permitido. Usa .jpg, .jpeg o .png.")
+        _set_error(_("Formato de archivo no permitido. Usa .jpg, .jpeg o .png."))
         return redirect(url_for("trazas.index"))
 
     # Limpieza de estado anterior (imagen, trazas, ...)
@@ -248,7 +248,7 @@ def upload_image():
     filename = _save_uploaded_image(file)
     session["image_filename"] = filename
 
-    _flash_ok("Imagen cargada correctamente.")
+    _flash_ok(_("Imagen cargada correctamente."))
 
     return redirect(url_for("trazas.index"))
 
@@ -264,7 +264,7 @@ def delete_image():
     image_filename = session.get("image_filename")
 
     if not image_filename:
-        _set_error("No hay ninguna imagen cargada para borrar.")
+        _set_error(_("No hay ninguna imagen cargada para borrar."))
         return redirect(url_for("trazas.index"))
 
     traces_file = session.get("traces_file")
@@ -275,7 +275,7 @@ def delete_image():
     session.pop("image_filename", None)
     session.pop("traces_file", None)
 
-    _flash_ok("Imagen borrada correctamente.")
+    _flash_ok(_("Imagen borrada correctamente."))
 
     return redirect(url_for("trazas.index"))
 
@@ -296,7 +296,7 @@ def calculate_traces():
     """
     image_filename = session.get("image_filename")
     if not image_filename:
-        _set_error("Primero debes insertar una imagen antes de calcular trazas.")
+        _set_error(_("Primero debes insertar una imagen antes de calcular trazas."))
         return redirect(url_for("trazas.index"))
 
     # 1) Calculamos y guardamos trazas.
@@ -306,13 +306,13 @@ def calculate_traces():
         _set_error(str(e))
         return redirect(url_for("trazas.index"))
     except Exception as e:
-        _set_error(f"Error ejecutando segmentación: {e}")
+        _set_error(_("Error ejecutando segmentación: %(error)s", error=str(e)))
         return redirect(url_for("trazas.index"))
 
     # 2) Guardamos en sesión solo el nombre del fichero JSON.
     session["traces_file"] = traces_filename
 
-    _flash_ok("Las trazas de la imagen han sido calculadas correctamente.")
+    _flash_ok(_("Las trazas de la imagen han sido calculadas correctamente."))
 
     return redirect(url_for("trazas.index"))
 
@@ -336,7 +336,7 @@ def upload_and_calculate():
     # Si llega fichero: validamos y subimos.
     if file and file.filename:
         if not allowed_file(file.filename):
-            _set_error("Formato de archivo no permitido. Usa .jpg, .jpeg o .png.")
+            _set_error(_("Formato de archivo no permitido. Usa .jpg, .jpeg o .png."))
             return redirect(url_for("trazas.index"))
 
         # Limpieza del estado anterior antes de sustituir por una imagen nueva.
@@ -349,7 +349,7 @@ def upload_and_calculate():
 
     image_filename = session.get("image_filename")
     if not image_filename:
-        _set_error("Primero debes insertar una imagen antes de calcular trazas.")
+        _set_error(_("Primero debes insertar una imagen antes de calcular trazas."))
         return redirect(url_for("trazas.index"))
 
     # Calculamos trazas para la imagen actual.
@@ -359,12 +359,12 @@ def upload_and_calculate():
         _set_error(str(e))
         return redirect(url_for("trazas.index"))
     except Exception as e:
-        _set_error(f"Error ejecutando segmentación: {e}")
+        _set_error(_("Error ejecutando segmentación: %(error)s", error=str(e)))
         return redirect(url_for("trazas.index"))
 
     session["traces_file"] = traces_filename
 
-    _flash_ok("Las trazas de la imagen han sido calculadas correctamente.")
+    _flash_ok(_("Las trazas de la imagen han sido calculadas correctamente."))
 
     return redirect(url_for("trazas.index"))
 
@@ -394,7 +394,7 @@ def traces_json():
 
     # Si no, devuelve error.
     if not traces_file:
-        return jsonify({"error": "No hay trazas calculadas todavía."}), 404
+        return jsonify({"error": _("No hay trazas calculadas todavía.")}), 404
 
     # Busca archivo en output, si existe, devuelve traces.
     traces_path = os.path.join(current_app.config["OUTPUT_FOLDER"], traces_file)
@@ -404,7 +404,7 @@ def traces_json():
         return (
             jsonify(
                 {
-                    "error": "Archivo de trazas no encontrado. Vuelve a calcularlas."
+                    "error": _("Archivo de trazas no encontrado. Vuelve a calcularlas.")
                 }
             ),
             500,

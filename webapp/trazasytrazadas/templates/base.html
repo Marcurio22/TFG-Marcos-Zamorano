@@ -12,7 +12,7 @@ Plantilla base del proyecto.
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{% block title %}Trazas de Herbívoros{% endblock %}</title>
+  <title>{% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}</title>
 
   <!-- DaisyUI + Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
@@ -39,7 +39,7 @@ Plantilla base del proyecto.
 
         <div class="justify-self-center text-center">
           <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm">
-            Trazas de Herbívoros
+            {{ _("Trazas de Herbívoros") }}
           </h1>
         </div>
 
@@ -58,9 +58,9 @@ Plantilla base del proyecto.
               <span class="inline-flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
                   <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg')) }}"
-                    alt="{{ LANGUAGES.get(current_lang, 'Idioma') }}" class="w-full h-full object-cover" />
+                    alt="{{ LANGUAGES.get(current_lang, _('Idioma')) }}" class="w-full h-full object-cover" />
                 </span>
-                <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, 'Idioma') }}</span>
+                <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, _('Idioma')) }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                   class="w-4 h-4 opacity-90">
                   <path fill-rule="evenodd"
@@ -71,7 +71,7 @@ Plantilla base del proyecto.
             </label>
 
             <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
-              <li class="menu-title"><span>Idioma</span></li>
+              <li class="menu-title"><span>{{ _("Idioma") }}</span></li>
               {% for code, name in LANGUAGES.items() %}
               <li>
                 <a href="{{ url_for('trazas.index', lang=code) }}"
@@ -116,7 +116,9 @@ Plantilla base del proyecto.
         {% endif %}
         <div class="alert {{ alert_class }} shadow-sm">
           <span class="text-sm sm:text-base">{{ message }}</span>
-          <button type="button" class="btn btn-sm btn-ghost ml-auto" aria-label="Cerrar"
+          <button type="button" class="btn btn-sm btn-ghost ml-auto"
+            data-flash-close
+            aria-label="{{ _('Cerrar') }}"
             onclick="this.closest('.alert').remove();">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
               <path
@@ -144,18 +146,9 @@ Plantilla base del proyecto.
       <div class="footer footer-center">
         <div class="grid gap-3">
           <div class="flex items-center justify-center gap-3">
-            <div class="avatar">
-              <div class="w-12 h-12 bg-base-100 p-1 shadow-sm">
-                <img
-                  src="{{ url_for('static', filename='img/escudo_ubu_tc.svg') }}"
-                  alt="Escudo Universidad de Burgos"
-                  class="w-full h-full object-contain"
-                />
-              </div>
-            </div>
             <div class="text-center">
-              <div class="font-semibold">Universidad de Burgos</div>
-              <div class="text-sm opacity-75">TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por computador</div>
+              <div class="font-semibold">{{ _("Universidad de Burgos") }}</div>
+              <div class="text-sm opacity-75">{{ _("TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por computador") }}</div>
             </div>
           </div>
           <div class="text-xs opacity-70">
@@ -169,7 +162,7 @@ Plantilla base del proyecto.
 <!-- Auto-cierre en 5s de flash messages -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".alert .btn[aria-label='Cerrar']").forEach((closeBtn) => {
+  document.querySelectorAll(".alert [data-flash-close]").forEach((closeBtn) => {
     const alertEl = closeBtn.closest(".alert");
     if (!alertEl) return;
 

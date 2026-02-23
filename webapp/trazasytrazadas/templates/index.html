@@ -9,17 +9,17 @@ el navegador usando JSON de /traces.
 
 {% extends "base.html" %}
 
-{% block title %}Trazas de Herbívoros{% endblock %}
+{% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}
 
 {% block content %}
 
 {% set status_badge = {
-  'no_image': ['badge-warning', 'Sin imagen'],
-  'image_uploaded': ['badge-info', 'Lista para calcular'],
-  'traces_calculated': ['badge-success', 'Trazas calculadas']
+  'no_image': ['badge-warning', _('Sin imagen')],
+  'image_uploaded': ['badge-info', _('Lista para calcular')],
+  'traces_calculated': ['badge-success', _('Trazas calculadas')]
 } %}
-{% set badge_cls = status_badge.get(status, ['badge-neutral', 'Estado'])[0] %}
-{% set badge_txt = status_badge.get(status, ['badge-neutral', 'Estado'])[1] %}
+{% set badge_cls = status_badge.get(status, ['badge-neutral', _('Estado')])[0] %}
+{% set badge_txt = status_badge.get(status, ['badge-neutral', _('Estado')])[1] %}
 
 <!-- ====================== Barra de estado ====================== -->
 <section class="mb-4">
@@ -60,11 +60,11 @@ el navegador usando JSON de /traces.
         <div class="mt-1 mb-2 sm:mb-0 flex flex-col gap-1">
           
           <span class="text-xs opacity-60 text-left">
-            Formatos permitidos:
+            {{ _("Formatos permitidos:") }}
             <span class="font-semibold">.jpg</span>,
             <span class="font-semibold">.jpeg</span>,
             <span class="font-semibold">.png</span>
-            · Tamaño máximo: <span class="font-semibold">16 MB</span>
+            · {{ _("Tamaño máximo:") }} <span class="font-semibold">16 MB</span>
           </span>
         </div>
       </div>
@@ -81,8 +81,8 @@ el navegador usando JSON de /traces.
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 11h.01M12 11h.01M15 11h.01"/>
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 15h.01M12 15h.01M15 15h.01"/>
         </svg>
-        <span class="hidden sm:inline">Calcular trazas</span>
-        <span class="sm:hidden">Calcular</span>
+        <span class="hidden sm:inline">{{ _("Calcular trazas") }}</span>
+        <span class="sm:hidden">{{ _("Calcular") }}</span>
       </button>
 
     </div>
@@ -105,15 +105,15 @@ el navegador usando JSON de /traces.
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 7l1 14h10l1-14"/>
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 7V4h6v3"/>
       </svg>
-      <span class="hidden sm:inline">Borrar imagen</span>
-      <span class="sm:hidden">Borrar</span>
+      <span class="hidden sm:inline">{{ _("Borrar imagen") }}</span>
+      <span class="sm:hidden">{{ _("Borrar") }}</span>
     </button>
   </form>
 
   <!-- Checkbox "TRAZAS DIBUJADAS" -->
   <div class="flex items-center justify-center w-full sm:w-auto sm:pt-2">
     <label class="inline-flex items-center gap-3 text-[0.9rem]">
-      <span class="uppercase tracking-wide font-semibold">TRAZAS DIBUJADAS</span>
+      <span class="uppercase tracking-wide font-semibold">{{ _("TRAZAS DIBUJADAS") }}</span>
       <input
         type="checkbox"
         id="traces-drawn-checkbox"
@@ -140,7 +140,7 @@ el navegador usando JSON de /traces.
           <img
             id="main-image"
             src="{{ image_url or '' }}"
-            alt="Imagen"
+            alt="{{ _('Imagen') }}"
             class="block rounded-none {{ '' if image_url else 'hidden' }}"
           >
           <canvas
@@ -159,8 +159,10 @@ el navegador usando JSON de /traces.
             </svg>
           </div>
 
-          <div class="font-semibold">Sube una imagen para empezar</div>
-          <div class="text-sm opacity-70">Luego pulsa <strong>Calcular trazas</strong></div>
+          <div class="font-semibold">{{ _("Sube una imagen para empezar") }}</div>
+          <div class="text-sm opacity-70">
+            {{ _("Luego pulsa") }} <strong>{{ _("Calcular trazas") }}</strong>
+          </div>
         </div>
       </div>
     </div>
@@ -171,15 +173,15 @@ el navegador usando JSON de /traces.
 <!-- ====================== Modal "Calculando..." ====================== -->
 <dialog id="calculando-modal" class="modal">
   <div class="modal-box">
-    <h3 class="font-bold text-lg">Calculando trazas...</h3>
-    <p class="py-2 opacity-80">Por favor, espera unos instantes.</p>
+    <h3 class="font-bold text-lg">{{ _("Calculando trazas...") }}</h3>
+    <p class="py-2 opacity-80">{{ _("Por favor, espera unos instantes.") }}</p>
 
     <div class="flex items-center justify-center py-4">
       <span class="loading loading-spinner loading-lg text-primary"></span>
     </div>
   </div>
   <form method="dialog" class="modal-backdrop">
-    <button aria-label="Cerrar"></button>
+    <button aria-label="{{ _('Cerrar') }}"></button>
   </form>
 </dialog>
 
@@ -188,6 +190,13 @@ el navegador usando JSON de /traces.
 document.addEventListener("DOMContentLoaded", () => {
   const serverHasImage = {{ 'true' if image_url else 'false' }};
   const autoDrawTraces = {{ 'true' if auto_draw_traces else 'false' }};
+
+  // Flask-Babel
+  const I18N = {
+    noFileChosen: "{{ _('No file chosen') }}",
+    statusNoImage: "{{ _('Estado: ninguna imagen cargada. Inserta una imagen para empezar.') }}",
+    statusUploaded: "{{ _('Estado: imagen cargada. Pulsa «Calcular trazas».') }}"
+  };
 
   // Reiniciar el checkbox siempre al cargar la página
   const tracesCheckbox = document.getElementById("traces-drawn-checkbox");
@@ -307,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localPreviewUrl = null;
     }
     if (imageInput) imageInput.value = "";
-    if (selectedFileName) selectedFileName.textContent = "No file chosen";
+    if (selectedFileName) selectedFileName.textContent = I18N.noFileChosen;
 
     if (canvas) {
       const ctx = canvas.getContext("2d");
@@ -324,7 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (canvas) canvas.classList.add("hidden");
       if (placeholder) placeholder.classList.remove("hidden");
       if (statusEl) {
-        statusEl.textContent = "Estado: ninguna imagen cargada. Inserta una imagen para empezar.";
+        statusEl.textContent = I18N.statusNoImage;
       }
     }
   }
@@ -376,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (tracesCheckbox) tracesCheckbox.checked = false;
-    if (statusEl) statusEl.textContent = "Estado: imagen cargada. Pulsa «Calcular trazas».";
+    if (statusEl) statusEl.textContent = I18N.statusUploaded;
 
     // Asegurar resize aunque la imagen cargue muy rápido
     if (img && canvas) {
