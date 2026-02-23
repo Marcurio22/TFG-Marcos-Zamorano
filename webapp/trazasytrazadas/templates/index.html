@@ -27,9 +27,6 @@ el navegador usando JSON de /traces.
     <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full text-center sm:text-left">
       <span class="badge {{ badge_cls }}">{{ badge_txt }}</span>
       <p id="status-message" class="m-0 text-sm sm:text-base opacity-80">{{ status_message }}</p>
-      <a class="btn btn-ghost btn-sm sm:ml-auto" href="{{ url_for('trazas.traces_json') }}" target="_blank" title="Ver JSON de trazas (dev)">
-        /traces
-      </a>
     </div>
   </div>
 </section>
