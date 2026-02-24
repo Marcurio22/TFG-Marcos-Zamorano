@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-02-22 17:45+0100\n"
+"POT-Creation-Date: 2026-02-24 12:52+0100\n"
 "PO-Revision-Date: 2026-02-22 17:55+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,90 +18,88 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: trazasytrazadas/templates/index.html:197 trazasytrazadas/traces.py:191
-msgid "Estado: ninguna imagen cargada. Inserta una imagen para empezar."
-msgstr "État : aucune image chargée. Insérez une image pour commencer."
-
-#: trazasytrazadas/templates/index.html:198 trazasytrazadas/traces.py:196
-msgid "Estado: imagen cargada. Pulsa «Calcular trazas»."
-msgstr "État : image chargée. Cliquez sur «Calculer les traces»."
-
-#: trazasytrazadas/traces.py:200
-msgid "Estado: trazas calculadas. Se dibujarán automáticamente sobre la imagen."
-msgstr "État : traces calculées. Elles seront dessinées automatiquement sur "
-"l’image."
-
-#: trazasytrazadas/traces.py:229
-msgid "No se ha enviado ningún archivo."
-msgstr "Aucun fichier n’a été envoyé."
-
-#: trazasytrazadas/traces.py:235
+#: trazasytrazadas/traces.py:152
 msgid "No se ha seleccionado ningún archivo."
 msgstr "Aucun fichier n’a été sélectionné."
 
-#: trazasytrazadas/traces.py:239 trazasytrazadas/traces.py:339
+#: trazasytrazadas/traces.py:156
 msgid "Formato de archivo no permitido. Usa .jpg, .jpeg o .png."
 msgstr "Format de fichier non autorisé. Utilisez .jpg, .jpeg ou .png."
 
-#: trazasytrazadas/traces.py:251
+#: trazasytrazadas/templates/index.html:212 trazasytrazadas/traces.py:261
+msgid "Estado: ninguna imagen cargada. Inserta una imagen para empezar."
+msgstr "État : aucune image chargée. Insérez une image pour commencer."
+
+#: trazasytrazadas/templates/index.html:213 trazasytrazadas/traces.py:266
+msgid "Estado: imagen cargada. Pulsa «Calcular trazas»."
+msgstr "État : image chargée. Cliquez sur «Calculer les traces»."
+
+#: trazasytrazadas/traces.py:270
+msgid "Estado: trazas calculadas. Se dibujarán automáticamente sobre la imagen."
+msgstr ""
+"État : traces calculées. Elles seront dessinées automatiquement sur "
+"l’image."
+
+#: trazasytrazadas/traces.py:301
 msgid "Imagen cargada correctamente."
 msgstr "Image téléversée avec succès."
 
-#: trazasytrazadas/traces.py:267
+#: trazasytrazadas/traces.py:316
 msgid "No hay ninguna imagen cargada para borrar."
 msgstr "Aucune image chargée à supprimer."
 
-#: trazasytrazadas/traces.py:278
+#: trazasytrazadas/traces.py:327
 msgid "Imagen borrada correctamente."
 msgstr "Image supprimée avec succès."
 
-#: trazasytrazadas/traces.py:299 trazasytrazadas/traces.py:352
+#: trazasytrazadas/traces.py:348
 msgid "Primero debes insertar una imagen antes de calcular trazas."
 msgstr "Vous devez d’abord insérer une image avant de calculer les traces."
 
-#: trazasytrazadas/traces.py:309 trazasytrazadas/traces.py:362
+#: trazasytrazadas/traces.py:359
 #, python-format
 msgid "Error ejecutando segmentación: %(error)s"
 msgstr "Erreur lors de l’exécution de la segmentation : %(error)s"
 
-#: trazasytrazadas/traces.py:315 trazasytrazadas/traces.py:367
+#: trazasytrazadas/traces.py:365
 msgid "Las trazas de la imagen han sido calculadas correctamente."
 msgstr "Les traces de l’image ont été calculées avec succès."
 
-#: trazasytrazadas/traces.py:397
+#: trazasytrazadas/traces.py:420
+msgid "resultados"
+msgstr "résultats"
+
+#: trazasytrazadas/traces.py:467
 msgid "No hay trazas calculadas todavía."
 msgstr "Aucune trace n’a encore été calculée."
 
-#: trazasytrazadas/traces.py:407
+#: trazasytrazadas/traces.py:477
 msgid "Archivo de trazas no encontrado. Vuelve a calcularlas."
 msgstr "Fichier de traces introuvable. Veuillez les recalculer."
 
 #: trazasytrazadas/templates/base.html:15
-#: trazasytrazadas/templates/base.html:42
+#: trazasytrazadas/templates/base.html:47
 #: trazasytrazadas/templates/index.html:12
 msgid "Trazas de Herbívoros"
 msgstr "Traces d’herbivores"
 
-#: trazasytrazadas/templates/base.html:61
-#: trazasytrazadas/templates/base.html:63
-#: trazasytrazadas/templates/base.html:74
+#: trazasytrazadas/templates/base.html:66
+#: trazasytrazadas/templates/base.html:68
+#: trazasytrazadas/templates/base.html:79
 msgid "Idioma"
 msgstr "Langue"
-
-#: trazasytrazadas/templates/base.html:121
-#: trazasytrazadas/templates/index.html:184
-msgid "Cerrar"
-msgstr "Fermer"
 
 #: trazasytrazadas/templates/base.html:150
 msgid "Universidad de Burgos"
 msgstr "Université de Burgos"
 
-#: trazasytrazadas/templates/base.html:151
+#: trazasytrazadas/templates/base.html:152
 msgid ""
 "TFG · Aplicación web para seguimiento de presión de herbivoría mediante "
 "visión por computador"
-msgstr "Projet de fin d'études · Application web de surveillance de la pression des herbivores par vision par ordinateur"
+msgstr ""
+"Projet de fin d'études · Application web de surveillance de la pression "
+"des herbivores par vision par ordinateur"
 
 #: trazasytrazadas/templates/index.html:17
 msgid "Sin imagen"
@@ -120,56 +118,68 @@ msgstr "Traces calculées"
 msgid "Estado"
 msgstr "État"
 
-#: trazasytrazadas/templates/index.html:63
+#: trazasytrazadas/templates/index.html:61
 msgid "Formatos permitidos:"
 msgstr "Formats autorisés :"
 
-#: trazasytrazadas/templates/index.html:67
+#: trazasytrazadas/templates/index.html:65
 msgid "Tamaño máximo:"
 msgstr "Taille maximale :"
 
-#: trazasytrazadas/templates/index.html:84
-#: trazasytrazadas/templates/index.html:164
+#: trazasytrazadas/templates/index.html:82
+#: trazasytrazadas/templates/index.html:181
 msgid "Calcular trazas"
 msgstr "Calculer les traces"
 
-#: trazasytrazadas/templates/index.html:85
+#: trazasytrazadas/templates/index.html:83
 msgid "Calcular"
 msgstr "Calculer"
 
-#: trazasytrazadas/templates/index.html:108
-msgid "Borrar imagen"
-msgstr "Supprimer l’image"
+#: trazasytrazadas/templates/index.html:104
+#: trazasytrazadas/templates/index.html:105
+msgid "Descargar"
+msgstr "Décharge"
 
-#: trazasytrazadas/templates/index.html:109
-msgid "Borrar"
-msgstr "Supprimer"
-
-#: trazasytrazadas/templates/index.html:116
+#: trazasytrazadas/templates/index.html:110
 msgid "TRAZAS DIBUJADAS"
 msgstr "TRACES DESSINÉES"
 
-#: trazasytrazadas/templates/index.html:143
+#: trazasytrazadas/templates/index.html:137
+msgid "Borrar imagen"
+msgstr "Supprimer l’image"
+
+#: trazasytrazadas/templates/index.html:138
+msgid "Borrar"
+msgstr "Supprimer"
+
+#: trazasytrazadas/templates/index.html:160
 msgid "Imagen"
 msgstr "Image"
 
-#: trazasytrazadas/templates/index.html:162
+#: trazasytrazadas/templates/index.html:179
 msgid "Sube una imagen para empezar"
 msgstr "Téléversez une image pour commencer"
 
-#: trazasytrazadas/templates/index.html:164
+#: trazasytrazadas/templates/index.html:181
 msgid "Luego pulsa"
 msgstr "Puis cliquez sur"
 
-#: trazasytrazadas/templates/index.html:176
+#: trazasytrazadas/templates/index.html:193
 msgid "Calculando trazas..."
 msgstr "Calcul des traces..."
 
-#: trazasytrazadas/templates/index.html:177
+#: trazasytrazadas/templates/index.html:194
 msgid "Por favor, espera unos instantes."
 msgstr "Veuillez patienter un instant."
 
-#: trazasytrazadas/templates/index.html:196
+#: trazasytrazadas/templates/index.html:201
+msgid "Cerrar"
+msgstr "Fermer"
+
+#: trazasytrazadas/templates/index.html:211
 msgid "No file chosen"
 msgstr "Aucun fichier choisi"
+
+#~ msgid "No se ha enviado ningún archivo."
+#~ msgstr "Aucun fichier n’a été envoyé."
 

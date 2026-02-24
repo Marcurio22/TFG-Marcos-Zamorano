@@ -27,6 +27,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const statusEl = document.getElementById("status-message");
 
+  // Descargar resultados
+  const downloadBtn = document.getElementById("download-btn");
+
+  function setDownloadEnabled(enabled) {
+    if (!downloadBtn) return;
+
+    if (enabled) {
+      downloadBtn.disabled = false;
+      downloadBtn.classList.remove("btn-disabled");
+      downloadBtn.classList.add("btn-primary");
+    } else {
+      downloadBtn.disabled = true;
+      downloadBtn.classList.remove("btn-primary");
+      downloadBtn.classList.add("btn-disabled");
+    }
+  }
+
+  // Estado inicial
+  setDownloadEnabled(false);
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", () => {
+      if (downloadBtn.disabled) return;
+      const url = downloadBtn.dataset.downloadUrl;
+      if (url) window.location.href = url;
+    });
+  }
+
   /* -------------------------------------------------------------
      1) Mostrar modal "Calculando..."
   -------------------------------------------------------------- */
@@ -105,6 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Marcar checkbox cuando las trazas se han dibujado
       if (tracesCheckbox) tracesCheckbox.checked = true;
+      setDownloadEnabled(true);
     } catch (e) {
       console.error("Error dibujando trazas:", e);
     }
@@ -146,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (tracesCheckbox) tracesCheckbox.checked = false;
+    setDownloadEnabled(false);
 
     // Si no hay imagen en backend, volvemos a placeholder.
     if (!serverHasImage) {
@@ -216,6 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (tracesCheckbox) tracesCheckbox.checked = false;
+    setDownloadEnabled(false);
     if (statusEl) statusEl.textContent = I18N.statusUploaded;
 
     // Asegurar resize aunque la imagen cargue muy rápido
@@ -245,6 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Si se va a borrar en backend, al menos reiniciamos el checkbox.
       if (tracesCheckbox) tracesCheckbox.checked = false;
+      setDownloadEnabled(false);
     });
   }
 

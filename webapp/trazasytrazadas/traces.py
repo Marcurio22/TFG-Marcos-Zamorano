@@ -33,8 +33,11 @@ Incluye utilidades para:
 import os
 import uuid
 import json
+import re
 
-import traceback
+import io
+import zipfile
+import numpy as np
 
 from flask import (
     Blueprint,
@@ -47,6 +50,8 @@ from flask import (
     send_from_directory,
     jsonify,
     flash,
+    send_file,
+    abort,
 )
 from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
@@ -172,6 +177,54 @@ def _calculate_and_store_traces(image_filename: str) -> str:
     with open(traces_path, "w", encoding="utf-8") as f:
         json.dump(traces, f)
     return traces_filename
+
+def _render_traces_overlay_png(image_path: str, traces_path: str) -> bytes:
+    """Genera una PNG con las trazas pintadas (rojo) sobre la imagen original."""
+    with open(traces_path, "r", encoding="utf-8") as f:
+        traces = json.load(f)
+
+    xs = traces.get("xs", [])
+    ys = traces.get("ys", [])
+
+    with Image.open(image_path) as im:
+        im = im.convert("RGB")
+        arr = np.array(im).copy()
+
+    h, w = arr.shape[:2]
+    red = np.array([255.0, 0.0, 0.0], dtype=np.float32)
+
+    # Kernel 3x3 de coberturas
+    stamps = (
+        (-1, -1, 0.25), (0, -1, 0.5), (1, -1, 0.25),
+        (-1,  0, 0.5),  (0,  0, 1.0), (1,  0, 0.5),
+        (-1,  1, 0.25), (0,  1, 0.5), (1,  1, 0.25),
+    )
+
+    for x, y in zip(xs, ys):
+        x = int(x); y = int(y)
+        for dx, dy, a in stamps:
+            xx = x + dx
+            yy = y + dy
+            if 0 <= xx < w and 0 <= yy < h:
+                arr[yy, xx] = (1.0 - a) * arr[yy, xx] + a * red
+
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), mode="RGB")
+    buf = io.BytesIO()
+    out.save(buf, format="PNG")
+    buf.seek(0)
+    return buf.getvalue()
+
+_UUID_SUFFIX_RE = re.compile(r"^(?P<base>.+)_[0-9a-f]{32}$", re.IGNORECASE)
+
+def _strip_uuid_from_saved_filename(saved_filename: str) -> str:
+    """
+    Convierte:
+      image_1_cace55ae3fa943d596cdd5fb695b9d0d.png -> image_1
+      test.jpg -> test  (si no hay UUID, se queda igual)
+    """
+    stem, _ext = os.path.splitext(saved_filename)
+    m = _UUID_SUFFIX_RE.match(stem)
+    return m.group("base") if m else stem
 
 # -----------------------------------------------------------------------------
 # Rutas principales
@@ -335,6 +388,55 @@ def upload_and_calculate():
             return redirect(url_for("trazas.index"))
 
     return calculate_traces()
+
+# ---------------- Ruta de descarga de resultados ----------------------
+@bp.route("/download_results", methods=["GET"])
+def download_results():
+    """Descarga un ZIP con:
+      - input: imagen original
+      - output: JSON de trazas
+      - output: imagen con trazas pintadas
+    """
+    image_filename = session.get("image_filename")
+    traces_file = session.get("traces_file")
+
+    if not image_filename or not traces_file:
+        abort(404)
+
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+    output_folder = current_app.config["OUTPUT_FOLDER"]
+
+    image_path = os.path.join(upload_folder, image_filename)
+    traces_path = os.path.join(output_folder, traces_file)
+
+    if not os.path.exists(image_path) or not os.path.exists(traces_path):
+        abort(404)
+
+    # Nombre sin UUID para el ZIP.
+    display_base = _strip_uuid_from_saved_filename(image_filename)
+    _ext = os.path.splitext(image_filename)[1]
+
+    # Sufijo traducido por idioma.
+    zip_suffix = _("resultados")
+
+    overlay_name = f"{display_base}_traces.png"
+    zip_name = f"{display_base}_{zip_suffix}.zip"
+
+    overlay_png = _render_traces_overlay_png(image_path, traces_path)
+
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        z.write(image_path, arcname=f"input/{display_base}{_ext}")
+        z.write(traces_path, arcname=f"output/{display_base}_traces.json")
+        z.writestr(f"output/{overlay_name}", overlay_png)
+
+    zip_buf.seek(0)
+    return send_file(
+        zip_buf,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=zip_name,
+    )
 
 # -----------------------------------------------------------------------------
 # Rutas auxiliares (servir imágenes y JSON)

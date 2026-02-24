@@ -34,94 +34,112 @@ el navegador usando JSON de /traces.
 </section>
 
 <!-- ====================== Botonera principal ====================== -->
-<section class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-stretch sm:items-start gap-3 sm:gap-6 my-4 w-full"
-         aria-label="Acciones principales">
+<section class="my-4 w-full" aria-label="Acciones principales">
+  <div class="flex flex-col lg:flex-row lg:items-start lg:justify-center gap-3 sm:gap-6 w-full">
 
-  <!-- PIPELINE: Insertar + Calcular -->
-  <form id="pipeline-form"
-        action="{{ url_for('trazas.upload_and_calculate') }}"
-        method="post"
-        enctype="multipart/form-data"
-        class="w-full sm:w-auto">
+    <!-- PIPELINE: Insertar + Calcular -->
+    <form id="pipeline-form"
+          action="{{ url_for('trazas.upload_and_calculate') }}"
+          method="post"
+          enctype="multipart/form-data"
+          class="w-full lg:w-auto">
 
-    <div class="flex flex-col sm:flex-row items-stretch justify-center gap-2 sm:gap-0 w-full sm:w-auto">
+      <div class="flex flex-col sm:flex-row items-stretch justify-center gap-2 sm:gap-0 w-full sm:w-auto">
 
-      <!-- File input + textos -->
-      <div class="flex flex-col w-full sm:w-[360px]">
-        <input
-          id="image-input"
-          type="file"
-          name="image"
-          accept=".jpg,.jpeg,.png"
-          class="file-input file-input-bordered file-input-primary w-full sm:rounded-r-none"
-        />
+        <!-- File input + textos -->
+        <div class="flex flex-col w-full sm:w-[360px]">
+          <input
+            id="image-input"
+            type="file"
+            name="image"
+            accept=".jpg,.jpeg,.png"
+            class="file-input file-input-bordered file-input-primary w-full sm:rounded-r-none"
+          />
 
-        <div class="mt-1 mb-2 sm:mb-0 flex flex-col gap-1">
-          
-          <span class="text-xs opacity-60 text-left">
-            {{ _("Formatos permitidos:") }}
-            <span class="font-semibold">.jpg</span>,
-            <span class="font-semibold">.jpeg</span>,
-            <span class="font-semibold">.png</span>
-            · {{ _("Tamaño máximo:") }} <span class="font-semibold">16 MB</span>
-          </span>
+          <div class="mt-1 mb-2 sm:mb-0 flex flex-col gap-1">
+            <span class="text-xs opacity-60 text-left">
+              {{ _("Formatos permitidos:") }}
+              <span class="font-semibold">.jpg</span>,
+              <span class="font-semibold">.jpeg</span>,
+              <span class="font-semibold">.png</span>
+              · {{ _("Tamaño máximo:") }} <span class="font-semibold">16 MB</span>
+            </span>
+          </div>
         </div>
-      </div>
 
-      <!-- CALCULAR TRAZAS -->
+        <!-- CALCULAR TRAZAS -->
+        <button
+          id="calculate-btn"
+          type="submit"
+          class="btn btn-primary whitespace-nowrap sm:rounded-l-none mt-2 sm:mt-0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 11h.01M12 11h.01M15 11h.01"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15h.01M12 15h.01M15 15h.01"/>
+          </svg>
+          <span class="hidden sm:inline">{{ _("Calcular trazas") }}</span>
+          <span class="sm:hidden">{{ _("Calcular") }}</span>
+        </button>
+
+      </div>
+    </form>
+
+    <!-- DESCARGAR + CHECKBOX -->
+    <div class="flex flex-col items-stretch gap-2 w-full lg:w-auto">
       <button
-        id="calculate-btn"
-        type="submit"
-        class="btn btn-primary whitespace-nowrap sm:rounded-l-none mt-2 sm:mt-0"
+        id="download-btn"
+        type="button"
+        disabled
+        data-download-url="{{ url_for('trazas.download_results') }}"
+        class="btn btn-disabled whitespace-nowrap"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 11h.01M12 11h.01M15 11h.01"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 15h.01M12 15h.01M15 15h.01"/>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v10"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4 4 4-4"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 17v3h16v-3"/>
         </svg>
-        <span class="hidden sm:inline">{{ _("Calcular trazas") }}</span>
-        <span class="sm:hidden">{{ _("Calcular") }}</span>
+        <span class="hidden sm:inline">{{ _("Descargar") }}</span>
+        <span class="sm:hidden">{{ _("Descargar") }}</span>
       </button>
 
+      <!-- Checkbox "TRAZAS DIBUJADAS" -->
+      <label class="inline-flex items-center justify-center gap-3 text-[0.9rem]">
+        <span class="uppercase tracking-wide font-semibold">{{ _("TRAZAS DIBUJADAS") }}</span>
+        <input
+          type="checkbox"
+          id="traces-drawn-checkbox"
+          disabled
+          class="checkbox checkbox-success disabled:opacity-100 disabled:border-success disabled:bg-success/20"
+        />
+      </label>
     </div>
-  </form>
 
-  <!-- BORRAR IMAGEN -->
-  <form id="delete-form"
-        action="{{ url_for('trazas.delete_image') }}"
-        method="post"
-        class="w-full sm:w-auto">
-    <button
-      id="delete-btn"
-      type="submit"
-      class="btn btn-outline btn-error w-full sm:w-auto whitespace-nowrap"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M14 11v6"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 7l1 14h10l1-14"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7V4h6v3"/>
-      </svg>
-      <span class="hidden sm:inline">{{ _("Borrar imagen") }}</span>
-      <span class="sm:hidden">{{ _("Borrar") }}</span>
-    </button>
-  </form>
+    <!-- BORRAR IMAGEN -->
+    <form id="delete-form"
+          action="{{ url_for('trazas.delete_image') }}"
+          method="post"
+          class="w-full lg:w-auto">
+      <button
+        id="delete-btn"
+        type="submit"
+        class="btn btn-outline btn-error w-full lg:w-auto whitespace-nowrap"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14 11v6"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 7l1 14h10l1-14"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 7V4h6v3"/>
+        </svg>
+        <span class="hidden sm:inline">{{ _("Borrar imagen") }}</span>
+        <span class="sm:hidden">{{ _("Borrar") }}</span>
+      </button>
+    </form>
 
-  <!-- Checkbox "TRAZAS DIBUJADAS" -->
-  <div class="flex items-center justify-center w-full sm:w-auto sm:pt-2">
-    <label class="inline-flex items-center gap-3 text-[0.9rem]">
-      <span class="uppercase tracking-wide font-semibold">{{ _("TRAZAS DIBUJADAS") }}</span>
-      <input
-        type="checkbox"
-        id="traces-drawn-checkbox"
-        disabled
-        class="checkbox checkbox-success disabled:opacity-100 disabled:border-success disabled:bg-success/20"
-      />
-    </label>
   </div>
-
 </section>
 
 <!-- ====================== Imagen + Canvas ====================== -->
