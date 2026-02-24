@@ -53,8 +53,26 @@ el navegador usando JSON de /traces.
             type="file"
             name="image"
             accept=".jpg,.jpeg,.png"
-            class="file-input file-input-bordered file-input-primary w-full sm:rounded-r-none"
+            class="sr-only"
           />
+
+          <!-- UI custom traducible -->
+          <div class="flex w-full">
+            <label
+              for="image-input"
+              class="btn btn-primary rounded-r-none shrink-0"
+            >
+              {{ _("Elegir archivo") }}
+            </label>
+
+            <div
+              id="selected-file-name"
+              class="input input-bordered input-primary w-full rounded-l-none sm:rounded-r-none
+                    flex items-center min-w-0 truncate"
+            >
+              {{ _("Ningún archivo seleccionado") }}
+            </div>
+          </div>
 
           <div class="mt-1 mb-2 sm:mb-0 flex flex-col gap-1">
             <span class="text-xs opacity-60 text-left">
@@ -208,7 +226,7 @@ el navegador usando JSON de /traces.
     "serverHasImage": (image_url is not none),
     "autoDrawTraces": auto_draw_traces,
     "i18n": {
-      "noFileChosen": _("No file chosen"),
+      "noFileChosen": _("Ningún archivo seleccionado"),
       "statusNoImage": _("Estado: ninguna imagen cargada. Inserta una imagen para empezar."),
       "statusUploaded": _("Estado: imagen cargada. Pulsa «Calcular trazas».")
     }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-02-24 12:52+0100\n"
+"POT-Creation-Date: 2026-02-24 18:54+0100\n"
 "PO-Revision-Date: 2026-02-22 17:55+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: it\n"
@@ -26,11 +26,11 @@ msgstr "Nessun file selezionato."
 msgid "Formato de archivo no permitido. Usa .jpg, .jpeg o .png."
 msgstr "Formato file non consentito. Usa .jpg, .jpeg o .png."
 
-#: trazasytrazadas/templates/index.html:212 trazasytrazadas/traces.py:261
+#: trazasytrazadas/templates/index.html:230 trazasytrazadas/traces.py:261
 msgid "Estado: ninguna imagen cargada. Inserta una imagen para empezar."
 msgstr "Stato: nessuna immagine caricata. Inserisci un'immagine per iniziare."
 
-#: trazasytrazadas/templates/index.html:213 trazasytrazadas/traces.py:266
+#: trazasytrazadas/templates/index.html:231 trazasytrazadas/traces.py:266
 msgid "Estado: imagen cargada. Pulsa «Calcular trazas»."
 msgstr "Stato: immagine caricata. Premi «Calcola tracce»."
 
@@ -116,68 +116,76 @@ msgstr "Tracce calcolate"
 msgid "Estado"
 msgstr "Stato"
 
-#: trazasytrazadas/templates/index.html:61
+#: trazasytrazadas/templates/index.html:65
+msgid "Elegir archivo"
+msgstr "Scegli file"
+
+#: trazasytrazadas/templates/index.html:73
+#: trazasytrazadas/templates/index.html:229
+msgid "Ningún archivo seleccionado"
+msgstr "Nessun file selezionato"
+
+#: trazasytrazadas/templates/index.html:79
 msgid "Formatos permitidos:"
 msgstr "Formati consentiti:"
 
-#: trazasytrazadas/templates/index.html:65
+#: trazasytrazadas/templates/index.html:83
 msgid "Tamaño máximo:"
 msgstr "Dimensione massima:"
 
-#: trazasytrazadas/templates/index.html:82
-#: trazasytrazadas/templates/index.html:181
+#: trazasytrazadas/templates/index.html:100
+#: trazasytrazadas/templates/index.html:199
 msgid "Calcular trazas"
 msgstr "Calcola tracce"
 
-#: trazasytrazadas/templates/index.html:83
+#: trazasytrazadas/templates/index.html:101
 msgid "Calcular"
 msgstr "Calcola"
 
-#: trazasytrazadas/templates/index.html:104
-#: trazasytrazadas/templates/index.html:105
+#: trazasytrazadas/templates/index.html:122
+#: trazasytrazadas/templates/index.html:123
 msgid "Descargar"
 msgstr "Scarico"
 
-#: trazasytrazadas/templates/index.html:110
+#: trazasytrazadas/templates/index.html:128
 msgid "TRAZAS DIBUJADAS"
 msgstr "TRACCE DISEGNATE"
 
-#: trazasytrazadas/templates/index.html:137
+#: trazasytrazadas/templates/index.html:155
 msgid "Borrar imagen"
 msgstr "Elimina immagine"
 
-#: trazasytrazadas/templates/index.html:138
+#: trazasytrazadas/templates/index.html:156
 msgid "Borrar"
 msgstr "Elimina"
 
-#: trazasytrazadas/templates/index.html:160
+#: trazasytrazadas/templates/index.html:178
 msgid "Imagen"
 msgstr "Immagine"
 
-#: trazasytrazadas/templates/index.html:179
+#: trazasytrazadas/templates/index.html:197
 msgid "Sube una imagen para empezar"
 msgstr "Carica un'immagine per iniziare"
 
-#: trazasytrazadas/templates/index.html:181
+#: trazasytrazadas/templates/index.html:199
 msgid "Luego pulsa"
 msgstr "Poi premi"
 
-#: trazasytrazadas/templates/index.html:193
+#: trazasytrazadas/templates/index.html:211
 msgid "Calculando trazas..."
 msgstr "Calcolo delle tracce..."
 
-#: trazasytrazadas/templates/index.html:194
+#: trazasytrazadas/templates/index.html:212
 msgid "Por favor, espera unos instantes."
 msgstr "Attendi qualche istante."
 
-#: trazasytrazadas/templates/index.html:201
+#: trazasytrazadas/templates/index.html:219
 msgid "Cerrar"
 msgstr "Chiudi"
 
-#: trazasytrazadas/templates/index.html:211
-msgid "No file chosen"
-msgstr "Nessun file scelto"
-
 #~ msgid "No se ha enviado ningún archivo."
 #~ msgstr "Nessun file inviato."
+
+#~ msgid "No file chosen"
+#~ msgstr "Nessun file scelto"
 

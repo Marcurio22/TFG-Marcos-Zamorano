@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Flask-Babel (strings ya traducidas vienen desde CFG.i18n)
   const I18N = Object.assign(
     {
-      noFileChosen: "No file chosen",
+      noFileChosen: "Ningún archivo seleccionado",
       statusNoImage: "Estado: ninguna imagen cargada. Inserta una imagen para empezar.",
       statusUploaded: "Estado: imagen cargada. Pulsa «Calcular trazas».",
     },
