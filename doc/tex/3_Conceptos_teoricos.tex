@@ -10,16 +10,27 @@ Esta disciplina se apoya, por un lado, en la modelización del proceso de formac
 
 \imagen{Image_processing_pipeline}{Ejemplo de \textit{pipeline} de procesamiento de imagen, donde la entrada se transforma mediante etapas sucesivas. Fuente: Nzebro12, licencia CC BY-SA 4.0.}{1} 
 
-En el enfoque contemporáneo, estas transformaciones dejan de diseñarse manualmente y pasan a aprenderse a partir de datos mediante redes profundas, donde capas sucesivas construyen descriptores jerárquicos con creciente carga semántica, un esquema típico se resume en la Figura~\ref{fig:DFVC}.
+Sobre estas representaciones, el sistema ejecuta tareas como clasificación, detección o segmentación, y en particular la segmentación semántica permite asignar una etiqueta a cada región de la imagen preservando estructura espacial, tal y como ejemplifica el proceso de la Figura~\ref{fig:segmentation-example-pair}, conectando de forma natural con los fundamentos que se desarrollan en las secciones posteriores.
 
-\imagen{DFVC}{Diagrama que detalla el flujo correspondiente a un sistema que emplea el uso de visión por computador}{1}
-
-Sobre estas representaciones, el sistema ejecuta tareas como clasificación, detección o segmentación, y en particular la segmentación semántica permite asignar una etiqueta a cada región de la imagen preservando estructura espacial, tal y como ejemplifica el proceso de la Figura~\ref{fig:Image-segmentation-example}
-y la Figura~\ref{fig:Image-segmentation-example-segmented}, conectando de forma natural con los fundamentos que se desarrollan en las secciones posteriores.
-
-\imagen{Image-segmentation-example}{Ejemplo para segmentación. Fuente: MartinThoma, licencia CC0 1.0.}{1}
-
-\imagen{Image-segmentation-example-segmented}{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena. Fuente: MartinThoma, licencia CC0 1.0.}{1}
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{Image-segmentation-example}
+		\caption{Ejemplo para segmentación. Fuente: MartinThoma, licencia CC0 1.0.}
+		\label{fig:Image-segmentation-example}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[t]{0.48\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{Image-segmentation-example-segmented}
+		\caption{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena. Fuente: MartinThoma, licencia CC0 1.0.}
+		\label{fig:Image-segmentation-example-segmented}
+	\end{subfigure}
+	
+	\caption{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada.}
+	\label{fig:segmentation-example-pair}
+\end{figure}
 
 \subsection{Conceptos teóricos de la Segmentación Semántica}
 En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica moderna en visión por computador, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
@@ -141,6 +152,52 @@ En tareas de segmentación semántica, los modelos basados en ViT se emplean hab
 
 La salida final se genera a través de una capa convolucional seguida de una activación \textit{Softmax}, proporcionando un mapa de probabilidades detallado para la clasificación a nivel de píxel~\cite{zhang2022constructionautomation, bala2025visiontranscoder}. 
 
+\subsection{No linealidades y capa de decisión}
+En este apartado se describen los mecanismos que permiten a una red neuronal pasar de combinar características de forma meramente lineal a tomar decisiones discriminativas útiles para la tarea de segmentación. Por un lado, las no linealidades introducidas por las funciones de activación determinan la capacidad expresiva del modelo y condicionan la estabilidad del entrenamiento, al regular cómo se propagan las señales y los gradientes a través de capas profundas. Por otro lado, la capa de decisión final transforma las salidas internas del modelo en predicciones interpretables, típicamente en forma de distribuciones de probabilidad por clase, lo que habilita la asignación coherente de etiquetas a cada píxel en escenarios de predicción densa~\cite{Goodfellow-et-al-2016}.
+
+\subsubsection{Función de activación}
+Las funciones de activación son componentes esenciales de las redes neuronales, ya que introducen no linealidades tras las operaciones lineales de convolución o proyección. Gracias a estas no linealidades, la red es capaz de aproximar funciones complejas y aprender representaciones jerárquicas que capturan patrones visuales de distinta escala y complejidad~\cite{Goodfellow-et-al-2016}.
+
+Sin la aplicación de funciones de activación, la composición de múltiples capas lineales se reduciría a una única transformación lineal, limitando severamente la capacidad expresiva del modelo. Para prácticas de segmentación semántica, estas funciones permiten discriminar estructuras complejas y no lineales, como bordes irregulares o sendas difusas, contribuyendo a la coherencia espacial de las predicciones generadas~\cite{neloy2024autoencoders}.
+
+\subsubsection{Unidad Lineal Rectificada (ReLU)}
+La Unidad Lineal Rectificada (\textit{ReLU}) es una función de activación no lineal definida por una relación simple que conserva los valores positivos de la entrada y anula los negativos: \begin{equation}
+	\mathrm{ReLU}(x) = \max(0, x)
+\end{equation}
+
+Su simplicidad computacional y su comportamiento no saturante han favorecido su adopción generalizada en arquitecturas profundas modernas~\cite{ji2022automation}.
+
+Desde el punto de vista del entrenamiento, \textit{ReLU} contribuye a mitigar el problema del desvanecimiento del gradiente, facilitando una propagación más estable de la información durante la retropropagación. En arquitecturas de segmentación como U-Net o SegNet, se emplea de forma sistemática tras las convoluciones para introducir no linealidad sin comprometer la eficiencia, permitiendo el aprendizaje efectivo de patrones espaciales complejos~\cite{liu2022convnext, nair2010relu}.
+
+\subsubsection{Función Softmax}
+La función \textit{Softmax} se emplea habitualmente en la capa final de redes neuronales de clasificación y segmentación para transformar las salidas no normalizadas del modelo, conocidas como \textit{logits}, en una distribución de probabilidad: \begin{equation}
+	\mathrm{Softmax}(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}, \qquad k=1,\dots,K
+\end{equation}.
+
+Esta transformación garantiza que los valores resultantes sean no negativos y que su suma sea igual a uno, lo que permite interpretarlos directamente como probabilidades asociadas a cada clase~\cite{Goodfellow-et-al-2016}.
+
+En el contexto de la segmentación semántica, la función Softmax se aplica de forma independiente a cada píxel, produciendo para cada uno de ellos un vector de probabilidades sobre las clases posibles. La etiqueta final asignada corresponde a la clase con mayor probabilidad, lo que da lugar a mapas de segmentación interpretables y coherentes. Este mecanismo resulta especialmente adecuado en problemas multiclase, donde es necesario modelar explícitamente la competencia entre clases en cada posición espacial de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}.
+
+\subsection{Consideraciones de generalización y propiedades espaciales}
+En esta subsección se agrupan conceptos que determinan hasta qué punto un modelo de segmentación es fiable fuera del conjunto de entrenamiento y cómo conserva la estructura geométrica de la escena al producir predicciones densas. Por un lado, se revisa el \textit{overfitting} como riesgo central de generalización en aprendizaje profundo y las estrategias habituales para controlarlo durante el entrenamiento. Por otro lado, se introducen propiedades espaciales clave en visión por computador, en particular la invarianza y la equivarianza traslacional, que describen cómo debe comportarse el modelo ante desplazamientos en la imagen y explican por qué ciertas arquitecturas resultan especialmente adecuadas para mantener coherencia espacial en tareas de segmentación semántica~\cite{Goodfellow-et-al-2016, dumoulin2018guide, khan2022transformersvision}.
+
+\subsubsection{Overfitting} 
+El sobreajuste, comúnmente denominado \textit{overfitting}, es un fenómeno estadístico indeseado donde el modelo de aprendizaje profundo memoriza el ruido y los detalles específicos de los datos de entrenamiento en detrimento de su capacidad de generalización ante nuevas muestras~\cite{Goodfellow-et-al-2016, srivastava2014dropout}.
+
+Este comportamiento se manifiesta cuando la red neuronal alcanza un rendimiento excepcionalmente alto en el conjunto de entrenamiento pero falla al procesar datos de validación o prueba. Para mitigar este efecto en arquitecturas de codificador-decodificador, se emplean técnicas de regularización como el abandono de neuronas y operaciones de reducción de dimensionalidad como el \textit{max-pooling}, las cuales fuerzan a la red a aprender características más robustas y abstractas~\cite{ji2022automation, bala2025visiontranscoder}.
+
+\subsubsection{Invarianza traslacional}
+La invarianza traslacional describe la capacidad de un modelo de visión por computador para reconocer una misma característica u objeto aunque aparezca desplazado a distintas posiciones dentro de la imagen. En el contexto de las redes neuronales convolucionales, esta propiedad permite que ciertos patrones visuales como bordes, texturas o estructuras se identifiquen de forma consistente con independencia de su localización exacta en la escena~\cite{ji2022automation}.
+
+Esta propiedad no surge de manera estricta en una sola capa, sino que se construye progresivamente a través de la combinación de convoluciones locales y operaciones de submuestreo mediante \textit{pooling} o \textit{downsampling}~\cite{dumoulin2018guide}. Las capas convolucionales comparten pesos en toda la imagen, lo que hace que un mismo filtro responda de igual manera ante un patrón dado, esté donde esté. A medida que se incrementa el campo receptivo en capas más profundas, la red integra información de regiones cada vez más amplias, reduciendo la sensibilidad a pequeños desplazamientos espaciales. En aplicaciones de clasificación y segmentación semántica, esta propiedad es clave para garantizar que la predicción asociada a un objeto o región no dependa de su posición absoluta dentro de la imagen~\cite{badrinarayanan2016segnet}.
+
+\subsubsection{Equivarianza traslacional}
+La equivarianza traslacional describe la propiedad por la cual una transformación aplicada a la entrada de un modelo se refleja de forma coherente en su salida. En el caso de traslaciones espaciales, esto implica que si un objeto se desplaza dentro de la imagen de entrada, la representación o predicción generada por el modelo se desplaza en la misma dirección y magnitud, preservando la correspondencia espacial entre entrada y salida~\cite{khan2022transformersvision}.
+
+En redes neuronales convolucionales, esta propiedad se deriva directamente de la operación de convolución y de la compartición de pesos, que garantizan que un mismo patrón visual active respuestas equivalentes en distintas posiciones de la imagen. En tareas de segmentación semántica, la equivarianza traslacional es esencial, ya que el objetivo no es únicamente reconocer la presencia de una clase, sino asignar una etiqueta correcta a cada píxel. Gracias a esta propiedad, los mapas de segmentación mantienen una alineación precisa con la geometría de la escena, permitiendo que las estructuras detectadas conserven su forma y localización relativas respecto a la imagen original~\cite{liu2022convnext}.
+
+En contraste con la invarianza traslacional, que busca reducir la sensibilidad del modelo a la posición absoluta de los objetos para favorecer el reconocimiento global, la equivarianza preserva explícitamente la información espacial. Ambas propiedades no son excluyentes, sino complementarias: mientras la invarianza resulta clave en tareas de clasificación, la equivarianza constituye un requisito fundamental en problemas de predicción densa, como la segmentación semántica, donde la coherencia espacial de la salida es crítica.
+
 \subsection{Arquitecturas de Segmentación Semántica}
 En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como U-Net, Feature Pyramid Network y UPerNet, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como SegFormer. Asimismo, se incluye PSPNet, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
 
@@ -177,7 +234,7 @@ Para garantizar la viabilidad de la optimización en estructuras ultra-profundas
 
 \subsection{Tipos de Encoder}
 
-Aquí se describen los principales tipos de \textit{encoder} considerados en el trabajo~\cite{diezpastora2025trails}, entendiendo el codificador como el componente encargado de transformar la imagen de entrada en una jerarquía de representaciones cada vez más abstractas, ricas semánticamente y, por lo general, de menor resolución espacial. La elección del \textit{encoder} resulta determinante en segmentación semántica, ya que condiciona tanto la capacidad del modelo para capturar contexto global como su sensibilidad para preservar detalles locales, factores críticos cuando se pretende delimitar estructuras estrechas o de baja visibilidad. Por ello, se revisan arquitecturas representativas de distintos paradigmas de diseño, incluyendo enfoques no supervisados como los \textit{autoencoders}, redes convolucionales modernizadas con decisiones inspiradas en \textit{Transformers}, modelos eficientes orientados a baja latencia y codificadores jerárquicos basados en atención, con el objetivo de disponer de un marco comparativo que justifique su uso como extractores de características en \textit{pipelines} de segmentación.
+A continuación, se describen los principales tipos de \textit{encoder} considerados en el trabajo~\cite{diezpastora2025trails}, entendiendo el codificador como el componente encargado de transformar la imagen de entrada en una jerarquía de representaciones cada vez más abstractas, ricas semánticamente y, por lo general, de menor resolución espacial. La elección del \textit{encoder} resulta determinante en segmentación semántica, ya que condiciona tanto la capacidad del modelo para capturar contexto global como su sensibilidad para preservar detalles locales, factores críticos cuando se pretende delimitar estructuras estrechas o de baja visibilidad. Por ello, se revisan arquitecturas representativas de distintos paradigmas de diseño, incluyendo enfoques no supervisados como los \textit{autoencoders}, redes convolucionales modernizadas con decisiones inspiradas en \textit{Transformers}, modelos eficientes orientados a baja latencia y codificadores jerárquicos basados en atención, con el objetivo de disponer de un marco comparativo que justifique su uso como extractores de características en \textit{pipelines} de segmentación.
 
 \subsubsection{Autoencoder}
 Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo objetivo es aprender una representación compacta de los datos de entrada sin utilizar etiquetas. La red se compone de dos partes claramente diferenciadas: un codificador, que transforma la entrada original de alta dimensionalidad en una representación latente de menor dimensión, y un decodificador, que reconstruye la entrada a partir de dicha representación minimizando el error de reconstrucción. Este esquema de compresión y reconstrucción obliga al modelo a retener la información más relevante de los datos, eliminando redundancias y atenuando el ruido~\cite{neloy2024autoencoders}.
@@ -185,6 +242,46 @@ Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo 
 Desde un punto de vista práctico, el espacio latente aprendido por el autoencoder recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
 
 Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los autoencoders variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
+
+\subsubsection{Resumen de encoders empleados}
+
+\begingroup
+\let\sl\slshape % parche local: evita el error de memoir con \sl
+
+{\small
+	\setlength{\tabcolsep}{4pt}
+	\renewcommand{\arraystretch}{1.15}
+	
+	\tablaSinColores
+	{Resumen de encoders empleados: descripción breve, número de parámetros (en millones) y referencia.}
+	{@{}>{\raggedright\arraybackslash}p{0.23\textwidth}
+		>{\centering\arraybackslash}p{0.10\textwidth}
+		>{\raggedright\arraybackslash}p{0.52\textwidth}
+		>{\raggedright\arraybackslash}p{0.15\textwidth}@{}}
+	{4}
+	{encoders-resumen}
+	{\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción (1--2 líneas)} & \textbf{Referencia} \\}
+	{
+		ConvNeXt (Small) & 50 & CNN modernizada inspirada en decisiones de diseño de Transformers (kernels grandes, LN/GELU) para mejorar precisión manteniendo eficiencia. & \cite{liu2022convnext, Chang2024UNeXt} \\
+		EfficientViT-B3 & 12 & Codificador eficiente para predicción densa que combina extracción local con módulos de atención ligera para capturar contexto global con coste casi lineal. & \cite{cai2023efficientvit, LIAO2024102401} \\
+		EfficientNet-B7 & 63 & CNN escalada mediante \textit{compound scaling} (profundidad/ancho/resolución) basada en bloques MBConv y Squeeze-and-Excitation. & \cite{tan2019efficientnet} \\
+		MambaOut (Base) & 85 & Arquitectura jerárquica que evalúa la necesidad de SSM en visión: conserva un diseño moderno sin el núcleo SSM, priorizando simplicidad y rendimiento. & \cite{yu2024mambaoutreallyneedmamba} \\
+		MobileNetV3 (Large) & 15 & CNN orientada a baja latencia en móviles, fruto de NAS + NetAdapt; usa bloques eficientes y activaciones optimizadas para despliegue. & \cite{howard2019mobilenetv3, MobileNetV3_Summary} \\
+		SAM 2 Hiera (Large) & 224 & Codificador Hiera-L (Transformer jerárquico) del modelo fundacional SAM 2, con representaciones multiescala y mecanismo de memoria para segmentación. & \cite{ravi2024sam2segmentimages} \\
+		DenseNet-161 & 26 & CNN con conectividad densa por concatenación, favorece reutilización de características y mejora del flujo de gradiente en redes profundas. & \cite{huang2018densenet, bdcc8100135} \\
+		Inception-v4 & 41 & CNN multiescala basada en módulos Inception (A/B/C) y bloques de reducción; explota factorización eficiente de convoluciones. & \cite{szegedy2016} \\
+		MiT-B5 (SegFormer) & 81 & \textit{Mix Transformer} jerárquico multiescala (encoder de SegFormer), con autoatención eficiente e incorporación implícita de información local. & \cite{xie2021segformer, Elmessery2024Semantic} \\
+		MobileOne-S4 & 12 & CNN reparametrizable: durante entrenamiento usa múltiples ramas, pero en inferencia se colapsa a una secuencia simple de convoluciones para máxima velocidad. & \cite{vasu2023} \\
+		ResNet-34 & 21 & CNN residual con bloques básicos $3\times3$ y conexiones de identidad, equilibrando capacidad y coste computacional con entrenamiento estable. & \cite{he2016resnet, shadecoder2026resnet34} \\
+		Xception-71 & 20 & CNN con convoluciones separables en profundidad; separa correlaciones espaciales y de canal, profundizando mediante repetición del \textit{middle flow}. & \cite{chollet2017} \\
+		VGG-16 & 14 & Arquitectura clásica y homogénea con pilas de convoluciones $3\times3$ y pooling; extractor robusto pero costoso frente a modelos modernos. & \cite{SUN2024108458} \\
+		VGG-19 & 20 & Variante más profunda de VGG con la misma filosofía (convoluciones $3\times3$); alta capacidad con elevado coste computacional. & \cite{SUN2024108458} \\
+	}
+}
+
+\endgroup
+
+%% -------- FUERA ------------------------
 
 \subsubsection{ConvNeXt}
 \textit{ConvNeXt} es una familia de redes neuronales convolucionales que actualiza el diseño clásico de arquitecturas como \textit{ResNet} con el objetivo de alcanzar un rendimiento comparable al de los \textit{Vision Transformers}, manteniendo una estructura puramente convolucional. Su planteamiento consiste en incorporar, de forma sistemática, decisiones de diseño que han demostrado ser eficaces en modelos basados en \textit{Transformers}, sin introducir mecanismos de autoatención~\cite{Chang2024UNeXt}.
@@ -280,52 +377,15 @@ Ambos modelos se organizan en cinco bloques convolucionales seguidos de operacio
 
 Desde una perspectiva actual, la principal limitación de VGG es su elevado número de parámetros y su alto coste computacional. Sin embargo, las características jerárquicas que extraen resultan muy robustas y fáciles de reutilizar. Por este motivo, siguen empleándose como codificadores en arquitecturas de segmentación semántica como SegNet o U-Net, donde la simplicidad del diseño y la calidad de las representaciones son más relevantes que la eficiencia extrema~\cite{badrinarayanan2016segnet, ronneberger2015unet}.
 
+%% -----------------------------------------
 
-\subsection{Métricas de evaluación de la Segmentación Semántica}
-En esta sección se introducen los conceptos y criterios que permiten evaluar, de forma rigurosa, el rendimiento de un sistema de segmentación semántica, entendiendo la evaluación como un proceso que abarca tanto la capacidad de generalización del modelo como la calidad geométrica de las máscaras predichas. Para ello, se revisan nociones fundamentales del aprendizaje profundo que condicionan el comportamiento durante el entrenamiento, como el \textit{overfitting} y el papel de propiedades espaciales como la invarianza y la equivarianza traslacional, junto con mecanismos de decisión habituales en la salida del modelo, como la función \textit{Softmax} y las funciones de activación. Sobre esta base, se presentan estrategias de validación, como la validación cruzada, y métricas específicas de segmentación, entre ellas IoU, precisión, \textit{recall} y $F_1$, formuladas a partir de los conteos de verdaderos y falsos positivos y negativos, con el objetivo de cuantificar de manera interpretable el equilibrio entre detecciones correctas, omisiones y falsas alarmas en escenarios de predicción densa.
+\subsection{Evaluación experimental de la segmentación semántica}
+En esta subsección se formaliza la evaluación experimental de un sistema de segmentación semántica, estableciendo un marco común para medir su rendimiento de manera reproducible y comparable. Para ello, se introduce en primer lugar una notación a nivel de píxel que permite expresar las predicciones y las etiquetas de referencia de forma rigurosa. Sobre esta base, se describe la validación cruzada como estrategia para estimar la capacidad de generalización del modelo frente a particiones distintas del conjunto de datos~\cite{Goodfellow-et-al-2016, kohavi1995study}. Finalmente, se definen las métricas de evaluación empleadas, derivadas de la matriz de confusión mediante los conteos de verdaderos y falsos positivos y negativos, destacando IoU, precisión, \textit{recall} y $F_1$ como medidas complementarias para cuantificar, respectivamente, el solapamiento geométrico, la selectividad, la cobertura y el equilibrio entre ambos criterios en escenarios de predicción densa~\cite{minaee2022segmentationSurvey, Dimitrovski2024, powers2020}.
 
 \subsubsection{Notación}
 Sea $\Omega$ el conjunto de píxeles de la imagen. Para cada píxel $i \in \Omega$,
 $y_i$ denota la etiqueta de referencia y $\hat{y}_i$ la etiqueta predicha.
 Para una clase $c$, se emplea la función indicadora $\mathbb{1}[\cdot]$.
-
-\subsubsection{Overfitting} 
-El sobreajuste, comúnmente denominado \textit{overfitting}, es un fenómeno estadístico indeseado donde el modelo de aprendizaje profundo memoriza el ruido y los detalles específicos de los datos de entrenamiento en detrimento de su capacidad de generalización ante nuevas muestras~\cite{Goodfellow-et-al-2016, srivastava2014dropout}.
-
-Este comportamiento se manifiesta cuando la red neuronal alcanza un rendimiento excepcionalmente alto en el conjunto de entrenamiento pero falla al procesar datos de validación o prueba. Para mitigar este efecto en arquitecturas de codificador-decodificador, se emplean técnicas de regularización como el abandono de neuronas y operaciones de reducción de dimensionalidad como el \textit{max-pooling}, las cuales fuerzan a la red a aprender características más robustas y abstractas~\cite{ji2022automation, bala2025visiontranscoder}.
-
-\subsubsection{Invarianza traslacional}
-La invarianza traslacional describe la capacidad de un modelo de visión por computador para reconocer una misma característica u objeto aunque aparezca desplazado a distintas posiciones dentro de la imagen. En el contexto de las redes neuronales convolucionales, esta propiedad permite que ciertos patrones visuales como bordes, texturas o estructuras se identifiquen de forma consistente con independencia de su localización exacta en la escena~\cite{ji2022automation}.
-
-Esta propiedad no surge de manera estricta en una sola capa, sino que se construye progresivamente a través de la combinación de convoluciones locales y operaciones de submuestreo mediante \textit{pooling} o \textit{downsampling}~\cite{dumoulin2018guide}. Las capas convolucionales comparten pesos en toda la imagen, lo que hace que un mismo filtro responda de igual manera ante un patrón dado, esté donde esté. A medida que se incrementa el campo receptivo en capas más profundas, la red integra información de regiones cada vez más amplias, reduciendo la sensibilidad a pequeños desplazamientos espaciales. En aplicaciones de clasificación y segmentación semántica, esta propiedad es clave para garantizar que la predicción asociada a un objeto o región no dependa de su posición absoluta dentro de la imagen~\cite{badrinarayanan2016segnet}.
-
-\subsubsection{Equivarianza traslacional}
-La equivarianza traslacional describe la propiedad por la cual una transformación aplicada a la entrada de un modelo se refleja de forma coherente en su salida. En el caso de traslaciones espaciales, esto implica que si un objeto se desplaza dentro de la imagen de entrada, la representación o predicción generada por el modelo se desplaza en la misma dirección y magnitud, preservando la correspondencia espacial entre entrada y salida~\cite{khan2022transformersvision}.
-
-En redes neuronales convolucionales, esta propiedad se deriva directamente de la operación de convolución y de la compartición de pesos, que garantizan que un mismo patrón visual active respuestas equivalentes en distintas posiciones de la imagen. En tareas de segmentación semántica, la equivarianza traslacional es esencial, ya que el objetivo no es únicamente reconocer la presencia de una clase, sino asignar una etiqueta correcta a cada píxel. Gracias a esta propiedad, los mapas de segmentación mantienen una alineación precisa con la geometría de la escena, permitiendo que las estructuras detectadas conserven su forma y localización relativas respecto a la imagen original~\cite{liu2022convnext}.
-
-En contraste con la invarianza traslacional, que busca reducir la sensibilidad del modelo a la posición absoluta de los objetos para favorecer el reconocimiento global, la equivarianza preserva explícitamente la información espacial. Ambas propiedades no son excluyentes, sino complementarias: mientras la invarianza resulta clave en tareas de clasificación, la equivarianza constituye un requisito fundamental en problemas de predicción densa, como la segmentación semántica, donde la coherencia espacial de la salida es crítica.
-
-\subsubsection{Función de activación}
-Las funciones de activación son componentes esenciales de las redes neuronales, ya que introducen no linealidades tras las operaciones lineales de convolución o proyección. Gracias a estas no linealidades, la red es capaz de aproximar funciones complejas y aprender representaciones jerárquicas que capturan patrones visuales de distinta escala y complejidad~\cite{Goodfellow-et-al-2016}.
-
-Sin la aplicación de funciones de activación, la composición de múltiples capas lineales se reduciría a una única transformación lineal, limitando severamente la capacidad expresiva del modelo. Para prácticas de segmentación semántica, estas funciones permiten discriminar estructuras complejas y no lineales, como bordes irregulares o sendas difusas, contribuyendo a la coherencia espacial de las predicciones generadas~\cite{neloy2024autoencoders}.
-
-\subsubsection{Unidad Lineal Rectificada (ReLU)}
-La Unidad Lineal Rectificada (\textit{ReLU}) es una función de activación no lineal definida por una relación simple que conserva los valores positivos de la entrada y anula los negativos: \begin{equation}
-	\mathrm{ReLU}(x) = \max(0, x)
-\end{equation}. Su simplicidad computacional y su comportamiento no saturante han favorecido su adopción generalizada en arquitecturas profundas modernas~\cite{ji2022automation}.
-
-Desde el punto de vista del entrenamiento, \textit{ReLU} contribuye a mitigar el problema del desvanecimiento del gradiente, facilitando una propagación más estable de la información durante la retropropagación. En arquitecturas de segmentación como U-Net o SegNet, se emplea de forma sistemática tras las convoluciones para introducir no linealidad sin comprometer la eficiencia, permitiendo el aprendizaje efectivo de patrones espaciales complejos~\cite{liu2022convnext, nair2010relu}.
-
-\subsubsection{Función Softmax}
-La función \textit{Softmax} se emplea habitualmente en la capa final de redes neuronales de clasificación y segmentación para transformar las salidas no normalizadas del modelo, conocidas como \textit{logits}, en una distribución de probabilidad: \begin{equation}
-	\mathrm{Softmax}(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}, \qquad k=1,\dots,K
-\end{equation}.
-
-Esta transformación garantiza que los valores resultantes sean no negativos y que su suma sea igual a uno, lo que permite interpretarlos directamente como probabilidades asociadas a cada clase~\cite{Goodfellow-et-al-2016}.
-
-En el contexto de la segmentación semántica, la función Softmax se aplica de forma independiente a cada píxel, produciendo para cada uno de ellos un vector de probabilidades sobre las clases posibles. La etiqueta final asignada corresponde a la clase con mayor probabilidad, lo que da lugar a mapas de segmentación interpretables y coherentes. Este mecanismo resulta especialmente adecuado en problemas multiclase, donde es necesario modelar explícitamente la competencia entre clases en cada posición espacial de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}.
 
 \subsubsection{Validación cruzada}
 La validación cruzada es una técnica de evaluación diseñada para estimar la capacidad de generalización de un modelo mediante la partición sistemática del conjunto de datos en varios subconjuntos o \textit{folds}. En cada iteración, el modelo se entrena sobre una parte de los datos y se evalúa sobre el subconjunto restante, de forma que todas las muestras participan tanto en entrenamiento como en validación a lo largo del proceso~\cite{Goodfellow-et-al-2016}.
@@ -376,15 +436,9 @@ Un verdadero negativo corresponde a aquellos píxeles o regiones que el modelo c
 \end{table}
 
 \subsubsection{Intersección sobre la Unión (IoU)}
-La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU), también conocida como índice de Jaccard~\cite{minaee2022segmentationSurvey}, es una medida ampliamente empleada para evaluar la calidad de las predicciones en tareas de segmentación semántica. Se define como la razón entre el área de solapamiento y el área total cubierta por la segmentación predicha y la máscara de referencia, tomando valores comprendidos entre cero y uno:\begin{equation}
+La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU), también conocida como índice de Jaccard~\cite{minaee2022segmentationSurvey}, es una medida ampliamente empleada para evaluar la calidad de las predicciones en tareas de segmentación semántica. Se define como la razón entre el área de solapamiento y el área total cubierta por la segmentación predicha y la máscara de referencia, tomando valores comprendidos entre cero y uno, como se ve en la siguiente fórmula~\cite{Dimitrovski2024}:\begin{equation}
 	\mathrm{IoU}_c = \frac{TP_c}{TP_c + FP_c + FN_c}
 \end{equation}
-~\cite{Dimitrovski2024}.
-
-% mIoU
-%\begin{equation}
-%	\mathrm{mIoU} = \frac{1}{C}\sum_{c=1}^{C} \mathrm{IoU}_c
-%\end{equation}
 
 Esta métrica cuantifica directamente la coherencia espacial entre la predicción del modelo y los datos de referencia, penalizando tanto las detecciones espurias como las omisiones. Por ello, la IoU resulta especialmente adecuada para analizar la fidelidad geométrica de las segmentaciones obtenidas, ya que es sensible a desplazamientos, errores en los bordes y discontinuidades, aspectos estrechamente relacionados con la preservación de la correspondencia espacial en el modelo~\cite{TahaHanbury2015, long2015fcn}.
 
@@ -410,15 +464,15 @@ Esta métrica cuantifica directamente la coherencia espacial entre la predicció
 La precisión es una métrica que cuantifica la proporción de predicciones positivas correctas respecto al total de píxeles que el modelo ha etiquetado como pertenecientes a una clase determinada: \begin{equation}
 	\mathrm{Precisión}_c = \frac{TP_c}{TP_c + FP_c}
 \end{equation}
-. En segmentación semántica, esta medida evalúa hasta qué punto las regiones segmentadas por el modelo corresponden realmente a la clase de interés, penalizando la presencia de falsos positivos~\cite{Dimitrovski2024, powers2020}.
+
+En segmentación semántica, esta medida evalúa hasta qué punto las regiones segmentadas por el modelo corresponden realmente a la clase de interés, penalizando la presencia de falsos positivos~\cite{Dimitrovski2024, powers2020}.
 
 Un valor alto de precisión indica que el modelo es selectivo al asignar una clase, reduciendo la sobre-segmentación de áreas incorrectas. Esta propiedad resulta especialmente relevante cuando la presencia de falsas detecciones puede inducir interpretaciones erróneas del resultado, como la identificación indebida de estructuras inexistentes en la imagen~\cite{ji2022automation, sokolova2009systematic}.
 
 \subsubsection{Recall}
-El \textit{recall}, también conocido como sensibilidad, evalúa hasta qué punto un modelo es capaz de detectar correctamente los píxeles que pertenecen a una clase determinada. Esta métrica mide la fracción de elementos de la clase objetivo que han sido identificados por el modelo en relación con el total de píxeles de dicha clase presentes en los datos de referencia: \begin{equation}
+El \textit{recall}, también conocido como sensibilidad, evalúa hasta qué punto un modelo es capaz de detectar correctamente los píxeles que pertenecen a una clase determinada. Esta métrica mide la fracción de elementos de la clase objetivo que han sido identificados por el modelo en relación con el total de píxeles de dicha clase presentes en los datos de referencia~\cite{Dimitrovski2024, powers2020}: \begin{equation}
 	\mathrm{Recall}_c = \frac{TP_c}{TP_c + FN_c}
 \end{equation}
-~\cite{Dimitrovski2024, powers2020}.
 
 En el ámbito de la segmentación semántica, un valor alto de \textit{recall} indica que el modelo cubre adecuadamente las estructuras de interés, reduciendo la cantidad de regiones omitidas. Esta propiedad resulta especialmente relevante en aplicaciones donde la pérdida de información es crítica, como en la detección de sendas, infraestructuras lineales o patrones espaciales de baja visibilidad~\cite{ji2022automation, sokolova2009systematic}.
 
@@ -426,27 +480,10 @@ En el ámbito de la segmentación semántica, un valor alto de \textit{recall} i
 El $F_1$ Score es una métrica compuesta que combina la precisión y el \textit{recall} mediante su media armónica, proporcionando una medida equilibrada del rendimiento del modelo: \begin{equation}
 	F_{1,c} = 2\cdot \frac{\mathrm{Precisión}_c\cdot \mathrm{Recall}_c}{\mathrm{Precisión}_c + \mathrm{Recall}_c}
 \end{equation}
-. A diferencia de la media aritmética, esta formulación penaliza fuertemente los casos en los que una de las dos métricas presenta valores bajos~\cite{Dimitrovski2024}.
+
+A diferencia de la media aritmética, esta formulación penaliza fuertemente los casos en los que una de las dos métricas presenta valores bajos~\cite{Dimitrovski2024}.
 
 En tareas de segmentación semántica con desequilibrio entre clases, el $F_1$ Score ofrece una evaluación más representativa que la exactitud global, ya que refleja simultáneamente la capacidad del modelo para detectar correctamente una clase y para evitar falsas detecciones. Por ello, es especialmente útil cuando se analizan clases minoritarias o estructuras de pequeña extensión espacial~\cite{ji2022automation, sokolova2009systematic}.
-
-%\begin{table}[H]
-%	\centering
-%	\renewcommand{\arraystretch}{1.35}
-%	\begin{tabular}{@{}ll@{}}
-%		\toprule
-%		\textbf{Métrica} & \textbf{Expresión} \\
-%		\midrule
-%		$\mathrm{IoU}_c$ & $\dfrac{TP_c}{TP_c + FP_c + FN_c}$ \\
-%		$\mathrm{Precisión}_c$ & $\dfrac{TP_c}{TP_c + FP_c}$ \\
-%		$\mathrm{Recall}_c$ & $\dfrac{TP_c}{TP_c + FN_c}$ \\
-%		$F_{1,c}$ & $2\cdot \dfrac{\mathrm{Precisión}_c\cdot \mathrm{Recall}_c}{\mathrm{Precisión}_c + \mathrm{Recall}_c}$ \\
-%		\bottomrule
-%	\end{tabular}
-%	\caption{Resumen de métricas derivadas a partir de $TP$, $FP$, $FN$ y $TN$.}
-%	\label{tab:metrics-summary}
-%\end{table}
-
 
 
 

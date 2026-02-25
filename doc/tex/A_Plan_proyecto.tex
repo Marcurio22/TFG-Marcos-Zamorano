@@ -10,6 +10,68 @@ Finalmente, el plan se completa con un estudio de viabilidad que analiza el proy
 
 \section{Planificación temporal}
 
+\subsection{Sprint 1 - Documentación e investigación de conceptos teóricos}
+El \textit{Sprint 1} se desarrolló del 25 de octubre al 7 de noviembre. En esta primera etapa, antes del inicio del segundo semestre, los \textit{sprints} estaban pensados para una duración de dos semanas, y funcionó como una toma de contacto inicial con el TFG, ya que comencé a trabajar en él antes de lo establecido oficialmente: aunque la asignatura la curso en el segundo semestre, empecé a avanzar a finales del primero. Además, la semana siguiente a iniciar el TFG comencé mis prácticas en empresa y, junto con tres asignaturas en paralelo, me resultó complicado reservar horas estables para esta tarea, aunque fui sacando tiempo progresivamente.
+
+Para este \textit{sprint} estimé una dedicación total de 22~horas. Finalmente, dediqué aproximadamente 15~horas, lo que se reflejó en que no llegué a completar todas las \textit{issues} previstas.
+
+Las tareas planteadas para este \textit{sprint} fueron:
+\begin{itemize}
+	\item Documentación e investigación de conceptos teóricos asociados al proyecto (segmentación semántica, predicción densa, aprendizaje profundo, evaluación y métricas, \textit{encoders} y modelos/arquitecturas).
+	\item Estudio en detalle del artículo base sobre el que se apoya el TFG, para comprender su fundamentación teórica y el enfoque metodológico.
+	\item Localización y recopilación de bibliografía para los distintos conceptos a documentar.
+	\item Configuración del repositorio y del flujo de trabajo: GitHub, operación remota y entorno de desarrollo en VS Code.
+	\item Puesta en marcha del entorno \LaTeX{} con la plantilla proporcionada por los profesores y configuración de herramientas (TeXstudio, MiKTeX Console y TeXworks).
+	\item Selección y configuración de la herramienta de gestión de tareas, optando por Zube.io tras descartar ZenHub.
+\end{itemize}
+
+Durante la primera semana me centré principalmente en asentar el entorno de trabajo. Configuré GitHub y el acceso para operación remota, dejé preparado VS Code para trabajar con comodidad y monté la plantilla de \LaTeX{} proporcionada por los profesores. En paralelo, instalé y ajusté las herramientas necesarias para editar y compilar el proyecto, \textit{TeXstudio}, \textit{MiKTeX Console} y \textit{TeXworks}, ya que al principio necesitaba entender bien cómo organizar el proyecto y compilar sin fricción. También exploré opciones para la gestión del tablero de trabajo: tras comprobar que ZenHub me daba un error inesperado y sin mucha posibilidad de solución, migré a Zube.io y dejé preparada la estructura para organizar las \textit{issues}.
+
+A lo largo de las dos semanas, la parte principal del \textit{sprint} fue la investigación y búsqueda bibliográfica. Dediqué la mayor parte del tiempo a leer y estudiar diferentes \textit{papers} científicos para asentar la base teórica, especialmente el artículo principal en el que se fundamenta el TFG, que trabajé en detalle para comprender correctamente su planteamiento. Como resultado de esta fase, conseguí recopilar bibliografía para la mayoría de los conceptos que tenía previstos documentar, aunque la redacción completa no llegó a cerrarse en este \textit{sprint}.
+
+En cuanto a la documentación escrita, el objetivo era redactar las \textit{issues} de conceptos teóricos planificadas; sin embargo, por falta de tiempo y por la incertidumbre inicial sobre cómo estructurar el contenido, únicamente avancé en la redacción de dos bloques: la definición de \textit{Visión por Computador} y los conceptos teóricos generales de la \textit{Segmentación Semántica}. Además, estos avances no quedaron consolidados mediante \textit{commit} hasta el \textit{sprint} siguiente, ya que durante este primer tramo estuve reorganizando la estructura del proyecto y me costó definir correctamente las bases del mismo.
+
+\subsection{Sprint 2 - Primer prototipo de la aplicación web}
+El \textit{Sprint 2} abarcó del 8 de noviembre al 22 de noviembre. Para este periodo estimé una dedicación de 12,5~horas, aunque finalmente empleé 21~horas. En este punto todavía no tenía definida una planificación basada en \textit{points} y, por tanto, no pude reflejar correctamente el avance mediante \textit{burndown reports}. En su lugar, intenté organizarme con un campo personalizado de \textit{horas}, pero comprobé que no resultaba útil para medir progreso ni para generar informes de seguimiento.
+
+Los objetivos principales de este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Estudiar la documentación oficial de Flask y realizar los tutoriales propuestos~\cite{flask_user_guide}.
+	\item Diseñar el \textit{mockup} inicial de la aplicación web.
+	\item Implementar una primera versión sencilla de la web, con cuatro botones principales.
+	\item Verificar el flujo de entrada/salida de la aplicación: recibir una imagen en Flask y dibujar en HTML unas líneas de esquina a esquina sobre la imagen.
+	\item Añadir documentación del código y una primera batería de \textit{tests} asociados a este acercamiento inicial.
+\end{itemize}
+
+Durante la primera semana me centré en dos frentes. Por un lado, diseñé el \textit{mockup} de la web para fijar la estructura de pantallas y el flujo esperado de uso. Por otro, dediqué tiempo a estudiar Flask, siguiendo la documentación oficial y completando los tutoriales, ya que necesitaba asentar la base del \textit{backend} antes de comenzar con una implementación funcional.
+
+En la segunda semana abordé la implementación inicial de la aplicación. Construí un prototipo sencillo con los cuatro botones definidos y dejé operativo el flujo mínimo: la aplicación recibía una imagen en el servidor y se mostraba en el \textit{frontend} con un trazado simple de líneas de esquina a esquina. Este paso fue clave para validar de forma temprana el formato del JSON de trazas y confirmar que el intercambio de datos entre \textit{backend} y \textit{frontend} estaba funcionando como esperaba. Además, documenté el código y añadí \textit{tests} básicos para asegurar que este acercamiento inicial quedaba mínimamente cubierto.
+
+A lo largo del \textit{sprint} también intenté avanzar en la redacción de conceptos teóricos arrastrados del \textit{sprint} anterior, pero apenas conseguí progresar en esa parte debido a la carga de trabajo asociada a la puesta en marcha del prototipo. Aun así, sí logré completar las tareas específicas definidas para este \textit{sprint}. La única excepción fue la integración del \textit{mockup} en la memoria, que no pude dejar lista a tiempo por un fallo en la configuración del entorno de \LaTeX{} en TeXstudio, lo que obligó a posponer esa incorporación.
+
+\subsection{Sprint 3 - Ajustes en estilo y aplicación de la web}
+El \textit{Sprint 3} se desarrolló entre el 22 de noviembre y el 6 de diciembre. Para este \textit{sprint} estimé inicialmente 4,5~horas, ya que en ese momento todavía no estaba creando todas las tareas de forma consistente y únicamente llegué a registrar algunas. Sin embargo, la dedicación real fue notablemente superior, alcanzando aproximadamente 18~horas, debido a que se fueron abriendo frentes adicionales de revisión y ajuste conforme avanzaba el prototipo.
+
+Cabe destacar que, durante la reunión que dio inicio al \textit{sprint}, conocí al que sería mi otro tutor del TFG, David Martínez, quien me orientó sobre varios aspectos relacionados con el estilo de la interfaz, como Bootstrap, Tailwind y alternativas, y sobre ciertos requerimientos esperables en la web, lo que condicionó parte de las decisiones técnicas de este periodo.
+
+Los objetivos abordados durante este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Sustituir el botón de ``dibujar trazas'' por un \textit{checkbox}, simplificando el flujo de interacción.
+	\item Corregir la funcionalidad asociada al PNG, de forma que la web dibujase las trazas sobre el mismo PNG original en lugar de generar un PNG nuevo.
+	\item Investigar Bootstrap y TailwindCSS, y elaborar una comparativa entre ambos enfoques.
+	\item Estudiar y preparar la adopción de DaisyUI como capa de componentes sobre Tailwind.
+	\item Realizar limpieza del código, mejorar su documentación y aplicar pequeños ajustes locales para verificación de versiones.
+	\item Continuar, de forma paralela, con la investigación teórica y la recopilación bibliográfica de conceptos arrastrados del \textit{sprint} 1.
+\end{itemize}
+
+Durante los primeros días me centré en mejorar el prototipo existente y en cerrar cambios funcionales pequeños pero importantes. En primer lugar, sustituí el botón dedicado a dibujar trazas por un \textit{checkbox}, ya que resultaba más coherente con el tipo de acción y evitaba pasos innecesarios en el uso. En paralelo, corregí la funcionalidad asociada al PNG: hasta ese momento, mi aproximación consistía en generar un archivo nuevo con las trazas, pero el comportamiento esperado era que la aplicación dibujase directamente sobre el mismo PNG que se estaba visualizando. Este cambio fue relevante porque simplificó el flujo de representación y alineó la salida con el objetivo de validación visual de las trazas.
+
+Además, en esta primera semana dediqué tiempo a investigar y comparar Bootstrap y TailwindCSS, con el objetivo de entender qué enfoque se ajustaba mejor a una interfaz sencilla pero mantenible. Como resultado, dejé documentada una comparativa que me permitió aclarar las diferencias entre un \textit{framework} basado en componentes predefinidos (Bootstrap) y uno basado en utilidades (Tailwind), teniendo en cuenta el grado de personalización, la curva de aprendizaje y el impacto en el mantenimiento del proyecto. Estos cambios quedaron reflejados junto con una primera limpieza y documentación del código, de forma que el prototipo quedase más legible de cara a iteraciones posteriores.
+
+En la segunda semana el foco pasó a DaisyUI. Dediqué tiempo a estudiar este conjunto de componentes sobre Tailwind, explorando su filosofía y la forma de integrarlo en un proyecto web, ya que la idea era disponer de componentes consistentes sin perder la flexibilidad de Tailwind. En este proceso también realicé algunos ajustes locales para verificación de versiones y reorganicé parte del proyecto eliminando dependencias que no estaban aportando valor en ese momento, con la intención de reducir complejidad antes de iniciar una migración estética más profunda.
+
+Por último, durante todo el \textit{sprint} mantuve un trabajo paralelo de investigación teórica asociado a conceptos que venía arrastrando del \textit{sprint} 1. Aunque no llegué a consolidar estos avances en \textit{commits} específicos, continué revisando bibliografía y tomando notas sobre bloques pendientes, como, por ejemplo, aspectos relacionados con predicción densa, tipos de arquitecturas y métricas de evaluación, con la intención de retomar su redacción cuando el entorno técnico de la web quedase más estabilizado.
+
 \subsection{Sprint 7 - Revisión de la memoria y cumplimiento de objetivos pasados}
 El \textit{Sprint 7} abarcó el periodo comprendido entre el 21 de enero y el 10 de febrero. Se trató de un intervalo especialmente amplio, en el que se concentraron cambios relevantes tanto en la memoria como en la implementación, en consonancia con el cierre de mi periodo de prácticas y el consecuente incremento del tiempo dedicado al TFG. En conjunto, planifiqué una dedicación total de 39,5~horas para este \textit{sprint}, aunque finalmente empleé 54~horas.
 
@@ -73,6 +135,15 @@ Más adelante, preparé la infraestructura de Flask-Babel en dos días: el prime
 La tarea principal del \textit{sprint} fue migrar toda la interfaz de la aplicación a DaisyUI sobre Tailwind. Este proceso lo realicé de forma progresiva durante todos los días del \textit{sprint}, planteándome pequeños avances diarios hasta completar la migración. Primero investigué los componentes disponibles y los fui aplicando iterativamente: comencé por los botones principales: insertar imagen, calcular trazas y borrar imagen, después ajusté los modales y el sistema de \textit{flash messaging} aprovechando los diseños predefinidos, estableciendo además que los avisos se mostrasen durante cinco segundos antes de desaparecer. Más tarde, reorganicé la zona de visualización de la imagen e incorporé una lógica para permitir el arrastre de archivos desde una carpeta externa, ya que resultaba conveniente para el flujo de uso. Durante este proceso también corregí la cabecera, añadí un \textit{footer} con información del proyecto y del ente académico correspondiente, e incorporé una imagen de fondo suave para aportar una estética más cálida.
 
 Finalmente, el último día realicé la comparativa entre el modelo proporcionado mediante \textit{pickle} y el modelo en PyTorch que yo había generado. Comparé métricas de rendimiento y de salida, incluyendo tiempos de carga desde disco, tiempo medio de inferencia y desviación estándar, \textit{IoU} y \textit{Dice} entre predicciones, número de píxeles clasificados como positivos, longitud del esqueleto en píxeles, cantidad de componentes conexas y grosor medio estimado, entre otros. Tras el análisis, concluí que el modelo en PyTorch perdía demasiada capacidad lógica frente al margen de mejora temporal obtenido, por lo que resultaba conveniente dedicar un \textit{sprint} adicional antes del cierre de la \textit{release} para dejar esta lógica correctamente integrada.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth, keepaspectratio]{img/BR_Sprint8}
+	\caption[Burndown Report del Sprint 8]{Burndown Report del Sprint 8.}
+	\label{fig:brsprint8}
+\end{figure}
+
+Como se observa en el \textit{burndown}~\ref{fig:brsprint8}, la reducción de \textit{open points} fue más lenta que la ideal durante la mayor parte del \textit{sprint}, debido a los ajustes iterativos en la interfaz y la infraestructura, tareas que ocupaban un gran número de puntos, aunque fueron siendo ejecutadas durante toda la semana; no obstante, en los últimos días se cerró un bloque grande de trabajo, quedando el \textit{sprint} prácticamente completado el 18 de febrero, un día antes de lo planificado.
 
 \section{Estudio de viabilidad}
 
