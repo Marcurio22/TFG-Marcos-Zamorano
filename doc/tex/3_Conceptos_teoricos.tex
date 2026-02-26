@@ -245,41 +245,40 @@ Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacid
 
 \subsubsection{Resumen de encoders empleados}
 
-\begingroup
-\let\sl\slshape % parche local: evita el error de memoir con \sl
-
-{\small
+\begin{table}[H]
+	\centering
+	\footnotesize
 	\setlength{\tabcolsep}{4pt}
 	\renewcommand{\arraystretch}{1.15}
 	
-	\tablaSinColores
-	{Resumen de encoders empleados: descripción breve, número de parámetros (en millones) y referencia.}
-	{@{}>{\raggedright\arraybackslash}p{0.23\textwidth}
-		>{\centering\arraybackslash}p{0.10\textwidth}
-		>{\raggedright\arraybackslash}p{0.52\textwidth}
-		>{\raggedright\arraybackslash}p{0.15\textwidth}@{}}
-	{4}
-	{encoders-resumen}
-	{\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción (1--2 líneas)} & \textbf{Referencia} \\}
-	{
-		ConvNeXt (Small) & 50 & CNN modernizada inspirada en decisiones de diseño de Transformers (kernels grandes, LN/GELU) para mejorar precisión manteniendo eficiencia. & \cite{liu2022convnext, Chang2024UNeXt} \\
-		EfficientViT-B3 & 12 & Codificador eficiente para predicción densa que combina extracción local con módulos de atención ligera para capturar contexto global con coste casi lineal. & \cite{cai2023efficientvit, LIAO2024102401} \\
-		EfficientNet-B7 & 63 & CNN escalada mediante \textit{compound scaling} (profundidad/ancho/resolución) basada en bloques MBConv y Squeeze-and-Excitation. & \cite{tan2019efficientnet} \\
-		MambaOut (Base) & 85 & Arquitectura jerárquica que evalúa la necesidad de SSM en visión: conserva un diseño moderno sin el núcleo SSM, priorizando simplicidad y rendimiento. & \cite{yu2024mambaoutreallyneedmamba} \\
-		MobileNetV3 (Large) & 15 & CNN orientada a baja latencia en móviles, fruto de NAS + NetAdapt; usa bloques eficientes y activaciones optimizadas para despliegue. & \cite{howard2019mobilenetv3, MobileNetV3_Summary} \\
-		SAM 2 Hiera (Large) & 224 & Codificador Hiera-L (Transformer jerárquico) del modelo fundacional SAM 2, con representaciones multiescala y mecanismo de memoria para segmentación. & \cite{ravi2024sam2segmentimages} \\
-		DenseNet-161 & 26 & CNN con conectividad densa por concatenación, favorece reutilización de características y mejora del flujo de gradiente en redes profundas. & \cite{huang2018densenet, bdcc8100135} \\
-		Inception-v4 & 41 & CNN multiescala basada en módulos Inception (A/B/C) y bloques de reducción; explota factorización eficiente de convoluciones. & \cite{szegedy2016} \\
-		MiT-B5 (SegFormer) & 81 & \textit{Mix Transformer} jerárquico multiescala (encoder de SegFormer), con autoatención eficiente e incorporación implícita de información local. & \cite{xie2021segformer, Elmessery2024Semantic} \\
-		MobileOne-S4 & 12 & CNN reparametrizable: durante entrenamiento usa múltiples ramas, pero en inferencia se colapsa a una secuencia simple de convoluciones para máxima velocidad. & \cite{vasu2023} \\
-		ResNet-34 & 21 & CNN residual con bloques básicos $3\times3$ y conexiones de identidad, equilibrando capacidad y coste computacional con entrenamiento estable. & \cite{he2016resnet, shadecoder2026resnet34} \\
-		Xception-71 & 20 & CNN con convoluciones separables en profundidad; separa correlaciones espaciales y de canal, profundizando mediante repetición del \textit{middle flow}. & \cite{chollet2017} \\
-		VGG-16 & 14 & Arquitectura clásica y homogénea con pilas de convoluciones $3\times3$ y pooling; extractor robusto pero costoso frente a modelos modernos. & \cite{SUN2024108458} \\
-		VGG-19 & 20 & Variante más profunda de VGG con la misma filosofía (convoluciones $3\times3$); alta capacidad con elevado coste computacional. & \cite{SUN2024108458} \\
-	}
-}
-
-\endgroup
+	\begin{tabularx}{\textwidth}{
+			@{} >{\raggedright\arraybackslash}p{0.22\textwidth}
+			>{\centering\arraybackslash}p{0.10\textwidth}
+			X
+			>{\raggedright\arraybackslash}p{0.18\textwidth} @{}}
+		\toprule
+		\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción} & \textbf{Referencia} \\
+		\midrule
+		ConvNeXt (Small) & 50 & CNN modernizada con decisiones inspiradas en Transformers para mejorar precisión manteniendo eficiencia. & \cite{liu2022convnext, Chang2024UNeXt} \\
+		EfficientViT-B3 & 12 & Codificador eficiente para predicción densa que combina extracción local con atención ligera para capturar contexto global. & \cite{cai2023efficientvit, LIAO2024102401} \\
+		EfficientNet-B7 & 63 & CNN escalada por \textit{compound scaling} basada en MBConv y Squeeze-and-Excitation. & \cite{tan2019efficientnet} \\
+		MambaOut (Base) & 85 & Arquitectura jerárquica que evalúa la necesidad de SSM en visión; diseño moderno sin núcleo SSM para simplicidad y rendimiento. & \cite{yu2024mambaoutreallyneedmamba} \\
+		MobileNetV3 (Large) & 15 & CNN orientada a baja latencia en móviles, con bloques eficientes y activaciones optimizadas. & \cite{howard2019mobilenetv3, MobileNetV3_Summary} \\
+		SAM 2 Hiera (Large) & 224 & Codificador Hiera-L del modelo SAM 2, con representaciones multiescala y memoria para segmentación. & \cite{ravi2024sam2segmentimages} \\
+		DenseNet-161 & 26 & CNN con conectividad densa por concatenación; reutilización de características y mejor flujo de gradiente en redes profundas. & \cite{huang2018densenet, bdcc8100135} \\
+		Inception-v4 & 41 & CNN multiescala basada en módulos Inception y bloques de reducción; explota factorización eficiente de convoluciones. & \cite{szegedy2016} \\
+		MiT-B5 (SegFormer) & 81 & \textit{Mix Transformer} jerárquico multiescala con autoatención eficiente e info local implícita. & \cite{xie2021segformer, Elmessery2024Semantic} \\
+		MobileOne-S4 & 12 & CNN reparametrizable: varias ramas en entrenamiento y colapso a una secuencia simple de convoluciones en inferencia. & \cite{vasu2023} \\
+		ResNet-34 & 21 & CNN residual con bloques $3\times3$ y conexiones de identidad; equilibrio entre coste y estabilidad de entrenamiento. & \cite{he2016resnet, shadecoder2026resnet34} \\
+		Xception-71 & 20 & CNN con convoluciones separables en profundidad; separación espacial/canal y profundización mediante \textit{middle flow}. & \cite{chollet2017} \\
+		VGG-16 & 14 & Arquitectura clásica con convoluciones $3\times3$ y \textit{pooling}; extractor robusto con alto coste computacional. & \cite{SUN2024108458} \\
+		VGG-19 & 20 & Variante más profunda de VGG con la misma filosofía; mayor capacidad a costa de mayor coste computacional. & \cite{SUN2024108458} \\
+		\bottomrule
+	\end{tabularx}
+	
+	\caption{Resumen de encoders empleados: descripción breve, número de parámetros (en millones) y referencia.}
+	\label{tab:encoders-resumen}
+\end{table}
 
 %% -------- FUERA ------------------------
 
