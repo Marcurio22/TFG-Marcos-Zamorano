@@ -209,6 +209,54 @@ Finalmente, el último día realicé la comparativa entre el modelo proporcionad
 
 Como se observa en el \textit{burndown}~\ref{fig:brsprint8}, la reducción de \textit{open points} fue más lenta que la ideal durante la mayor parte del \textit{sprint}, debido a los ajustes iterativos en la interfaz y la infraestructura, tareas que ocupaban un gran número de puntos, aunque fueron siendo ejecutadas durante toda la semana; no obstante, en los últimos días se cerró un bloque grande de trabajo, quedando el \textit{sprint} prácticamente completado el 18 de febrero, un día antes de lo planificado.
 
+\subsection{Sprint 9 - Cierre de la release}
+Este \textit{sprint} abarcó del 19 al 26 de febrero, con una duración de una semana. La planificación inicial contemplaba 22~horas de trabajo, a las que se sumaban 2~\textit{points} arrastrados del \textit{sprint} anterior, por lo que la carga prevista equivalía aproximadamente a 24~horas. Finalmente, la dedicación real fue de 25~horas y 25~minutos.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Volver a ajustar el diagrama de casos de uso.
+	\item Finalizar la lógica de Babel y completar la traducción de la aplicación.
+	\item Añadir referencias a imágenes y corregir varios detalles del Capítulo 6, \textit{Trabajos relacionados}.
+	\item Redactar la comparativa entre los modelos basados en \textit{pickle} y PyTorch.
+	\item Corregir distintos aspectos del código y de la interfaz de la aplicación:
+	\begin{itemize}
+		\item Eliminar la duplicidad existente en la ruta \texttt{calculate}.
+		\item Extraer el \textit{script} embebido en \texttt{index.html} a un fichero \texttt{.js} independiente.
+		\item Crear un hipervínculo al sitio web de la UBU en el \textit{footer}.
+		\item Eliminar el botón específico de trazas.
+		\item Sustituir las alertas previas por notificaciones flotantes tipo \textit{toast}.
+		\item Crear e insertar un logotipo para la web (\textit{favicon}).
+		\item Corregir el comportamiento visual del campo \textit{choose file}.
+	\end{itemize}
+	\item Sustituir la lógica de inferencia basada en PyTorch por una nueva lógica adaptada a los modelos en \textit{pickle}.
+	\item Implementar la descarga de la imagen original, la imagen resultante y el JSON de trazas.
+	\item Crear una tabla descriptiva de \textit{encoders} y corregir varios aspectos del Capítulo 3, \textit{Conceptos teóricos}.
+	\item Completar la redacción de \textit{sprints} anteriores que todavía tenía pendientes.
+\end{itemize}
+
+En primer lugar, volví a ajustar el diagrama de casos de uso, ya que todavía no estaba completamente cerrado a nivel visual. Para ello, reorganicé la disposición de la mayor parte de los casos de uso y afiné su colocación para que el resultado fuese más claro y equilibrado desde el punto de vista gráfico.
+
+A continuación, terminé la lógica de traducción mediante Flask-Babel. Como en el \textit{sprint} anterior me había limitado a dejar preparada la infraestructura, en este ya encapsulé todos los textos necesarios y completé su traducción a los otros cuatro idiomas disponibles: inglés, francés, italiano y alemán, utilizando los correspondientes ficheros \texttt{.po}. Esta parte la desarrollé en dos días distintos, dejando así cerrada la base de internacionalización de la aplicación.
+
+Después, ajusté algunos elementos del apartado de \textit{Trabajos relacionados} que todavía no estaban del todo pulidos y redacté la comparativa entre los modelos en \textit{pickle} y en PyTorch a partir de los resultados obtenidos en el \textit{notebook} de pruebas del \textit{sprint} anterior. Con ello, dejé documentada la justificación técnica del cambio de enfoque en la inferencia.
+
+Posteriormente, abordé varios cambios en el código y en la interfaz de la web. En esta fase eliminé la duplicidad de la ruta \texttt{calculate}, separé el código JavaScript que se encontraba embebido en \texttt{index.html} para pasarlo a un fichero \texttt{.js} independiente y dejé la estructura del \textit{frontend} algo más limpia y mantenible. También añadí un hipervínculo al sitio web de la UBU en el \textit{footer}, eliminé el botón específico de visualización del \texttt{.json} de trazas al no resultar ya necesario dentro del flujo definitivo, sustituí las alertas previas por notificaciones flotantes tipo \textit{toast}, incorporé un \textit{favicon} propio para dar una identidad visual más cuidada a la aplicación y corregí el comportamiento del campo de selección de archivos, que visualmente no estaba mostrando un resultado adecuado y no se podía traducir correctamente con  Flask-Babel.
+
+Más adelante, llevé a cabo la tarea central del \textit{sprint}, que fue sustituir toda la lógica de inferencia que había preparado para PyTorch por una nueva lógica adaptada a los modelos serializados mediante \textit{pickle}. Esta transición me ocupó un par de días, ya que requería reajustar el flujo de carga y ejecución para que el comportamiento en la aplicación quedase alineado con la decisión técnica tomada tras la comparativa previa.
+
+Además, implementé la lógica de descarga tanto de la imagen original como de la imagen resultante y del JSON de trazas, con el objetivo de que el usuario pudiese conservar fácilmente los archivos generados durante el procesamiento. Con ello, la aplicación resultó más completa desde el punto de vista funcional y más cercana al cierre de la primera \textit{release}.
+
+Por último, realicé varias correcciones en el Capítulo 3, destacando especialmente la creación de una tabla para presentar de forma estructurada los \textit{encoders} empleados en el artículo científico en el que baso el proyecto~\cite{diezpastora2025trails}. Paralelamente, aproveché este \textit{sprint} para terminar de redactar los \textit{sprints} anteriores que seguían pendientes desde hacía varias iteraciones, dejando así la planificación temporal mucho más alineada con el estado real del trabajo.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint9}
+	\caption[Burndown Report del Sprint 9]{Burndown Report del Sprint 9.}
+	\label{fig:brsprint9}
+\end{figure}
+
+Como se observa en la Figura~\ref{fig:brsprint9}, durante los primeros días el avance fue más lento e incluso hubo un ligero repunte de \textit{open points}, debido a que seguían apareciendo ajustes derivados del cierre técnico de la \textit{release}. No obstante, a partir de la resolución de las tareas principales de integración y refactorización, el volumen pendiente descendió con rapidez, quedando el \textit{sprint} completamente cerrado el 26 de febrero, cerrando así la primera \textit{release} ese mismo día tras la reunión semanal.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
