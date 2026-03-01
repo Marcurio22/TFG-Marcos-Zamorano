@@ -296,7 +296,7 @@ def predict_mask_ensemble(
 # Máscara -> trazas (xs,ys)
 # ---------------------------
 
-def mask_to_traces_points(mask: np.ndarray, max_points: int = 150_000, stride: int = 2) -> Dict[str, List[int]]:
+def mask_to_traces_points(mask: np.ndarray, stride: int = 2) -> Dict[str, List[int]]:
     ys, xs = np.where(mask > 0)
     if xs.size == 0:
         return {"xs": [], "ys": []}
@@ -320,4 +320,4 @@ def compute_traces_from_segmentation(
         use_gpu=use_gpu,
         threshold=0.5,
     )
-    return mask_to_traces_points(mask, max_points=150_000, stride=2)
+    return mask_to_traces_points(mask, stride=2)

@@ -90,6 +90,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let localPreviewUrl = null;
 
+  function openImagePicker() {
+    if (!imageInput) return;
+    imageInput.click();
+  }
+
   function resizeCanvas() {
     if (!img || !canvas) return;
     canvas.width = img.clientWidth;
@@ -328,6 +333,12 @@ document.addEventListener("DOMContentLoaded", () => {
       previewFile(file);
       setDropzoneState("success");
       setTimeout(() => setDropzoneState("idle"), 700);
+    });
+
+    imageFrame.addEventListener("click", (e) => {
+      if (placeholder && placeholder.classList.contains("hidden")) return;
+      if (e.target.closest("button, a, input, label")) return;
+      openImagePicker();
     });
 
     // Evita que el navegador abra el archivo si se suelta fuera del frame

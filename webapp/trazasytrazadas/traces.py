@@ -191,24 +191,12 @@ def _render_traces_overlay_png(image_path: str, traces_path: str) -> bytes:
         arr = np.array(im).copy()
 
     h, w = arr.shape[:2]
-    red = np.array([255.0, 0.0, 0.0], dtype=np.float32)
-
-    # Kernel 3x3 de coberturas
-    stamps = (
-        (-1, -1, 0.25), (0, -1, 0.5), (1, -1, 0.25),
-        (-1,  0, 0.5),  (0,  0, 1.0), (1,  0, 0.5),
-        (-1,  1, 0.25), (0,  1, 0.5), (1,  1, 0.25),
-    )
-
     for x, y in zip(xs, ys):
         x = int(x); y = int(y)
-        for dx, dy, a in stamps:
-            xx = x + dx
-            yy = y + dy
-            if 0 <= xx < w and 0 <= yy < h:
-                arr[yy, xx] = (1.0 - a) * arr[yy, xx] + a * red
+        if 0 <= x < w and 0 <= y < h:
+            arr[y, x] = (255, 0, 0)
 
-    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), mode="RGB")
+    out = Image.fromarray(arr, mode="RGB")
     buf = io.BytesIO()
     out.save(buf, format="PNG")
     buf.seek(0)
