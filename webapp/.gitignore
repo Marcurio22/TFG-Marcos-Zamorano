@@ -21,3 +21,7 @@ model/
 
 # Archivos de VS Code
 .vscode/
+
+.venv-test/
+
+requirements.freeze.txt
