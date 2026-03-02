@@ -7,6 +7,7 @@ import io
 import os
 from PIL import Image
 
+
 def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
     img = Image.new("RGB", size, color="white")
     buf = io.BytesIO()
@@ -14,13 +15,17 @@ def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
     buf.seek(0)
     return buf
 
+
 def upload_image(client):
     data = {"image": (create_test_image_bytes(), "test.jpg")}
     client.post("/upload", data=data, content_type="multipart/form-data")
 
+
 def test_delete_requires_image(client):
     resp = client.post("/delete", follow_redirects=True)
-    assert "No hay ninguna imagen cargada para borrar.".encode("utf-8") in resp.data
+    assert "No hay ninguna imagen cargada para borrar.".encode(
+        "utf-8") in resp.data
+
 
 def test_delete_cleans_files_and_session(client, mock_compute_traces):
     # Patch ML para poder calcular sin pesos reales
@@ -43,8 +48,10 @@ def test_delete_cleans_files_and_session(client, mock_compute_traces):
     assert image_filename
     assert traces_file
 
-    upload_path = os.path.join(client.application.config["UPLOAD_FOLDER"], image_filename)
-    traces_path = os.path.join(client.application.config["OUTPUT_FOLDER"], traces_file)
+    upload_path = os.path.join(
+        client.application.config["UPLOAD_FOLDER"], image_filename)
+    traces_path = os.path.join(
+        client.application.config["OUTPUT_FOLDER"], traces_file)
 
     assert os.path.exists(upload_path)
     assert os.path.exists(traces_path)

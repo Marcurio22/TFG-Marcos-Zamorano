@@ -1,13 +1,14 @@
-import os
 import numpy as np
 import torch
 from PIL import Image
 
 import trazasytrazadas.segmentation_inference as si
 
+
 class DummyModel(torch.nn.Module):
     def forward(self, x):
         return torch.ones((1, 1, x.shape[2], x.shape[3]), device=x.device)
+
 
 def test_predict_uses_only_fold_0(tmp_path, monkeypatch):
     # 1) Imagen temporal

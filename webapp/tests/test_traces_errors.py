@@ -5,11 +5,13 @@ Tests de errores del endpoint /traces.
 
 import os
 
+
 def test_traces_404_when_not_calculated(client):
     resp = client.get("/traces")
     assert resp.status_code == 404
     data = resp.get_json()
     assert data == {"error": "No hay trazas calculadas todavía."}
+
 
 def test_traces_500_when_json_missing(client):
     # Forzamos en sesión un archivo inexistente
@@ -27,4 +29,5 @@ def test_traces_500_when_json_missing(client):
     resp = client.get("/traces")
     assert resp.status_code == 500
     data = resp.get_json()
-    assert data == {"error": "Archivo de trazas no encontrado. Vuelve a calcularlas."}
+    assert data == {
+        "error": "Archivo de trazas no encontrado. Vuelve a calcularlas."}

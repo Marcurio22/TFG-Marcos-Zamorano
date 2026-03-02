@@ -44,8 +44,10 @@ def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
     assert image_filename
     assert traces_file
 
-    upload_path = os.path.join(client.application.config["UPLOAD_FOLDER"], image_filename)
-    traces_path = os.path.join(client.application.config["OUTPUT_FOLDER"], traces_file)
+    upload_path = os.path.join(
+        client.application.config["UPLOAD_FOLDER"], image_filename)
+    traces_path = os.path.join(
+        client.application.config["OUTPUT_FOLDER"], traces_file)
 
     assert os.path.exists(upload_path)
     assert os.path.exists(traces_path)
@@ -57,7 +59,9 @@ def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
     assert set(payload.keys()) == {"xs", "ys"}
 
 
-def test_pipeline_calculate_without_file_uses_session_image(client, mock_compute_traces):
+def test_pipeline_calculate_without_file_uses_session_image(
+    client, mock_compute_traces
+):
     mock_compute_traces()
     upload_image(client)
 
@@ -76,4 +80,7 @@ def test_pipeline_calculate_without_file_uses_session_image(client, mock_compute
 
 def test_pipeline_requires_image_if_no_file_and_no_session(client):
     resp = client.post("/upload_and_calculate", follow_redirects=True)
-    assert "Primero debes insertar una imagen antes de calcular trazas.".encode("utf-8") in resp.data
+    error_msg = (
+        "Primero debes insertar una imagen antes de calcular trazas."
+    )
+    assert error_msg.encode("utf-8") in resp.data

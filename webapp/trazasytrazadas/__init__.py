@@ -45,6 +45,7 @@ LANGUAGES = {
     "de": "Deutsch",
 }
 
+
 def select_locale():
     """Selecciona idioma por request en este orden:
     1) Querystring ?lang=xx
@@ -63,6 +64,7 @@ def select_locale():
 
     return request.accept_languages.best_match(LANGUAGES.keys()) or "es"
 
+
 def create_app(test_config=None):
     """
     Crea y configura la aplicación Flask.
@@ -79,6 +81,11 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
     # Configuración por defecto.
+    seg_model_template = (
+        "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_"
+        "lr.9e-05_epochs.60_fold.{fold}"
+    )
+
     app.config.from_mapping(
         SECRET_KEY="dev",
         MAX_CONTENT_LENGTH=16 * 1024 * 1024,
@@ -91,7 +98,7 @@ def create_app(test_config=None):
         SEG_MODELS_DIR=os.path.join(app.root_path, "model"),
 
         # Template de pesos por fold.
-        SEG_MODEL_TEMPLATE="data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr.9e-05_epochs.60_fold.{fold}",
+        SEG_MODEL_TEMPLATE=seg_model_template,
 
         # Número de folds/modelos que intentará cargar.
         SEG_N_FOLDS=10,

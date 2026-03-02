@@ -1,0 +1,27 @@
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entorno virtual
+TFG_env/
+env/
+venv/
+
+# Archivos de Flask / aplicación
+instance/
+uploads/
+outputs/
+model/
+
+# Archivos de test
+.coverage
+.pytest_cache/
+
+# Archivos de VS Code
+.vscode/
+
+.venv-test/
+
+requirements.freeze.txt

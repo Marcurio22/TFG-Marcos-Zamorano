@@ -28,7 +28,10 @@ def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
 def test_calculate_requires_image(client):
     """Debe ser imposible calcular trazas sin haber subido una imagen."""
     response = client.post("/calculate", follow_redirects=True)
-    assert b"Primero debes insertar una imagen antes de calcular trazas." in response.data
+    expected_msg = (
+        b"Primero debes insertar una imagen antes de calcular trazas."
+    )
+    assert expected_msg in response.data
 
 
 def test_full_traces_flow(client, mock_compute_traces):

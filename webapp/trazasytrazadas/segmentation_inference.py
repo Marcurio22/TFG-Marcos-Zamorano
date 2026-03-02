@@ -8,7 +8,8 @@ Características:
 - Padding a múltiplos de 32.
 - Ensemble multi-fold: media de probabilidades -> umbral -> máscara final.
 - Carga cacheada (se carga una vez y se reutiliza).
-- NO requiere pytorch_lightning instalado: unpickler personalizado que ignora objetos PL.
+- NO requiere pytorch_lightning instalado: unpickler personalizado que
+  ignora objetos PL.
 - Compatibilidad con cambios de segmentation_models_pytorch:
   * UnetDecoderBlock.interpolation_mode
   * alias DecoderBlock <-> UnetDecoderBlock
@@ -34,7 +35,9 @@ import torch.nn.functional as F
 # Preprocesado
 # ---------------------------
 
-def _pad_to_multiple_of_32(img_t: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
+def _pad_to_multiple_of_32(
+    img_t: torch.Tensor,
+) -> Tuple[torch.Tensor, int, int]:
     _, _, h, w = img_t.shape
     new_h = int(np.ceil(h / 32) * 32)
     new_w = int(np.ceil(w / 32) * 32)
@@ -60,7 +63,8 @@ def _normalize_imagenet(img_t: torch.Tensor) -> torch.Tensor:
 
 
 # ---------------------------
-# Stubs mínimos (para pickles guardados desde notebooks/código de entrenamiento)
+# Stubs mínimos (para pickles guardados desde notebooks/código de
+# entrenamiento)
 # ---------------------------
 
 class BinarySegModel(nn.Module):
@@ -68,6 +72,7 @@ class BinarySegModel(nn.Module):
     Stub para que pickle pueda reconstruir instancias antiguas.
     En unpickle NO se llama a __init__, pero la clase debe existir.
     """
+
     def __init__(self):
         super().__init__()
 
@@ -88,13 +93,17 @@ class SemanticSegmentatorPyTorch:
         self.model = None
         self.trainer = None
 
+
 class HuggingFaceToTorchDataset:
     """Stub: solo para satisfacer pickle.load; no se usa en inferencia."""
+
     def __init__(self, *args, **kwargs):
         pass
 
+
 class HuggingFaceToTorchDataset_onlyImage:
     """Stub: solo para satisfacer pickle.load; no se usa en inferencia."""
+
     def __init__(self, *args, **kwargs):
         pass
 
@@ -109,16 +118,23 @@ def _inject_symbols_into_main():
     setattr(main_mod, "BinarySegModel", BinarySegModel)
     setattr(main_mod, "SemanticSegmentatorPyTorch", SemanticSegmentatorPyTorch)
     setattr(main_mod, "HuggingFaceToTorchDataset", HuggingFaceToTorchDataset)
-    setattr(main_mod, "HuggingFaceToTorchDataset_onlyImage", HuggingFaceToTorchDataset_onlyImage)
+    setattr(main_mod, "HuggingFaceToTorchDataset_onlyImage",
+            HuggingFaceToTorchDataset_onlyImage)
 
 # ---------------------------
 # Parche SMP (compatibilidad)
 # ---------------------------
 
+
 def _patch_smp_compat():
     try:
-        from segmentation_models_pytorch.decoders.unet import decoder as unet_decoder
-        if hasattr(unet_decoder, "UnetDecoderBlock") and not hasattr(unet_decoder, "DecoderBlock"):
+        from segmentation_models_pytorch.decoders.unet import (
+            decoder as unet_decoder,
+        )
+        if (
+            hasattr(unet_decoder, "UnetDecoderBlock")
+            and not hasattr(unet_decoder, "DecoderBlock")
+        ):
             unet_decoder.DecoderBlock = unet_decoder.UnetDecoderBlock
     except Exception:
         pass
@@ -157,6 +173,7 @@ class _Dummy(dict, metaclass=_DummyMeta):
     - attr access a nivel de instancia y clase
     - callable
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__()
 
@@ -199,16 +216,19 @@ def _extract_core_module(obj) -> nn.Module:
         return obj
     if hasattr(obj, "model") and isinstance(obj.model, nn.Module):
         return obj.model
-    raise TypeError(f"No se pudo extraer nn.Module del objeto pickle: {type(obj)}")
+    raise TypeError(
+        f"No se pudo extraer nn.Module del objeto pickle: {type(obj)}")
 
 
 class _PickleInferWrapper(nn.Module):
     """
-    Asegura que siempre devolvemos PROBABILIDADES (sigmoid) y normalización correcta.
+    Asegura que siempre devolvemos PROBABILIDADES (sigmoid) y
+    normalización correcta.
     - Si el core trae mean/std -> NO normalizamos fuera.
     - Si no trae mean/std -> aplicamos ImageNet fuera.
     - Si el core devuelve logits -> aplicamos sigmoid.
     """
+
     def __init__(self, core: nn.Module):
         super().__init__()
         self.core = core
@@ -232,8 +252,14 @@ class _PickleInferWrapper(nn.Module):
 # ---------------------------
 
 @lru_cache(maxsize=8)
-def load_fold_pickle_models(models_dir: str, model_template: str, fold_id: int, use_gpu: bool):
-    device = torch.device("cuda" if (use_gpu and torch.cuda.is_available()) else "cpu")
+def load_fold_pickle_models(
+    models_dir: str,
+    model_template: str,
+    fold_id: int,
+    use_gpu: bool,
+):
+    device = torch.device("cuda" if (
+        use_gpu and torch.cuda.is_available()) else "cpu")
 
     _inject_symbols_into_main()
     _patch_smp_compat()
@@ -241,7 +267,8 @@ def load_fold_pickle_models(models_dir: str, model_template: str, fold_id: int, 
     fold = int(fold_id)
     p = os.path.join(models_dir, model_template.format(fold=fold))
     if not os.path.exists(p):
-        raise FileNotFoundError(f"No se encontró el modelo PICKLE del fold {fold}: {p}")
+        raise FileNotFoundError(
+            f"No se encontró el modelo PICKLE del fold {fold}: {p}")
 
     obj = _pickle_load_safe(p)
     core = _extract_core_module(obj)
@@ -273,7 +300,7 @@ def predict_mask_ensemble(
     models, device = load_fold_pickle_models(
         models_dir=models_dir,
         model_template=model_template,
-        fold_id=0, # Cambiar FOLD
+        fold_id=0,  # Cambiar FOLD
         use_gpu=use_gpu,
     )
 
@@ -311,6 +338,7 @@ def mask_to_traces_points(mask: np.ndarray) -> Dict[str, List[int]]:
     if xs.size == 0:
         return {"xs": [], "ys": []}
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}
+
 
 def compute_traces_from_segmentation(
     image_path: str,
