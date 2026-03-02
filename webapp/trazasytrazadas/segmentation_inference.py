@@ -1,18 +1,16 @@
 """
-segmentation_inference.py
--------------------------
-Inferencia de segmentación semántica usando modelos guardados con pickle
-(multi-fold ensemble) y generación de trazas {xs, ys} para el frontend.
+Inferencia de segmentación y conversión de máscaras a trazas para el frontend.
 
-Características:
-- Padding a múltiplos de 32.
-- Ensemble multi-fold: media de probabilidades -> umbral -> máscara final.
-- Carga cacheada (se carga una vez y se reutiliza).
-- NO requiere pytorch_lightning instalado: unpickler personalizado que
-  ignora objetos PL.
-- Compatibilidad con cambios de segmentation_models_pytorch:
-  * UnetDecoderBlock.interpolation_mode
-  * alias DecoderBlock <-> UnetDecoderBlock
+Este módulo prepara la imagen de entrada, carga el modelo serializado con
+pickle, ejecuta la inferencia y transforma la máscara resultante en
+coordenadas {xs, ys} consumibles por el frontend.
+
+También incluye compatibilidad con pickles generados en entornos de
+entrenamiento anteriores y una carga cacheada del modelo para evitar recargas
+innecesarias.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
 """
 
 from __future__ import annotations
@@ -31,13 +29,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-# ---------------------------
-# Preprocesado
-# ---------------------------
+# Preprocesado de entrada.
 
 def _pad_to_multiple_of_32(
     img_t: torch.Tensor,
 ) -> Tuple[torch.Tensor, int, int]:
+    """
+    Ajusta el tensor de entrada a múltiplos de 32 mediante padding al final.
+
+    Returns:
+        Tuple[torch.Tensor, int, int]: Tensor ajustado, padding añadido en
+        alto y padding añadido en ancho.
+    """
     _, _, h, w = img_t.shape
     new_h = int(np.ceil(h / 32) * 32)
     new_w = int(np.ceil(w / 32) * 32)
@@ -50,59 +53,63 @@ def _pad_to_multiple_of_32(
 
 
 def _pil_to_tensor_rgb(pil_img: Image.Image) -> torch.Tensor:
+    """Convierte una imagen PIL a un tensor RGB con forma [1, 3, H, W]."""
     if pil_img.mode != "RGB":
         pil_img = pil_img.convert("RGB")
-    arr = np.asarray(pil_img).astype(np.float32) / 255.0  # H,W,3 in [0,1]
-    return torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0)  # 1,3,H,W
+    arr = np.asarray(pil_img).astype(np.float32) / 255.0  # H, W, 3 en [0, 1]
+    return torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0)  # 1, 3, H, W
 
 
 def _normalize_imagenet(img_t: torch.Tensor) -> torch.Tensor:
+    """Aplica normalización ImageNet a un tensor de imagen RGB."""
     mean = img_t.new_tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
     std = img_t.new_tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
     return (img_t - mean) / std
 
 
-# ---------------------------
-# Stubs mínimos (para pickles guardados desde notebooks/código de
-# entrenamiento)
-# ---------------------------
+# Stubs mínimos para reconstruir pickles heredados.
 
 class BinarySegModel(nn.Module):
     """
-    Stub para que pickle pueda reconstruir instancias antiguas.
-    En unpickle NO se llama a __init__, pero la clase debe existir.
+    Stub mínimo para que pickle pueda reconstruir instancias antiguas.
+
+    Durante el unpickle no se invoca __init__, pero la clase debe existir
+    para resolver la referencia.
     """
 
     def __init__(self):
         super().__init__()
 
     def forward(self, image: torch.Tensor) -> torch.Tensor:
-        # Si el pickle trae mean/std embebidos, se normaliza aquí.
+        # Si el objeto serializado incluye mean/std, la normalización se aplica
+        # aquí antes de delegar en el modelo interno.
         if hasattr(self, "mean") and hasattr(self, "std"):
             image = (image - self.mean) / self.std
         return self.model(image)
 
-    # Métodos típicos de Lightning referenciados en objetos pickled
+    # Métodos habituales de Lightning referenciados en algunos pickles.
     def log(self, *args, **kwargs): return None
     def log_dict(self, *args, **kwargs): return None
     def save_hyperparameters(self, *args, **kwargs): return None
 
 
 class SemanticSegmentatorPyTorch:
+    """Stub auxiliar para compatibilidad durante la deserialización."""
+
     def __init__(self):
         self.model = None
         self.trainer = None
 
 
 class HuggingFaceToTorchDataset:
-    """Stub: solo para satisfacer pickle.load; no se usa en inferencia."""
+    """Stub auxiliar para compatibilidad durante la deserialización."""
 
     def __init__(self, *args, **kwargs):
         pass
 
 
 class HuggingFaceToTorchDataset_onlyImage:
-    """Stub: solo para satisfacer pickle.load; no se usa en inferencia."""
+    """Stub auxiliar para compatibilidad durante la deserialización."""
 
     def __init__(self, *args, **kwargs):
         pass
@@ -110,7 +117,8 @@ class HuggingFaceToTorchDataset_onlyImage:
 
 def _inject_symbols_into_main():
     """
-    Muchos pickles de notebook apuntan a __main__.BinarySegModel, etc.
+    Inyecta en __main__ los símbolos que algunos pickles antiguos esperan
+    resolver durante la deserialización.
     """
     main_mod = sys.modules.get("__main__")
     if main_mod is None:
@@ -118,15 +126,20 @@ def _inject_symbols_into_main():
     setattr(main_mod, "BinarySegModel", BinarySegModel)
     setattr(main_mod, "SemanticSegmentatorPyTorch", SemanticSegmentatorPyTorch)
     setattr(main_mod, "HuggingFaceToTorchDataset", HuggingFaceToTorchDataset)
-    setattr(main_mod, "HuggingFaceToTorchDataset_onlyImage",
-            HuggingFaceToTorchDataset_onlyImage)
+    setattr(
+        main_mod,
+        "HuggingFaceToTorchDataset_onlyImage",
+        HuggingFaceToTorchDataset_onlyImage,
+    )
 
-# ---------------------------
-# Parche SMP (compatibilidad)
-# ---------------------------
 
+# Compatibilidad con segmentation_models_pytorch.
 
 def _patch_smp_compat():
+    """
+    Aplica ajustes de compatibilidad para cambios de nombres internos en
+    segmentation_models_pytorch.
+    """
     try:
         from segmentation_models_pytorch.decoders.unet import (
             decoder as unet_decoder,
@@ -141,37 +154,39 @@ def _patch_smp_compat():
 
 
 def _patch_unet_interpolation_mode(net: nn.Module, default: str = "nearest"):
+    """
+    Añade interpolation_mode a los bloques del decoder que no lo tengan,
+    para mantener compatibilidad con modelos serializados de versiones
+    anteriores.
+    """
     for m in net.modules():
         if m.__class__.__name__ in ("UnetDecoderBlock", "DecoderBlock"):
             if not hasattr(m, "interpolation_mode"):
                 m.interpolation_mode = default
 
 
-# ---------------------------
-# Unpickler sin pytorch_lightning
-# ---------------------------
-
-# ---------------------------
-# Unpickler sin pytorch_lightning (Dummy robusto)
-# ---------------------------
+# Unpickling seguro sin dependencias de Lightning.
 
 class _DummyMeta(type):
-    """Permite acceder a atributos de clase: _Dummy.FITTING, etc."""
+    """Permite resolver atributos de clase ausentes durante el unpickle."""
+
     def __getattr__(cls, name):
-        return cls  # devolvemos la propia clase como placeholder
+        return cls  # Placeholder para atributos como _Dummy.FITTING.
 
     def __call__(cls, *args, **kwargs):
-        # cuando pickle instancia la clase, devolvemos un objeto dict-like
+        # Cuando pickle instancia la clase, devolvemos un objeto dict-like.
         obj = super().__call__()
         return obj
 
 
 class _Dummy(dict, metaclass=_DummyMeta):
     """
-    Dummy robusto para reemplazar clases de Lightning durante unpickle.
-    - dict-like (soporta item assignment)
-    - attr access a nivel de instancia y clase
-    - callable
+    Reemplazo genérico para clases de Lightning ausentes durante el unpickle.
+
+    Se comporta como un contenedor flexible:
+    - soporta acceso por clave,
+    - permite acceso por atributo,
+    - y puede encadenarse como placeholder sin romper la carga.
     """
 
     def __init__(self, *args, **kwargs):
@@ -195,6 +210,9 @@ class _Dummy(dict, metaclass=_DummyMeta):
 
 
 class _SafeUnpickler(pickle.Unpickler):
+    """Unpickler tolerante a dependencias opcionales
+    no presentes en runtime."""
+
     _IGNORE_PREFIXES = (
         "pytorch_lightning",
         "lightning",
@@ -207,26 +225,34 @@ class _SafeUnpickler(pickle.Unpickler):
 
 
 def _pickle_load_safe(path: str):
+    """Carga un pickle usando un unpickler tolerante a dependencias
+    ausentes."""
     with open(path, "rb") as f:
         return _SafeUnpickler(f).load()
 
 
 def _extract_core_module(obj) -> nn.Module:
+    """
+    Extrae el nn.Module utilizable para inferencia desde el objeto
+    deserializado.
+    """
     if isinstance(obj, nn.Module):
         return obj
     if hasattr(obj, "model") and isinstance(obj.model, nn.Module):
         return obj.model
     raise TypeError(
-        f"No se pudo extraer nn.Module del objeto pickle: {type(obj)}")
+        f"No se pudo extraer nn.Module del objeto pickle: {type(obj)}"
+    )
 
 
 class _PickleInferWrapper(nn.Module):
     """
-    Asegura que siempre devolvemos PROBABILIDADES (sigmoid) y
-    normalización correcta.
-    - Si el core trae mean/std -> NO normalizamos fuera.
-    - Si no trae mean/std -> aplicamos ImageNet fuera.
-    - Si el core devuelve logits -> aplicamos sigmoid.
+    Envuelve el modelo cargado para unificar la normalización y la salida.
+
+    - Si el modelo ya incorpora mean y std, no se normaliza fuera.
+    - Si no los incorpora, se aplica normalización ImageNet.
+    - Si la salida parece estar en logits, se convierte a probabilidades
+      mediante sigmoid.
     """
 
     def __init__(self, core: nn.Module):
@@ -239,7 +265,7 @@ class _PickleInferWrapper(nn.Module):
             x = _normalize_imagenet(x)
         y = self.core(x)
 
-        # Convertir a prob si parecen logits
+        # Si la salida queda fuera de [0, 1], se interpreta como logits.
         y_min = float(y.min().detach().cpu())
         y_max = float(y.max().detach().cpu())
         if y_min < 0.0 or y_max > 1.0:
@@ -247,9 +273,7 @@ class _PickleInferWrapper(nn.Module):
         return y
 
 
-# ---------------------------
-# Carga cacheada de folds (pickle)
-# ---------------------------
+# Carga cacheada del modelo serializado.
 
 @lru_cache(maxsize=8)
 def load_fold_pickle_models(
@@ -258,8 +282,17 @@ def load_fold_pickle_models(
     fold_id: int,
     use_gpu: bool,
 ):
-    device = torch.device("cuda" if (
-        use_gpu and torch.cuda.is_available()) else "cpu")
+    """
+    Carga un modelo serializado, lo adapta para inferencia y lo deja
+    preparado en el dispositivo correspondiente.
+
+    Returns:
+        tuple[list[nn.Module], torch.device]: Lista de modelos lista para
+        inferencia y dispositivo asociado.
+    """
+    device = torch.device(
+        "cuda" if (use_gpu and torch.cuda.is_available()) else "cpu"
+    )
 
     _inject_symbols_into_main()
     _patch_smp_compat()
@@ -268,7 +301,8 @@ def load_fold_pickle_models(
     p = os.path.join(models_dir, model_template.format(fold=fold))
     if not os.path.exists(p):
         raise FileNotFoundError(
-            f"No se encontró el modelo PICKLE del fold {fold}: {p}")
+            f"No se encontró el modelo PICKLE del fold {fold}: {p}"
+        )
 
     obj = _pickle_load_safe(p)
     core = _extract_core_module(obj)
@@ -280,9 +314,7 @@ def load_fold_pickle_models(
     return models, device
 
 
-# ---------------------------
-# Inferencia + ensemble
-# ---------------------------
+# Predicción de máscara binaria.
 
 def predict_mask_ensemble(
     image_path: str,
@@ -291,6 +323,13 @@ def predict_mask_ensemble(
     use_gpu: bool,
     threshold: float = 0.5,
 ) -> np.ndarray:
+    """
+    Genera una máscara binaria a partir de la imagen indicada.
+
+    La imagen se preprocesa, se ejecuta la inferencia con el modelo cargado y
+    la salida se umbraliza para obtener una máscara binaria recortada al
+    tamaño original.
+    """
     with Image.open(image_path) as pil:
         w0, h0 = pil.size
         img_t = _pil_to_tensor_rgb(pil)
@@ -300,7 +339,7 @@ def predict_mask_ensemble(
     models, device = load_fold_pickle_models(
         models_dir=models_dir,
         model_template=model_template,
-        fold_id=0,  # Cambiar FOLD
+        fold_id=0,  # Implementación actual: carga el fold 0.
         use_gpu=use_gpu,
     )
 
@@ -309,7 +348,7 @@ def predict_mask_ensemble(
     probs_sum = None
     with torch.inference_mode():
         for m in models:
-            probs = m(img_t)  # prob [1,1,H,W]
+            probs = m(img_t)
             probs_sum = probs if probs_sum is None else (probs_sum + probs)
 
     probs_avg = probs_sum / float(len(models))
@@ -329,11 +368,12 @@ def predict_mask_ensemble(
     return mask_np[:h0, :w0]
 
 
-# ---------------------------
-# Máscara -> trazas (xs,ys)
-# ---------------------------
+# Conversión de máscara a coordenadas de traza.
 
 def mask_to_traces_points(mask: np.ndarray) -> Dict[str, List[int]]:
+    """
+    Convierte una máscara binaria en listas de coordenadas xs e ys.
+    """
     ys, xs = np.where(mask > 0)
     if xs.size == 0:
         return {"xs": [], "ys": []}
@@ -347,6 +387,14 @@ def compute_traces_from_segmentation(
     n_folds: int,
     use_gpu: bool,
 ) -> Dict[str, List[int]]:
+    """
+    Ejecuta la inferencia de segmentación y devuelve las coordenadas de traza
+    en el formato esperado por el frontend.
+
+    El parámetro n_folds se mantiene en la firma por compatibilidad con la
+    configuración del pipeline, aunque en esta implementación no se utiliza de
+    forma directa.
+    """
     mask = predict_mask_ensemble(
         image_path=image_path,
         models_dir=models_dir,

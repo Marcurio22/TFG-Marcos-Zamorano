@@ -1,10 +1,15 @@
 /*
-  style.css
-  Complementos mínimos a DaisyUI.
-*/
+ * Ajustes de estilo complementarios sobre Tailwind y DaisyUI.
+ *
+ * Este archivo define pequeños retoques visuales del proyecto, en particular
+ * variables de color base y ajustes de renderizado para tipografía y canvas.
+ *
+ * Autor: Marcos Zamorano Lasso
+ * Versión: 0.1
+ */
 
 :root {
-  /* Primary ≈ #3949ab */
+  /* Color primario base y variantes usadas por DaisyUI. */
   --p: 232 50% 45%;
   --pf: 233 57% 37%;
   --pc: 0 0% 100%;
@@ -15,7 +20,7 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Canvas encima de la imagen: trazo más nítido */
+/* Mantiene un trazado más definido en el canvas superpuesto. */
 #traces-canvas {
   image-rendering: pixelated;
 }

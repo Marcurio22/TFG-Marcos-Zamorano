@@ -1,178 +1,185 @@
-<!-- ========================================================================
-Archivo: base.html
+<!--
+Plantilla base común de la aplicación.
+
+Define la estructura general de la interfaz, incluyendo cabecera, selector de
+idioma, mensajes flash, contenedor principal y pie de página.
+
 Autor: Marcos Zamorano Lasso
-Since: 19/11/2025
-Descripción:
-Plantilla base del proyecto.
-=========================================================================== -->
-
-<!doctype html>
+Versión: 0.1
+-->
+<!DOCTYPE html>
 <html lang="{{ current_lang or 'es' }}" data-theme="corporate">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}</title>
-
-  <!-- DaisyUI + Tailwind -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-  <!-- FavIcon -->
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon.png') }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon.png') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon.png') }}">
-</head>
-
-<body class="min-h-screen bg-base-200 text-base-content flex flex-col">
-
-  <!-- ============================ Background ============================ -->
-  <div class="pointer-events-none fixed inset-0 z-0">
-    <div
-      class="absolute inset-0 bg-cover bg-center opacity-30 blur-[1.5px] saturate-75"
-      style="background-image:url('{{ url_for('static', filename='img/background.png') }}');"
-    ></div>
-    <div class="absolute inset-0 bg-base-200/65"></div>
-  </div>
-
-  <!-- ============================ Header ============================ -->
-  <header class="bg-primary text-primary-content shadow-sm relative z-50">
-    <div class="max-w-5xl mx-auto px-3 sm:px-4">
-      <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center py-3 gap-y-2">
-        <div class="hidden sm:block"></div>
-
-        <div class="justify-self-center text-center">
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm">
-            {{ _("Trazas de Herbívoros") }}
-          </h1>
-        </div>
-
-        <div class="justify-self-center sm:justify-self-end mt-1 sm:mt-0">
-          {% set FLAG_FILES = {
-          'es': 'img/flags/es.svg',
-          'en': 'img/flags/gb.svg',
-          'fr': 'img/flags/fr.svg',
-          'it': 'img/flags/it.svg',
-          'de': 'img/flags/de.svg'
-          } %}
-
-          <div class="dropdown dropdown-end z-50">
-            <label tabindex="0"
-              class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
-              <span class="inline-flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
-                  <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg')) }}"
-                    alt="{{ LANGUAGES.get(current_lang, _('Idioma')) }}" class="w-full h-full object-cover" />
-                </span>
-                <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, _('Idioma')) }}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                  class="w-4 h-4 opacity-90">
-                  <path fill-rule="evenodd"
-                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z"
-                    clip-rule="evenodd" />
-                </svg>
-              </span>
-            </label>
-
-            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
-              <li class="menu-title"><span>{{ _("Idioma") }}</span></li>
-              {% for code, name in LANGUAGES.items() %}
-              <li>
-                <a href="{{ url_for('trazas.index', lang=code) }}"
-                  class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
-                  <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
-                    <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg')) }}"
-                      alt="{{ name }}" class="w-full h-full object-cover" />
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>
+      {% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}
+    </title>
+    <!-- Recursos de estilo globales. -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5"
+          rel="stylesheet"
+          type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Iconos de la aplicación. -->
+    <link rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="apple-touch-icon"
+          href="{{ url_for('static', filename='img/favicon.png') }}">
+  </head>
+  <body class="min-h-screen bg-base-200 text-base-content flex flex-col">
+    <!-- Fondo visual común de la interfaz. -->
+    <div class="pointer-events-none fixed inset-0 z-0">
+      <div class="absolute inset-0 bg-cover bg-center opacity-30 blur-[1.5px] saturate-75"
+           style="background-image:url('{{ url_for('static', filename='img/background.png') }}')"></div>
+      <div class="absolute inset-0 bg-base-200/65"></div>
+    </div>
+    <!-- Cabecera principal y selector de idioma. -->
+    <header class="bg-primary text-primary-content shadow-sm relative z-50">
+      <div class="max-w-5xl mx-auto px-3 sm:px-4">
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center py-3 gap-y-2">
+          <div class="hidden sm:block"></div>
+          <div class="justify-self-center text-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm">{{ _("Trazas de Herbívoros") }}</h1>
+          </div>
+          <div class="justify-self-center sm:justify-self-end mt-1 sm:mt-0">
+            {% set FLAG_FILES = {
+              "es": "img/flags/es.svg",
+              "en": "img/flags/gb.svg",
+              "fr": "img/flags/fr.svg",
+              "it": "img/flags/it.svg",
+              "de": "img/flags/de.svg"
+            } %}
+            <div class="dropdown dropdown-end z-50">
+              <label tabindex="0"
+                     class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
+                <span class="inline-flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
+                    <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg') ) }}"
+                         alt="{{ LANGUAGES.get(current_lang, _('Idioma') ) }}"
+                         width="24"
+                         height="24"
+                         class="w-full h-full object-cover" />
                   </span>
-                  <span class="flex-1">{{ name }}</span>
-                  {% if code == current_lang %}
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                    class="w-4 h-4 opacity-70">
-                    <path fill-rule="evenodd"
-                      d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z"
-                      clip-rule="evenodd" />
+                  <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, _('Idioma') ) }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       viewBox="0 0 20 20"
+                       fill="currentColor"
+                       class="w-4 h-4 opacity-90">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                   </svg>
-                  {% endif %}
-                </a>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ============================ Flash messages ============================ -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="toast toast-top toast-center z-50 mt-4">
-        {% for category, message in messages %}
-          {% set alert_class = 'alert-info' %}
-          {% if category in ['error', 'danger'] %}
-            {% set alert_class = 'alert-error' %}
-          {% elif category == 'success' %}
-            {% set alert_class = 'alert-success' %}
-          {% elif category == 'warning' %}
-            {% set alert_class = 'alert-warning' %}
-          {% endif %}
-
-          <div class="alert {{ alert_class }} shadow-lg">
-            <span class="text-sm sm:text-base">{{ message }}</span>
-            <button type="button" class="btn btn-sm btn-ghost ml-auto" aria-label="Cerrar"
-                    onclick="this.closest('.alert').remove();">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                <path d="M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z"/>
-              </svg>
-            </button>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <!-- ============================ Main ============================ -->
-  <main class="flex-1 relative z-10">
-    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-3">
-      {% block content %}{% endblock %}
-    </div>
-  </main>
-
-  <!-- ============================ Footer ============================ -->
-  <footer class="border-t border-base-300 bg-base-200">
-    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-8">
-      <div class="footer footer-center">
-        <div class="grid gap-3">
-          <div class="flex items-center justify-center gap-3">
-            <div class="text-center">
-              <a href="https://www.ubu.es/" target="_blank" rel="noopener noreferrer" class="font-semibold link link-hover">
-                {{ _("Universidad de Burgos") }}
-              </a>
-              <div class="text-sm opacity-75">{{ _("TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por computador") }}</div>
+                </span>
+              </label>
+              <ul tabindex="0"
+                  class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
+                <li class="menu-title">
+                  <span>{{ _("Idioma") }}</span>
+                </li>
+                {% for code, name in LANGUAGES.items() %}
+                  <li>
+                    <a href="{{ url_for('trazas.index', lang=code) }}"
+                       class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
+                      <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
+                        <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg') ) }}"
+                             alt="{{ name }}"
+                             width="28"
+                             height="28"
+                             class="w-full h-full object-cover" />
+                      </span>
+                      <span class="flex-1">{{ name }}</span>
+                      {% if code == current_lang %}
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 20 20"
+                             fill="currentColor"
+                             class="w-4 h-4 opacity-70">
+                          <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z" clip-rule="evenodd" />
+                        </svg>
+                      {% endif %}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
             </div>
           </div>
-          <div class="text-xs opacity-70">
-            © {{ 2026 }} · Marcos Zamorano Lasso
+        </div>
+      </div>
+    </header>
+    <!-- Mensajes flash renderizados con estilos de DaisyUI. -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="toast toast-top toast-center z-50 mt-4">
+          {% for category, message in messages %}
+            {% set alert_class = "alert-info" %}
+            {% if category in ['error', 'danger'] %}
+              {% set alert_class = "alert-error" %}
+            {% elif category == 'success' %}
+              {% set alert_class = "alert-success" %}
+            {% elif category == 'warning' %}
+              {% set alert_class = "alert-warning" %}
+            {% endif %}
+            <div class="alert {{ alert_class }} shadow-lg">
+              <span class="text-sm sm:text-base">{{ message }}</span>
+              <button type="button"
+                      class="btn btn-sm btn-ghost ml-auto"
+                      aria-label="Cerrar"
+                      onclick="this.closest('.alert').remove();">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 20 20"
+                     fill="currentColor"
+                     class="w-4 h-4">
+                  <path d="M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z" />
+                </svg>
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <!-- Contenedor principal para las vistas hijas. -->
+    <main class="flex-1 relative z-10">
+      <div class="max-w-5xl mx-auto px-3 sm:px-4 py-3">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+    <!-- Pie de página común de la aplicación. -->
+    <footer class="border-t border-base-300 bg-base-200">
+      <div class="max-w-5xl mx-auto px-3 sm:px-4 py-8">
+        <div class="footer footer-center">
+          <div class="grid gap-3">
+            <div class="flex items-center justify-center gap-3">
+              <div class="text-center">
+                <a href="https://www.ubu.es/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="font-semibold link link-hover">{{ _("Universidad de Burgos") }}</a>
+                <div class="text-sm opacity-75">
+                  {{ _("TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por computador") }}
+                </div>
+              </div>
+            </div>
+            <div class="text-xs opacity-70">© {{ 2026 }} · Marcos Zamorano Lasso</div>
           </div>
         </div>
       </div>
-    </div>
-  </footer>
-
-<!-- Auto-cierre en 5s de flash messages -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".toast .alert").forEach((alertEl) => {
-    setTimeout(() => {
-      alertEl.style.transition = "opacity 250ms ease";
-      alertEl.style.opacity = "0";
-      setTimeout(() => alertEl.remove(), 260);
-    }, 5000);
-  });
-});
-</script>
-
-</body>
-
+    </footer>
+    <!-- Cierre automático de mensajes flash visibles en pantalla. -->
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".toast .alert").forEach((alertEl) => {
+        setTimeout(() => {
+          alertEl.style.transition = "opacity 250ms ease";
+          alertEl.style.opacity = "0";
+          setTimeout(() => alertEl.remove(), 260);
+        }, 5000);
+      });
+    });
+    </script>
+  </body>
 </html>

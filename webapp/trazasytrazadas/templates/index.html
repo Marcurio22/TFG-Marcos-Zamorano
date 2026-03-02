@@ -1,11 +1,13 @@
-<!-- ==========================================================================
-Archivo: index.html
+<!--
+Vista principal de la aplicación.
+
+Esta plantilla renderiza el estado del flujo, las acciones disponibles, el
+área de visualización de la imagen y la configuración inicial que utiliza el
+JavaScript del frontend para gestionar la interacción y el dibujado.
+
 Autor: Marcos Zamorano Lasso
-Descripción:
-Vista principal de la aplicación. Incluye subir/borrar imagen, calcular trazas,
-canvas para dibujar resultados y modales de estado. Todo el pintado ocurre en
-el navegador usando JSON de /traces.
-========================================================================== -->
+Versión: 0.1
+-->
 {% extends "base.html" %}
 {% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}
 {% block content %}
@@ -16,7 +18,7 @@ el navegador usando JSON de /traces.
     } %}
   {% set badge_cls = status_badge.get(status, ['badge-neutral', _('Estado')])[0] %}
   {% set badge_txt = status_badge.get(status, ['badge-neutral', _('Estado')])[1] %}
-  <!-- ====================== Barra de estado ====================== -->
+  <!-- Estado actual del flujo mostrado al usuario. -->
   <section class="mb-4">
     <div class="alert bg-base-100 border border-base-200 shadow-sm">
       <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 w-full text-center sm:text-left">
@@ -26,24 +28,24 @@ el navegador usando JSON de /traces.
       </div>
     </div>
   </section>
-  <!-- ====================== Botonera principal ====================== -->
+  <!-- Acciones principales del flujo de trabajo. -->
   <section class="my-4 w-full" aria-label="Acciones principales">
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-center gap-3 sm:gap-6 w-full">
-      <!-- PIPELINE: Insertar + Calcular -->
+      <!-- Formulario principal: selección de imagen y envío del cálculo. -->
       <form id="pipeline-form"
             action="{{ url_for("trazas.upload_and_calculate") }}"
             method="post"
             enctype="multipart/form-data"
             class="w-full lg:w-auto">
         <div class="flex flex-col sm:flex-row items-stretch justify-center gap-2 sm:gap-0 w-full sm:w-auto">
-          <!-- File input + textos -->
+          <!-- Selector de archivo y texto de apoyo. -->
           <div class="flex flex-col w-full sm:w-[360px]">
             <input id="image-input"
                    type="file"
                    name="image"
                    accept=".jpg,.jpeg,.png"
                    class="sr-only" />
-            <!-- UI custom traducible -->
+            <!-- Selector personalizado visible para el input oculto. -->
             <div class="flex w-full">
               <label for="image-input" class="btn btn-primary rounded-r-none shrink-0">{{ _("Elegir archivo") }}</label>
               <div id="selected-file-name"
@@ -61,7 +63,7 @@ el navegador usando JSON de /traces.
               </span>
             </div>
           </div>
-          <!-- CALCULAR TRAZAS -->
+          <!-- Envío del pipeline de cálculo. -->
           <button id="calculate-btn"
                   type="submit"
                   class="btn btn-primary whitespace-nowrap sm:rounded-l-none mt-2 sm:mt-0">
@@ -81,7 +83,7 @@ el navegador usando JSON de /traces.
           </button>
         </div>
       </form>
-      <!-- DESCARGAR + CHECKBOX -->
+      <!-- Descarga de resultados e indicador visual de trazas dibujadas. -->
       <div class="flex flex-col items-stretch gap-2 w-full lg:w-auto">
         <button id="download-btn"
                 type="button"
@@ -101,7 +103,7 @@ el navegador usando JSON de /traces.
           <span class="hidden sm:inline">{{ _("Descargar") }}</span>
           <span class="sm:hidden">{{ _("Descargar") }}</span>
         </button>
-        <!-- Checkbox "DIBUJAR TRAZAS" -->
+        <!-- Checkbox de solo lectura usado como confirmación visual. -->
         <label class="inline-flex items-center justify-center gap-3 text-[0.9rem]">
           <span class="uppercase tracking-wide font-semibold">{{ _("DIBUJAR TRAZAS") }}</span>
           <input type="checkbox"
@@ -110,7 +112,7 @@ el navegador usando JSON de /traces.
                  class="checkbox checkbox-success disabled:opacity-100 disabled:border-success disabled:bg-success/20" />
         </label>
       </div>
-      <!-- BORRAR IMAGEN -->
+      <!-- Eliminación de la imagen y del estado asociado. -->
       <form id="delete-form"
             action="{{ url_for("trazas.delete_image") }}"
             method="post"
@@ -136,10 +138,10 @@ el navegador usando JSON de /traces.
       </form>
     </div>
   </section>
-  <!-- ====================== Imagen + Canvas ====================== -->
+  <!-- Área de visualización de la imagen y del canvas superpuesto. -->
   <section class="card bg-base-100 shadow-sm border border-base-200">
     <div class="card-body p-4 sm:p-5">
-      <!-- Cuadro oscuro donde va la imagen -->
+      <!-- Contenedor que actúa como zona de imagen y dropzone. -->
       <div id="image-frame"
            class="rounded-none bg-base-200 border border-dashed border-base-300 overflow-hidden {% if image_url %}inline-block p-0{% else %}w-full p-0{% endif %}">
         <div class="{% if image_url %}p-0{% else %}min-h-[360px] sm:min-h-[520px] flex items-center justify-center{% endif %}">
@@ -151,6 +153,7 @@ el navegador usando JSON de /traces.
             <canvas id="traces-canvas"
                     class="absolute inset-0 pointer-events-none {{ '' if image_url else 'hidden' }}"></canvas>
           </div>
+          <!-- Contenido mostrado cuando todavía no hay imagen cargada. -->
           <div id="placeholder"
                class="text-center text-[#777] {{ 'hidden' if image_url else '' }}">
             <div class="mx-auto mb-3 w-12 h-12 rounded-none bg-base-100 border border-base-300 grid place-items-center">
@@ -176,7 +179,7 @@ el navegador usando JSON de /traces.
       </div>
     </div>
   </section>
-  <!-- ====================== Modal "Calculando..." ====================== -->
+  <!-- Modal mostrado mientras el backend procesa el cálculo. -->
   <dialog id="calculando-modal" class="modal">
     <div class="modal-box">
       <h3 class="font-bold text-lg">{{ _("Calculando trazas...") }}</h3>
@@ -189,17 +192,18 @@ el navegador usando JSON de /traces.
       <button aria-label="{{ _("Cerrar") }}"></button>
     </form>
   </dialog>
-  <!-- ====================== JavaScript ====================== -->
+  <!-- Configuración inicial consumida por static/js/index.js. -->
   <script>
-  window.TRACES_APP = {{ {
-    "serverHasImage": (image_url is not none),
-    "autoDrawTraces": auto_draw_traces,
-    "i18n": {
-      "noFileChosen": _("Ningún archivo seleccionado"),
-      "statusNoImage": _("Estado: ninguna imagen cargada. Inserta una imagen para empezar."),
-      "statusUploaded": _("Estado: imagen cargada. Pulsa «Calcular trazas».")
-    }
-  } | tojson }};
+    window.TRACES_APP = {{ {
+      "serverHasImage": (image_url is not none),
+      "autoDrawTraces": auto_draw_traces,
+      "i18n": {
+        "noFileChosen": _("Ningún archivo seleccionado"),
+        "statusNoImage": _("Estado: ninguna imagen cargada. Inserta una imagen para empezar."),
+        "statusUploaded": _("Estado: imagen cargada. Pulsa «Calcular trazas».")
+      }
+    } | tojson }};
   </script>
+  <!-- Lógica de interacción de la vista principal. -->
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

@@ -1,29 +1,14 @@
 """
 ===============================================================================
-Archivo: __init__.py
+Inicialización y configuración de la aplicación Flask del paquete
+trazasytrazadas.
+
+Este módulo define la factoría create_app(), carga la configuración base,
+prepara los directorios de trabajo en instance/, configura la
+internacionalización con Flask-Babel y registra el blueprint principal.
+
 Autor: Marcos Zamorano Lasso
-Since: 19/11/2025
-Descripción:
-Archivo principal del paquete trazasytrazadas. Define la application factory
-siguiendo el tutorial oficial de Flask. Se encarga de:
-
-    - Crear la instancia principal de la aplicación Flask.
-    - Cargar la configuración por defecto y, opcionalmente, una configuración
-      específica de tests o desde instance/config.py.
-    - Configurar las rutas y carpetas base de trabajo:
-          • UPLOAD_FOLDER  → almacenamiento de las imágenes originales
-                             subidas por el usuario.
-          • OUTPUT_FOLDER  → almacenamiento de los resultados de cálculo,
-                             concretamente los ficheros JSON con las trazas.
-    - Asegurar la existencia de la carpeta instance/ y sus subcarpetas.
-    - Registrar el blueprint principal del proyecto (traces.bp).
-    - Asociar la ruta raíz (/) con la vista trazas.index.
-
-Notas:
-    • La lógica de cálculo de trazas y la gestión del JSON se encuentran en
-      trazasytrazadas/traces.py.
-    • La aplicación utiliza instance_relative_config=True para separar código
-      fuente y datos generados.
+Versión: 0.1
 ===============================================================================
 """
 
@@ -47,11 +32,13 @@ LANGUAGES = {
 
 
 def select_locale():
-    """Selecciona idioma por request en este orden:
-    1) Querystring ?lang=xx
-    2) session["lang"]
-    3) Accept-Language header del navegador
-    4) fallback a 'es'
+    """
+    Devuelve el idioma activo para la petición actual.
+    El orden de resolución es:
+    1. Parámetro de consulta lang.
+    2. Valor almacenado en session["lang"].
+    3. Cabecera Accept-Language del navegador.
+    4. "es" como valor por defecto.
     """
     lang = request.args.get("lang")
     if lang in LANGUAGES:
@@ -70,14 +57,13 @@ def create_app(test_config=None):
     Crea y configura la aplicación Flask.
 
     Args:
-    test_config (dict | None): configuración de test opcional.
+        test_config (dict | None): Configuración de prueba opcional que
+            sobrescribe la configuración por defecto.
 
     Returns:
-    Flask: instancia de la aplicación.
+        Flask: Instancia de la aplicación ya configurada.
     """
 
-    # La aplicación usará instance_relative_config para permitir almacenar
-    # archivos fuera del código fuente.
     app = Flask(__name__, instance_relative_config=True)
 
     # Configuración por defecto.
@@ -107,7 +93,7 @@ def create_app(test_config=None):
         SEG_USE_GPU=True,
     )
 
-    # Sesión: 24h máximo (sin extensión por actividad)
+    # Sesión: 24h máximo, sin refresco automático.
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=24)
     app.config["SESSION_REFRESH_EACH_REQUEST"] = False
 
@@ -115,13 +101,13 @@ def create_app(test_config=None):
     def _make_session_permanent():
         session.permanent = True
 
-    # Configuración de tests, en caso de ser proporcionada.
+    # Configuración de tests.
     if test_config is not None:
         app.config.update(test_config)
     else:
         app.config.from_pyfile("config.py", silent=True)
 
-    # ------------------ Configuración i18n (Flask-Babel) ------------------
+    # Configuración de internacionalización.
     app.config.setdefault("BABEL_DEFAULT_LOCALE", "es")
     app.config.setdefault("BABEL_DEFAULT_TIMEZONE", "Europe/Madrid")
 
@@ -142,7 +128,7 @@ def create_app(test_config=None):
     # Registrar blueprint principal.
     app.register_blueprint(traces.bp)
 
-    # Ruta raíz: redirigimos a trazas.index.
+    # Asocia la URL raíz con el endpoint principal del blueprint.
     app.add_url_rule("/", endpoint="trazas.index")
 
     return app

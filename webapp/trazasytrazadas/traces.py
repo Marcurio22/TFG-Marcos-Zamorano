@@ -1,33 +1,13 @@
 """
-===============================================================================
-Archivo: traces.py
+Blueprint principal y utilidades del flujo de imágenes y trazas.
+
+Este módulo define las rutas encargadas de la carga de imágenes, el cálculo
+de trazas, la consulta del JSON generado y la descarga de resultados. También
+incluye funciones auxiliares para validar archivos, gestionar el estado de
+sesión y preparar los artefactos asociados al procesamiento.
+
 Autor: Marcos Zamorano Lasso
-Since: 19/11/2025
-Descripción:
-Contiene el blueprint principal de la aplicación, incluyendo las rutas:
-
-- /               → Página principal
-- /upload         → Insertar imagen
-- /delete         → Borrar imagen
-- /calculate      → Calcular trazas
-- /traces    → Exponer JSON con las trazas calculadas
-
-Funcionalidad:
-    Este módulo gestiona todo el flujo del lado servidor. La aplicación
-    funciona siguiendo este proceso:
-        1. Se sube una imagen original.
-        2. El servidor calcula las trazas (puntos) usando la función
-           compute_traces() y genera un JSON con coordenadas {xs, ys}.
-        3. El JSON se sirve mediante /traces.
-        4. El frontend (JavaScript) usa el JSON para dibujar las trazas en un
-           <canvas> superpuesto sobre la imagen original.
-
-Incluye utilidades para:
-    - Validar archivos de imagen.
-    - Calcular los puntos de prueba mediante el algoritmo de Bresenham.
-    - Gestionar el estado de sesión.
-    - Mostrar modales en la interfaz.
-===============================================================================
+Versión: 0.1
 """
 
 import os
@@ -56,20 +36,13 @@ from flask import (
 from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
 from .segmentation_inference import compute_traces_from_segmentation
-from PIL import Image  # , ImageDraw
+from PIL import Image
 
-# -----------------------------------------------------------------------------
-# Declaración del blueprint
-# -----------------------------------------------------------------------------
-# Este blueprint agrupa todas las rutas de la aplicación relacionadas con
-# el flujo de imágenes y trazas.
+# Blueprint principal de la aplicación.
 bp = Blueprint("trazas", __name__)
 
-# ---------------------------------------------------------------------------
-# UTILIDADES INTERNAS
-# ---------------------------------------------------------------------------
 
-
+# Utilidades internas.
 def allowed_file(filename: str) -> bool:
     """
     Comprueba si el fichero tiene una extensión permitida.
@@ -86,12 +59,17 @@ def allowed_file(filename: str) -> bool:
 
 def compute_traces(image_path: str) -> dict:
     """
-    Calcula trazas reales usando segmentación semántica (U-Net + encoder timm)
-    y ensemble multi-fold.
+    Calcula las trazas asociadas a una imagen mediante el pipeline de
+    segmentación configurado en la aplicación.
 
-    Devuelve:
-      {"xs": [...], "ys": [...]}
-    donde (xs[i], ys[i]) son píxeles a pintar en el canvas del frontend.
+    Esta función delega el procesamiento en
+    compute_traces_from_segmentation() y devuelve un diccionario con el
+    formato esperado por el frontend:
+
+        {"xs": [...], "ys": [...]}
+
+    donde cada par (xs[i], ys[i]) representa un píxel a dibujar sobre la
+    imagen.
     """
     cfg = current_app.config
 
@@ -105,9 +83,7 @@ def compute_traces(image_path: str) -> dict:
 
 
 def _set_error(message: str):
-    """
-    Usamos flash messaging para que la UI lo muestre con DaisyUI.
-    """
+    """Registra un mensaje de error para su visualización en la interfaz."""
     flash(message, "error")
 
 
@@ -124,7 +100,7 @@ def _flash_info(message: str):
 def _cleanup_previous_state(
     old_image: str | None, old_traces_file: str | None
 ) -> None:
-    """Elimina de disco los artefactos previos (si existen)."""
+    """Elimina de disco los artefactos previos si existen."""
     for old, folder_key in [
         (old_image, "UPLOAD_FOLDER"),
         (old_traces_file, "OUTPUT_FOLDER"),
@@ -134,17 +110,15 @@ def _cleanup_previous_state(
         try:
             os.remove(os.path.join(current_app.config[folder_key], old))
         except OSError:
-            # Si no existe o no se puede borrar, ignoramos.
+            # Si no existe o no se puede borrar, se ignora.
             pass
 
 
 def _save_uploaded_image(file) -> str:
-    """Guarda una imagen subida y devuelve el filename final (con UUID)."""
-    # Usamos secure_filename para evitar nombres de fichero peligrosos.
+    """Guarda una imagen subida y devuelve el filename final con UUID."""
+    # Usa secure_filename para evitar nombres de fichero peligrosos.
     filename = secure_filename(file.filename)
     name, ext = os.path.splitext(filename)
-
-    # Añadimos un sufijo UUID para garantizar unicidad.
     filename = f"{name}_{uuid.uuid4().hex}{ext}"
 
     upload_folder = current_app.config["UPLOAD_FOLDER"]
@@ -155,8 +129,12 @@ def _save_uploaded_image(file) -> str:
 
 
 def _handle_upload_file_or_error(file) -> bool:
-    """Valida, limpia estado previo y guarda la imagen subida en sesión.
-    Devuelve True si ha ido bien, False si hay error (ya flasheado).
+    """
+    Valida el archivo recibido, limpia el estado previo y guarda la imagen.
+
+    Returns:
+        bool: True si la imagen se procesa correctamente; False si se
+        produce un error y ya se ha notificado mediante flash.
     """
     if not file or not file.filename:
         _set_error(_("No se ha seleccionado ningún archivo."))
@@ -168,6 +146,8 @@ def _handle_upload_file_or_error(file) -> bool:
         )
         return False
 
+    # Al cargar una nueva imagen se invalidan los artefactos asociados a la
+    # sesión anterior.
     old_image = session.pop("image_filename", None)
     old_traces_file = session.pop("traces_file", None)
     _cleanup_previous_state(old_image, old_traces_file)
@@ -195,7 +175,7 @@ def _calculate_and_store_traces(image_filename: str) -> str:
 
 
 def _render_traces_overlay_png(image_path: str, traces_path: str) -> bytes:
-    """Genera una PNG con las trazas pintadas (rojo) en la imagen."""
+    """Genera una PNG con las trazas pintadas en rojo sobre la imagen."""
     with open(traces_path, "r", encoding="utf-8") as f:
         traces = json.load(f)
 
@@ -227,15 +207,13 @@ def _strip_uuid_from_saved_filename(saved_filename: str) -> str:
     """
     Convierte:
       image_1_cace55ae3fa943d596cdd5fb695b9d0d.png -> image_1
-      test.jpg -> test  (si no hay UUID, se queda igual)
+      test.jpg -> test
     """
     stem, _ext = os.path.splitext(saved_filename)
     m = _UUID_SUFFIX_RE.match(stem)
     return m.group("base") if m else stem
 
-# -----------------------------------------------------------------------------
-# Rutas principales
-# -----------------------------------------------------------------------------
+# Rutas principales.
 
 # ---------------- Ruta raíz ----------------------
 
@@ -243,22 +221,19 @@ def _strip_uuid_from_saved_filename(saved_filename: str) -> str:
 @bp.route("/", methods=["GET"])
 def index():
     """
-    Página principal de la aplicación.
+    Renderiza la página principal y prepara el estado actual de la vista.
 
-    Se encarga de:
-        - Determinar qué imagen mostrar, si la original o la que
-          contiene las trazas.
-        - Determinar el estado actual del flujo (sin imagen, imagen cargada,
-          trazas calculadas, trazas dibujadas).
-        - Mostrar modales de error o de "trazas calculadas".
+    Determina la imagen disponible, comprueba si existen trazas calculadas y
+    construye el contexto que utiliza la plantilla para representar el estado
+    del flujo de trabajo.
     """
     # Nombre del fichero de la imagen original subida por el usuario.
     image_filename = session.get("image_filename")
 
-    # Nombre del fichero JSON de trazas (se guarda en OUTPUT_FOLDER).
+    # Nombre del fichero JSON de trazas.
     traces_file = session.get("traces_file")
 
-    # URL pública para la imagen original (usada en la plantilla).
+    # URL pública para la imagen original.
     image_url = (
         url_for("trazas.uploaded_file", filename=image_filename)
         if image_filename
@@ -282,7 +257,7 @@ def index():
             "sobre la imagen."
         )
 
-    # Si hay trazas calculadas, el frontend dibuja automáticamente (ver JS).
+    # Si hay trazas calculadas, el frontend dibuja automáticamente.
     auto_draw_traces = bool(traces_file)
 
     return render_template(
@@ -304,7 +279,7 @@ def upload_image():
     Flujo:
         1. Valida que se ha enviado un archivo y que su extensión es válida.
         2. Guarda la imagen original en UPLOAD_FOLDER con un nombre único.
-        3. Limpia el estado anterior (imagen previa, trazas previas, etc.).
+        3. Limpia el estado anterior.
         4. Redirige a la página principal.
     """
     file = request.files.get("image")
@@ -349,17 +324,16 @@ def delete_image():
 @bp.route("/calculate", methods=["POST"])
 def calculate_traces():
     """
-    Ruta para calcular el JSON de trazas de la imagen actual.
+    Calcula y guarda el JSON de trazas para la imagen actual.
 
     Condiciones:
-        - Debe existir una imagen subida; si no, se genera error.
+        - Debe existir una imagen subida; si no, se notifica un error.
 
     Efectos:
         - Calcula el diccionario {"xs": [...], "ys": [...]}.
-        - Lo guarda en un fichero <nombre>_traces.json en OUTPUT_FOLDER.
-        - Guarda en sesión el nombre de ese fichero ('traces_file').
-        - Activa un flag en sesión para mostrar el modal de
-          "trazas calculadas".
+        - Lo guarda en un fichero <nombre>_traces.json en
+          OUTPUT_FOLDER.
+        - Guarda en sesión el nombre de ese fichero en "traces_file".
     """
     image_filename = session.get("image_filename")
     if not image_filename:
@@ -386,20 +360,15 @@ def calculate_traces():
     return redirect(url_for("trazas.index"))
 
 
-# ---------------- Ruta upload + calculate (pipeline) ----------------------
+# ---------------- Ruta upload + calculate ----------------------
 @bp.route("/upload_and_calculate", methods=["POST"])
 def upload_and_calculate():
-    """Pipeline usado por el frontend:
+    """
+    Pipeline usado por el frontend:
 
-    - Si viene un fichero en request.files['image'], lo guarda
-      (equivalente a /upload).
-    - Si no viene fichero, usa la imagen ya presente en sesión
-      (equivalente a /calculate).
+    - Si viene un fichero en request.files['image'], lo guarda.
+    - Si no viene fichero, usa la imagen ya presente en sesión.
     - En ambos casos calcula y persiste el JSON de trazas.
-
-    Esta ruta permite separar en la UI:
-        * INSERTAR IMAGEN → preview local (sin backend)
-        * CALCULAR TRAZAS → (subir si hace falta) + calcular
     """
 
     file = request.files.get("image")
@@ -415,10 +384,11 @@ def upload_and_calculate():
 
 @bp.route("/download_results", methods=["GET"])
 def download_results():
-    """Descarga un ZIP con:
-      - input: imagen original
-      - output: JSON de trazas
-      - output: imagen con trazas pintadas
+    """
+    Genera un archivo ZIP en memoria con los resultados de la sesión actual.
+
+    El ZIP incluye la imagen original, el JSON de trazas calculado y una
+    imagen PNG con las trazas superpuestas.
     """
     image_filename = session.get("image_filename")
     traces_file = session.get("traces_file")
@@ -435,7 +405,7 @@ def download_results():
     if not os.path.exists(image_path) or not os.path.exists(traces_path):
         abort(404)
 
-    # Nombre sin UUID para el ZIP.
+    # Se elimina el sufijo UUID para generar nombres de descarga más legibles.
     display_base = _strip_uuid_from_saved_filename(image_filename)
     _ext = os.path.splitext(image_filename)[1]
 
@@ -445,6 +415,8 @@ def download_results():
     overlay_name = f"{display_base}_traces.png"
     zip_name = f"{display_base}_{zip_suffix}.zip"
 
+    # El overlay se genera en memoria para incluirlo en el ZIP sin crear
+    # archivos temporales adicionales en disco.
     overlay_png = _render_traces_overlay_png(image_path, traces_path)
 
     zip_buf = io.BytesIO()
@@ -461,9 +433,7 @@ def download_results():
         download_name=zip_name,
     )
 
-# -----------------------------------------------------------------------------
-# Rutas auxiliares (servir imágenes y JSON)
-# -----------------------------------------------------------------------------
+# Rutas auxiliares: servicio de imágenes y JSON.
 
 # ----------- Ruta GET/uploads/<filename> ------------
 
@@ -481,23 +451,19 @@ def uploaded_file(filename: str):
 @bp.route("/traces")
 def traces_json():
     """
-    Endpoint para consultar el JSON de trazas actual.
+    Devuelve el JSON de trazas asociado a la sesión actual.
 
-    Útil para depuración y para verificar que el cálculo se realiza
-    correctamente. El JSON se lee desde el fichero guardado en OUTPUT_FOLDER.
+    Si no hay trazas calculadas o el fichero ya no existe en disco, responde
+    con el error HTTP correspondiente.
     """
-    # Obtiene traces_file desde la sesión actual.
     traces_file = session.get("traces_file")
 
-    # Si no, devuelve error.
     if not traces_file:
         return jsonify({"error": _("No hay trazas calculadas todavía.")}), 404
 
-    # Busca archivo en output, si existe, devuelve traces.
     traces_path = os.path.join(
         current_app.config["OUTPUT_FOLDER"], traces_file)
 
-    # Si no existe, lanza error.
     if not os.path.exists(traces_path):
         return (
             jsonify(
@@ -511,7 +477,6 @@ def traces_json():
             500,
         )
 
-    # Abre archivo y lo convierte en formato JSON HTTP.
     with open(traces_path, "r", encoding="utf-8") as f:
         traces = json.load(f)
 
