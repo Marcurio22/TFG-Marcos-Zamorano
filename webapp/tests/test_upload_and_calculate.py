@@ -1,17 +1,22 @@
 """
-Tests para el pipeline /upload_and_calculate.
+Pruebas del endpoint /upload_and_calculate.
 
-Este endpoint permite al frontend:
-  - Previsualizar una imagen (sin backend)
-  - Y, al pulsar "Calcular trazas", subir + calcular en una sola petición.
+Este módulo cubre el comportamiento del pipeline combinado que permite usar una
+imagen enviada en la misma petición o reutilizar la imagen ya almacenada en
+sesión para calcular trazas.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
 """
 
 import io
 import os
+
 from PIL import Image
 
 
 def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
+    """Genera una imagen JPEG en memoria para usarla en las pruebas."""
     img = Image.new("RGB", size, color="white")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
@@ -20,11 +25,13 @@ def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
 
 
 def upload_image(client):
+    """Sube una imagen válida para dejar el estado preparado en sesión."""
     data = {"image": (create_test_image_bytes(), "test.jpg")}
     client.post("/upload", data=data, content_type="multipart/form-data")
 
 
 def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
+    """Verifica el flujo combinado cuando la petición incluye una imagen."""
     mock_compute_traces()
 
     data = {"image": (create_test_image_bytes(), "test.jpg")}
@@ -36,7 +43,7 @@ def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
     )
     assert resp.status_code == 200
 
-    # Verifica sesión y artefactos en disco.
+    # Comprueba que la sesión y los archivos generados quedan disponibles.
     with client.session_transaction() as sess:
         image_filename = sess.get("image_filename")
         traces_file = sess.get("traces_file")
@@ -45,14 +52,16 @@ def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
     assert traces_file
 
     upload_path = os.path.join(
-        client.application.config["UPLOAD_FOLDER"], image_filename)
+        client.application.config["UPLOAD_FOLDER"], image_filename
+    )
     traces_path = os.path.join(
-        client.application.config["OUTPUT_FOLDER"], traces_file)
+        client.application.config["OUTPUT_FOLDER"], traces_file
+    )
 
     assert os.path.exists(upload_path)
     assert os.path.exists(traces_path)
 
-    # Y además, /traces debe devolver JSON válido
+    # El endpoint de consulta debe exponer el JSON generado.
     resp_json = client.get("/traces")
     assert resp_json.status_code == 200
     payload = resp_json.get_json()
@@ -62,6 +71,7 @@ def test_pipeline_upload_and_calculate_with_file(client, mock_compute_traces):
 def test_pipeline_calculate_without_file_uses_session_image(
     client, mock_compute_traces
 ):
+    """Verifica que el endpoint reutiliza la imagen guardada en sesión."""
     mock_compute_traces()
     upload_image(client)
 
@@ -79,6 +89,7 @@ def test_pipeline_calculate_without_file_uses_session_image(
 
 
 def test_pipeline_requires_image_if_no_file_and_no_session(client):
+    """Debe fallar si no hay fichero enviado ni imagen previa en sesión."""
     resp = client.post("/upload_and_calculate", follow_redirects=True)
     error_msg = (
         "Primero debes insertar una imagen antes de calcular trazas."

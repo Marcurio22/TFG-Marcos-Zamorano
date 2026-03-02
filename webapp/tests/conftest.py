@@ -1,10 +1,10 @@
 """
 ==============================================================================
-Archivo: conftest.py
-Autor: Marcos Zamorano Lasso
-Descripción:
 Configura pytest para el proyecto. Añade el paquete trazasytrazadas
 al sys.path, crea app de test y cliente de test.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
 ==============================================================================
 """
 

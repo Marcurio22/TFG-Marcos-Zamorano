@@ -1,12 +1,19 @@
 """
-Tests de errores del endpoint /traces.
-(Falta cabecera)
+Pruebas de error para el endpoint /traces.
+
+Este módulo cubre los casos en los que todavía no se han calculado trazas o en
+los que la sesión referencia un fichero JSON que ya no existe en disco.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
 """
 
 import os
 
 
 def test_traces_404_when_not_calculated(client):
+    """Debe devolver 404 si no hay un archivo de trazas asociado a la
+    sesión."""
     resp = client.get("/traces")
     assert resp.status_code == 404
     data = resp.get_json()
@@ -14,12 +21,12 @@ def test_traces_404_when_not_calculated(client):
 
 
 def test_traces_500_when_json_missing(client):
-    # Forzamos en sesión un archivo inexistente
+    """Debe devolver 500 si la sesión apunta a un JSON inexistente."""
     missing = "missing_traces.json"
     out_dir = client.application.config["OUTPUT_FOLDER"]
     missing_path = os.path.join(out_dir, missing)
 
-    # Aseguramos que no exista
+    # Garantiza que el archivo referenciado no exista antes de la prueba.
     if os.path.exists(missing_path):
         os.remove(missing_path)
 
@@ -30,4 +37,5 @@ def test_traces_500_when_json_missing(client):
     assert resp.status_code == 500
     data = resp.get_json()
     assert data == {
-        "error": "Archivo de trazas no encontrado. Vuelve a calcularlas."}
+        "error": "Archivo de trazas no encontrado. Vuelve a calcularlas."
+    }

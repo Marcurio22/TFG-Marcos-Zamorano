@@ -1,13 +1,21 @@
 """
-Tests de manejo de errores en /calculate.
-(Falta cabecera)
+Pruebas de manejo de errores para la ruta /calculate.
+
+Este módulo verifica que la aplicación responde correctamente cuando el cálculo
+de trazas falla por ausencia de recursos o por errores inesperados durante la
+ejecución.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
 """
 
 import io
+
 from PIL import Image
 
 
 def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
+    """Genera una imagen JPEG en memoria para usarla en las pruebas."""
     img = Image.new("RGB", size, color="white")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
@@ -16,6 +24,7 @@ def create_test_image_bytes(size=(20, 20)) -> io.BytesIO:
 
 
 def upload_image(client):
+    """Sube una imagen válida para preparar el estado previo al cálculo."""
     data = {"image": (create_test_image_bytes(), "test.jpg")}
     client.post("/upload", data=data, content_type="multipart/form-data")
 

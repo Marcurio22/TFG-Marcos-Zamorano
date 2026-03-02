@@ -1,31 +1,28 @@
 """
-===============================================================================
- Archivo: test_upload.py
- Autor: Marcos Zamorano Lasso
- Since: 189/11/2025
- Descripción:
-     Tests relacionados con la subida de imágenes:
+Pruebas relacionadas con la subida de imágenes.
 
-       - Subida correcta de una imagen válida (.jpg).
-       - Rechazo de archivos con extensión inválida.
-===============================================================================
+Este módulo cubre la subida correcta de archivos válidos y distintos casos de
+error asociados a peticiones incompletas o extensiones no permitidas.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
 """
 
 import io
+
 from PIL import Image
 
 
 def create_test_image_bytes(size=(10, 10)) -> io.BytesIO:
     """
-    Crea una imagen pequeñita en memoria y la devuelve como BytesIO.
-
-    Esto evita tener que leer archivos desde disco durante los tests.
+    Genera una imagen JPEG en memoria para usarla en las pruebas.
 
     Args:
-        size (tuple[int, int]): tamaño de la imagen (ancho, alto).
+        size (tuple[int, int]): Tamaño de la imagen en
+            formato (ancho, alto).
 
     Returns:
-        io.BytesIO: buffer con contenido JPEG listo para enviar como fichero.
+        io.BytesIO: Buffer listo para enviarse como archivo en una petición.
     """
     img = Image.new("RGB", size, color="white")
     buf = io.BytesIO()
@@ -35,11 +32,7 @@ def create_test_image_bytes(size=(10, 10)) -> io.BytesIO:
 
 
 def test_upload_image_ok(client):
-    """
-    Comprueba que subir una imagen JPEG válida:
-        - Devuelve una redirección (302).
-        - Redirige a la página principal ('/').
-    """
+    """Comprueba que una subida válida redirige a la vista principal."""
     data = {
         "image": (create_test_image_bytes(), "test.jpg"),
     }
@@ -50,18 +43,13 @@ def test_upload_image_ok(client):
         content_type="multipart/form-data",
     )
 
-    # La vista redirige siempre al index tras procesar la subida.
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/")
 
 
 def test_upload_invalid_extension(client):
     """
-    Comprueba que si intentamos subir un archivo con extensión NO permitida,
-    la aplicación muestra un mensaje de error.
-
-    Se usa follow_redirects=True para obtener el HTML final del index
-    después de la redirección y buscar el texto del error.
+    Comprueba que la aplicación rechaza archivos con una extensión no válida.
     """
     data = {
         "image": (io.BytesIO(b"contenido-falso"), "test.txt"),
@@ -74,13 +62,11 @@ def test_upload_invalid_extension(client):
         follow_redirects=True,
     )
 
-    # El mensaje de error se pinta en la plantilla cuando la extensión
-    # no es válida.
     assert b"Formato de archivo no permitido" in response.data
 
 
 def test_upload_missing_image_field(client):
-    """Si no se envía el campo 'image' en request.files, debe mostrar error."""
+    """Comprueba el error cuando no se envía el campo image."""
     response = client.post(
         "/upload",
         data={},
@@ -92,7 +78,7 @@ def test_upload_missing_image_field(client):
 
 
 def test_upload_empty_filename(client):
-    """Si se envía 'image' pero con filename vacío, debe mostrar error."""
+    """Comprueba el error cuando el campo image llega sin nombre."""
     data = {"image": (io.BytesIO(b"contenido"), "")}
     response = client.post(
         "/upload",
@@ -101,4 +87,5 @@ def test_upload_empty_filename(client):
         follow_redirects=True,
     )
     assert "No se ha seleccionado ningún archivo.".encode(
-        "utf-8") in response.data
+        "utf-8"
+    ) in response.data
