@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.fillStyle = "#ff0000";
 
       for (let i = 0; i < xs.length; i++) {
-        ctx.fillRect(xs[i] * scaleX, ys[i] * scaleY, 1.5, 1.5);
+        ctx.fillRect(xs[i] * scaleX, ys[i] * scaleY, 1, 1);
       }
 
       // Marcar checkbox cuando las trazas se han dibujado

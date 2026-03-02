@@ -286,6 +286,16 @@ def predict_mask_ensemble(
             probs_sum = probs if probs_sum is None else (probs_sum + probs)
 
     probs_avg = probs_sum / float(len(models))
+
+    target_h, target_w = img_t.shape[-2:]
+    if probs_avg.shape[-2:] != (target_h, target_w):
+        probs_avg = F.interpolate(
+            probs_avg,
+            size=(target_h, target_w),
+            mode="bilinear",
+            align_corners=False,
+        )
+
     mask = (probs_avg > threshold).to(torch.uint8)
 
     mask_np = mask.squeeze(0).squeeze(0).detach().cpu().numpy()
@@ -296,15 +306,11 @@ def predict_mask_ensemble(
 # Máscara -> trazas (xs,ys)
 # ---------------------------
 
-def mask_to_traces_points(mask: np.ndarray, stride: int = 2) -> Dict[str, List[int]]:
+def mask_to_traces_points(mask: np.ndarray) -> Dict[str, List[int]]:
     ys, xs = np.where(mask > 0)
     if xs.size == 0:
         return {"xs": [], "ys": []}
-    if stride > 1:
-        xs = xs[::stride]
-        ys = ys[::stride]
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}
-
 
 def compute_traces_from_segmentation(
     image_path: str,
@@ -320,4 +326,4 @@ def compute_traces_from_segmentation(
         use_gpu=use_gpu,
         threshold=0.5,
     )
-    return mask_to_traces_points(mask, stride=2)
+    return mask_to_traces_points(mask)
