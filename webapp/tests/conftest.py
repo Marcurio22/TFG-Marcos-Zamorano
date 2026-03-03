@@ -1,7 +1,7 @@
 """
 ==============================================================================
 Configura pytest para el proyecto. Añade el paquete trazasytrazadas
-al sys.path, crea app de test y cliente de test.
+al sys.path, crea la app de test y expone fixtures comunes.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -11,11 +11,10 @@ Versión: 0.1
 import os
 import sys
 import tempfile
+
 import pytest
 
-from trazasytrazadas import create_app
-
-# Añadir carpeta raíz webapp al sys.path.
+# Añadir la carpeta raíz de webapp al sys.path antes de importar el paquete.
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
@@ -23,7 +22,9 @@ if BASE_DIR not in sys.path:
 
 @pytest.fixture
 def app():
-    """Crea una app Flask aislada por test run con carpetas temporales."""
+    """Crea una app Flask aislada con carpetas temporales."""
+    from trazasytrazadas import create_app
+
     tmpdir = tempfile.TemporaryDirectory()
     upload = os.path.join(tmpdir.name, "uploads")
     output = os.path.join(tmpdir.name, "outputs")
@@ -33,6 +34,7 @@ def app():
         "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr"
         ".9e-05_epochs.60_fold.{fold}"
     )
+
     app = create_app(
         {
             "TESTING": True,
@@ -52,32 +54,39 @@ def app():
 
 @pytest.fixture
 def client(app):
+    """Devuelve un cliente de pruebas de Flask."""
     return app.test_client()
 
 
 @pytest.fixture
 def mock_compute_traces(monkeypatch):
-    """Parchea trazasytrazadas.traces.compute_traces para no depender de ML.
+    """
+    Parchea trazasytrazadas.traces.compute_traces para no depender
+    del modelo real de segmentación.
 
     Uso:
-        mock_compute_traces()  -> devuelve trazas deterministas.
+        mock_compute_traces() -> trazas deterministas por defecto
         mock_compute_traces(result={...})
-        mock_compute_traces(exc=FileNotFoundError("..."))
+        mock_compute_traces(exc=Exception(...))
     """
     from trazasytrazadas import traces as traces_module
 
-    def _apply(result=None, exc: Exception | None = None):
+    def _apply(result=None, exc=None):
         if exc is not None:
-            def _raise(_image_path: str):
+            def _raise(_image_path):
                 raise exc
+
             monkeypatch.setattr(traces_module, "compute_traces", _raise)
             return None
 
         if result is None:
             result = {"xs": [1, 2, 3], "ys": [4, 5, 6]}
 
-        monkeypatch.setattr(traces_module, "compute_traces",
-                            lambda _image_path: result)
+        monkeypatch.setattr(
+            traces_module,
+            "compute_traces",
+            lambda _image_path: result,
+        )
         return result
 
     return _apply

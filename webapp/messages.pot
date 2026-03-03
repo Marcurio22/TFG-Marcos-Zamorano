@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-02-24 18:54+0100\n"
+"POT-Creation-Date: 2026-03-03 00:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,166 +17,166 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: trazasytrazadas/traces.py:152
+#: trazasytrazadas/traces.py:140
 msgid "No se ha seleccionado ningún archivo."
 msgstr ""
 
-#: trazasytrazadas/traces.py:156
+#: trazasytrazadas/traces.py:145
 msgid "Formato de archivo no permitido. Usa .jpg, .jpeg o .png."
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:230 trazasytrazadas/traces.py:261
+#: trazasytrazadas/templates/index.html:202 trazasytrazadas/traces.py:246
 msgid "Estado: ninguna imagen cargada. Inserta una imagen para empezar."
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:231 trazasytrazadas/traces.py:266
+#: trazasytrazadas/templates/index.html:203 trazasytrazadas/traces.py:251
 msgid "Estado: imagen cargada. Pulsa «Calcular trazas»."
 msgstr ""
 
-#: trazasytrazadas/traces.py:270
+#: trazasytrazadas/traces.py:255
 msgid "Estado: trazas calculadas. Se dibujarán automáticamente sobre la imagen."
 msgstr ""
 
-#: trazasytrazadas/traces.py:301
+#: trazasytrazadas/traces.py:289
 msgid "Imagen cargada correctamente."
 msgstr ""
 
-#: trazasytrazadas/traces.py:316
+#: trazasytrazadas/traces.py:306
 msgid "No hay ninguna imagen cargada para borrar."
 msgstr ""
 
-#: trazasytrazadas/traces.py:327
+#: trazasytrazadas/traces.py:317
 msgid "Imagen borrada correctamente."
 msgstr ""
 
-#: trazasytrazadas/traces.py:348
+#: trazasytrazadas/traces.py:341
 msgid "Primero debes insertar una imagen antes de calcular trazas."
 msgstr ""
 
-#: trazasytrazadas/traces.py:359
+#: trazasytrazadas/traces.py:352
 #, python-format
 msgid "Error ejecutando segmentación: %(error)s"
 msgstr ""
 
-#: trazasytrazadas/traces.py:365
+#: trazasytrazadas/traces.py:358
 msgid "Las trazas de la imagen han sido calculadas correctamente."
 msgstr ""
 
-#: trazasytrazadas/traces.py:420
+#: trazasytrazadas/traces.py:413
 msgid "resultados"
 msgstr ""
 
-#: trazasytrazadas/traces.py:467
+#: trazasytrazadas/traces.py:462
 msgid "No hay trazas calculadas todavía."
 msgstr ""
 
-#: trazasytrazadas/traces.py:477
+#: trazasytrazadas/traces.py:471
 msgid "Archivo de trazas no encontrado. Vuelve a calcularlas."
 msgstr ""
 
-#: trazasytrazadas/templates/base.html:15
-#: trazasytrazadas/templates/base.html:47
+#: trazasytrazadas/templates/base.html:17
+#: trazasytrazadas/templates/base.html:50
 #: trazasytrazadas/templates/index.html:12
 msgid "Trazas de Herbívoros"
 msgstr ""
 
 #: trazasytrazadas/templates/base.html:66
-#: trazasytrazadas/templates/base.html:68
-#: trazasytrazadas/templates/base.html:79
+#: trazasytrazadas/templates/base.html:71
+#: trazasytrazadas/templates/base.html:83
 msgid "Idioma"
 msgstr ""
 
-#: trazasytrazadas/templates/base.html:150
+#: trazasytrazadas/templates/base.html:161
 msgid "Universidad de Burgos"
 msgstr ""
 
-#: trazasytrazadas/templates/base.html:152
+#: trazasytrazadas/templates/base.html:163
 msgid ""
 "TFG · Aplicación web para seguimiento de presión de herbivoría mediante "
 "visión por computador"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:17
+#: trazasytrazadas/templates/index.html:15
 msgid "Sin imagen"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:18
+#: trazasytrazadas/templates/index.html:16
 msgid "Lista para calcular"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:19
+#: trazasytrazadas/templates/index.html:17
 msgid "Trazas calculadas"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:21
-#: trazasytrazadas/templates/index.html:22
+#: trazasytrazadas/templates/index.html:19
+#: trazasytrazadas/templates/index.html:20
 msgid "Estado"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:65
+#: trazasytrazadas/templates/index.html:50
 msgid "Elegir archivo"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:73
-#: trazasytrazadas/templates/index.html:229
+#: trazasytrazadas/templates/index.html:53
+#: trazasytrazadas/templates/index.html:201
 msgid "Ningún archivo seleccionado"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:79
+#: trazasytrazadas/templates/index.html:58
 msgid "Formatos permitidos:"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:83
+#: trazasytrazadas/templates/index.html:62
 msgid "Tamaño máximo:"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:100
-#: trazasytrazadas/templates/index.html:199
+#: trazasytrazadas/templates/index.html:81
+#: trazasytrazadas/templates/index.html:175
 msgid "Calcular trazas"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:101
+#: trazasytrazadas/templates/index.html:82
 msgid "Calcular"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:122
-#: trazasytrazadas/templates/index.html:123
+#: trazasytrazadas/templates/index.html:103
+#: trazasytrazadas/templates/index.html:104
 msgid "Descargar"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:128
-msgid "TRAZAS DIBUJADAS"
+#: trazasytrazadas/templates/index.html:108
+msgid "DIBUJAR TRAZAS"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:155
+#: trazasytrazadas/templates/index.html:135
 msgid "Borrar imagen"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:156
+#: trazasytrazadas/templates/index.html:136
 msgid "Borrar"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:178
+#: trazasytrazadas/templates/index.html:151
 msgid "Imagen"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:197
+#: trazasytrazadas/templates/index.html:173
 msgid "Sube una imagen para empezar"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:199
+#: trazasytrazadas/templates/index.html:175
 msgid "Luego pulsa"
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:211
+#: trazasytrazadas/templates/index.html:185
 msgid "Calculando trazas..."
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:212
+#: trazasytrazadas/templates/index.html:186
 msgid "Por favor, espera unos instantes."
 msgstr ""
 
-#: trazasytrazadas/templates/index.html:219
+#: trazasytrazadas/templates/index.html:192
 msgid "Cerrar"
 msgstr ""
 
