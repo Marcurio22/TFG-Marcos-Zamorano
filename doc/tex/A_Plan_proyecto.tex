@@ -260,6 +260,57 @@ Por último, realicé varias correcciones en el Capítulo 3, destacando especial
 
 Como se observa en la Figura~\ref{fig:brsprint9}, durante los primeros días el avance fue más lento e incluso hubo un ligero repunte de \textit{open points}, debido a que seguían apareciendo ajustes derivados del cierre técnico de la \textit{release}. No obstante, a partir de la resolución de las tareas principales de integración y refactorización, el volumen pendiente descendió con rapidez, quedando el \textit{sprint} completamente cerrado el 26 de febrero, cerrando así la primera \textit{release} ese mismo día tras la reunión semanal.
 
+\subsection{Sprint 10 - Primeros pasos con Google Earth Engine}
+El \textit{Sprint 10} se centró en abrir una nueva línea de trabajo orientada a la integración de Google Earth Engine (GEE) como alternativa para la obtención de imágenes de entrada, a la vez que se consolidaban pequeños ajustes en la aplicación web y en la documentación. Este \textit{sprint} abarcó del 26/02/26 hasta el 05/03/26 y estimé una dedicación total de 25~horas, aunque finalmente invertí 21,4~horas, al poder cerrar varias tareas con menor esfuerzo del previsto.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Aplicar cambios puntuales en la aplicación web:
+	\begin{itemize}
+		\item Renombrar el \textit{checkbox} para mostrarlo como: Dibujar trazas.
+		\item Permitir que un clic sobre \textit{upload image} activase también la selección de archivo.
+	\end{itemize}
+	\item Generar el listado de dependencias mediante \texttt{pip freeze}.
+	\item Eliminar el reescalado de imagen en una prueba concreta para verificar correctamente el dibujado de trazas.
+	\item Corregir algunos puntos de la memoria y anexos:
+	\begin{itemize}
+		\item Ajustar el formato de listados asociados a métricas como TP, FP, FN, etc...
+		\item Explicar la incidencia e interpretación de los gráficos \textit{burndown} en el apartado A de anexos.
+	\end{itemize}
+	\item Configurar extensiones y convenciones PEP8 y reforzar la documentación del código.
+	\item Arreglar y consolidar \textit{tests} de flujo.
+	\item Iniciar las primeras implementaciones con Google Earth Engine:
+	\begin{itemize}
+		\item Investigar licencias y límites asociados a la nueva implementación.
+		\item Crear un \textit{notebook} base de GEE (autenticación, consulta inicial y \textit{preview}).
+		\item Preparar un \textit{notebook} para descarga de imágenes mediante colecciones de GEE.
+		\item Construir un prototipo HTML mínimo para seleccionar un área mediante dos clics y descargar imágenes del rectángulo definido para su posterior segmentación.
+	\end{itemize}
+\end{itemize}
+
+En primer lugar, realicé varios ajustes pequeños pero necesarios en la aplicación web para mejorar la claridad del flujo de uso. En concreto, renombré el \textit{checkbox} asociado a la visualización para que apareciese como Dibujar trazas, alineándolo con la lógica del momento de la interfaz, y adapté el comportamiento del botón de \textit{upload image} para que un clic sobre el propio elemento activase también la selección del archivo, haciendo la interacción más directa.
+
+A continuación, consolidé el entorno de desarrollo y documentación del proyecto. Por un lado, generé el listado de dependencias mediante \texttt{pip freeze} para dejar registradas las versiones exactas del entorno. Por otro, configuré extensiones de estilo PEP8 y reforcé la documentación del código, de forma que la base quedase más mantenible y homogénea. En paralelo, realicé una prueba concreta eliminando el reescalado de la imagen, ya que necesitaba verificar el flujo del funcionamiento del dibujado de trazas. Tras esto, logré conseguir una versión correcta del mismo.
+
+También dediqué parte del \textit{sprint} a corregir detalles en la memoria y anexos.
+
+Hacia el final del \textit{sprint} incorporé una tarea no prevista inicialmente: arreglar y consolidar \textit{tests} de flujo. Esta necesidad surgió el martes 03/03/26, a dos días del cierre del \textit{sprint}, y me sirvió para asegurar que los cambios recientes no rompían el comportamiento esperado en el circuito principal de uso.
+
+Por último, el bloque más relevante del \textit{sprint} fue el inicio de las primeras implementaciones con Google Earth Engine. Comencé investigando licencias y límites de uso para entender las restricciones reales del servicio. Aquí encontré el que probablemente sea el mayor problema del TFG y es que existían limitaciones legales y funcionales para poder llevar a cabo el flujo completo de la aplicación.
+
+A partir de ahí, construí un \textit{notebook} base que resolvía autenticación, una primera consulta y un \textit{preview} de resultados y preparé un segundo, tercer y cuarto \textit{notebook} orientados a la descarga de imágenes mediante colecciones de GEE. 
+
+Más adelante, desarrollé un prototipo HTML mínimo en el que el usuario podía seleccionar un área geográfica mediante dos clics, definiendo así un rectángulo y, a partir de esa selección, descargar imágenes del recuadro para su posterior segmentación. Este avance dejó preparada la base conceptual y técnica para continuar con una integración más completa en los siguientes \textit{sprints}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint10}
+	\caption[Burndown Report del Sprint 10]{Burndown Report del Sprint 10.}
+	\label{fig:brsprint10}
+\end{figure}
+
+Como se aprecia en el \textit{burndown} del \textit{sprint}~\ref{fig:brsprint10}, el volumen de \textit{open points} se mantuvo prácticamente estable durante los primeros días, ya que el trabajo se concentró en investigación y preparación y en tareas de ajuste poco visibles. A partir del 2 de marzo el descenso se aceleró al cerrarse los hitos principales y consolidarse los cambios, quedando el \textit{sprint} completamente finalizado el 5 de marzo.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
