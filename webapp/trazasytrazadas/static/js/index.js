@@ -24,6 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
       noFileChosen: "Ningún archivo seleccionado",
       statusNoImage: "Estado: ninguna imagen cargada. Inserta una imagen para empezar.",
       statusUploaded: "Estado: imagen cargada. Pulsa «Calcular trazas».",
+      badgeNoImage: "Sin imagen",
+      badgeUploaded: "Lista para calcular",
+      badgeTracesCalculated: "Trazas calculadas",
     },
     CFG.i18n || {}
   );
@@ -33,6 +36,35 @@ document.addEventListener("DOMContentLoaded", () => {
   if (tracesCheckbox) tracesCheckbox.checked = false;
 
   const statusEl = document.getElementById("status-message");
+  const statusBadgeEl = document.getElementById("status-badge");
+
+  function setStatusBadge(state) {
+    if (!statusBadgeEl) return;
+
+    statusBadgeEl.classList.remove(
+      "badge-warning",
+      "badge-info",
+      "badge-success",
+      "badge-neutral"
+    );
+
+    if (state === "no_image") {
+      statusBadgeEl.classList.add("badge-warning");
+      statusBadgeEl.textContent = I18N.badgeNoImage;
+      return;
+    }
+
+    if (state === "image_uploaded") {
+      statusBadgeEl.classList.add("badge-info");
+      statusBadgeEl.textContent = I18N.badgeUploaded;
+      return;
+    }
+
+    if (state === "traces_calculated") {
+      statusBadgeEl.classList.add("badge-success");
+      statusBadgeEl.textContent = I18N.badgeTracesCalculated;
+    }
+  }
 
   const downloadBtn = document.getElementById("download-btn");
 
@@ -216,6 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (placeholder) placeholder.classList.remove("hidden");
       if (statusEl) {
         statusEl.textContent = I18N.statusNoImage;
+        setStatusBadge("no_image");
       }
     }
   }
@@ -293,6 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tracesCheckbox) tracesCheckbox.checked = false;
     setDownloadEnabled(false);
     if (statusEl) statusEl.textContent = I18N.statusUploaded;
+    setStatusBadge("image_uploaded");
 
     // Fuerza el ajuste del canvas incluso si la imagen se resuelve muy rápido.
     if (img && canvas) {
