@@ -39,3 +39,23 @@ def test_traces_500_when_json_missing(client):
     assert data == {
         "error": "Archivo de trazas no encontrado. Vuelve a calcularlas."
     }
+
+
+def test_traces_500_when_json_corrupt(client):
+    """Debe devolver 500 si el fichero existe pero contiene JSON inválido."""
+    out_dir = client.application.config["OUTPUT_FOLDER"]
+    corrupt_name = "corrupt_traces.json"
+    corrupt_path = os.path.join(out_dir, corrupt_name)
+
+    with open(corrupt_path, "w", encoding="utf-8") as f:
+        f.write("{this-is:not-valid-json")
+
+    with client.session_transaction() as sess:
+        sess["traces_file"] = corrupt_name
+
+    resp = client.get("/traces")
+    assert resp.status_code == 500
+
+    data = resp.get_json()
+    assert isinstance(data, dict)
+    assert "error" in data

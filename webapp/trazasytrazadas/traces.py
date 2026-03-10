@@ -477,7 +477,22 @@ def traces_json():
             500,
         )
 
-    with open(traces_path, "r", encoding="utf-8") as f:
-        traces = json.load(f)
+    try:
+        with open(traces_path, "r", encoding="utf-8") as f:
+            traces = json.load(f)
+    except json.JSONDecodeError:
+        # Caso 2: fichero corrupto o inválido.
+        return (
+            jsonify(
+                {
+                    "error": _(
+                        "Archivo de trazas corrupto o inválido. "
+                        "Vuelve a calcularlas."
+                    ),
+                    "code": "TRACES_JSON_CORRUPT",
+                }
+            ),
+            500,
+        )
 
     return jsonify(traces)

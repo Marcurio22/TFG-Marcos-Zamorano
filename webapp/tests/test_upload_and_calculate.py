@@ -95,3 +95,74 @@ def test_pipeline_requires_image_if_no_file_and_no_session(client):
         "Primero debes insertar una imagen antes de calcular trazas."
     )
     assert error_msg.encode("utf-8") in resp.data
+
+
+def test_pipeline_replaces_image_and_cleans_previous_files(
+    client, mock_compute_traces
+):
+    """
+    Verifica que al subir una nueva imagen en el pipeline se limpia el estado
+    anterior y no se mezclan resultados.
+    """
+    first_traces = {"xs": [10, 11], "ys": [20, 21]}
+    mock_compute_traces(result=first_traces)
+
+    data_1 = {"image": (create_test_image_bytes(), "first.jpg")}
+    resp_1 = client.post(
+        "/upload_and_calculate",
+        data=data_1,
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert resp_1.status_code == 200
+
+    with client.session_transaction() as sess:
+        first_image = sess.get("image_filename")
+        first_traces_file = sess.get("traces_file")
+
+    assert first_image
+    assert first_traces_file
+
+    upload_dir = client.application.config["UPLOAD_FOLDER"]
+    out_dir = client.application.config["OUTPUT_FOLDER"]
+
+    first_image_path = os.path.join(upload_dir, first_image)
+    first_traces_path = os.path.join(out_dir, first_traces_file)
+
+    assert os.path.exists(first_image_path)
+    assert os.path.exists(first_traces_path)
+
+    second_traces = {"xs": [1, 2, 3], "ys": [4, 5, 6]}
+    mock_compute_traces(result=second_traces)
+
+    data_2 = {"image": (create_test_image_bytes(), "second.jpg")}
+    resp_2 = client.post(
+        "/upload_and_calculate",
+        data=data_2,
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert resp_2.status_code == 200
+
+    with client.session_transaction() as sess:
+        second_image = sess.get("image_filename")
+        second_traces_file = sess.get("traces_file")
+
+    assert second_image
+    assert second_traces_file
+    assert second_image != first_image
+    assert second_traces_file != first_traces_file
+
+    second_image_path = os.path.join(upload_dir, second_image)
+    second_traces_path = os.path.join(out_dir, second_traces_file)
+
+    assert os.path.exists(second_image_path)
+    assert os.path.exists(second_traces_path)
+
+    # El estado anterior debe limpiarse al reemplazar la imagen.
+    assert not os.path.exists(first_image_path)
+    assert not os.path.exists(first_traces_path)
+
+    resp_json = client.get("/traces")
+    assert resp_json.status_code == 200
+    assert resp_json.get_json() == second_traces

@@ -13,6 +13,7 @@ Versión: 0.1
 
 import io
 import json
+import os
 import zipfile
 
 from PIL import Image
@@ -81,3 +82,52 @@ def test_download_results_returns_expected_zip(client, mock_compute_traces):
 
         overlay_png = zf.read("output/image_1_traces.png")
         assert overlay_png.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def test_download_results_returns_404_when_image_missing_only(client):
+    """Debe devolver 404 si falta la imagen,
+        aunque exista el JSON de trazas."""
+    out_dir = client.application.config["OUTPUT_FOLDER"]
+    upload_dir = client.application.config["UPLOAD_FOLDER"]
+
+    traces_name = "only_traces.json"
+    traces_path = os.path.join(out_dir, traces_name)
+
+    with open(traces_path, "w", encoding="utf-8") as f:
+        json.dump({"xs": [1], "ys": [2]}, f)
+
+    missing_image = "missing_only_image.png"
+    missing_image_path = os.path.join(upload_dir, missing_image)
+    if os.path.exists(missing_image_path):
+        os.remove(missing_image_path)
+
+    with client.session_transaction() as sess:
+        sess["image_filename"] = missing_image
+        sess["traces_file"] = traces_name
+
+    resp = client.get("/download_results")
+    assert resp.status_code == 404
+
+
+def test_download_results_returns_404_when_traces_missing_only(client):
+    """Debe devolver 404 si falta el JSON de trazas,
+        aunque exista la imagen."""
+    out_dir = client.application.config["OUTPUT_FOLDER"]
+    upload_dir = client.application.config["UPLOAD_FOLDER"]
+
+    image_name = "only_image.png"
+    image_path = os.path.join(upload_dir, image_name)
+    with open(image_path, "wb") as f:
+        f.write(create_test_image_bytes(image_format="PNG").read())
+
+    missing_traces = "missing_only_traces.json"
+    missing_traces_path = os.path.join(out_dir, missing_traces)
+    if os.path.exists(missing_traces_path):
+        os.remove(missing_traces_path)
+
+    with client.session_transaction() as sess:
+        sess["image_filename"] = image_name
+        sess["traces_file"] = missing_traces
+
+    resp = client.get("/download_results")
+    assert resp.status_code == 404
