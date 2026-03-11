@@ -3,6 +3,19 @@
 \section{Introducción}
 
 \section{Diseño de datos}
+El diseño de datos define la estructura de persistencia que soporta el funcionamiento de la aplicación, garantizando que la información se almacene de forma coherente, trazable y escalable. En este apartado se presenta el esquema lógico de la base de datos, con el objetivo de justificar las entidades principales del dominio, sus relaciones y las restricciones de integridad que permiten mantener consistencia entre usuarios, parcelas, imágenes procesadas y resultados generados por el sistema.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/Esquema_inicial_BBDD}
+	\caption[Esquema inicial de la BBDD]{Esquema inicial de la BBDD.}
+	\label{fig:esquemainicialbbdd}
+\end{figure}
+
+En la Figura~\ref{fig:esquemainicialbbdd} se muestra el esquema inicial de la base de datos, organizado en cuatro entidades: \textit{Usuario}, \textit{Parcela}, \textit{Fotos} y \textit{Trazas}. La tabla \textit{Usuario} centraliza la información de autenticación y control de acceso, incluyendo nombre de usuario, contraseña, correo electrónico, rol y fecha de alta, mientras que \textit{Parcela} representa unidades de trabajo asociadas a un usuario mediante la clave foránea \texttt{usuario\_id}. De este modo, se establece una relación uno a muchos, un mismo usuario puede registrar múltiples parcelas, lo que facilita segmentar el histórico de trabajo y mantener separación lógica entre diferentes zonas de interés.
+
+La entidad \textit{Fotos} modela cada imagen asociada a una parcela, incorporando metadatos relevantes para el análisis, como fecha, resolución expresada en valor y unidad, coordenadas geográficas, ruta de almacenamiento, formato y tamaño. Esta tabla se vincula a \textit{Parcela} mediante \texttt{parcela\_id}, permitiendo conservar un registro cronológico y georreferenciado de las entradas procesadas. Finalmente, \textit{Trazas} se relaciona con \textit{Fotos} a través de \texttt{foto\_id}, reflejando que los resultados de segmentación o detección dependen directamente de una imagen concreta.
+
 
 \section{Diseño arquitectónico}
 \begin{figure}[h]
