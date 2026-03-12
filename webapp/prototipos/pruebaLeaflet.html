@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PNOA (IGN/CNIG) AOI por 2 puntos → JPG</title>
+    <!-- Leaflet -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+    :root { --panel-w: 420px; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .wrap { display:grid; grid-template-columns: var(--panel-w) 1fr; height:100vh; }
+    .panel { padding:14px; border-right:1px solid #e6e6e6; overflow:auto; }
+    #map { height:100vh; }
+    h1 { font-size:18px; margin:0 0 8px 0; }
+    .small { font-size:13px; color:#444; line-height:1.35; }
+    .warn { color:#8a4b00; }
+    .ok { color:#0b8043; }
+    label { display:block; margin-top:12px; font-size:13px; color:#222; }
+    input { width:100%; padding:8px; border:1px solid #ccc; border-radius:12px; margin-top:6px; }
+    button { width:100%; padding:10px; border:0; border-radius:12px; cursor:pointer; font-weight:700; margin-top:10px; }
+    button.primary { background:#1a73e8; color:#fff; }
+    button.secondary { background:#f1f3f4; }
+    button:disabled { opacity:0.6; cursor:not-allowed; }
+    .chip { display:inline-block; background:#f1f3f4; border-radius:999px; padding:4px 8px; font-size:12px; margin-right:6px; }
+    .hr { height:1px; background:#eee; margin:12px 0; }
+    code { background:#f6f8fa; padding:2px 6px; border-radius:8px; }
+    .linkbox { margin-top:10px; padding:10px; border:1px solid #e6e6e6; border-radius:12px; background:#fafafa; word-break:break-all; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <h1>PNOA (máxima actualidad) → AOI por 2 puntos</h1>
+        <div class="small">
+          <div class="chip">OpenStreetMap</div>
+          <div class="chip">Leaflet</div>
+          <div class="chip">WMS PNOA-MA</div>
+          <div class="hr"></div>
+          <b>Cómo usar:</b>
+          <br />
+          1) Haz zoom hasta que se active el PNOA (<span class="chip" id="zoomChip">zoom ≥ ?</span>).
+          <br />
+          2) Con PNOA activo, haz <b>dos clics</b> en el mapa para marcar las esquinas del rectángulo.
+          <br />
+          3) Pulsa <b>Generar JPG</b> para abrir la ortofoto (PNOA-MA) del AOI.
+          <br />
+          <br />
+          <span class="warn">Nota:</span> la capa que se muestra y descarga proviene del servicio oficial del IGN/CNIG:
+          <br />
+          WMS: <code>https://www.ign.es/wms-inspire/pnoa-ma</code>, capa <code>OI.OrthoimageCoverage</code>.
+        </div>
+        <label>Resolución objetivo para la descarga (m/px)</label>
+        <input id="resInput" value="0.10" />
+        <label>Formato de descarga</label>
+        <select id="dlFmt">
+          <option value="png" selected>PNG</option>
+          <option value="jpg">JPG</option>
+        </select>
+        <label>Máximo tamaño de imagen (px) (evita descargas enormes)</label>
+        <input id="maxPxInput" value="8000" />
+        <button class="primary" id="btnGen" disabled>Generar JPG del AOI</button>
+        <button class="secondary" id="btnClear">Limpiar selección</button>
+        <div class="small"
+             style="margin-top:10px;
+                    white-space:pre-wrap"
+             id="status">Estado: inicia el zoom para activar PNOA.</div>
+        <div id="linkWrap" class="linkbox" style="display:none">
+          <b>Enlace GetMap (JPG):</b>
+          <br />
+          <a id="getmapLink" target="_blank" rel="noopener">abrir imagen</a>
+          <div style="margin-top:6px" id="getmapUrl"></div>
+          <div class="small warn" style="margin-top:6px">
+            Si el navegador no descarga automáticamente, abre el enlace y guarda la imagen.
+          </div>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+    <script>
+  // --- Configuración ---
+  const IBERIA_BOUNDS = L.latLngBounds(
+    L.latLng(35.5, -10.5),   // SW
+    L.latLng(44.8,  4.7)     // NE
+  );
+
+  const PNOA_MIN_ZOOM = 18;
+  const PNOA_MAX_ZOOM = 20;
+
+  const PNOA_WMS_URL = "https://www.ign.es/wms-inspire/pnoa-ma";
+  const PNOA_LAYER = "OI.OrthoimageCoverage";
+
+  document.getElementById("zoomChip").textContent = `zoom ≥ ${PNOA_MIN_ZOOM}`;
+
+  const map = L.map("map", {
+    center: [40.4168, -3.7038],
+    zoom: 6,
+    minZoom: 6,
+    maxZoom: PNOA_MAX_ZOOM,
+    maxBounds: IBERIA_BOUNDS,
+    maxBoundsViscosity: 1.0
+  });
+
+  const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: PNOA_MAX_ZOOM,
+    maxNativeZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const pnoa = L.tileLayer.wms(PNOA_WMS_URL, {
+	  layers: PNOA_LAYER,
+	  format: "image/jpeg",
+	  transparent: false,
+	  version: "1.1.1",
+
+	  maxZoom: PNOA_MAX_ZOOM,
+	  maxNativeZoom: PNOA_MAX_ZOOM,
+
+	  tileSize: 256,
+	  updateWhenIdle: true,
+	  keepBuffer: 2,
+
+	  attribution: 'Ortofoto PNOA-MA (IGN/CNIG) – WMS'
+  });
+
+  L.control.layers(
+    { "OpenStreetMap": osm },
+    { "PNOA-MA (IGN/CNIG)": pnoa },
+    { collapsed: true }
+  ).addTo(map);
+
+  const statusEl = document.getElementById("status");
+  const btnGen = document.getElementById("btnGen");
+  const btnClear = document.getElementById("btnClear");
+  const linkWrap = document.getElementById("linkWrap");
+  const linkA = document.getElementById("getmapLink");
+  const linkUrl = document.getElementById("getmapUrl");
+
+  function setStatus(msg, cls) {
+    statusEl.className = "small " + (cls || "");
+    statusEl.textContent = msg;
+  }
+
+  let pts = [];
+  let markers = [];
+  let rect = null;
+
+  function clearSelection() {
+    pts = [];
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+    if (rect) map.removeLayer(rect);
+    rect = null;
+    btnGen.disabled = true;
+    linkWrap.style.display = "none";
+    setStatus("Estado: selección limpiada. Con PNOA activo, haz 2 clics para crear AOI.");
+  }
+
+  btnClear.addEventListener("click", clearSelection);
+
+  function pnoaActive() { return map.hasLayer(pnoa); }
+
+  function updatePnoaVisibility() {
+    const z = map.getZoom();
+    const shouldShow = z >= PNOA_MIN_ZOOM;
+
+    if (shouldShow && !map.hasLayer(pnoa)) map.addLayer(pnoa);
+    if (!shouldShow && map.hasLayer(pnoa)) {
+      map.removeLayer(pnoa);
+      clearSelection();
+    }
+
+    if (shouldShow) {
+      setStatus(`PNOA activo (zoom ${z}). Haz 2 clics para seleccionar el AOI. Límite de zoom: ${PNOA_MAX_ZOOM}.`, "ok");
+    } else {
+      setStatus(`Zoom actual: ${z}. Haz zoom hasta ${PNOA_MIN_ZOOM} para ver PNOA y habilitar la selección.`, "warn");
+    }
+  }
+
+  map.on("zoomend", updatePnoaVisibility);
+  updatePnoaVisibility();
+
+  function drawRect() {
+    if (rect) map.removeLayer(rect);
+    if (pts.length < 2) return;
+
+    const b = L.latLngBounds([pts[0].lat, pts[0].lng], [pts[1].lat, pts[1].lng]);
+    rect = L.rectangle(b, { color:"#ffeb3b", weight:2, fillOpacity:0.25 }).addTo(map);
+    map.fitBounds(b.pad(0.15));
+
+    btnGen.disabled = false;
+    setStatus("AOI listo. Pulsa “Generar JPG del AOI”.", "ok");
+  }
+
+  map.on("click", (e) => {
+    if (!pnoaActive()) {
+      setStatus(`Sube el zoom a ${PNOA_MIN_ZOOM} para habilitar la selección.`, "warn");
+      return;
+    }
+    if (pts.length >= 2) {
+      setStatus("Ya hay 2 puntos. Pulsa “Limpiar selección” para empezar de nuevo.", "warn");
+      return;
+    }
+    pts.push({ lat: e.latlng.lat, lng: e.latlng.lng });
+    markers.push(L.marker(e.latlng).addTo(map));
+    if (pts.length === 2) drawRect();
+    else setStatus("Primer punto colocado. Haz clic para el segundo punto.", "ok");
+  });
+
+	function buildGetMapUrl() {
+	  if (pts.length < 2) throw new Error("Necesitas 2 puntos.");
+
+	  const resM = parseFloat(document.getElementById("resInput").value || "0.10");
+	  if (!resM || resM <= 0) throw new Error("Resolución inválida (m/px).");
+
+	  const maxPx = parseInt(document.getElementById("maxPxInput").value || "8000", 10);
+	  if (!maxPx || maxPx < 256) throw new Error("Máximo tamaño (px) inválido.");
+
+	  const fmtSel = (document.getElementById("dlFmt")?.value || "png").toLowerCase();
+	  const mime = (fmtSel === "jpg") ? "image/jpeg" : "image/png";
+	  const ext  = (fmtSel === "jpg") ? "jpg" : "png";
+
+	  const b = L.latLngBounds(
+		L.latLng(pts[0].lat, pts[0].lng),
+		L.latLng(pts[1].lat, pts[1].lng)
+	  );
+
+	  const sw = map.options.crs.project(b.getSouthWest());
+	  const ne = map.options.crs.project(b.getNorthEast());
+
+	  const xmin = Math.min(sw.x, ne.x);
+	  const xmax = Math.max(sw.x, ne.x);
+	  const ymin = Math.min(sw.y, ne.y);
+	  const ymax = Math.max(sw.y, ne.y);
+
+	  const widthM  = xmax - xmin;
+	  const heightM = ymax - ymin;
+
+	  let widthPx  = Math.round(widthM / resM);
+	  let heightPx = Math.round(heightM / resM);
+
+	  const scaleDown = Math.max(widthPx / maxPx, heightPx / maxPx, 1);
+	  widthPx  = Math.max(256, Math.round(widthPx / scaleDown));
+	  heightPx = Math.max(256, Math.round(heightPx / scaleDown));
+
+	  const params = new URLSearchParams({
+		SERVICE: "WMS",
+		VERSION: "1.1.1",
+		REQUEST: "GetMap",
+		LAYERS: PNOA_LAYER,
+		STYLES: "",
+		FORMAT: mime,
+		TRANSPARENT: "FALSE",
+		SRS: "EPSG:3857",
+		BBOX: [xmin, ymin, xmax, ymax].join(","),
+		WIDTH: String(widthPx),
+		HEIGHT: String(heightPx)
+	  });
+
+	  const url = `${PNOA_WMS_URL}?${params.toString()}`;
+	  const filename = `pnoa_aoi_${widthPx}x${heightPx}_${resM}mpp.${ext}`;
+
+	  return { url, widthPx, heightPx, resM, filename, ext };
+	}
+
+	async function tryAutoDownload(url, filename) {
+	  try {
+		const resp = await fetch(url, { mode: "cors" });
+		if (!resp.ok) throw new Error("HTTP " + resp.status);
+
+		const blob = await resp.blob();
+		const objUrl = URL.createObjectURL(blob);
+
+		const a = document.createElement("a");
+		a.href = objUrl;
+		a.download = filename; // fuerza extensión .png o .jpg
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+
+		URL.revokeObjectURL(objUrl);
+		return true;
+	  } catch (e) {
+		return false;
+	  }
+	}
+
+	btnGen.addEventListener("click", async () => {
+	  try {
+		if (!pnoaActive()) {
+		  setStatus(`Esta opción solo está disponible cuando PNOA está activo (zoom ≥ ${PNOA_MIN_ZOOM}).`, "warn");
+		  return;
+		}
+
+		const { url, widthPx, heightPx, resM, filename } = buildGetMapUrl();
+
+		linkA.href = url;
+		linkUrl.textContent = url;
+		linkWrap.style.display = "block";
+
+		setStatus(`Generando descarga (${widthPx}×${heightPx}px) a ~${resM} m/px...`, "ok");
+
+		const ok = await tryAutoDownload(url, filename);
+
+		if (ok) {
+		  setStatus(`Descarga iniciada: ${filename}`, "ok");
+		} else {
+		  // Fallback si CORS bloquea
+		  setStatus(
+			`No se pudo forzar descarga automática (posible CORS). Abro la imagen en pestaña; guarda como "${filename}".`,
+			"warn"
+		  );
+		  window.open(url, "_blank", "noopener");
+		}
+	  } catch (err) {
+		setStatus("Error: " + err.message, "warn");
+	  }
+	});
+    </script>
+  </body>
+</html>
