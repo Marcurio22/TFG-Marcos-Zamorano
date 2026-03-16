@@ -1,8 +1,21 @@
 \apendice{Especificación de Requisitos}
 
 \section{Introducción}
+Este apéndice recoge la Especificación de Requisitos del sistema desarrollado, con el objetivo de dejar formalizado qué funcionalidades debe proporcionar la aplicación y bajo qué condiciones de uso deben ejecutarse. Para ello, se parte de los objetivos del proyecto y del flujo de interacción previsto, estructurando la información en un catálogo de requisitos funcionales y no funcionales, así como en una especificación detallada basada en casos de uso.
+
+La especificación se centra en el comportamiento observable desde la interfaz web y en las restricciones asociadas a los distintos perfiles de usuario. En particular, se identifican los actores del sistema, se enumeran los requisitos que guían el desarrollo y, finalmente, se describen los casos de uso que articulan el \textit{pipeline} de la aplicación, desde la selección de una imagen y el cálculo de trazas hasta la visualización, persistencia y explotación del resultado.
 
 \section{Objetivos generales}
+Los objetivos generales del proyecto, desde el punto de vista del producto software a construir, pueden sintetizarse en los siguientes puntos:
+\begin{enumerate}
+	\item Desarrollar una aplicación web que permita cargar imágenes y ejecutar un proceso de detección y segmentación de trazas, ofreciendo una visualización clara del resultado superpuesto sobre la imagen original.
+	\item Integrar en el \textit{backend} la lógica de inferencia proporcionada por el modelo de segmentación, de modo que el procesamiento quede debidamente configurado para su consumo desde el cliente.
+	\item Definir un sistema de usuarios y roles que module el acceso a funcionalidades, distinguiendo entre uso básico sin autenticación, uso avanzado con persistencia y operaciones restringidas, y un rol administrador orientado a la configuración interna del sistema.
+	\item Facilitar la explotación del resultado mediante acciones complementarias, como la descarga de resultados, permitiendo repetir análisis sobre nuevas entradas de manera eficiente.
+	\item Lograr la implementación de un módulo GIS que habilite el trabajo por zona geográfica, permitiendo seleccionar una zona, generar un \textit{grid} de imágenes asociadas a esa zona y crear una galería con las diferentes zonas e imágenes generadas.
+\end{enumerate}
+
+Dado que el núcleo del proyecto es la aplicación web y su \textit{pipeline} de interacción, este apéndice se centra en concretar, con el mayor grado de precisión posible, los requisitos que debe satisfacer el sistema y las limitaciones bajo las que operan sus funcionalidades.
 
 \section{Catálogo de requisitos}
 
@@ -74,7 +87,10 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 
 \subsubsection{Explicación de los casos de uso}
 
+En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detallada de los casos de uso identificados, incluyendo para cada uno los actores implicados, la precondición necesaria, el flujo principal de ejecución, las excepciones más relevantes, las relaciones de inclusión o extensión con otros casos y su nivel de importancia. Esta especificación permite trazar de forma directa las funcionalidades del sistema y clarificar el comportamiento esperado en situaciones normales y de error.
+
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu01}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -93,9 +109,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario pulsa \textit{Insertar imagen} o la arrastra y selecciona un fichero válido.\\
-			2) El sistema carga la imagen en el cliente y la muestra en pantalla como previsualización.\\
-			3) El sistema actualiza el estado indicando que puede ejecutarse el cálculo de trazas.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario pulsa \textit{Insertar imagen} o la arrastra y selecciona un fichero válido.
+				\item El sistema carga la imagen en el cliente y la muestra en pantalla como previsualización.
+				\item El sistema actualiza el estado indicando que puede ejecutarse el cálculo de trazas.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -118,6 +140,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu02}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -136,11 +159,17 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario pulsa \textit{Calcular trazas}.\\
-			2) El sistema envía al backend la imagen seleccionada si procede; en caso contrario, reutiliza la imagen existente en servidor.\\
-			3) El backend valida el formato, almacena la imagen y ejecuta la inferencia.\\
-			4) El sistema genera y persiste el JSON de trazas asociado a la imagen.\\
-			5) El sistema deja disponible la visualización del resultado (CU-03).
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario pulsa \textit{Calcular trazas}.
+				\item El sistema envía al backend la imagen seleccionada si procede; en caso contrario, reutiliza la imagen existente en servidor.
+				\item El backend valida el formato, almacena la imagen y ejecuta la inferencia.
+				\item El sistema genera y persiste el JSON de trazas asociado a la imagen.
+				\item El sistema deja disponible la visualización del resultado (CU-03).
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -166,6 +195,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu03}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -184,9 +214,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El sistema solicita el JSON de trazas al backend.\\
-			2) El sistema renderiza la imagen y superpone las trazas sobre un canvas.\\
-			3) El usuario visualiza el resultado por pantalla.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El sistema solicita el JSON de trazas al backend.
+				\item El sistema renderiza la imagen y superpone las trazas sobre un canvas.
+				\item El usuario visualiza el resultado por pantalla.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -209,6 +245,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu04}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -227,9 +264,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario solicita la descarga del resultado.\\
-			2) El sistema genera el archivo correspondiente.\\
-			3) El archivo es descargado por el usuario.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario solicita la descarga del resultado.
+				\item El sistema genera el archivo correspondiente.
+				\item El archivo es descargado por el usuario.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -252,6 +295,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu05}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -270,10 +314,16 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario solicita borrar la imagen.\\
-			2) Si solo existe previsualización local, el sistema limpia la imagen y el canvas en el cliente.\\
-			3) Si existe imagen en servidor, el sistema solicita al backend la eliminación de la imagen y sus trazas asociadas.\\
-			4) El sistema vuelve al estado inicial.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario solicita borrar la imagen.
+				\item Si solo existe previsualización local, el sistema limpia la imagen y el canvas en el cliente.
+				\item Si existe imagen en servidor, el sistema solicita al backend la eliminación de la imagen y sus trazas asociadas.
+				\item El sistema vuelve al estado inicial.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -293,6 +343,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu06}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -311,9 +362,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario accede al módulo GIS.\\
-			2) El sistema establece conexión con Google Earth Engine.\\
-			3) Se habilitan las funcionalidades de recorte y visualización.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario accede al módulo GIS.
+				\item El sistema establece conexión con Google Earth Engine.
+				\item Se habilitan las funcionalidades de recorte y visualización.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -336,6 +393,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu061}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -354,9 +412,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario define el área de recorte.\\
-			2) El sistema valida la geometría.\\
-			3) La zona queda establecida como área activa.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario define el área de recorte.
+				\item El sistema valida la geometría.
+				\item La zona queda establecida como área activa.
+			\end{enumerate}
 		} \\
 		
 		Excepciones &
@@ -376,6 +440,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu062}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -394,9 +459,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El sistema consulta las trazas dentro de la zona.\\
-			2) El sistema renderiza las trazas sobre el visor.\\
-			3) El usuario inspecciona el resultado.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El sistema consulta las trazas dentro de la zona.
+				\item El sistema renderiza las trazas sobre el visor.
+				\item El usuario inspecciona el resultado.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -416,6 +487,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu07}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -434,9 +506,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario accede al formulario de registro.\\
-			2) El usuario introduce los datos requeridos.\\
-			3) El sistema valida y crea la cuenta.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario accede al formulario de registro.
+				\item El usuario introduce los datos requeridos.
+				\item El sistema valida y crea la cuenta.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -456,6 +534,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu08}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -474,9 +553,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario introduce credenciales.\\
-			2) El sistema valida las credenciales.\\
-			3) El sistema inicia sesión y aplica permisos.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario introduce credenciales.
+				\item El sistema valida las credenciales.
+				\item El sistema inicia sesión y aplica permisos.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -496,6 +581,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu09}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -514,9 +600,15 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario solicita cerrar sesión.\\
-			2) El sistema invalida la sesión y revoca permisos.\\
-			3) El sistema redirige al estado de usuario anónimo.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario solicita cerrar sesión.
+				\item El sistema invalida la sesión y revoca permisos.
+				\item El sistema redirige al estado de usuario anónimo.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -535,6 +627,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu10}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -553,10 +646,16 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El usuario accede a su perfil.\\
-			2) El sistema muestra la información disponible.\\
-			3) El usuario modifica los campos permitidos.\\
-			4) El sistema valida y guarda los cambios.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El usuario accede a su perfil.
+				\item El sistema muestra la información disponible.
+				\item El usuario modifica los campos permitidos.
+				\item El sistema valida y guarda los cambios.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -576,6 +675,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu11}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -594,10 +694,16 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El administrador accede al módulo de administración.\\
-			2) El sistema muestra las opciones disponibles de configuración de modelos.\\
-			3) El administrador selecciona el modelo activo.\\
-			4) El sistema guarda la configuración.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El administrador accede al módulo de administración.
+				\item El sistema muestra las opciones disponibles de configuración de modelos.
+				\item El administrador selecciona el modelo activo.
+				\item El sistema guarda la configuración.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
@@ -617,6 +723,7 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 \end{table}
 
 \begin{table}[H]
+	\refstepcounter{table}\label{tab:cu12}
 	\centering
 	\footnotesize
 	\renewcommand{\arraystretch}{1.3}
@@ -635,12 +742,18 @@ La existencia de este rol permite separar claramente las tareas de uso del siste
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
-			1) El administrador accede a la sección de gestión de usuarios.\\
-			2) El sistema muestra el listado de usuarios registrados y su información básica.\\
-			3) El administrador selecciona un usuario sobre el que operar.\\
-			4) El administrador ejecuta una operación de gestión.\\
-			5) El sistema valida los cambios y los persiste.\\
-			6) El sistema confirma la operación y actualiza el listado.
+			\begin{enumerate}
+				\renewcommand{\labelenumi}{\arabic{enumi})}
+				\setlength{\itemsep}{0pt}
+				\setlength{\parskip}{0pt}
+				\setlength{\parsep}{0pt}
+				\item El administrador accede a la sección de gestión de usuarios.
+				\item El sistema muestra el listado de usuarios registrados y su información básica.
+				\item El administrador selecciona un usuario sobre el que operar.
+				\item El administrador ejecuta una operación de gestión.
+				\item El sistema valida los cambios y los persiste.
+				\item El sistema confirma la operación y actualiza el listado.
+			\end{enumerate}
 		} \\
 		
 		Postcondición &
