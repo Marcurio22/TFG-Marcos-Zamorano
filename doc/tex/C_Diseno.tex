@@ -7,15 +7,36 @@ El diseño de datos define la estructura de persistencia que soporta el funciona
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.7\linewidth]{img/Esquema_inicial_BBDD}
-	\caption[Esquema inicial de la BBDD]{Esquema inicial de la BBDD.}
-	\label{fig:esquemainicialbbdd}
+	\includegraphics[width=1\linewidth]{img/Diagrama_E-R}
+	\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
+	\label{fig:esquemaerbbdd}
 \end{figure}
 
-En la Figura~\ref{fig:esquemainicialbbdd} se muestra el esquema inicial de la base de datos, organizado en cuatro entidades: \textit{Usuario}, \textit{Parcela}, \textit{Fotos} y \textit{Trazas}. La tabla \textit{Usuario} centraliza la información de autenticación y control de acceso, incluyendo nombre de usuario, contraseña, correo electrónico, rol y fecha de alta, mientras que \textit{Parcela} representa unidades de trabajo asociadas a un usuario mediante la clave foránea \texttt{usuario\_id}. De este modo, se establece una relación uno a muchos, un mismo usuario puede registrar múltiples parcelas, lo que facilita segmentar el histórico de trabajo y mantener separación lógica entre diferentes zonas de interés.
+\subsection{Modelo Entidad--Relación}
+El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el manejo de la información necesaria en el flujo de la aplicación se han definido las siguientes entidades, junto con sus relaciones y cardinalidades:
 
-La entidad \textit{Fotos} modela cada imagen asociada a una parcela, incorporando metadatos relevantes para el análisis, como fecha, resolución expresada en valor y unidad, coordenadas geográficas, ruta de almacenamiento, formato y tamaño. Esta tabla se vincula a \textit{Parcela} mediante \texttt{parcela\_id}, permitiendo conservar un registro cronológico y georreferenciado de las entradas procesadas. Finalmente, \textit{Trazas} se relaciona con \textit{Fotos} a través de \texttt{foto\_id}, reflejando que los resultados de segmentación o detección dependen directamente de una imagen concreta.
+\begin{itemize}
+	\item \textbf{Usuario:} representa a la persona registrada en la aplicación y constituye el origen del control de acceso. Incluye un identificador que actúa como clave primaria, así como atributos de autenticación y perfil, como el nombre de usuario, el correo electrónico, la contraseña, el rol y la fecha de alta. Un usuario puede crear múltiples parcelas, lo que queda reflejado mediante una relación uno a muchos.
+	
+	\item \textbf{Parcela:} representa una unidad de trabajo asociada a un usuario, entendida como el área seleccionada por el mismo sobre el que se pretende organizar la información de análisis. Dispone de un identificador como clave primaria y mantiene una clave foránea que referencia al usuario propietario. Además, almacena atributos espaciales y descriptivos, como el tamaño en metros, el punto de origen, el punto final y una fecha asociada a la parcela. Cada una de ellas puede generar un \textit{grid} con múltiples fotos, estableciendo de nuevo una relación uno a muchos.
+	
+	\item \textbf{Foto:} modela cada imagen procesada dentro de una parcela y concentra los metadatos necesarios para su trazabilidad. Incluye un identificador como clave primaria, una clave foránea hacia la parcela y atributos como fecha de captura, resolución expresada en valor y unidad, coordenadas geográficas y rutas de almacenamiento, diferenciando la ruta de la imagen original y la ruta del resultado de trazas. Una foto puede contener exactamente un conjunto de trazas asociado, formalizado mediante una relación uno a uno.
+	
+	\item \textbf{Trazas:} representa el resultado generado por el sistema a partir de una foto concreta. Contiene un identificador como clave primaria y una ruta asociada al recurso resultante. Cada uno de estos ficheros .json están asociados a una imagen, por ello, obtenemos la relación uno a uno.
+\end{itemize}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=1\linewidth]{img/Esquema_relacional_BBDD}
+	\caption[Diagrama relacional de la BBDD]{Diagrama relacional de la BBDD.}
+	\label{fig:esquemarelacionalbbdd}
+\end{figure}
+
+En la Figura~\ref{fig:esquemarelacionalbbdd} se recoge la traducción del modelo conceptual al esquema relacional, estructurado en las tablas \textit{Usuario}, \textit{Parcela} y \textit{Foto}. La tabla \textit{Usuario} concentra los atributos de identificación y control de acceso, mientras que \textit{Parcela} actúa como entidad dependiente mediante la clave foránea \texttt{usuario\_id}, estableciendo una relación uno a muchos que permite organizar el histórico de trabajo por zonas o unidades de análisis. A su vez, la tabla \textit{Foto} se vincula a \textit{Parcela} a través de \texttt{parcela\_id}, almacenando tanto metadatos relevantes para caracterizar la imagen, como la fecha de captura y la resolución expresada en valor y unidad, como información de georreferenciación mediante latitud y longitud.
+
+En este esquema relacional, el resultado del procesamiento no se modela como una entidad independiente, sino que se incorpora directamente en \textit{Foto} mediante el atributo \texttt{ruta\_trazas}. De este modo, cada registro de imagen incluye la ruta al recurso original, \texttt{ruta\_foto}, y la ruta al artefacto generado tras la inferencia, \texttt{ruta\_trazas}, estableciendo una correspondencia directa entre entrada y salida. Esta decisión simplifica el modelo de datos en la fase actual del proyecto, al asumir un único resultado asociado por imagen procesada, y reduce la necesidad de \textit{joins} para recuperar el resultado, manteniendo al mismo tiempo la trazabilidad necesaria para visualización, descarga y auditoría del flujo de procesamiento. 
+
+En caso de evolución futura hacia múltiples ejecuciones o salidas por imagen, este diseño podría extenderse sin ambigüedad mediante la reintroducción de una entidad específica para resultados o ejecuciones.
 
 \section{Diseño arquitectónico}
 \begin{figure}[h]
@@ -30,8 +51,6 @@ La entidad \textit{Fotos} modela cada imagen asociada a una parcela, incorporand
 	\includegraphics[width=\textwidth]{../assets/mockup/Mockup_web_pte2.pdf}
 	\caption[Mockup de la web 2]{Mockup de la web (parte 2).}
 \end{figure}
-
-\subsection{Arquitectura general de la aplicación}
 
 \begin{figure}
 	\centering
