@@ -85,7 +85,7 @@ Posteriormente, cuando el usuario solicita el cálculo de trazas, el servidor ej
 
 Una vez cerrado el modal, el navegador solicita explícitamente los resultados mediante una petición \textit{GET traces}. El servidor lee el fichero JSON previamente generado y lo devuelve al cliente, donde el código JavaScript se encarga de dibujar las trazas sobre el \textit{canvas} y reflejar visualmente el estado de la aplicación.
 
-Finalmente, si el usuario decide eliminar la imagen, se envía una petición \textit{POST delete}. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
+Finalmente, si el usuario decide eliminar la imagen, se envía una petición del tipo \textit{post} a la ruta \textit{delete} del sistema. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
 
 
 \section{Diseño procedimental}
