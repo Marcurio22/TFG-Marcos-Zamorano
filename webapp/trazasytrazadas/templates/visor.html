@@ -1,0 +1,182 @@
+<!--
+Vista del visor cartográfico con selección de área y teselado descargable.
+
+Esta plantilla integra Leaflet con OpenStreetMap y las ortofotos PNOA,
+manteniendo la estética DaisyUI del proyecto y delegando la lógica
+interactiva en un archivo JavaScript estático.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
+-->
+{% extends "base.html" %}
+{% block title %}{{ _("Visor") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block page_container_class %}w-full max-w-none px-3 sm:px-4 py-3{% endblock %}
+{% block content %}
+  <section class="mb-4">
+    <div class="alert bg-base-100 border border-base-200 shadow-sm">
+      <div class="flex flex-col gap-2 w-full">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold">{{ _("Visor") }}</h2>
+            <p class="text-sm sm:text-base opacity-80">
+              {{ _("Selecciona dos puntos sobre el mapa, define la resolución objetivo y genera una cuadrícula de imágenes descargables.") }}
+            </p>
+          </div>
+          <div class="badge badge-info badge-outline">
+            {{ _("OpenStreetMap + PNOA") }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 2xl:grid-cols-[24rem_minmax(0,1fr)] gap-4 items-start">
+    <div class="flex flex-col gap-4">
+      <div class="card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body gap-4">
+          <div>
+            <h3 class="card-title text-lg">{{ _("Controles") }}</h3>
+            <p class="text-sm opacity-75">
+              {{ _("El visor prioriza la ortofoto más reciente que cumpla la resolución objetivo; si no existe cobertura, aplica fallback automático a la siguiente resolución disponible.") }}
+            </p>
+          </div>
+
+          <label class="form-control w-full">
+            <div class="label pb-1">
+              <span class="label-text font-semibold">{{ _("Resolución objetivo") }}</span>
+            </div>
+            <select id="resolution-select" class="select select-bordered w-full">
+              <option value="0.1">0.10 m/px</option>
+              <option value="0.25" selected>0.25 m/px</option>
+              <option value="0.5">0.50 m/px</option>
+              <option value="1">1.00 m/px</option>
+              <option value="2">2.00 m/px</option>
+            </select>
+          </label>
+
+          <label class="form-control w-full">
+            <div class="label pb-1">
+              <span class="label-text font-semibold">{{ _("Tamaño por tesela") }}</span>
+            </div>
+            <select id="tile-size-select" class="select select-bordered w-full">
+              <option value="256">256 px</option>
+              <option value="512" selected>512 px</option>
+              <option value="1024">1024 px</option>
+            </select>
+          </label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="generate-grid-btn" type="button" class="btn btn-primary">
+              {{ _("Generar cuadrícula") }}
+            </button>
+            <button id="reset-selection-btn" type="button" class="btn btn-outline">
+              {{ _("Reset selección") }}
+            </button>
+          </div>
+
+          <div class="stats stats-vertical shadow-sm border border-base-200 bg-base-50">
+            <div class="stat py-3">
+              <div class="stat-title">{{ _("Selección") }}</div>
+              <div id="selection-summary" class="stat-desc text-sm opacity-80">
+                {{ _("Haz dos clics sobre el mapa para definir el rectángulo de trabajo.") }}
+              </div>
+            </div>
+            <div class="stat py-3 border-t border-base-200">
+              <div class="stat-title">{{ _("Fuente activa") }}</div>
+              <div id="source-summary" class="stat-desc text-sm opacity-80">
+                {{ _("Pendiente de generación") }}
+              </div>
+            </div>
+            <div class="stat py-3 border-t border-base-200">
+              <div class="stat-title">{{ _("Descargas") }}</div>
+              <div id="downloads-summary" class="stat-desc text-sm opacity-80">
+                {{ _("Aún no se ha generado ninguna cuadrícula.") }}
+              </div>
+            </div>
+          </div>
+
+          <div id="visor-alerts" class="flex flex-col gap-2"></div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body gap-4">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="card-title text-lg">{{ _("Lista de descargas") }}</h3>
+            <button id="download-all-btn" type="button" class="btn btn-sm btn-outline" disabled>
+              {{ _("Descargar ZIP") }}
+            </button>
+          </div>
+          <div id="download-list" class="flex flex-col gap-2">
+            <div class="text-sm opacity-70">
+              {{ _("Genera primero la cuadrícula para obtener las teselas descargables.") }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
+      <div class="card-body p-0">
+        <div id="visor-map" class="w-full"></div>
+      </div>
+    </div>
+  </section>
+
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="anonymous">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin="anonymous"></script>
+  <script>
+    window.VISOR_APP = {{ {
+      "urls": {
+        "plan": url_for("trazas.visor_grid_plan"),
+        "downloadZip": url_for("trazas.visor_download_zip")
+      },
+      "defaults": {
+        "center": [40.4168, -3.7038],
+        "zoom": 6,
+        "minZoom": 5,
+        "maxZoom": 21,
+        "tileWarningThreshold": 64,
+        "tileListSoftLimit": 80,
+        "maxDownloadBatch": 256
+      },
+      "i18n": {
+        "selectionPending": _("Haz dos clics sobre el mapa para definir el rectángulo de trabajo."),
+        "selectionReady": _("Área seleccionada: %(width)s m × %(height)s m aprox.", width="{width}", height="{height}"),
+        "selectionClickSecond": _("Primer punto fijado. Haz clic para marcar la esquina opuesta."),
+        "sourcePending": _("Pendiente de generación"),
+        "downloadsPending": _("Aún no se ha generado ninguna cuadrícula."),
+        "downloadsReady": _("%(count)s teselas a %(resolution)s m/px usando %(source)s.", count="{count}", resolution="{resolution}", source="{source}"),
+        "downloadsPartialList": _("Se muestran las primeras %(count)s teselas en la lista. Usa el ZIP para descargar el conjunto completo.", count="{count}"),
+        "tileLabel": _("Tesela %(row)s-%(col)s", row="{row}", col="{col}"),
+        "download": _("Descargar"),
+        "downloadZip": _("Descargar ZIP"),
+        "gridGenerationError": _("No se ha podido generar la cuadrícula."),
+        "largeGridWarning": _("La cuadrícula contiene muchas teselas y puede implicar una descarga pesada."),
+        "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático."),
+        "resolutionWarning": _("La ortofoto seleccionada no alcanza la resolución pedida para esa zona."),
+        "statusLoading": _("Calculando cobertura y cuadrícula..."),
+        "statusReset": _("Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo."),
+        "zipPreparing": _("Preparando ZIP de teselas..."),
+        "zipReady": _("Se ha iniciado la descarga del ZIP."),
+        "zipError": _("No se ha podido generar el ZIP."),
+        "tooManyPoints": _("Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo."),
+        "emptyList": _("Genera primero la cuadrícula para obtener las teselas descargables."),
+        "activePreview": _("Capa mostrada: %(source)s · resolución efectiva %(resolution)s m/px.", source="{source}", resolution="{resolution}"),
+        "previewLatest": _("La base visible muestra OpenStreetMap y PNOA de máxima actualidad."),
+        "coverageError": _("No se ha encontrado cobertura PNOA adecuada para el área seleccionada."),
+        "serverError": _("La operación no se pudo completar correctamente."),
+        "gridBounds": _("Rectángulo: %(south)s, %(west)s ↔ %(north)s, %(east)s", south="{south}", west="{west}", north="{north}", east="{east}"),
+        "tilesCount": _("%(count)s teselas · tamaño por tesela hasta %(size)s px.", count="{count}", size="{size}"),
+        "selectedSource": _("Fuente: %(source)s (%(service)s)", source="{source}", service="{service}"),
+        "downloadingTile": _("Descargando %(tile)s...", tile="{tile}")
+      }
+    } | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='js/visor.js') }}"></script>
+{% endblock %}

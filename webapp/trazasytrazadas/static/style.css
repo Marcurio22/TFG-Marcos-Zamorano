@@ -24,3 +24,20 @@ html {
 #traces-canvas {
   image-rendering: pixelated;
 }
+
+/* Ajustes del visor cartográfico. */
+#visor-map {
+  min-height: 60vh;
+  height: clamp(30rem, 68vh, 52rem);
+}
+
+.leaflet-container {
+  font: inherit;
+}
+
+@media (max-width: 1024px) {
+  #visor-map {
+    min-height: 50vh;
+    height: 58vh;
+  }
+}

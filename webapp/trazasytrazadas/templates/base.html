@@ -170,7 +170,7 @@ Versión: 0.1
         {% endwith %}
         <!-- Contenedor principal para las vistas hijas. -->
         <main class="flex-1 relative z-10">
-          <div class="max-w-5xl mx-auto px-3 sm:px-4 py-3">
+          <div class="{% block page_container_class %}max-w-5xl mx-auto px-3 sm:px-4 py-3{% endblock %}">
             {% block content %}{% endblock %}
           </div>
         </main>
@@ -217,6 +217,7 @@ Versión: 0.1
                aria-label="{{ _("Cerrar menú") }}"></label>
         {% set current_ep = request.endpoint or '' %}
         {% set is_home = (current_ep == 'trazas.index') %}
+        {% set is_visor = (current_ep == 'trazas.visor') %}
         <aside class="w-80 min-h-full bg-primary text-primary-content shadow-xl">
           <div class="px-5 py-5 font-black tracking-wide text-2xl border-b border-white/20 drop-shadow-sm">{{ _("Menú") }}</div>
           <ul class="menu p-0 bg-primary text-primary-content divide-y divide-white/10">
@@ -241,10 +242,10 @@ Versión: 0.1
               </a>
             </li>
             <li class="w-full border-t border-white/10">
-              <a href="#"
-                 aria-disabled="true"
-                 tabindex="-1"
-                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 opacity-70 cursor-not-allowed">
+              <a href="{{ url_for("trazas.visor") }}"
+                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 hover:bg-white/10 {% if is_visor %}bg-white/15 pointer-events-none{% endif %}"
+                 {% if is_visor %}aria-current="page"{% endif %}
+                 onclick="document.getElementById('app-drawer').checked = false;">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24"
                      fill="none"

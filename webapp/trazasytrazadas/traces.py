@@ -36,13 +36,18 @@ from flask import (
 from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
 from .segmentation_inference import compute_traces_from_segmentation
+from .visor import register_visor_routes
 from PIL import Image
 
 # Blueprint principal de la aplicación.
 bp = Blueprint("trazas", __name__)
 
+# Registro de rutas auxiliares del visor.
+register_visor_routes(bp)
 
 # Utilidades internas.
+
+
 def allowed_file(filename: str) -> bool:
     """
     Comprueba si el fichero tiene una extensión permitida.
