@@ -337,6 +337,37 @@ Finalmente, al cierre del \textit{sprint}, subí al repositorio los \textit{note
 
 Como se aprecia en la Figura~\ref{fig:brsprint11}, el avance se mantuvo prácticamente plano durante la mayor parte del \textit{sprint}, concentrándose el cierre de tareas en los últimos días, en línea con la disponibilidad reducida que se había previsto para esta semana.
 
+\subsection{Sprint 12 - Implementación de la funcionalidad geoespacial}
+El \textit{Sprint 12} se desarrolló del 12 al 19 de marzo. Para este \textit{sprint} estimé una dedicación total de 17,5~horas y finalmente invertí aproximadamente 18~horas. El objetivo principal de esta iteración fue empezar a materializar la nueva funcionalidad geoespacial en la aplicación, preparando la pantalla referente al visor web y parte de la navegación necesaria para llegar a él.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Arreglar el diagrama relacional de la base de datos.
+	\item Crear el diagrama entidad--relación (E-R) de la BBDD.
+	\item Investigar el alcance del PNOA y su adecuación como fuente de datos.
+	\item Crear un menú de navegación en la \textit{navbar}.
+	\item Adaptar el prototipo inicial al visor web.
+	\item Arreglar el apéndice B de los anexos.
+	\item (Pendiente) Crear dos pantallas nuevas asociadas a la funcionalidad geoespacial: colección y galería de imágenes.
+\end{itemize}
+
+Durante los primeros días me centré en consolidar la estructura de la base de datos, ya que era imprescindible para que la nueva funcionalidad quedase bien definida. En primer lugar, corregí el esquema relacional que había generado en el \textit{sprint} anterior, y a continuación elaboré el diagrama E-R de la aplicación, de manera que el diseño quedase documentado de forma correcta y consistente antes de seguir ampliando la implementación.
+
+En paralelo, dediqué tiempo a investigar el alcance del PNOA, revisando qué cobertura ofrecía y en qué condiciones podía utilizarse dentro del flujo previsto para el proyecto. Esta parte fue relevante para validar que la fuente de datos era viable y para acotar el tipo de consultas y descargas que podrían integrarse más adelante.
+
+En cuanto a la aplicación, implementé un menú en la \textit{navbar} para preparar la navegación entre pantallas, y adapté el prototipo previo para que encajase con el visor web, dejando un flujo mínimo funcional y alineado con el enfoque geoespacial. Sin embargo, aunque dentro de la planificación se contemplaban también dos pantallas adicionales, que suponían aproximadamente 8~horas de trabajo y ya estaban contabilizadas dentro de las horas estimadas, no llegué a completarlas en este \textit{sprint}. La mayor parte del esfuerzo se concentró en estabilizar la base y en dejar el visor preparado, posponiendo esas pantallas para la siguiente iteración.
+
+Además, el lunes 16 surgió una tarea no prevista inicialmente: corregir el apéndice B de los anexos. La cerré ese mismo día, aprovechando que se trataba de un ajuste acotado y necesario para mantener la coherencia del documento.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint12}
+	\caption[Burndown Report del Sprint 12]{Burndown Report del Sprint 12.}
+	\label{fig:brsprint12}
+\end{figure}
+
+Como se aprecia en la Figura~\ref{fig:brsprint12}, el \textit{burndown} se mantiene prácticamente plano durante los primeros días, reflejando que gran parte del trabajo estuvo orientado a preparación e investigación y a tareas que no cerraban \textit{points} de forma inmediata. A partir de la mitad del \textit{sprint} el descenso se vuelve más pronunciado, coincidiendo con el cierre progresivo de tareas técnicas y con la incorporación y resolución de la incidencia del apéndice B. Finalmente, el \textit{sprint} se completa el 19 de marzo, quedando únicamente como arrastre la creación de las pantallas de colección y galería, previstas pero no finalizadas.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
