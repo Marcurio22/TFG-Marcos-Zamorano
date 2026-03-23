@@ -5,9 +5,13 @@
 \section{Diseño de datos}
 El diseño de datos define la estructura de persistencia que soporta el funcionamiento de la aplicación, garantizando que la información se almacene de forma coherente, trazable y escalable. En este apartado se presenta el esquema lógico de la base de datos, con el objetivo de justificar las entidades principales del dominio, sus relaciones y las restricciones de integridad que permiten mantener consistencia entre usuarios, parcelas, imágenes procesadas y resultados generados por el sistema.
 
-\begin{figure}
+\begin{figure}[tbp]
 	\centering
-	\includegraphics[width=1\linewidth]{img/Diagrama_E-R}
+	\includegraphics[
+	width=\textwidth,
+	trim=0 670 0 0,
+	clip
+	]{img/Diagrama_E-R.pdf}
 	\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
 	\label{fig:esquemaerbbdd}
 \end{figure}
@@ -18,17 +22,21 @@ El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el
 \begin{itemize}
 	\item \textbf{Usuario:} representa a la persona registrada en la aplicación y constituye el origen del control de acceso. Incluye un identificador que actúa como clave primaria, así como atributos de autenticación y perfil, como el nombre de usuario, el correo electrónico, la contraseña, el rol y la fecha de alta. Un usuario puede crear múltiples parcelas, lo que queda reflejado mediante una relación uno a muchos.
 	
-	\item \textbf{Parcela:} representa una unidad de trabajo asociada a un usuario, entendida como el área seleccionada por el mismo sobre el que se pretende organizar la información de análisis. Dispone de un identificador como clave primaria y mantiene una clave foránea que referencia al usuario propietario. Además, almacena atributos espaciales y descriptivos, como el tamaño en metros, el punto de origen, el punto final y una fecha asociada a la parcela. Cada una de ellas puede generar un \textit{grid} con múltiples fotos, estableciendo de nuevo una relación uno a muchos.
+	\item \textbf{Parcela:} representa una unidad de trabajo asociada a un usuario, entendida como el área seleccionada por el mismo sobre el que se pretende organizar la información de análisis. Dispone de un identificador como clave primaria y, además, almacena atributos espaciales y descriptivos, como el tamaño en metros, el punto de origen, el punto final y una fecha asociada a la parcela. Cada una de ellas puede generar un \textit{grid} con múltiples fotos, estableciendo de nuevo una relación uno a muchos.
 	
-	\item \textbf{Foto:} modela cada imagen procesada dentro de una parcela y concentra los metadatos necesarios para su trazabilidad. Incluye un identificador como clave primaria, una clave foránea hacia la parcela y atributos como fecha de captura, resolución expresada en valor y unidad, coordenadas geográficas y rutas de almacenamiento, diferenciando la ruta de la imagen original y la ruta del resultado de trazas. Una foto puede contener exactamente un conjunto de trazas asociado, formalizado mediante una relación uno a uno.
+	\item \textbf{Foto:} modela cada imagen procesada dentro de una parcela y concentra los metadatos necesarios para su trazabilidad. Incluye un identificador como clave primaria y atributos como fecha de captura, resolución expresada en valor y unidad, coordenadas geográficas y rutas de almacenamiento, diferenciando la ruta de la imagen original y la ruta del resultado de trazas. Una foto puede contener exactamente un conjunto de trazas asociado, formalizado mediante una relación uno a uno.
 	
 	\item \textbf{Trazas:} representa el resultado generado por el sistema a partir de una foto concreta. Contiene un identificador como clave primaria y una ruta asociada al recurso resultante. Cada uno de estos ficheros .json están asociados a una imagen, por ello, obtenemos la relación uno a uno.
 \end{itemize}
 
-\begin{figure}
+\begin{figure}[tbp]
 	\centering
-	\includegraphics[width=1\linewidth]{img/Esquema_relacional_BBDD}
-	\caption[Diagrama relacional de la BBDD]{Diagrama relacional de la BBDD.}
+	\includegraphics[
+	width=\textwidth,
+	trim=0 550 0 0,
+	clip
+	]{img/Esquema_relacional_BBDD.pdf}
+	\caption[Diagrama relacional de la base de datos]{Diagrama relacional de la base de datos.}
 	\label{fig:esquemarelacionalbbdd}
 \end{figure}
 
@@ -39,12 +47,75 @@ En este esquema relacional, el resultado del procesamiento no se modela como una
 En caso de evolución futura hacia múltiples ejecuciones o salidas por imagen, este diseño podría extenderse sin ambigüedad mediante la reintroducción de una entidad específica para resultados o ejecuciones.
 
 \section{Diseño arquitectónico}
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{../assets/mockup/Mockup_web.pdf}
-	\caption[Mockup de la web]{Mockup de la web.}
-\end{figure}
 
+
+\begin{landscape}
+	\begin{figure}[p]
+		\centering
+		
+		\begin{subfigure}{0.47\linewidth}
+			\centering
+			\includegraphics[
+			width=\linewidth,
+			trim=0 450 0 0,
+			clip,
+			page=1
+			]{../assets/mockup/Mockup_web.pdf}
+			\caption{Página 1}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.47\linewidth}
+			\centering
+			\includegraphics[
+			width=\linewidth,
+			trim=0 450 0 0,
+			clip,
+			page=2
+			]{../assets/mockup/Mockup_web.pdf}
+			\caption{Página 2}
+		\end{subfigure}
+		
+		\vspace{1em}
+		
+		\begin{subfigure}{0.47\linewidth}
+			\centering
+			\includegraphics[
+			width=\linewidth,
+			trim=0 450 0 0,
+			clip,
+			page=3
+			]{../assets/mockup/Mockup_web.pdf}
+			\caption{Página 3}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.47\linewidth}
+			\centering
+			\includegraphics[
+			width=\linewidth,
+			trim=0 450 0 0,
+			clip,
+			page=4
+			]{../assets/mockup/Mockup_web.pdf}
+			\caption{Página 4}
+		\end{subfigure}
+		
+		\vspace{1em}
+		
+		\begin{subfigure}{0.55\linewidth}
+			\centering
+			\includegraphics[
+			width=\linewidth,
+			trim=0 450 0 0,
+			clip,
+			page=5
+			]{../assets/mockup/Mockup_web.pdf}
+			\caption{Página 5}
+		\end{subfigure}
+		
+		\caption[Mockup de la web]{Mockup de la web.}
+		\label{fig:mockupweb1}
+	\end{figure}
+\end{landscape}
 
 \begin{figure}[h]
 	\centering
