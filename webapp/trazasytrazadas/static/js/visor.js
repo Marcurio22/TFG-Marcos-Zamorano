@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
       coverageError: "No se ha encontrado cobertura PNOA adecuada para el área seleccionada.",
       serverError: "La operación no se pudo completar correctamente.",
       gridBounds: "Rectángulo: {south}, {west} ↔ {north}, {east}",
-      tilesCount: "{count} teselas · tamaño por tesela hasta {size} px.",
+      tilesCount: "{count} teselas · formato {width} × {height} px.",
       selectedSource: "Fuente: {source} ({service})",
       downloadingTile: "Descargando {tile}...",
     },
@@ -65,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const sourceSummaryEl = document.getElementById("source-summary");
   const downloadsSummaryEl = document.getElementById("downloads-summary");
   const resolutionSelect = document.getElementById("resolution-select");
-  const tileSizeSelect = document.getElementById("tile-size-select");
   const generateGridBtn = document.getElementById("generate-grid-btn");
   const resetSelectionBtn = document.getElementById("reset-selection-btn");
   const downloadAllBtn = document.getElementById("download-all-btn");
@@ -201,7 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
         east: ne.lng,
       },
       resolution: Number.parseFloat(resolutionSelect.value),
-      tile_size: Number.parseInt(tileSizeSelect.value, 10),
     };
   }
 
@@ -350,7 +348,22 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      let data = null;
+
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const responseText = await response.text();
+        clearAlerts();
+        addAlert(
+          "alert-error",
+          `${I18N.gridGenerationError} (${response.status})`
+        );
+        console.error("Respuesta no JSON en /visor/grid-plan:", responseText);
+        return;
+      }
+
       clearAlerts();
 
       if (!response.ok) {
@@ -364,14 +377,18 @@ document.addEventListener("DOMContentLoaded", () => {
       renderDownloadList(data);
 
       setDownloadsSummary(
-        formatTemplate(I18N.downloadsReady, {
+        `${formatTemplate(I18N.downloadsReady, {
           count: data.tile_count,
           resolution: data.actual_resolution.toFixed(2),
           source: data.source.label,
-        })
+        })} ${formatTemplate(I18N.tilesCount, {
+          count: data.tile_count,
+          width: data.tile_width,
+          height: data.tile_height,
+        })}`
       );
 
-      data.warnings.forEach((warning) => {
+      (data.warnings || []).forEach((warning) => {
         addAlert(`alert-${warning.level || "warning"}`, warning.message);
       });
 

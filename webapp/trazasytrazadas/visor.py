@@ -19,12 +19,20 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 from PIL import Image
-from flask import jsonify, render_template, request, send_file, url_for
+from flask import (
+    current_app,
+    jsonify,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_babel import gettext as _
 
 # Configuración del visor PNOA.
 VISOR_RESOLUTION_STEPS = [0.1, 0.25, 0.5, 1.0, 2.0]
-VISOR_DEFAULT_TILE_SIZE = 512
+VISOR_DEFAULT_TILE_WIDTH = 1024
+VISOR_DEFAULT_TILE_HEIGHT = 640
 VISOR_TILE_WARNING_THRESHOLD = 64
 VISOR_ZIP_TILE_LIMIT = 256
 VISOR_WMS_PNOA_HISTORY = "https://www.ign.es/wms/pnoa-historico"
@@ -720,35 +728,41 @@ def _visor_select_source(
 def _visor_build_tiles(
     bbox3857: tuple[float, float, float, float],
     actual_resolution: float,
-    tile_size: int,
+    tile_width: int,
+    tile_height: int,
     source: dict,
 ) -> tuple[list[dict], int, int]:
     """Genera la cuadrícula de teselas descargables para un bbox."""
     xmin, ymin, xmax, ymax = bbox3857
-    tile_span_m = actual_resolution * tile_size
+    tile_span_x_m = actual_resolution * tile_width
+    tile_span_y_m = actual_resolution * tile_height
     width_m = xmax - xmin
     height_m = ymax - ymin
-    cols = max(1, math.ceil(width_m / tile_span_m))
-    rows = max(1, math.ceil(height_m / tile_span_m))
+    cols = max(1, math.ceil(width_m / tile_span_x_m))
+    rows = max(1, math.ceil(height_m / tile_span_y_m))
 
     tiles: list[dict] = []
     for row in range(rows):
-        tile_ymax = ymax - row * tile_span_m
-        tile_ymin = max(ymin, tile_ymax - tile_span_m)
+        tile_ymax = ymax - row * tile_span_y_m
+        tile_ymin = max(ymin, tile_ymax - tile_span_y_m)
 
         for col in range(cols):
-            tile_xmin = xmin + col * tile_span_m
-            tile_xmax = min(xmax, tile_xmin + tile_span_m)
+            tile_xmin = xmin + col * tile_span_x_m
+            tile_xmax = min(xmax, tile_xmin + tile_span_x_m)
 
             tile_width_px = max(
                 1,
-                min(tile_size, math.ceil(
-                    (tile_xmax - tile_xmin) / actual_resolution)),
+                min(
+                    tile_width,
+                    math.ceil((tile_xmax - tile_xmin) / actual_resolution),
+                ),
             )
             tile_height_px = max(
                 1,
-                min(tile_size, math.ceil(
-                    (tile_ymax - tile_ymin) / actual_resolution)),
+                min(
+                    tile_height,
+                    math.ceil((tile_ymax - tile_ymin) / actual_resolution),
+                ),
             )
 
             bbox_tile = (tile_xmin, tile_ymin, tile_xmax, tile_ymax)
@@ -866,7 +880,6 @@ def register_visor_routes(bp) -> None:
         try:
             bbox4326 = _visor_validate_bbox(payload.get("bbox", {}))
             requested_resolution = float(payload.get("resolution", 0.25))
-            tile_size = int(payload.get("tile_size", VISOR_DEFAULT_TILE_SIZE))
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
 
@@ -882,76 +895,88 @@ def register_visor_routes(bp) -> None:
                 400,
             )
 
-        if tile_size not in {256, 512, 1024}:
-            return (
-                jsonify(
-                    {
-                        "error": _(
-                            "El tamaño de tesela solicitado no es válido."
-                        )
-                    }
-                ),
-                400,
+        tile_width = VISOR_DEFAULT_TILE_WIDTH
+        tile_height = VISOR_DEFAULT_TILE_HEIGHT
+
+        try:
+            bbox3857 = _visor_bbox_to_mercator(bbox4326)
+            source, actual_resolution, warnings = _visor_select_source(
+                bbox3857,
+                requested_resolution,
             )
 
-        bbox3857 = _visor_bbox_to_mercator(bbox4326)
-        source, actual_resolution, warnings = _visor_select_source(
-            bbox3857,
-            requested_resolution,
-        )
-
-        if source is None or actual_resolution is None:
-            return (
-                jsonify(
-                    {
-                        "error": _(
-                            "No se ha encontrado cobertura PNOA adecuada para "
-                            "el área seleccionada."
-                        )
-                    }
-                ),
-                422,
-            )
-
-        tiles, rows, cols = _visor_build_tiles(
-            bbox3857,
-            actual_resolution,
-            tile_size,
-            source,
-        )
-
-        if len(tiles) > VISOR_TILE_WARNING_THRESHOLD:
-            warnings.append(
-                {
-                    "level": "warning",
-                    "code": "large_grid",
-                    "message": _(
-                        "La cuadrícula contiene %(count)s teselas y puede "
-                        "generar una descarga pesada.",
-                        count=len(tiles),
+            if source is None or actual_resolution is None:
+                return (
+                    jsonify(
+                        {
+                            "error": _(
+                                "No se ha encontrado cobertura PNOA adecuada"
+                                " para el área seleccionada."
+                            )
+                        }
                     ),
+                    422,
+                )
+
+            tiles, rows, cols = _visor_build_tiles(
+                bbox3857,
+                actual_resolution,
+                tile_width,
+                tile_height,
+                source,
+            )
+
+            if len(tiles) > VISOR_TILE_WARNING_THRESHOLD:
+                warnings.append(
+                    {
+                        "level": "warning",
+                        "code": "large_grid",
+                        "message": _(
+                            "La cuadrícula contiene %(count)s teselas y puede "
+                            "generar una descarga pesada.",
+                            count=len(tiles),
+                        ),
+                    }
+                )
+
+            return jsonify(
+                {
+                    "source": {
+                        "id": source["id"],
+                        "label": source["label"],
+                        "service": source["service"],
+                        "layer": source["layer"],
+                    },
+                    "preview": source.get("preview"),
+                    "requested_resolution": requested_resolution,
+                    "actual_resolution": actual_resolution,
+                    "tile_width": tile_width,
+                    "tile_height": tile_height,
+                    "tile_count": len(tiles),
+                    "rows": rows,
+                    "cols": cols,
+                    "warnings": warnings,
+                    "tiles": tiles,
                 }
             )
 
-        return jsonify(
-            {
-                "source": {
-                    "id": source["id"],
-                    "label": source["label"],
-                    "service": source["service"],
-                    "layer": source["layer"],
-                },
-                "preview": source.get("preview"),
-                "requested_resolution": requested_resolution,
-                "actual_resolution": actual_resolution,
-                "tile_size": tile_size,
-                "tile_count": len(tiles),
-                "rows": rows,
-                "cols": cols,
-                "warnings": warnings,
-                "tiles": tiles,
-            }
-        )
+        except RuntimeError as exc:
+            return jsonify({"error": str(exc)}), 502
+        except Exception:
+            current_app.logger.exception(
+                "Error generando la cuadrícula del visor"
+            )
+            return (
+                jsonify(
+                    {
+                        "error": _(
+                            "Se ha producido un error interno al generar la "
+                            "cuadrícula."
+                        )
+                    }
+                ),
+                500,
+            )
 
     @bp.route("/visor/download/tile", methods=["GET"])
     def visor_download_tile():

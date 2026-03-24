@@ -22,14 +22,11 @@ Versión: 0.1
               {{ _("Selecciona dos puntos sobre el mapa, define la resolución objetivo y genera una cuadrícula de imágenes descargables.") }}
             </p>
           </div>
-          <div class="badge badge-info badge-outline">
-            {{ _("OpenStreetMap + PNOA") }}
-          </div>
+          <div class="badge badge-info badge-outline">{{ _("OpenStreetMap + PNOA") }}</div>
         </div>
       </div>
     </div>
   </section>
-
   <section class="grid grid-cols-1 2xl:grid-cols-[24rem_minmax(0,1fr)] gap-4 items-start">
     <div class="flex flex-col gap-4">
       <div class="card bg-base-100 shadow-sm border border-base-200">
@@ -40,7 +37,6 @@ Versión: 0.1
               {{ _("El visor prioriza la ortofoto más reciente que cumpla la resolución objetivo; si no existe cobertura, aplica fallback automático a la siguiente resolución disponible.") }}
             </p>
           </div>
-
           <label class="form-control w-full">
             <div class="label pb-1">
               <span class="label-text font-semibold">{{ _("Resolución objetivo") }}</span>
@@ -53,27 +49,21 @@ Versión: 0.1
               <option value="2">2.00 m/px</option>
             </select>
           </label>
-
-          <label class="form-control w-full">
+          <div class="form-control w-full">
             <div class="label pb-1">
-              <span class="label-text font-semibold">{{ _("Tamaño por tesela") }}</span>
+              <span class="label-text font-semibold">{{ _("Formato por tesela") }}</span>
             </div>
-            <select id="tile-size-select" class="select select-bordered w-full">
-              <option value="256">256 px</option>
-              <option value="512" selected>512 px</option>
-              <option value="1024">1024 px</option>
-            </select>
-          </label>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button id="generate-grid-btn" type="button" class="btn btn-primary">
-              {{ _("Generar cuadrícula") }}
-            </button>
-            <button id="reset-selection-btn" type="button" class="btn btn-outline">
-              {{ _("Reset selección") }}
-            </button>
+            <div class="input input-bordered w-full flex items-center bg-base-200/40">1024 × 640 px</div>
+            <div class="label pt-1">
+              <span class="label-text-alt opacity-70">
+                {{ _("El tamaño en píxeles se mantiene fijo para parecerse a las imágenes de entrenamiento; lo que cambia con la resolución es el área cubierta en metros.") }}
+              </span>
+            </div>
           </div>
-
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button id="generate-grid-btn" type="button" class="btn btn-primary">{{ _("Generar cuadrícula") }}</button>
+            <button id="reset-selection-btn" type="button" class="btn btn-outline">{{ _("Reset selección") }}</button>
+          </div>
           <div class="stats stats-vertical shadow-sm border border-base-200 bg-base-50">
             <div class="stat py-3">
               <div class="stat-title">{{ _("Selección") }}</div>
@@ -83,9 +73,7 @@ Versión: 0.1
             </div>
             <div class="stat py-3 border-t border-base-200">
               <div class="stat-title">{{ _("Fuente activa") }}</div>
-              <div id="source-summary" class="stat-desc text-sm opacity-80">
-                {{ _("Pendiente de generación") }}
-              </div>
+              <div id="source-summary" class="stat-desc text-sm opacity-80">{{ _("Pendiente de generación") }}</div>
             </div>
             <div class="stat py-3 border-t border-base-200">
               <div class="stat-title">{{ _("Descargas") }}</div>
@@ -94,35 +82,30 @@ Versión: 0.1
               </div>
             </div>
           </div>
-
           <div id="visor-alerts" class="flex flex-col gap-2"></div>
         </div>
       </div>
-
       <div class="card bg-base-100 shadow-sm border border-base-200">
         <div class="card-body gap-4">
           <div class="flex items-center justify-between gap-3">
             <h3 class="card-title text-lg">{{ _("Lista de descargas") }}</h3>
-            <button id="download-all-btn" type="button" class="btn btn-sm btn-outline" disabled>
-              {{ _("Descargar ZIP") }}
-            </button>
+            <button id="download-all-btn"
+                    type="button"
+                    class="btn btn-sm btn-outline"
+                    disabled>{{ _("Descargar ZIP") }}</button>
           </div>
           <div id="download-list" class="flex flex-col gap-2">
-            <div class="text-sm opacity-70">
-              {{ _("Genera primero la cuadrícula para obtener las teselas descargables.") }}
-            </div>
+            <div class="text-sm opacity-70">{{ _("Genera primero la cuadrícula para obtener las teselas descargables.") }}</div>
           </div>
         </div>
       </div>
     </div>
-
     <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
       <div class="card-body p-0">
         <div id="visor-map" class="w-full"></div>
       </div>
     </div>
   </section>
-
   <link rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -172,7 +155,7 @@ Versión: 0.1
         "coverageError": _("No se ha encontrado cobertura PNOA adecuada para el área seleccionada."),
         "serverError": _("La operación no se pudo completar correctamente."),
         "gridBounds": _("Rectángulo: %(south)s, %(west)s ↔ %(north)s, %(east)s", south="{south}", west="{west}", north="{north}", east="{east}"),
-        "tilesCount": _("%(count)s teselas · tamaño por tesela hasta %(size)s px.", count="{count}", size="{size}"),
+        "tilesCount": _("%(count)s teselas · formato %(width)s × %(height)s px.", count="{count}", width="{width}", height="{height}"),
         "selectedSource": _("Fuente: %(source)s (%(service)s)", source="{source}", service="{service}"),
         "downloadingTile": _("Descargando %(tile)s...", tile="{tile}")
       }

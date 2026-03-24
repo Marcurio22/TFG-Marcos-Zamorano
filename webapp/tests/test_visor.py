@@ -30,7 +30,7 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
         lambda _bbox, _resolution: (source, 0.25, []),
     )
 
-    def _fake_tiles(_bbox, _resolution, _tile_size, _source):
+    def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
         return (
             [
                 {
@@ -51,8 +51,8 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
                         "xmax": 1.0,
                         "ymax": 1.0,
                     },
-                    "width": 512,
-                    "height": 512,
+                    "width": 1024,
+                    "height": 640,
                     "download_url": "/visor/download/tile?source_id=pnoa2023",
                 }
             ],
@@ -72,7 +72,6 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
                 "east": -3.9,
             },
             "resolution": 0.25,
-            "tile_size": 512,
         },
     )
 
