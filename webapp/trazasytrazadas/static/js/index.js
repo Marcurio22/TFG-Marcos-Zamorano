@@ -35,6 +35,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const tracesCheckbox = document.getElementById("traces-drawn-checkbox");
   if (tracesCheckbox) tracesCheckbox.checked = false;
 
+  if (tracesCheckbox) {
+    tracesCheckbox.addEventListener("change", () => {
+      if (!lastTraces) {
+        tracesCheckbox.checked = false;
+        return;
+      }
+
+      if (tracesCheckbox.checked) {
+        canvas.classList.remove("hidden");
+
+        if (img && img.complete && img.naturalWidth > 0) {
+          drawTracesFromData(lastTraces.xs, lastTraces.ys);
+        } else if (img) {
+          img.addEventListener(
+            "load",
+            () => drawTracesFromData(lastTraces.xs, lastTraces.ys),
+            { once: true }
+          );
+        }
+      } else {
+        clearTracesOverlay();
+      }
+    });
+  }
+
   const statusEl = document.getElementById("status-message");
   const statusBadgeEl = document.getElementById("status-badge");
 
@@ -132,6 +157,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let localPreviewUrl = null;
 
+  let lastTraces = null;
+
+  function clearTracesOverlay() {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function drawTracesFromData(xs, ys) {
+    if (!img || !canvas) return;
+
+    resizeCanvas();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const scaleX = canvas.width / img.naturalWidth;
+    const scaleY = canvas.height / img.naturalHeight;
+
+    ctx.fillStyle = "#ff0000";
+
+    for (let i = 0; i < xs.length; i++) {
+      ctx.fillRect(xs[i] * scaleX, ys[i] * scaleY, 1, 1);
+    }
+  }
+
   /**
    * Abre el selector de archivos asociado al input de imagen.
    */
@@ -179,19 +232,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const xs = data.xs || [];
       const ys = data.ys || [];
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      lastTraces = { xs, ys };
 
-      const scaleX = canvas.width / img.naturalWidth;
-      const scaleY = canvas.height / img.naturalHeight;
+      drawTracesFromData(xs, ys);
 
-      // Mantiene el color de trazado definido para la superposición.
-      ctx.fillStyle = "#ff0000";
-
-      for (let i = 0; i < xs.length; i++) {
-        ctx.fillRect(xs[i] * scaleX, ys[i] * scaleY, 1, 1);
+      if (tracesCheckbox) {
+        tracesCheckbox.disabled = false;
+        tracesCheckbox.checked = true;
       }
-
-      if (tracesCheckbox) tracesCheckbox.checked = true;
       setDownloadEnabled(true);
     } catch (e) {
       console.error("Error dibujando trazas:", e);
@@ -236,6 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (tracesCheckbox) tracesCheckbox.checked = false;
+    lastTraces = null;
+    if (tracesCheckbox) tracesCheckbox.disabled = true;
     setDownloadEnabled(false);
 
     // Solo se vuelve al placeholder si no existe una imagen persistida en servidor.
@@ -323,7 +373,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const ctx = canvas.getContext("2d");
       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    if (tracesCheckbox) tracesCheckbox.checked = false;
+    lastTraces = null;
+    if (tracesCheckbox) {
+      tracesCheckbox.checked = false;
+      tracesCheckbox.disabled = true;
+    }
     setDownloadEnabled(false);
     if (statusEl) statusEl.textContent = I18N.statusUploaded;
     setStatusBadge("image_uploaded");
