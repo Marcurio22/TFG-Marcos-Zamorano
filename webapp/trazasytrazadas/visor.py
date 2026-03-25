@@ -16,6 +16,7 @@ import zipfile
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from .collection_store import get_zone_plan, save_generated_zone
 
 import numpy as np
 from PIL import Image
@@ -870,7 +871,15 @@ def register_visor_routes(bp) -> None:
     @bp.route("/visor", methods=["GET"])
     def visor():
         """Renderiza la pantalla del visor cartográfico."""
-        return render_template("visor.html")
+        initial_zone = None
+        parcel_id = request.args.get("parcel_id", type=int)
+        if parcel_id:
+            initial_zone = get_zone_plan(parcel_id)
+
+        return render_template(
+            "visor.html",
+            initial_zone=initial_zone,
+        )
 
     @bp.route("/visor/grid-plan", methods=["POST"])
     def visor_grid_plan():
@@ -880,6 +889,17 @@ def register_visor_routes(bp) -> None:
         try:
             bbox4326 = _visor_validate_bbox(payload.get("bbox", {}))
             requested_resolution = float(payload.get("resolution", 0.25))
+            origin_payload = payload.get("origin") or {}
+            destination_payload = payload.get("destination") or {}
+            south, west, north, east = bbox4326
+            origin_point = {
+                "lat": float(origin_payload.get("lat", south)),
+                "lng": float(origin_payload.get("lng", west)),
+            }
+            destination_point = {
+                "lat": float(destination_payload.get("lat", north)),
+                "lng": float(destination_payload.get("lng", east)),
+            }
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
 
@@ -939,8 +959,39 @@ def register_visor_routes(bp) -> None:
                     }
                 )
 
+            saved_zone_id = None
+            try:
+                saved_zone_id = save_generated_zone(
+                    bbox4326=bbox4326,
+                    origin_point=origin_point,
+                    destination_point=destination_point,
+                    bbox3857=bbox3857,
+                    requested_resolution=requested_resolution,
+                    actual_resolution=actual_resolution,
+                    tile_width=tile_width,
+                    tile_height=tile_height,
+                    source=source,
+                    tiles=tiles,
+                    status="pending",
+                )
+            except Exception:
+                current_app.logger.exception(
+                    "No se ha podido persistir la zona generada en SQLite"
+                )
+                warnings.append(
+                    {
+                        "level": "warning",
+                        "code": "collection_save_failed",
+                        "message": _(
+                            "La zona se ha generado, pero no se ha podido "
+                            "registrar en la colección."
+                        ),
+                    }
+                )
+
             return jsonify(
                 {
+                    "parcel_id": saved_zone_id,
                     "source": {
                         "id": source["id"],
                         "label": source["label"],

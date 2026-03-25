@@ -114,52 +114,57 @@ Versión: 0.1
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
           crossorigin="anonymous"></script>
   <script>
-    window.VISOR_APP = {{ {
-      "urls": {
-        "plan": url_for("trazas.visor_grid_plan"),
-        "downloadZip": url_for("trazas.visor_download_zip")
-      },
-      "defaults": {
-        "center": [40.4168, -3.7038],
-        "zoom": 6,
-        "minZoom": 5,
-        "maxZoom": 21,
-        "tileWarningThreshold": 64,
-        "tileListSoftLimit": 80,
-        "maxDownloadBatch": 256
-      },
-      "i18n": {
-        "selectionPending": _("Haz dos clics sobre el mapa para definir el rectángulo de trabajo."),
-        "selectionReady": _("Área seleccionada: %(width)s m × %(height)s m aprox.", width="{width}", height="{height}"),
-        "selectionClickSecond": _("Primer punto fijado. Haz clic para marcar la esquina opuesta."),
-        "sourcePending": _("Pendiente de generación"),
-        "downloadsPending": _("Aún no se ha generado ninguna cuadrícula."),
-        "downloadsReady": _("%(count)s teselas a %(resolution)s m/px usando %(source)s.", count="{count}", resolution="{resolution}", source="{source}"),
-        "downloadsPartialList": _("Se muestran las primeras %(count)s teselas en la lista. Usa el ZIP para descargar el conjunto completo.", count="{count}"),
-        "tileLabel": _("Tesela %(row)s-%(col)s", row="{row}", col="{col}"),
-        "download": _("Descargar"),
-        "downloadZip": _("Descargar ZIP"),
-        "gridGenerationError": _("No se ha podido generar la cuadrícula."),
-        "largeGridWarning": _("La cuadrícula contiene muchas teselas y puede implicar una descarga pesada."),
-        "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático."),
-        "resolutionWarning": _("La ortofoto seleccionada no alcanza la resolución pedida para esa zona."),
-        "statusLoading": _("Calculando cobertura y cuadrícula..."),
-        "statusReset": _("Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo."),
-        "zipPreparing": _("Preparando ZIP de teselas..."),
-        "zipReady": _("Se ha iniciado la descarga del ZIP."),
-        "zipError": _("No se ha podido generar el ZIP."),
-        "tooManyPoints": _("Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo."),
-        "emptyList": _("Genera primero la cuadrícula para obtener las teselas descargables."),
-        "activePreview": _("Capa mostrada: %(source)s · resolución efectiva %(resolution)s m/px.", source="{source}", resolution="{resolution}"),
-        "previewLatest": _("La base visible muestra OpenStreetMap y PNOA de máxima actualidad."),
-        "coverageError": _("No se ha encontrado cobertura PNOA adecuada para el área seleccionada."),
-        "serverError": _("La operación no se pudo completar correctamente."),
-        "gridBounds": _("Rectángulo: %(south)s, %(west)s ↔ %(north)s, %(east)s", south="{south}", west="{west}", north="{north}", east="{east}"),
-        "tilesCount": _("%(count)s teselas · formato %(width)s × %(height)s px.", count="{count}", width="{width}", height="{height}"),
-        "selectedSource": _("Fuente: %(source)s (%(service)s)", source="{source}", service="{service}"),
-        "downloadingTile": _("Descargando %(tile)s...", tile="{tile}")
-      }
-    } | tojson }};
+  window.VISOR_APP = {{ {
+    "urls": {
+      "plan": url_for("trazas.visor_grid_plan"),
+      "downloadZip": url_for("trazas.visor_download_zip"),
+      "collection": url_for("trazas.collection")
+    },
+    "defaults": {
+      "center": [40.4168, -3.7038],
+      "zoom": 6,
+      "minZoom": 5,
+      "maxZoom": 21,
+      "tileWarningThreshold": 64,
+      "tileListSoftLimit": 80,
+      "maxDownloadBatch": 256
+    },
+    "i18n": {
+      "selectionPending": _("Haz dos clics sobre el mapa para definir el rectángulo de trabajo."),
+      "selectionReady": _("Área seleccionada: %(width)s m × %(height)s m aprox.", width="{width}", height="{height}"),
+      "selectionClickSecond": _("Primer punto fijado. Haz clic para marcar la esquina opuesta."),
+      "sourcePending": _("Pendiente de generación"),
+      "downloadsPending": _("Aún no se ha generado ninguna cuadrícula."),
+      "downloadsReady": _("%(count)s teselas a %(resolution)s m/px usando %(source)s.", count="{count}", resolution="{resolution}", source="{source}"),
+      "downloadsPartialList": _("Se muestran las primeras %(count)s teselas en la lista. Usa el ZIP para descargar el conjunto completo.", count="{count}"),
+      "tileLabel": _("Tesela %(row)s-%(col)s", row="{row}", col="{col}"),
+      "download": _("Descargar"),
+      "downloadZip": _("Descargar ZIP"),
+      "gridGenerationError": _("No se ha podido generar la cuadrícula."),
+      "largeGridWarning": _("La cuadrícula contiene muchas teselas y puede implicar una descarga pesada."),
+      "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático."),
+      "resolutionWarning": _("La ortofoto seleccionada no alcanza la resolución pedida para esa zona."),
+      "statusLoading": _("Calculando cobertura y cuadrícula..."),
+      "statusReset": _("Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo."),
+      "zipPreparing": _("Preparando ZIP de teselas..."),
+      "zipReady": _("Se ha iniciado la descarga del ZIP."),
+      "zipError": _("No se ha podido generar el ZIP."),
+      "tooManyPoints": _("Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo."),
+      "emptyList": _("Genera primero la cuadrícula para obtener las teselas descargables."),
+      "activePreview": _("Capa mostrada: %(source)s · resolución efectiva %(resolution)s m/px.", source="{source}", resolution="{resolution}"),
+      "previewLatest": _("La base visible muestra OpenStreetMap y PNOA de máxima actualidad."),
+      "coverageError": _("No se ha encontrado cobertura PNOA adecuada para el área seleccionada."),
+      "serverError": _("La operación no se pudo completar correctamente."),
+      "gridBounds": _("Rectángulo: %(south)s, %(west)s ↔ %(north)s, %(east)s", south="{south}", west="{west}", north="{north}", east="{east}"),
+      "tilesCount": _("%(count)s teselas · formato %(width)s × %(height)s px.", count="{count}", width="{width}", height="{height}"),
+      "selectedSource": _("Fuente: %(source)s (%(service)s)", source="{source}", service="{service}"),
+      "downloadingTile": _("Descargando %(tile)s...", tile="{tile}"),
+      "zoneRegistered": _("La zona se ha registrado en la colección."),
+      "restoredZone": _("Zona recuperada desde la colección."),
+      "openCollection": _("Abrir colección")
+    },
+    "initialZone": initial_zone
+  } | tojson }};
   </script>
   <script src="{{ url_for('static', filename='js/visor.js') }}"></script>
 {% endblock %}

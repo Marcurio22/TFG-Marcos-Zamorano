@@ -1,0 +1,292 @@
+<!--
+Pantalla de colección de imágenes persistidas.
+
+Muestra el registro paginado de parcelas generadas desde el visor cartográfico
+con acciones de preview, descarga ZIP, galería, restauración en el mapa y
+eliminación.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
+-->
+{% extends "base.html" %}
+{% block title %}{{ _("Colección de imágenes") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-3{% endblock %}
+{% block content %}
+    <section class="mb-4">
+        <a href="{{ url_for("trazas.visor") }}"
+           class="link link-primary font-semibold inline-flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 class="w-4 h-4">
+                <path d="M15 18l-6-6 6-6" />
+                <path d="M21 12H9" />
+            </svg>
+            {{ _("Volver al visor") }}
+        </a>
+    </section>
+    <section class="card bg-base-100 border border-base-200 shadow-sm">
+        <div class="card-body gap-4">
+            <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold">{{ _("Colección de imágenes") }}</h2>
+                    <p class="text-sm opacity-75">
+                        {{ _("Registro persistente de las zonas generadas desde el visor cartográfico y sus teselas asociadas.") }}
+                    </p>
+                </div>
+                <div class="badge badge-outline badge-info">{{ _("SQLite") }}</div>
+            </div>
+            <form method="get"
+                  class="grid grid-cols-1 gap-3 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
+                <label class="form-control w-full max-w-xs">
+                    <div class="label pb-1">
+                        <span class="label-text">{{ _("Mostrar") }}</span>
+                    </div>
+                    <select name="per_page"
+                            class="select select-bordered"
+                            data-collection-per-page>
+                        {% for option in per_page_options %}
+                            <option value="{{ option }}"
+                                    {% if listing.per_page == option %}selected{% endif %}>
+                                {{ option }} {{ _("registros") }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="form-control w-full">
+                    <div class="label pb-1">
+                        <span class="label-text">{{ _("Buscar") }}</span>
+                    </div>
+                    <div class="join w-full">
+                        <input type="search"
+                               name="q"
+                               value="{{ listing.search }}"
+                               placeholder="{{ _("Buscar por coordenadas, fecha o fuente") }}"
+                               class="input input-bordered join-item w-full" />
+                        <button type="submit"
+                                class="btn btn-primary join-item"
+                                aria-label="{{ _("Buscar") }}">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round"
+                                 class="w-4 h-4">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                        </button>
+                    </div>
+                </label>
+                <input type="hidden" name="page" value="1" />
+            </form>
+            {% if listing["zones"] %}
+                <div class="overflow-x-auto border border-base-200 rounded-box">
+                    <table class="table table-zebra table-pin-rows">
+                        <thead>
+                            <tr>
+                                <th>{{ _("Punto origen · Punto destino") }}</th>
+                                <th class="text-center">{{ _("Preview") }}</th>
+                                <th class="text-center">{{ _("ZIP") }}</th>
+                                <th class="text-center">{{ _("Estado") }}</th>
+                                <th>{{ _("Acciones") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in listing["zones"] %}
+                                <tr>
+                                    <td class="align-top min-w-72">
+                                        <div class="flex items-start gap-3">
+                                            <div class="mt-1 text-primary">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     viewBox="0 0 24 24"
+                                                     fill="currentColor"
+                                                     class="w-5 h-5">
+                                                    <path fill-rule="evenodd" d="M11.54 22.351a.75.75 0 0 0 .92 0c1.667-1.417 6.79-6.156 6.79-11.101a7.25 7.25 0 1 0-14.5 0c0 4.945 5.123 9.684 6.79 11.1ZM12 13.5a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <div class="font-semibold text-sm">{{ "%.6f"|format(item.origin.lat) }}, {{ "%.6f"|format(item.origin.lng) }}</div>
+                                                <div class="text-sm opacity-75">
+                                                    {{ "%.6f"|format(item.destination.lat) }}, {{ "%.6f"|format(item.destination.lng) }}
+                                                </div>
+                                                <div class="text-xs opacity-65">
+                                                    {{ item.fecha }} · {{ item.source_label }} · {{ item.tile_count }} {{ _("teselas") }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <button type="button"
+                                                class="btn btn-square btn-sm btn-primary"
+                                                data-action="open-zone-preview"
+                                                data-preview-url="{{ url_for('trazas.collection_preview', parcel_id=item.parcela_id) }}"
+                                                data-preview-title="{{ _("Preview de la zona") }} #{{ item.parcela_id }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round"
+                                                 class="w-4 h-4">
+                                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <a href="{{ url_for('trazas.collection_download_zip', parcel_id=item.parcela_id) }}"
+                                           class="btn btn-square btn-sm btn-primary"
+                                           aria-label="{{ _("Descargar ZIP") }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round"
+                                                 class="w-4 h-4">
+                                                <path d="M12 3v12" />
+                                                <path d="m7 10 5 5 5-5" />
+                                                <path d="M5 21h14" />
+                                            </svg>
+                                        </a>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        {% if item.estado == 'completed' %}
+                                            <span class="inline-flex items-center justify-center text-success"
+                                                  title="{{ _("Trazas completadas") }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     viewBox="0 0 24 24"
+                                                     fill="none"
+                                                     stroke="currentColor"
+                                                     stroke-width="2.5"
+                                                     stroke-linecap="round"
+                                                     stroke-linejoin="round"
+                                                     class="w-6 h-6">
+                                                    <path d="M20 6 9 17l-5-5" />
+                                                </svg>
+                                            </span>
+                                        {% elif item.estado == 'processing' %}
+                                            <span class="loading loading-spinner loading-md text-info"
+                                                  title="{{ _("Procesando") }}"></span>
+                                        {% elif item.estado == 'failed' %}
+                                            <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                                        {% else %}
+                                            <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle min-w-56">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <a href="{{ url_for('trazas.collection_gallery', parcel_id=item.parcela_id) }}"
+                                               class="btn btn-sm btn-primary">{{ _("Ver galería") }}</a>
+                                            <a href="{{ url_for('trazas.visor', parcel_id=item.parcela_id) }}"
+                                               class="btn btn-sm btn-primary">{{ _("Ver en el mapa") }}</a>
+                                            <form method="post"
+                                                  action="{{ url_for('trazas.collection_delete', parcel_id=item.parcela_id) }}"
+                                                  class="inline-flex">
+                                                <input type="hidden" name="redirect_to" value="{{ current_query }}">
+                                                <button type="submit"
+                                                        class="btn btn-square btn-sm btn-error"
+                                                        data-action="confirm-delete"
+                                                        data-confirm-message="{{ _("¿Eliminar esta zona de forma permanente?") }}"
+                                                        aria-label="{{ _("Eliminar") }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         viewBox="0 0 24 24"
+                                                         fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round"
+                                                         class="w-4 h-4">
+                                                        <path d="M3 6h18" />
+                                                        <path d="M8 6V4h8v2" />
+                                                        <path d="M19 6l-1 14H6L5 6" />
+                                                        <path d="M10 11v6" />
+                                                        <path d="M14 11v6" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div class="text-sm opacity-75">
+                        {{ _("Mostrando %(count)s de %(total)s zonas.", count=listing["zones"]|length, total=listing.total) }}
+                    </div>
+                    <div class="join self-start md:self-auto">
+                        {% set prev_page = listing.page - 1 if listing.page > 1 else 1 %}
+                        {% set next_page = listing.page + 1 if listing.page < listing.total_pages else listing.total_pages %}
+                        <a href="{{ url_for('trazas.collection', page=prev_page, per_page=listing.per_page, q=listing.search) }}"
+                           class="join-item btn btn-sm {% if listing.page == 1 %}btn-disabled{% endif %}">«</a>
+                        {% for item in pagination_items %}
+                            {% if item is none %}
+                                <button type="button" class="join-item btn btn-sm btn-disabled">…</button>
+                            {% else %}
+                                <a href="{{ url_for('trazas.collection', page=item, per_page=listing.per_page, q=listing.search) }}"
+                                   class="join-item btn btn-sm {% if listing.page == item %}btn-primary{% else %}btn-outline{% endif %}">{{ item }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        <a href="{{ url_for('trazas.collection', page=next_page, per_page=listing.per_page, q=listing.search) }}"
+                           class="join-item btn btn-sm {% if listing.page == listing.total_pages %}btn-disabled{% endif %}">»</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="hero border border-dashed border-base-300 rounded-box bg-base-50 py-10">
+                    <div class="hero-content text-center">
+                        <div class="max-w-lg space-y-3">
+                            <h3 class="text-lg font-bold">{{ _("Todavía no hay zonas registradas") }}</h3>
+                            <p class="text-sm opacity-75">
+                                {{ _("Genera una cuadrícula desde el visor y se añadirá automáticamente a esta colección persistente.") }}
+                            </p>
+                            <a href="{{ url_for("trazas.visor") }}" class="btn btn-primary">{{ _("Ir al visor") }}</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    <dialog id="zone-preview-modal" class="modal">
+        <div class="modal-box max-w-4xl">
+            <div class="flex items-start justify-between gap-3">
+                <h3 id="zone-preview-title" class="font-bold text-lg">{{ _("Preview de la zona") }}</h3>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost"
+                            aria-label="{{ _("Cerrar") }}">✕</button>
+                </form>
+            </div>
+            <div id="zone-preview-loading" class="py-10 text-center">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+                <div class="mt-3 text-sm opacity-75">{{ _("Cargando preview...") }}</div>
+            </div>
+            <div id="zone-preview-error" class="hidden alert alert-error mt-4"></div>
+            <img id="zone-preview-image"
+                 alt="{{ _("Preview de la zona") }}"
+                 class="hidden mt-4 w-full rounded-box border border-base-200" />
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="{{ _("Cerrar") }}"></button>
+        </form>
+    </dialog>
+    <script>
+    window.COLLECTION_APP = {{ {
+      "i18n": {
+        "previewTitle": _("Preview de la zona"),
+        "previewError": _("No se ha podido cargar la preview de la zona."),
+        "deleteConfirm": _("¿Eliminar esta zona de forma permanente?")
+      }
+    } | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/collection.js') }}"></script>
+{% endblock %}

@@ -17,7 +17,7 @@ from datetime import timedelta
 from flask import Flask, request, session
 from flask_babel import Babel, get_locale
 
-from . import traces
+from . import db, traces
 
 # Babel (i18n)
 babel = Babel()
@@ -78,6 +78,7 @@ def create_app(test_config=None):
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
+        DATABASE=os.path.join(app.instance_path, "trazasytrazadas.sqlite"),
 
         # ------------------ Configuración ML ------------------
         # Carpeta donde van los pesos por fold.
@@ -124,6 +125,11 @@ def create_app(test_config=None):
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
     os.makedirs(app.config["SEG_MODELS_DIR"], exist_ok=True)
+
+    # Integración de base de datos SQLite.
+    db.init_app(app)
+    with app.app_context():
+        db.init_db()
 
     # Registrar blueprint principal.
     app.register_blueprint(traces.bp)

@@ -1,0 +1,97 @@
+<!--
+Galería mínima de teselas asociadas a una zona persistida.
+
+Esta vista permite revisar las teselas guardadas para una parcela y descargar
+cada imagen individualmente sin persistir archivos derivados en disco.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
+-->
+{% extends "base.html" %}
+{% block title %}{{ _("Galería de zona") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-3{% endblock %}
+{% block content %}
+    <section class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="breadcrumbs text-sm">
+            <ul>
+                <li>
+                    <a href="{{ url_for("trazas.collection") }}">{{ _("Colección de imágenes") }}</a>
+                </li>
+                <li>{{ _("Galería") }}</li>
+            </ul>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ url_for('trazas.visor', parcel_id=zone.parcela_id) }}"
+               class="btn btn-sm btn-primary">{{ _("Ver en el mapa") }}</a>
+            <a href="{{ url_for('trazas.collection_download_zip', parcel_id=zone.parcela_id) }}"
+               class="btn btn-sm btn-outline">{{ _("Descargar ZIP") }}</a>
+        </div>
+    </section>
+    <section class="card bg-base-100 border border-base-200 shadow-sm mb-4">
+        <div class="card-body gap-4">
+            <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold">{{ _("Galería de la zona") }} #{{ zone.parcela_id }}</h2>
+                    <p class="text-sm opacity-75">{{ _("Teselas guardadas a partir de la cuadrícula generada en el visor.") }}</p>
+                </div>
+                {% if zone.estado == 'completed' %}
+                    <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
+                {% elif zone.estado == 'processing' %}
+                    <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
+                {% elif zone.estado == 'failed' %}
+                    <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                {% else %}
+                    <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                {% endif %}
+            </div>
+            <div class="stats stats-vertical lg:stats-horizontal shadow-sm border border-base-200 bg-base-50">
+                <div class="stat">
+                    <div class="stat-title">{{ _("Punto origen") }}</div>
+                    <div class="stat-value text-base">{{ "%.6f"|format(zone.origin.lat) }}, {{ "%.6f"|format(zone.origin.lng) }}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">{{ _("Punto destino") }}</div>
+                    <div class="stat-value text-base">
+                        {{ "%.6f"|format(zone.destination.lat) }}, {{ "%.6f"|format(zone.destination.lng) }}
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">{{ _("Fuente") }}</div>
+                    <div class="stat-value text-base">{{ zone.source_label }}</div>
+                    <div class="stat-desc">{{ zone.actual_resolution }} m/px · {{ zone.tile_count }} {{ _("teselas") }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% if zone.photos %}
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {% for photo in zone.photos %}
+                <article class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
+                    <figure class="bg-base-200/40">
+                        <img src="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
+                             alt="{{ _("Tesela") }} {{ photo.row_index }}-{{ photo.col_index }}"
+                             class="w-full object-cover"
+                             loading="lazy" />
+                    </figure>
+                    <div class="card-body gap-3">
+                        <div>
+                            <h3 class="card-title text-base">{{ _("Tesela %(row)s-%(col)s", row=photo.row_index, col=photo.col_index) }}</h3>
+                            <p class="text-xs opacity-75">{{ photo.filename }}</p>
+                        </div>
+                        <div class="text-sm opacity-80">
+                            {{ _("Centro aprox.: %(lat)s, %(lng)s", lat="%.6f"|format(photo.latitud) , lng="%.6f"|format(photo.longitud)) }}
+                        </div>
+                        <div class="card-actions justify-end">
+                            <a href="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
+                               class="btn btn-sm btn-outline">{{ _("Descargar") }}</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <div class="alert alert-info">
+            <span>{{ _("La zona seleccionada no contiene teselas guardadas.") }}</span>
+        </div>
+    {% endif %}
+{% endblock %}

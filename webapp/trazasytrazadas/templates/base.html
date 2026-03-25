@@ -50,7 +50,7 @@ Versión: 0.1
         <header class="bg-primary text-primary-content shadow-sm relative z-50">
           <div class="px-3 sm:px-4">
             <div class="relative py-3">
-              <!-- Botón hamburguesa (toggle drawer) -->
+              <!-- Botón toggle drawer -->
               <label for="app-drawer"
                      class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
                      role="button"
@@ -218,6 +218,7 @@ Versión: 0.1
         {% set current_ep = request.endpoint or '' %}
         {% set is_home = (current_ep == 'trazas.index') %}
         {% set is_visor = (current_ep == 'trazas.visor') %}
+        {% set is_collection = (current_ep == 'trazas.collection') %}
         <aside class="w-80 min-h-full bg-primary text-primary-content shadow-xl">
           <div class="px-5 py-5 font-black tracking-wide text-2xl border-b border-white/20 drop-shadow-sm">{{ _("Menú") }}</div>
           <ul class="menu p-0 bg-primary text-primary-content divide-y divide-white/10">
@@ -262,10 +263,10 @@ Versión: 0.1
               </a>
             </li>
             <li class="w-full border-t border-white/10">
-              <a href="#"
-                 aria-disabled="true"
-                 tabindex="-1"
-                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 opacity-70 cursor-not-allowed">
+              <a href="{{ url_for("trazas.collection") }}"
+                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 hover:bg-white/10 {% if is_collection %}bg-white/15 pointer-events-none{% endif %}"
+                 {% if is_collection %}aria-current="page"{% endif %}
+                 onclick="document.getElementById('app-drawer').checked = false;">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24"
                      fill="none"

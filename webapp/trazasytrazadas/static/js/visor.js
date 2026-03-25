@@ -55,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
       tilesCount: "{count} teselas · formato {width} × {height} px.",
       selectedSource: "Fuente: {source} ({service})",
       downloadingTile: "Descargando {tile}...",
+      zoneRegistered: "La zona se ha registrado en la colección.",
+      restoredZone: "Zona recuperada desde la colección.",
+      openCollection: "Abrir colección",
     },
     CFG.i18n || {}
   );
@@ -109,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectionRectangle = null;
   let activePreviewLayer = null;
   let currentPlan = null;
+  const initialZone = CFG.initialZone || null;
 
   function formatTemplate(template, values) {
     return Object.keys(values).reduce(
@@ -199,6 +203,12 @@ document.addEventListener("DOMContentLoaded", () => {
         north: ne.lat,
         east: ne.lng,
       },
+      origin: selectedPoints[0]
+        ? { lat: selectedPoints[0].lat, lng: selectedPoints[0].lng }
+        : { lat: sw.lat, lng: sw.lng },
+      destination: selectedPoints[1]
+        ? { lat: selectedPoints[1].lat, lng: selectedPoints[1].lng }
+        : { lat: ne.lat, lng: ne.lng },
       resolution: Number.parseFloat(resolutionSelect.value),
     };
   }
@@ -328,6 +338,58 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function restoreInitialZone(zone) {
+    if (!zone || !zone.bbox || !zone.plan) return;
+
+    resetSelection();
+
+    selectedPoints = [
+      L.latLng(zone.origin.lat, zone.origin.lng),
+      L.latLng(zone.destination.lat, zone.destination.lng),
+    ];
+
+    selectedPoints.forEach((point) => {
+      L.marker(point).addTo(markersGroup);
+    });
+
+    selectionBounds = L.latLngBounds(
+      [zone.bbox.south, zone.bbox.west],
+      [zone.bbox.north, zone.bbox.east]
+    );
+
+    selectionRectangle = L.rectangle(selectionBounds, {
+      color: "#f59e0b",
+      weight: 2,
+      fillOpacity: 0.15,
+    }).addTo(selectionGroup);
+
+    currentPlan = zone.plan;
+    renderPreviewLayer(currentPlan);
+    renderGrid(currentPlan);
+    renderDownloadList(currentPlan);
+    updateSelectionSummaryFromBounds(selectionBounds);
+
+    if (resolutionSelect && currentPlan.requested_resolution) {
+      resolutionSelect.value = String(currentPlan.requested_resolution);
+    }
+
+    setDownloadsSummary(
+      `${formatTemplate(I18N.downloadsReady, {
+        count: currentPlan.tile_count,
+        resolution: Number(currentPlan.actual_resolution).toFixed(2),
+        source: currentPlan.source.label,
+      })} ${formatTemplate(I18N.tilesCount, {
+        count: currentPlan.tile_count,
+        width: currentPlan.tile_width,
+        height: currentPlan.tile_height,
+      })}`
+    );
+
+    map.fitBounds(selectionBounds.pad(0.15));
+    clearAlerts();
+    addAlert("alert-info", I18N.restoredZone);
+  }
+
   async function generateGrid() {
     const payload = buildPayload();
     if (!payload) {
@@ -373,6 +435,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentPlan = data;
       renderPreviewLayer(data);
+      if (data.parcel_id && URLS.collection) {
+        addAlert(
+          "alert-success",
+          `${I18N.zoneRegistered} <a class="link font-semibold" href="${URLS.collection}">${I18N.openCollection}</a>`
+        );
+      }
       renderGrid(data);
       renderDownloadList(data);
 
@@ -477,4 +545,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setSourceSummary(I18N.previewLatest);
   setDownloadsSummary(I18N.downloadsPending);
   setEmptyDownloadsList();
+
+  if (initialZone) {
+    restoreInitialZone(initialZone);
+  }
 });
