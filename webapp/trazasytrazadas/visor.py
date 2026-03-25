@@ -1044,7 +1044,7 @@ def register_visor_routes(bp) -> None:
             )
 
         zip_buffer = io.BytesIO()
-        manifest: dict[str, list] = {"downloaded": [], "failed": []}
+        log: dict[str, list] = {"downloaded": [], "failed": []}
 
         with zipfile.ZipFile(
             zip_buffer,
@@ -1073,9 +1073,9 @@ def register_visor_routes(bp) -> None:
                         height,
                     )
                     zf.writestr(filename, image_bytes)
-                    manifest["downloaded"].append(filename)
+                    log["downloaded"].append(filename)
                 except Exception as exc:  # pragma: no cover
-                    manifest["failed"].append(
+                    log["failed"].append(
                         {
                             "tile": tile.get("id", "unknown"),
                             "error": str(exc),
@@ -1083,9 +1083,9 @@ def register_visor_routes(bp) -> None:
                     )
 
             zf.writestr(
-                "manifest.json",
+                "log.json",
                 json.dumps(
-                    manifest,
+                    log,
                     ensure_ascii=False,
                     indent=2,
                 ).encode("utf-8"),

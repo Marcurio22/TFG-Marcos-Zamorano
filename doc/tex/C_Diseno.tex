@@ -2,6 +2,7 @@
 
 \section{Introducción}
 
+
 \section{Diseño de datos}
 El diseño de datos define la estructura de persistencia que soporta el funcionamiento de la aplicación, garantizando que la información se almacene de forma coherente, trazable y escalable. En este apartado se presenta el esquema lógico de la base de datos, con el objetivo de justificar las entidades principales del dominio, sus relaciones y las restricciones de integridad que permiten mantener consistencia entre usuarios, parcelas, imágenes procesadas y resultados generados por el sistema.
 
@@ -48,81 +49,6 @@ En caso de evolución futura hacia múltiples ejecuciones o salidas por imagen, 
 
 \section{Diseño arquitectónico}
 
-
-\begin{landscape}
-	\begin{figure}[p]
-		\centering
-		
-		\begin{subfigure}{0.47\linewidth}
-			\centering
-			\includegraphics[
-			width=\linewidth,
-			trim=0 450 0 0,
-			clip,
-			page=1
-			]{../assets/mockup/Mockup_web.pdf}
-			\caption{Página 1}
-		\end{subfigure}
-		\hfill
-		\begin{subfigure}{0.47\linewidth}
-			\centering
-			\includegraphics[
-			width=\linewidth,
-			trim=0 450 0 0,
-			clip,
-			page=2
-			]{../assets/mockup/Mockup_web.pdf}
-			\caption{Página 2}
-		\end{subfigure}
-		
-		\vspace{1em}
-		
-		\begin{subfigure}{0.47\linewidth}
-			\centering
-			\includegraphics[
-			width=\linewidth,
-			trim=0 450 0 0,
-			clip,
-			page=3
-			]{../assets/mockup/Mockup_web.pdf}
-			\caption{Página 3}
-		\end{subfigure}
-		\hfill
-		\begin{subfigure}{0.47\linewidth}
-			\centering
-			\includegraphics[
-			width=\linewidth,
-			trim=0 450 0 0,
-			clip,
-			page=4
-			]{../assets/mockup/Mockup_web.pdf}
-			\caption{Página 4}
-		\end{subfigure}
-		
-		\vspace{1em}
-		
-		\begin{subfigure}{0.55\linewidth}
-			\centering
-			\includegraphics[
-			width=\linewidth,
-			trim=0 450 0 0,
-			clip,
-			page=5
-			]{../assets/mockup/Mockup_web.pdf}
-			\caption{Página 5}
-		\end{subfigure}
-		
-		\caption[Mockup de la web]{Mockup de la web.}
-		\label{fig:mockupweb1}
-	\end{figure}
-\end{landscape}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth, page=2]{../assets/mockup/Mockup_web_pte2.pdf}
-	\caption[Mockup de la web 2]{Mockup de la web (parte 2).}
-\end{figure}
-
 \begin{figure}
 	\centering
 	\includegraphics[width=1.5\linewidth]{img/diagrama_flujo}
@@ -158,6 +84,169 @@ Una vez cerrado el modal, el navegador solicita explícitamente los resultados m
 
 Finalmente, si el usuario decide eliminar la imagen, se envía una petición del tipo \textit{post} a la ruta \textit{delete} del sistema. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
 
+\section{Diseño web}
+
+En este apartado se presentan los \textit{mockups} de las principales pantallas de la aplicación, con el objetivo de concretar el flujo de interacción previsto y servir de soporte a la especificación funcional. Estas maquetas permiten validar, de forma temprana, tanto la distribución de la interfaz como la secuencia de acciones que guían al usuario a través del \textit{pipeline} de procesamiento, desde la selección de una ortoimagen hasta la obtención y visualización de las trazas detectadas.
+
+\subsubsection{Página principal}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=1
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: página principal]{Mockup de la web: página principal.}
+	\label{fig:mockupweb1}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb1} representa el estado inicial de la aplicación, cuando todavía no se ha cargado ninguna imagen. En la parte superior se dispone una barra de acciones que agrupa las operaciones principales del sistema, insertar y borrar imagen, calcular trazas y dibujar trazas, mientras que la zona central actúa como área de trabajo, ofreciendo un contenedor de subida y previsualización. Este diseño prioriza la claridad del flujo, de modo que el usuario identifique desde el primer momento cuál es el punto de entrada del proceso y qué pasos debe ejecutar para pasar de la imagen de entrada a la representación visual del resultado.
+
+\subsubsection{Imagen insertada}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=2
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: imagen insertada]{Mockup de la web: imagen insertada.}
+	\label{fig:mockupweb2}
+\end{figure}
+
+El estado inmediatamente posterior a la página principal~\ref{fig:mockupweb1} se alcanza cuando el usuario pulsa \textit{Insertar imagen} y selecciona el fichero que desea analizar. En ese momento, la interfaz pasa a mostrar la imagen cargada, tal y como se aprecia en la Figura~\ref{fig:mockupweb2}. De este modo, el contenedor que en la pantalla inicial presentaba el texto \textit{upload image} se sustituye por la previsualización de la ortoimagen, quedando esta disponible para su inspección en el cliente y para la ejecución posterior del cálculo de trazas.
+
+\subsubsection{Modal de trazas calculadas}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=3
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: modal de trazas]{Mockup de la web: modal de trazas.}
+	\label{fig:mockupweb3}
+\end{figure}
+
+Una vez se pulse el botón \textit{Calcular trazas}, aparecerá un modal superpuesto sobre la imagen indicando que el proceso de inferencia ha finalizado y que el siguiente paso consiste en representar el resultado. Para ello, tal y como se muestra en la Figura~\ref{fig:mockupweb3}, el usuario deberá pulsar el botón \textit{Dibujar trazas}.
+\subsubsection{Trazas dibujadas}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=4
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: trazas dibujadas]{Mockup de la web: trazas dibujadas.}
+	\label{fig:mockupweb4}
+\end{figure}
+
+Tras hacer uso del botón \textit{Dibujar trazas} y, suponiendo que se ha seguido correctamente el flujo previo, se mostrará la ortoimagen original con las trazas superpuestas. De este modo, las sendas detectadas quedan resaltadas y son fácilmente inspeccionables por el usuario, tal y como se aprecia en la Figura~\ref{fig:mockupweb4}.
+
+\subsubsection{Modal de error}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=5
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: modal de error]{Mockup de la web: modal de error.}
+	\label{fig:mockupweb5}
+\end{figure}
+
+Si se interrumpe el flujo de la aplicación o se produce algún error durante la ejecución, el sistema mostrará un modal informativo indicando que no ha sido posible completar correctamente el proceso. Este comportamiento permite comunicar la incidencia de forma clara y mantener la interfaz en un estado consistente, tal y como se observa en la Figura~\ref{fig:mockupweb5}.
+
+\subsubsection{Menú de la web}
+En este segundo \textit{mockup} se aborda la ampliación funcional orientada al tratamiento geoespacial de la aplicación, incorporando un flujo de trabajo basado en selección de zonas, generación de teselas y gestión de resultados.
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=1
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: menú]{Mockup de la web: menú.}
+	\label{fig:mockupweb6}
+\end{figure}
+
+En primer lugar, se introduce un menú de navegación, tal y como se observa en la Figura~\ref{fig:mockupweb6}. Esta incorporación resulta necesaria al evolucionar la aplicación desde una única pantalla hacia un conjunto de vistas diferenciadas, permitiendo el acceso rápido a cada módulo y garantizando una navegación clara entre funcionalidades.
+
+\subsubsection{Visor}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=2
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: visor]{Mockup de la web: visor.}
+	\label{fig:mockupweb7}
+\end{figure}
+
+La siguiente pantalla corresponde al visor cartográfico, mostrado en la Figura~\ref{fig:mockupweb7}. En esta vista se integrará un mapa interactivo mediante \textit{Leaflet}, capaz de cargar ortofotografía del PNOA a niveles de \textit{zoom} adecuados. Una vez alcanzada la escala de trabajo, el usuario seleccionará dos puntos para definir un rectángulo delimitador, entendido como zona de interés. A partir de dicha geometría, el sistema generará un conjunto de teselas correspondientes al recorte definido, asociando cada imagen resultante a la zona seleccionada.
+
+\subsubsection{Colección de imágenes}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=3
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: colección de imágenes]{Mockup de la web: colección de imágenes.}
+	\label{fig:mockupweb8}
+\end{figure}
+
+Una vez generadas las teselas, el usuario podrá acceder a la colección de zonas registradas, representada en la Figura~\ref{fig:mockupweb8}. Esta pantalla organiza en una tabla todas las zonas creadas, mostrando como metadatos informativos las coordenadas de origen y fin del recuadro, junto con un conjunto de acciones asociadas. Entre ellas, se contempla la previsualización de la zona, la descarga de un fichero \texttt{.zip} con las teselas generadas y un indicador de estado que refleje si el cálculo de trazas ya se ha completado para todas las imágenes. Adicionalmente, se incluyen accesos directos a la galería, a la visualización de la zona en el mapa, y una opción de eliminación permanente del registro, junto con un control de paginación para navegar entre entradas.
+
+\subsubsection{Galería de imágenes}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=4
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: galería de imágenes]{Mockup de la web: galería de imágenes.}
+	\label{fig:mockupweb9}
+\end{figure}
+
+Al acceder a la galería, se presenta un listado de las imágenes asociadas a la zona seleccionada, tal y como se observa en la Figura~\ref{fig:mockupweb9}. Cada elemento incluye su identificación y metadatos básicos, además de un indicador de progreso que señala si las trazas han sido calculadas. Este cálculo se plantea como un proceso automático, de modo que el usuario pueda supervisar el estado sin intervención adicional.
+
+\subsubsection{Imagen resaltada}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=5
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: imagen resaltada]{Mockup de la web: imagen resaltada.}
+	\label{fig:mockupweb10}
+\end{figure}
+
+Por último, la Figura~\ref{fig:mockupweb10} muestra la vista de detalle de una imagen individual. En esta pantalla se habilita la consulta de la imagen a mayor resolución y la inspección de sus características, incorporando además acciones explícitas sobre el procesado. En particular, se incluye un botón para dibujar las trazas, únicamente cuando estas hayan sido calculadas previamente, y un botón para recalcularlas en caso de fallo o inconsistencia durante la ejecución automática.
 
 \section{Diseño procedimental}
 
