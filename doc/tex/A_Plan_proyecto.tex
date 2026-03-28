@@ -368,6 +368,60 @@ Además, el lunes 16 surgió una tarea no prevista inicialmente: corregir el ap�
 
 Como se aprecia en la Figura~\ref{fig:brsprint12}, el \textit{burndown} se mantiene prácticamente plano durante los primeros días, reflejando que gran parte del trabajo estuvo orientado a preparación e investigación y a tareas que no cerraban \textit{points} de forma inmediata. A partir de la mitad del \textit{sprint} el descenso se vuelve más pronunciado, coincidiendo con el cierre progresivo de tareas técnicas y con la incorporación y resolución de la incidencia del apéndice B. Finalmente, el \textit{sprint} se completa el 19 de marzo, quedando únicamente como arrastre la creación de las pantallas de colección y galería, previstas pero no finalizadas.
 
+\subsection{Sprint 13 - Colecciones de imágenes}
+El \textit{Sprint 13} se desarrolló del 20 al 26 de marzo. Para este \textit{sprint} estimé una dedicación de 19~horas, y finalmente invertí 20~horas y 35~minutos. El objetivo principal de esta iteración fue completar la funcionalidad asociada a la gestión de colecciones y galerías de imágenes, cerrando además ajustes pendientes en la documentación y realizando una nueva validación del flujo de descarga con PNOA.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Arreglar la bibliografía de anexos.
+	\item Corregir y consolidar los diagramas E-R y relacional:
+	\begin{itemize}
+		\item Eliminar claves foráneas del diagrama E-R para mantenerlo en un nivel de abstracción correcto.
+		\item Ajustar la longitud de ciertos campos.
+		\item Añadir un nuevo campo booleano para indicar si una imagen tiene las trazas calculadas o no.
+	\end{itemize}
+	\item Arreglar el \textit{checkbox} e incorporar la funcionalidad nueva asociada.
+	\item Actualizar los \textit{mockups} para incorporar cambios derivados de la nueva funcionalidad:
+	\begin{itemize}
+		\item Añadir un indicador por imagen en la galería para mostrar si ya tiene las trazas calculadas.
+		\item Incluir, en la visualización ampliada, opciones para dibujar y calcular trazas.
+		\item Reflejar el estado de cada colección, apoyándolo en consultas a base de datos.
+		\item Incorporar opciones de eliminación de elementos en la colección.
+		\item Permitir la descarga de un \texttt{.zip} desde la colección.
+	\end{itemize}
+	\item Ajustar el formato de las imágenes a apaisado, manteniendo la relación 1024$\times$640.
+	\item Realizar pruebas con PNOA:
+	\begin{itemize}
+		\item Cambiar el nombre del \textit{manifest} a \texttt{log.json}.
+		\item Probar de nuevo la descarga y verificar el fallo de conexión por \textit{time limit}.
+	\end{itemize}
+	\item Revisar y ajustar el material gráfico de la memoria:
+	\begin{itemize}
+		\item Exportar diagramas a PDF.
+		\item Actualizar el \textit{mockup} para incluir todas las páginas y redactar una breve explicación para cada una.
+	\end{itemize}
+	\item Crear las pantallas correspondientes a la nueva funcionalidad de colección y galería de imágenes.
+\end{itemize}
+
+En primer lugar, realicé ajustes, centrados en corregir la bibliografía correspondiente a los anexos. En paralelo, consolidé el diseño de base de datos: revisé tanto el diagrama E-R como el relacional, eliminando del E-R las claves foráneas para que quedase correctamente expresado a nivel conceptual, ajustando la longitud de algunos campos de texto y añadiendo un nuevo atributo booleano en la tabla de imágenes para reflejar de manera directa si las trazas estaban calculadas o no.
+
+A continuación, corregí el \textit{checkbox} de la aplicación para aportarle una nueva funcionalidad. Actualicé también los \textit{mockups}, incorporando indicadores de estado por imagen, opciones en la vista ampliada para dibujar y calcular, y el estado general de cada colección. Además, añadí acciones complementarias, siendo estas la eliminación de elementos dentro de una colección y la descarga de un \texttt{.zip} directamente desde esa pantalla.
+
+En el apartado visual, ajusté el formato de las imágenes, obtenidas mediante el mapa, a apaisado manteniendo la relación 1024$\times$640, de forma que se pudiese acercar más a aquellas que se usaron para entrenar el modelo. También actualicé el material gráfico de la memoria: exporté diagramas a PDF y reorganicé el \textit{mockup} para incluir todas las páginas, añadiendo una descripción para todas y cada una de ellas.
+
+Por otro lado, realicé ciertas pruebas de conexión con PNOA y cambié el nombre del \textit{manifest} a \texttt{log.json}.
+
+Finalmente, el bloque central del \textit{sprint} consistió en crear las diferentes pantallas asociadas a la funcionalidad: la pantalla de colección y la galería de imágenes. Para llevar esto a cabo, tuve que definir también la base de datos con SQLite, como he comentado antes y preparar un lanzado automático de la misma.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint13}
+	\caption[Burndown Report del Sprint 13]{Burndown Report del Sprint 13.}
+	\label{fig:brsprint13}
+\end{figure}
+
+Como muestra la Figura~\ref{fig:brsprint13}, el avance se mantuvo relativamente estable durante los primeros días, al concentrarse el trabajo en ajustes de diseño y en tareas de preparación. A partir del 23--24 de marzo el descenso se acelera, coincidiendo con el cierre de las pantallas principales y la consolidación de la nueva lógica de estado en la interfaz, quedando el \textit{sprint} cerrado el 26 de marzo.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
