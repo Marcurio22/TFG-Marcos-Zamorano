@@ -55,6 +55,17 @@ def _route_path_only(url: str) -> str:
         return f"{path}?{parsed.query}"
     return path
 
+def _photo_trace_status(photo: dict) -> str:
+    """
+    Deriva el estado visual de trazas para una foto.
+
+    Se deja preparado el valor processing para una futura integración
+    de cálculo en segundo plano sin rehacer la galería.
+    """
+    if int(photo.get("trazas", 0)) == 1:
+        return "completed"
+    return "pending"
+
 
 def get_default_user_id() -> int:
     """Devuelve el usuario por defecto mientras no exista login."""
@@ -351,6 +362,7 @@ def get_zone_detail(parcel_id: int) -> dict | None:
         photo = _row_to_dict(row)
         photo["bbox3857"] = _json_loads(photo.pop("bbox3857_json", "{}"), {})
         photo["bounds"] = _json_loads(photo.pop("bounds_json", "{}"), {})
+        photo["trace_status"] = _photo_trace_status(photo)
         photos.append(photo)
 
     parcel["tile_count"] = len(photos)
