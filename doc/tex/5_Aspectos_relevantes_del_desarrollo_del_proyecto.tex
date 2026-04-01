@@ -1,16 +1,10 @@
 \capitulo{5}{Aspectos relevantes del desarrollo del proyecto}
 
-Este apartado pretende recoger los aspectos más interesantes del desarrollo del proyecto, comentados por los autores del mismo.
-Debe incluir desde la exposición del ciclo de vida utilizado, hasta los detalles de mayor relevancia de las fases de análisis, diseño e implementación.
-Se busca que no sea una mera operación de copiar y pegar diagramas y extractos del código fuente, sino que realmente se justifiquen los caminos de solución que se han tomado, especialmente aquellos que no sean triviales.
-Puede ser el lugar más adecuado para documentar los aspectos más interesantes del diseño y de la implementación, con un mayor hincapié en aspectos tales como el tipo de arquitectura elegido, los índices de las tablas de la base de datos, normalización y desnormalización, distribución en ficheros3, reglas de negocio dentro de las bases de datos (EDVHV GH GDWRV DFWLYDV), aspectos de desarrollo relacionados con el WWW...
-Este apartado, debe convertirse en el resumen de la experiencia práctica del proyecto, y por sí mismo justifica que la memoria se convierta en un documento útil, fuente de referencia para los autores, los tutores y futuros alumnos.
-
 \subsection{Comparativa de despliegue: modelos \textit{pickle} vs PyTorch}
 
-Durante el desarrollo se plantearon dos formas de ejecutar los modelos entrenados por \textit{fold}: por un lado, cargar el objeto completo serializado con \texttt{pickle}, y, por otro, exportar el modelo a un formato autocontenido en PyTorch mediante TorchScript para inferencia. La motivación inicial de la exportación a PyTorch fue principalmente de despliegue: un módulo TorchScript permite ejecutar la red sin depender del código de entrenamiento, reduce acoplamientos con \textit{frameworks}, como, por ejemplo, mediante PyTorch Lightning y facilita integrar el modelo en otros entornos de ejecución.
+Durante el desarrollo se plantearon dos formas de ejecutar los modelos entrenados: por un lado, cargar el objeto completo serializado con \texttt{pickle} y, por otro, exportar el modelo a un formato autocontenido en PyTorch mediante TorchScript para inferencia. La motivación inicial de la exportación a PyTorch fue principalmente de despliegue: un módulo TorchScript permite ejecutar la red sin depender del código de entrenamiento, reduce acoplamientos con \textit{frameworks}, como, por ejemplo, mediante PyTorch Lightning y facilita integrar el modelo en otros entornos de ejecución.
 
-Sin embargo, en esta aplicación el criterio prioritario es la calidad de segmentación de las trazas. En la práctica se observó que, aun empleando la misma arquitectura y pesos por \textit{fold}, el resultado de segmentación entre el modelo cargado con \texttt{pickle} y el modelo exportado a TorchScript no es exactamente idéntico. Estas diferencias pueden estar motivadas por detalles de compatibilidad entre versiones debido a cambios internos en \texttt{segmentation\_models\_pytorch}, por pequeñas variaciones numéricas del grafo trazado y por el encapsulado de normalización durante la exportación.
+Sin embargo, en esta aplicación el criterio prioritario es la calidad de segmentación de las trazas. En la práctica se observó que, aun empleando la misma arquitectura y pesos por modelo, el resultado de segmentación entre el modelo cargado con \texttt{pickle} y el modelo exportado a TorchScript no es exactamente idéntico. Estas diferencias pueden estar motivadas por detalles de compatibilidad entre versiones debido a cambios internos en \texttt{segmentation\_models\_pytorch}, por pequeñas variaciones numéricas del grafo trazado y por el encapsulado de normalización durante la exportación.
 
 \subsubsection{Metodología de evaluación}
 Para comparar ambos enfoques se midieron dos aspectos:
@@ -58,8 +52,16 @@ En rendimiento, TorchScript presenta en general tiempos de carga inferiores a \t
 \subsubsection{Decisión de diseño}
 Aunque TorchScript es una opción robusta para despliegue por su independencia del código de entrenamiento, en el contexto de este trabajo se prioriza que la segmentación sea lo más fiel posible al comportamiento validado durante el entrenamiento y evaluación original. Dado que:
 \begin{itemize}
-	\item las salidas no son exactamente iguales (IoU/Dice $< 1$),
-	\item el coste temporal de inferencia es similar,
-	\item y las diferencias en carga no compensan una posible degradación en la clasificación,
+	\item las salidas no son exactamente iguales (IoU/Dice $< 1$).
+	\item el coste temporal de inferencia es similar.
+	\item y las diferencias en carga no compensan una posible degradación en la clasificación.
 \end{itemize}
-se opta finalmente por emplear el pipeline basado en \texttt{pickle} como referencia en el sistema, garantizando coherencia con los resultados esperados y una segmentación más fiable en la práctica.
+Se opta finalmente por emplear el pipeline basado en \texttt{pickle} como referencia en el sistema, garantizando coherencia con los resultados esperados y una segmentación más fiable en la práctica.
+
+\subsubsection{Problema de licencias}
+
+La elección de la fuente cartográfica y del flujo de adquisición de imágenes estuvo condicionada por restricciones de licenciamiento y de uso impuestas por los proveedores. Aunque Google Earth Engine (GEE) proporciona un entorno potente para el análisis geoespacial, su utilización no implica un derecho automático a extraer y reutilizar imágenes de cualquier capa visualizable ni a tratar los mapas base como un repositorio libre de datos. En particular, los términos y políticas asociados a servicios de cartografía de Google limitan expresamente la extracción, descarga masiva, almacenamiento y el uso no visual del contenido. 
+
+Todas estas limitaciones afectan directamente al objetivo del proyecto, que requiere obtener recortes de alta resolución y someterlos a un pipeline de segmentación semántica; por tanto, basar el sistema en capturas de mapas base de Google no era compatible con un desarrollo reproducible y conforme a licencia.
+
+Como consecuencia, se optó por un enfoque alternativo que garantizase seguridad jurídica y trazabilidad técnica: el uso de ortofotografía pública con licencia abierta y adecuadamente atribuible. En este contexto se seleccionó el Plan Nacional de Ortofotografía Aérea (PNOA) como fuente principal de imágenes, integrándolo con un visor web construido con Leaflet y un mapa base de OpenStreetMap (OSM) únicamente para la interacción del usuario y la selección del área de interés.
