@@ -17,18 +17,18 @@ Sobre estas representaciones, el sistema ejecuta tareas como clasificación, det
 	\begin{subfigure}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{Image-segmentation-example}
-		\caption{Ejemplo para segmentación. Fuente: MartinThoma, licencia CC0 1.0.}
+		\caption{Ejemplo para segmentación.}
 		\label{fig:Image-segmentation-example}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{Image-segmentation-example-segmented}
-		\caption{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena. Fuente: MartinThoma, licencia CC0 1.0.}
+		\caption{Ejemplo de segmentación con regiones diferenciadas.}
 		\label{fig:Image-segmentation-example-segmented}
 	\end{subfigure}
 	
-	\caption{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada.}
+	\caption{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada. Fuente: MartinThoma. Licencia: CC0 1.0.}
 	\label{fig:segmentation-example-pair}
 \end{figure}
 
@@ -37,8 +37,8 @@ En esta sección se introducen los fundamentos teóricos que sustentan la segmen
 
 
 \subsubsection{Aprendizaje Profundo}
-El Aprendizaje Profundo es un paradigma de machine learning basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
-Funciona de una forma que, una clase de hipótesis de altísima capacidad, realizada por composiciones profundas de operadores paramétricos y no linealidades puntuales, aprende representaciones jerárquicas de los datos optimizando un funcional de riesgo empírico.
+El Aprendizaje Profundo es un paradigma de \textit{machine learning} basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
+Funciona de una forma que, una clase de hipótesis de muy alta capacidad, realizada por composiciones profundas de operadores paramétricos y no linealidades puntuales, aprende representaciones jerárquicas de los datos optimizando un funcional de riesgo empírico.
 
 El éxito del Aprendizaje Profundo se atribuye a su capacidad para trabajar con arquitecturas muy grandes y profundas, con millones de parámetros, logrando avances significativos en el reconocimiento de imágenes~\cite{ronneberger2015unet, diezpastora2025trails, neloy2024autoencoders, he2016resnet}. 
 Este resuelve la necesidad de los sistemas de visión de extraer la representación de características más efectiva a partir de datos complejos~\cite{neloy2024autoencoders}, automatizando lo que antes requería el diseño manual de características.
@@ -53,7 +53,7 @@ Esto debido a que, a medida que la información o el gradiente pasan por muchas 
 \subsubsection{Predicción Densa (Dense prediction)}
 La predicción densa es una formulación de inferencia estructurada en la que el sistema estima, para cada ubicación del dominio espacial de la entrada, una variable de salida perteneciente a un espacio de etiquetas o a un espacio continuo~\cite{zhang2022constructionautomation}. En visión por computador abarca tanto clasificación por elemento, como regresión por elemento, dando lugar a campos de salida con fuerte dependencia local y coherencia geométrica~\cite{zhao2017pspnet, lin2017fpn}. 
 
-Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por downsampling~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
+Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por \textit{downsampling}~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
 
 Operativamente, la predicción densa se implementa con \textit{encoders–decoders} convolucionales que combinan \textit{downsampling} para agregar contexto y \textit{upsampling} para reconstruir resolución, asistidos por \textit{skip connections} por concatenación para preservar información de detalle~\cite{ronneberger2015unet, bala2025visiontranscoder, badrinarayanan2016segnet}.
 
@@ -172,7 +172,7 @@ Desde el punto de vista del entrenamiento, \textit{ReLU} contribuye a mitigar el
 \subsubsection{Función Softmax}
 La función \textit{Softmax} se emplea habitualmente en la capa final de redes neuronales de clasificación y segmentación para transformar las salidas no normalizadas del modelo, conocidas como \textit{logits}, en una distribución de probabilidad: \begin{equation}
 	\mathrm{Softmax}(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}, \qquad k=1,\dots,K
-\end{equation}.
+\end{equation}
 
 Esta transformación garantiza que los valores resultantes sean no negativos y que su suma sea igual a uno, lo que permite interpretarlos directamente como probabilidades asociadas a cada clase~\cite{Goodfellow-et-al-2016}.
 
@@ -199,16 +199,16 @@ En redes neuronales convolucionales, esta propiedad se deriva directamente de la
 En contraste con la invarianza traslacional, que busca reducir la sensibilidad del modelo a la posición absoluta de los objetos para favorecer el reconocimiento global, la equivarianza preserva explícitamente la información espacial. Ambas propiedades no son excluyentes, sino complementarias: mientras la invarianza resulta clave en tareas de clasificación, la equivarianza constituye un requisito fundamental en problemas de predicción densa, como la segmentación semántica, donde la coherencia espacial de la salida es crítica.
 
 \subsection{Arquitecturas de Segmentación Semántica}
-En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como U-Net, Feature Pyramid Network y UPerNet, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como SegFormer. Asimismo, se incluye PSPNet, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
+En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como \textit{U-Net}, \textit{Feature Pyramid Network} y \textit{UPerNet}, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como \textit{SegFormer}. Asimismo, se incluye \textit{PSPNet}, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
 
 
 \subsubsection{U-Net}
-La red neuronal convolucional U-Net constituye un paradigma fundamental en el ámbito de la segmentación densa debido a su capacidad para operar eficientemente con conjuntos de datos de entrenamiento limitados~\cite{ronneberger2015unet}. Esta arquitectura presenta una topología simétrica en forma de U que integra un codificador y un decodificador~\cite{ronneberger2015unet, Dimitrovski2024}. El codificador aplica sucesivamente convoluciones seguidas de unidades de activación lineal rectificada y operaciones de \textit{max-pooling} para la extracción de características contextuales y la reducción de la dimensionalidad espacial~\cite{ronneberger2015unet, ji2022automation}. Por su parte, el decodificador realiza procesos de \textit{upsampling} con el fin de recuperar la resolución original de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}. 
+La red neuronal convolucional \textit{U-Net} constituye un paradigma fundamental en el ámbito de la segmentación densa debido a su capacidad para operar eficientemente con conjuntos de datos de entrenamiento limitados~\cite{ronneberger2015unet}. Esta arquitectura presenta una topología simétrica en forma de U que integra un codificador y un decodificador~\cite{ronneberger2015unet, Dimitrovski2024}. El codificador aplica sucesivamente convoluciones seguidas de unidades de activación lineal rectificada y operaciones de \textit{max-pooling} para la extracción de características contextuales y la reducción de la dimensionalidad espacial~\cite{ronneberger2015unet, ji2022automation}. Por su parte, el decodificador realiza procesos de \textit{upsampling} con el fin de recuperar la resolución original de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}. 
 
 El componente diferencial de este modelo reside en la implementación de conexiones de salto que concatenan mapas de características de alta resolución del codificador con las capas correspondientes del decodificador~\cite{ronneberger2015unet, diezpastora2025trails}. Dicho mecanismo permite la preservación de detalles espaciales que se degradan habitualmente durante el submuestreo, garantizando una localización precisa de los límites de los objetos en tareas críticas como la imagen médica o la teledetección~\cite{Dimitrovski2024}.
 
 \subsubsection{Feature Pyramid Network}
-La arquitectura Feature Pyramid Network constituye un extractor de características de propósito general diseñado para explotar la jerarquía piramidal inherente a las redes neuronales convolucionales profundas~\cite{lin2017fpn}. Este framework implementa una ruta descendente con conexiones laterales que permite la propagación de información semántica de alto nivel hacia mapas de características de mayor resolución espacial~\cite{lin2017fpn, ji2022automation}. 
+La arquitectura \textit{Feature Pyramid Network} constituye un extractor de características de propósito general diseñado para explotar la jerarquía piramidal inherente a las redes neuronales convolucionales profundas~\cite{lin2017fpn}. Este \textit{framework} implementa una ruta descendente con conexiones laterales que permite la propagación de información semántica de alto nivel hacia mapas de características de mayor resolución espacial~\cite{lin2017fpn, ji2022automation}. 
 
 Operacionalmente, el sistema fusiona representaciones semánticamente robustas provenientes de capas profundas con mapas de características semánticamente débiles pero espacialmente precisos de etapas tempranas~\cite{lin2017fpn, xiao2018upernet}. La importancia de este diseño radica en su capacidad para generar una representación multiescala donde todos los niveles poseen una fuerte carga semántica, facilitando la detección y segmentación de objetos en un rango extenso de escalas sin incurrir en costes computacionales significativos~\cite{lin2017fpn}.
 
@@ -216,21 +216,21 @@ Operacionalmente, el sistema fusiona representaciones semánticamente robustas p
 \subsubsection{UPerNet}
 El modelo \textit{Unified Perceptual Parsing Network}, denominado \textit{UPerNet}, se erige sobre la arquitectura de redes de pirámide de características para resolver la segmentación de múltiples conceptos visuales de forma simultánea~\cite{xiao2018upernet}. Este diseño estructural adopta el esquema de una \textit{Feature Pyramid Network} y lo potencia mediante la integración de un \textit{Pyramid Pooling Module} sobre la capa de características más profunda del codificador~\cite{xiao2018upernet, zhao2017pspnet}. El funcionamiento del sistema se basa en la fusión jerárquica de representaciones provenientes de diversas etapas de la red, donde los mapas de niveles superiores aportan información semántica global y los niveles inferiores proporcionan detalles geométricos finos~\cite{xiao2018upernet, lin2017fpn}. 
 
-Mediante la interpolación bilineal y la concatenación de estos mapas de características multiescala, UPerNet logra una proyección no lineal eficiente hacia un espacio de alta dimensionalidad que captura relaciones espaciales complejas~\cite{xiao2018upernet}. Su importancia en el estado del arte radica en la capacidad para generar mapas de segmentación semánticamente ricos sin incurrir en la elevada carga computacional de las convoluciones dilatadas tradicionales, permitiendo la identificación de objetos, sus partes y materiales bajo un único proceso de inferencia unificado~\cite{xiao2018upernet, lin2017fpn}.
+Mediante la interpolación bilineal y la concatenación de estos mapas de características multiescala, \textit{UPerNet} logra una proyección no lineal eficiente hacia un espacio de alta dimensionalidad que captura relaciones espaciales complejas~\cite{xiao2018upernet}. Su importancia en el estado del arte radica en la capacidad para generar mapas de segmentación semánticamente ricos sin incurrir en la elevada carga computacional de las convoluciones dilatadas tradicionales, permitiendo la identificación de objetos, sus partes y materiales bajo un único proceso de inferencia unificado~\cite{xiao2018upernet, lin2017fpn}.
 
 \subsubsection{SegFormer}
-SegFormer representa un paradigma avanzado de segmentación semántica que unifica codificadores basados en transformadores jerárquicos con decodificadores ligeros de perceptrón multicapa~\cite{xie2021segformer, Dimitrovski2024}. A diferencia de los Vision Transformers convencionales, esta arquitectura introduce un codificador libre de codificaciones posicionales mediante el uso de convoluciones superpuestas, lo que permite inferir sobre resoluciones de imagen variables sin degradación del rendimiento~\cite{xie2021segformer, cai2023efficientvit}. 
+\textit{SegFormer} representa un paradigma avanzado de segmentación semántica que unifica codificadores basados en transformadores jerárquicos con decodificadores ligeros de perceptrón multicapa~\cite{xie2021segformer, Dimitrovski2024}. A diferencia de los \textit{Vision Transformers} convencionales, esta arquitectura introduce un codificador libre de codificaciones posicionales mediante el uso de convoluciones superpuestas, lo que permite inferir sobre resoluciones de imagen variables sin degradación del rendimiento~\cite{xie2021segformer, cai2023efficientvit}. 
 
-El funcionamiento del sistema se fundamenta en la generación de características multiescala que capturan simultáneamente dependencias de largo alcance y detalles locales, enviando estas representaciones a un decodificador All-MLP que agrega eficientemente la información contextual~\cite{xie2021segformer, Dimitrovski2024}. La relevancia de SegFormer en el estado del arte se debe a su alta eficiencia computacional y robustez, logrando resultados competitivos en tareas de predicción densa de alta resolución al mitigar la complejidad cuadrática inherente a los mecanismos de autoatención estándar~\cite{xie2021segformer, cai2023efficientvit}.
+El funcionamiento del sistema se fundamenta en la generación de características multiescala que capturan simultáneamente dependencias de largo alcance y detalles locales, enviando estas representaciones a un decodificador \textit{All-MLP} que agrega eficientemente la información contextual~\cite{xie2021segformer, Dimitrovski2024}. La relevancia de \textit{SegFormer} en el estado del arte se debe a su alta eficiencia computacional y robustez, logrando resultados competitivos en tareas de predicción densa de alta resolución al mitigar la complejidad cuadrática inherente a los mecanismos de autoatención estándar~\cite{xie2021segformer, cai2023efficientvit}.
 
 \subsubsection{PSPNet (Pyramid Scene Parsing Network)}
-El framework \textit{Pyramid Scene Parsing Network} constituye un avance fundamental en la segmentación de escenas complejas al introducir mecanismos para la explotación exhaustiva de la información de contexto global~\cite{zhao2017pspnet}. 
+El \textit{framework Pyramid Scene Parsing Network} constituye un avance fundamental en la segmentación de escenas complejas al introducir mecanismos para la explotación exhaustiva de la información de contexto global~\cite{zhao2017pspnet}. 
 
 Esta arquitectura surge como respuesta a la limitación intrínseca de las redes completamente convolucionales tradicionales, donde el campo receptivo empírico resulta insuficiente para capturar dependencias espaciales de largo alcance en capas profundas~\cite{zhao2017pspnet, xiao2018upernet}. La pieza central del modelo es el \textit{Pyramid Pooling Module} (PPM), el cual recolecta representaciones de subregiones en múltiples escalas para construir una jerarquía de prioridades globales que guían la clasificación a nivel de píxel~\cite{zhao2017pspnet}.
 
 Operacionalmente, el PPM divide el mapa de características generado por un codificador basado en bloques residuales en cuatro niveles de granularidad distintos, aplicando operaciones de \textit{pooling} con tamaños de bin de $1\times 1$, $2\times 2$, $3\times 3$ y $6\times 6$~\cite{zhao2017pspnet, he2016resnet}. A continuación, cada nivel se somete a una convolución de $1\times 1$ para realizar una reducción de dimensionalidad y se remuestrea mediante interpolación bilineal hasta alcanzar la resolución original de la etapa~\cite{zhao2017pspnet, lin2017fpn}. Estos mapas enriquecidos se concatenan con el flujo de información original para formar una representación final que encapsula tanto el detalle geométrico local como la coherencia semántica global, mitigando errores comunes en la identificación de objetos con apariencias similares pero contextos dispares~\cite{zhao2017pspnet, diezpastora2025trails}.
 
-Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de PSPNet se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
+Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de \textit{PSPNet} se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
 
 \subsection{Tipos de Encoder}
 A continuación, se describen los principales tipos de \textit{encoder} considerados en el trabajo~\cite{diezpastora2025trails}, entendiendo el codificador como el componente encargado de transformar la imagen de entrada en una jerarquía de representaciones cada vez más abstractas, ricas semánticamente y, por lo general, de menor resolución espacial. 
@@ -240,9 +240,9 @@ La elección del \textit{encoder} resulta determinante en segmentación semánti
 \subsubsection{Autoencoder}
 Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo objetivo es aprender una representación compacta de los datos de entrada sin utilizar etiquetas. La red se compone de dos partes claramente diferenciadas: un codificador, que transforma la entrada original de alta dimensionalidad en una representación latente de menor dimensión, y un decodificador, que reconstruye la entrada a partir de dicha representación minimizando el error de reconstrucción. Este esquema de compresión y reconstrucción obliga al modelo a retener la información más relevante de los datos, eliminando redundancias y atenuando el ruido~\cite{neloy2024autoencoders}.
 
-Desde un punto de vista práctico, el espacio latente aprendido por el autoencoder recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
+Desde un punto de vista práctico, el espacio latente aprendido por el \textit{autoencoder} recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
 
-Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los autoencoders variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
+Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los \textit{autoencoders} variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
 
 \subsubsection{Resumen de encoders empleados}
 
@@ -253,12 +253,14 @@ Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacid
 	\renewcommand{\arraystretch}{1.15}
 	
 	\begin{tabularx}{\textwidth}{
-			@{} >{\raggedright\arraybackslash}p{0.22\textwidth}
-			>{\centering\arraybackslash}p{0.10\textwidth}
+			@{}
+			>{\raggedright\arraybackslash}p{0.20\textwidth}
+			>{\centering\arraybackslash}p{0.09\textwidth}
 			X
-			>{\raggedright\arraybackslash}p{0.18\textwidth} @{}}
+			>{\raggedright\arraybackslash}p{0.12\textwidth}
+			@{}}
 		\toprule
-		\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción} & \textbf{Referencia} \\
+		\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción} & \textbf{Ref.} \\
 		\midrule
 		ConvNeXt (Small) & 50 & CNN modernizada con decisiones inspiradas en Transformers para mejorar precisión manteniendo eficiencia. & \cite{liu2022convnext, Chang2024UNeXt} \\
 		EfficientViT-B3 & 12 & Codificador eficiente para predicción densa que combina extracción local con atención ligera para capturar contexto global. & \cite{cai2023efficientvit, LIAO2024102401} \\
