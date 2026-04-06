@@ -85,6 +85,7 @@ def create_app(test_config=None):
         TRACE_WORKER_POLL_SECONDS=2.0,
         TRACE_WORKER_BATCH_SIZE=1,
         AUTO_START_TRACE_WORKER=True,
+        TRACE_WORKER_STALE_SECONDS=600,
 
         # ------------------ Configuración ML ------------------
         # Carpeta donde van los pesos por fold.

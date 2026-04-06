@@ -94,8 +94,23 @@ Versión: 0.1
                                  data-photo-status
                                  data-photo-id="{{ photo.foto_id }}"
                                  data-photo-state="{{ photo.estado }}"
-                                 title=" {% if photo.trace_status == 'completed' %} {{ _("Trazas calculadas") }} {% elif photo.trace_status == 'processing' %} {{ _("Calculando trazas") }} {% elif photo.estado == 'failed' %} {{ _("Error de cálculo") }} {% else %} {{ _("Trazas no calculadas") }} {% endif %} ">
-                                {% if photo.trace_status == 'completed' %}
+                                 title=" {% if photo.is_stale %} {{ _("Procesamiento atascado") }} {% elif photo.trace_status == 'completed' %} {{ _("Trazas calculadas") }} {% elif photo.trace_status == 'processing' %} {{ _("Calculando trazas") }} {% elif photo.estado == 'failed' %} {{ _("Error de cálculo") }} {% else %} {{ _("Trazas no calculadas") }} {% endif %} ">
+                                {% if photo.is_stale %}
+                                    <span class="inline-flex items-center justify-center text-warning">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round"
+                                             class="w-6 h-6">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
+                                    </span>
+                                {% elif photo.trace_status == 'completed' %}
                                     <span class="inline-flex items-center justify-center text-success">
                                         <svg xmlns="http://www.w3.org/2000/svg"
                                              viewBox="0 0 24 24"
@@ -142,7 +157,25 @@ Versión: 0.1
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="card-actions justify-end">
+                        <div class="card-actions justify-end mt-4 gap-2"
+                             data-photo-actions
+                             data-photo-id="{{ photo.foto_id }}"
+                             data-photo-retry-url="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                             data-photo-download-url="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}">
+                            {% if photo.can_retry %}
+                                <form method="post"
+                                      action="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                                      class="inline-flex">
+                                    <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+                                    <button type="submit" class="btn btn-sm btn-warning">
+                                        {% if photo.estado == 'failed' %}
+                                            {{ _("Reintentar") }}
+                                        {% else %}
+                                            {{ _("Recalcular") }}
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            {% endif %}
                             <a href="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
                                class="btn btn-sm btn-outline">{{ _("Descargar") }}</a>
                         </div>
@@ -167,7 +200,11 @@ Versión: 0.1
         "photoCompleted": _("Trazas calculadas"),
         "photoProcessing": _("Calculando trazas"),
         "photoPending": _("Trazas no calculadas"),
-        "photoFailed": _("Error de cálculo")
+        "photoFailed": _("Error de cálculo"),
+        "photoStale": _("Procesamiento atascado"),
+        "retryTrace": _("Reintentar"),
+        "recalculateTrace": _("Recalcular"),
+        "download": _("Descargar"),
       }
     } | tojson }};
     </script>

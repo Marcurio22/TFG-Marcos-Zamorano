@@ -23,6 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
       photoProcessing: "Calculando trazas",
       photoPending: "Trazas no calculadas",
       photoFailed: "Error de cálculo",
+      photoStale: "Procesamiento atascado",
+      retryTrace: "Reintentar",
+      recalculateTrace: "Recalcular",
+      download: "Descargar",
     },
     CFG.i18n || {}
   );
@@ -44,6 +48,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const perPageSelect = document.querySelector("[data-collection-per-page]");
   const galleryRoot = document.querySelector("[data-gallery-zone-root]");
   let pendingDeleteForm = null;
+
+  function htmlEscape(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
 
   function formatTemplate(template, values) {
     return Object.entries(values).reduce((result, [key, value]) => {
@@ -96,7 +109,26 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
   }
 
-  function renderPhotoStateMarkup(status) {
+  function renderPhotoStateMarkup(status, isStale) {
+    if (isStale) {
+      return `
+        <span class="inline-flex items-center justify-center text-warning" title="${I18N.photoStale}">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="w-6 h-6">
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+          </svg>
+        </span>
+      `;
+    }
+
     if (status === "completed") {
       return `
         <span class="inline-flex items-center justify-center text-success" title="${I18N.photoCompleted}">
@@ -152,6 +184,31 @@ document.addEventListener("DOMContentLoaded", () => {
         </svg>
       </span>
     `;
+  }
+
+  function renderPhotoActionsMarkup(options) {
+    const parts = [];
+    const redirectTo = window.location.pathname + window.location.search;
+
+    if (options.canRetry && options.retryUrl) {
+      const label =
+        options.status === "failed" ? I18N.retryTrace : I18N.recalculateTrace;
+
+      parts.push(`
+        <form method="post" action="${htmlEscape(options.retryUrl)}" class="inline-flex">
+          <input type="hidden" name="redirect_to" value="${htmlEscape(redirectTo)}">
+          <button type="submit" class="btn btn-sm btn-warning">${htmlEscape(label)}</button>
+        </form>
+      `);
+    }
+
+    if (options.downloadUrl) {
+      parts.push(`
+        <a href="${htmlEscape(options.downloadUrl)}" class="btn btn-sm btn-outline">${htmlEscape(I18N.download)}</a>
+      `);
+    }
+
+    return parts.join("");
   }
 
   function resetPreviewModal() {
@@ -336,10 +393,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      container.innerHTML = renderPhotoStateMarkup(photo.estado);
+      const isStale = Boolean(photo.is_stale);
+      container.innerHTML = renderPhotoStateMarkup(photo.estado, isStale);
       container.dataset.photoState = photo.estado;
 
-      if (photo.estado === "completed") {
+      if (isStale) {
+        container.title = I18N.photoStale;
+      } else if (photo.estado === "completed") {
         container.title = I18N.photoCompleted;
       } else if (photo.estado === "processing") {
         container.title = I18N.photoProcessing;
@@ -348,6 +408,20 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         container.title = I18N.photoPending;
       }
+    });
+
+    document.querySelectorAll("[data-photo-actions]").forEach((container) => {
+      const photo = byId.get(container.dataset.photoId);
+      if (!photo) {
+        return;
+      }
+
+      container.innerHTML = renderPhotoActionsMarkup({
+        status: photo.estado,
+        canRetry: Boolean(photo.can_retry),
+        retryUrl: container.dataset.photoRetryUrl,
+        downloadUrl: container.dataset.photoDownloadUrl,
+      });
     });
   }
 

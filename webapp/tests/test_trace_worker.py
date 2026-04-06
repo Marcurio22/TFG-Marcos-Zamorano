@@ -15,7 +15,10 @@ from PIL import Image
 
 from trazasytrazadas import trace_worker as worker_module
 from trazasytrazadas import visor as visor_module
-from trazasytrazadas.collection_store import get_storage_abspath
+from trazasytrazadas.collection_store import (
+    get_storage_abspath,
+    refresh_parcel_status
+)
 from trazasytrazadas.db import get_db
 
 
@@ -225,3 +228,66 @@ def test_traces_worker_marks_failed_photos(app, client, monkeypatch):
         assert "segmentation failed" in (photo_row["error_message"] or "")
         assert photo_row["trazas"] == 0
         assert parcel_row["estado"] == "failed"
+
+
+def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
+    """Comprueba que una tesela fallida puede reintentarse manualmente."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        photo_row = database.execute(
+            """
+            SELECT foto_id
+            FROM foto
+            WHERE parcela_id = ?
+            ORDER BY foto_id ASC
+            LIMIT 1
+            """,
+            (parcel_id,),
+        ).fetchone()
+
+        photo_id = int(photo_row["foto_id"])
+
+        database.execute(
+            """
+            UPDATE foto
+            SET
+                estado = 'failed',
+                error_message = 'boom',
+                started_at = CURRENT_TIMESTAMP,
+                finished_at = CURRENT_TIMESTAMP
+            WHERE foto_id = ?
+            """,
+            (photo_id,),
+        )
+        database.commit()
+        refresh_parcel_status(parcel_id)
+
+    response = client.post(
+        f"/coleccion/fotos/{photo_id}/retry",
+        data={"redirect_to": f"/coleccion/{parcel_id}/galeria"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "La tesela se ha marcado para recalcular la traza.".encode(
+        "utf-8"
+    ) in response.data
+
+    with app.app_context():
+        database = get_db()
+        row = database.execute(
+            """
+            SELECT estado, error_message, started_at, finished_at, ruta_trazas
+            FROM foto
+            WHERE foto_id = ?
+            """,
+            (photo_id,),
+        ).fetchone()
+
+        assert row["estado"] == "pending"
+        assert row["error_message"] is None
+        assert row["started_at"] is None
+        assert row["finished_at"] is None
+        assert row["ruta_trazas"] is None

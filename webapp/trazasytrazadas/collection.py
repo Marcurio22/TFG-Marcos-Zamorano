@@ -38,6 +38,7 @@ from .collection_store import (
     get_zone_live_status,
     list_zone_status_summaries,
     list_zones,
+    retry_photo,
 )
 from .visor import _visor_fetch_tile_bytes, _visor_source_by_id
 
@@ -262,6 +263,26 @@ def register_collection_routes(bp) -> None:
         redirect_to = _safe_internal_redirect(
             request.form.get("redirect_to"),
             url_for("trazas.collection"),
+        )
+        return redirect(redirect_to)
+
+    @bp.route("/coleccion/fotos/<int:photo_id>/retry", methods=["POST"])
+    def collection_photo_retry(photo_id: int):
+        """Marca una tesela para reintentar el cálculo de su traza."""
+        photo = get_photo(photo_id)
+        if photo is None:
+            abort(404)
+
+        if photo["estado"] == "completed":
+            flash(_("La tesela ya está completada."), "info")
+        else:
+            retry_photo(photo_id)
+            _flash_ok(_("La tesela se ha marcado para recalcular la traza."))
+
+        redirect_to = _safe_internal_redirect(
+            request.form.get("redirect_to"),
+            url_for("trazas.collection_gallery",
+                    parcel_id=photo["parcela_id"]),
         )
         return redirect(redirect_to)
 

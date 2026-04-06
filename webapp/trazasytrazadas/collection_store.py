@@ -16,6 +16,7 @@ import json
 import os
 from math import ceil
 from urllib.parse import urlparse
+from datetime import datetime, timedelta, timezone
 
 from flask import current_app, url_for
 from flask_babel import gettext as _
@@ -55,6 +56,48 @@ def _route_path_only(url: str) -> str:
     if parsed.query:
         return f"{path}?{parsed.query}"
     return path
+
+
+def _parse_db_timestamp(value: str | None) -> datetime | None:
+    """Convierte un timestamp SQLite a datetime UTC aware."""
+    if not value:
+        return None
+
+    normalized = value.strip().replace("T", " ")
+    try:
+        parsed = datetime.strptime(normalized[:19], "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
+    return parsed.replace(tzinfo=timezone.utc)
+
+
+def _stale_cutoff_string() -> str:
+    """Devuelve el umbral temporal a partir del cual un processing es stale."""
+    seconds = int(current_app.config.get("TRACE_WORKER_STALE_SECONDS", 600))
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=max(1, seconds))
+    return cutoff.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _photo_is_stale(photo: dict) -> bool:
+    """Indica si una foto en processing lleva
+        demasiado tiempo sin completarse."""
+    if (photo.get("estado") or "").strip().lower() != "processing":
+        return False
+
+    started_at = _parse_db_timestamp(photo.get("started_at"))
+    if started_at is None:
+        return False
+
+    seconds = int(current_app.config.get("TRACE_WORKER_STALE_SECONDS", 600))
+    age = datetime.now(timezone.utc) - started_at
+    return age >= timedelta(seconds=max(1, seconds))
+
+
+def _photo_can_retry(photo: dict) -> bool:
+    """Indica si una foto puede reintentarse manualmente."""
+    status = (photo.get("estado") or "").strip().lower()
+    return status == "failed" or _photo_is_stale(photo)
 
 
 def get_collection_storage_root() -> str:
@@ -437,6 +480,8 @@ def get_zone_detail(parcel_id: int) -> dict | None:
         photo["bbox3857"] = _json_loads(photo.pop("bbox3857_json", "{}"), {})
         photo["bounds"] = _json_loads(photo.pop("bounds_json", "{}"), {})
         photo["trace_status"] = _photo_trace_status(photo)
+        photo["is_stale"] = _photo_is_stale(photo)
+        photo["can_retry"] = _photo_can_retry(photo)
         photos.append(photo)
 
     parcel["tile_count"] = len(photos)
@@ -647,13 +692,14 @@ def materialize_photo_tile(photo: dict) -> str:
 
 def claim_pending_photos(*, limit: int = 1) -> list[dict]:
     """
-    Reclama fotos pendientes y las marca como processing.
+    Reclama fotos pendientes o processing stale y las marca como processing.
 
-    En esta iteración se usa con un único worker, pero queda preparado para
-    reclamación transaccional básica sobre SQLite.
+    Así se recuperan automáticamente teselas que se hubieran quedado colgadas
+    tras un reinicio, corte del proceso o inferencia interrumpida.
     """
     database = get_db()
     limit = max(1, int(limit))
+    stale_cutoff = _stale_cutoff_string()
 
     database.execute("BEGIN IMMEDIATE")
     id_rows = database.execute(
@@ -661,10 +707,17 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
         SELECT foto_id
         FROM foto
         WHERE estado = 'pending'
-        ORDER BY foto_id ASC
+           OR (
+               estado = 'processing'
+               AND started_at IS NOT NULL
+               AND started_at <= ?
+           )
+        ORDER BY
+            CASE WHEN estado = 'processing' THEN 0 ELSE 1 END,
+            foto_id ASC
         LIMIT ?
         """,
-        (limit,),
+        (stale_cutoff, limit),
     ).fetchall()
 
     photo_ids = [row["foto_id"] for row in id_rows]
@@ -678,7 +731,7 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
         UPDATE foto
         SET
             estado = 'processing',
-            started_at = COALESCE(started_at, CURRENT_TIMESTAMP),
+            started_at = CURRENT_TIMESTAMP,
             finished_at = NULL,
             error_message = NULL,
             attempt_count = COALESCE(attempt_count, 0) + 1
@@ -878,7 +931,8 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
         SELECT
             foto_id,
             estado,
-            trazas
+            trazas,
+            started_at
         FROM foto
         WHERE parcela_id = ?
         ORDER BY row_index ASC, col_index ASC, foto_id ASC
@@ -890,7 +944,54 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
     for row in photo_rows:
         photo = _row_to_dict(row)
         photo["trace_status"] = _photo_trace_status(photo)
+        photo["is_stale"] = _photo_is_stale(photo)
+        photo["can_retry"] = _photo_can_retry(photo)
         photos.append(photo)
 
     summary["photos"] = photos
     return summary
+
+
+def retry_photo(photo_id: int) -> bool:
+    """
+    Devuelve una foto a pending para reintentar su procesamiento.
+
+    Se permite especialmente para fotos failed o processing stale.
+    """
+    database = get_db()
+    row = database.execute(
+        """
+        SELECT foto_id, parcela_id, estado, ruta_trazas
+        FROM foto
+        WHERE foto_id = ?
+        """,
+        (photo_id,),
+    ).fetchone()
+
+    if row is None:
+        return False
+
+    trace_absolute_path = get_storage_abspath(row["ruta_trazas"])
+    if trace_absolute_path and os.path.exists(trace_absolute_path):
+        try:
+            os.remove(trace_absolute_path)
+        except OSError:
+            pass
+
+    database.execute(
+        """
+        UPDATE foto
+        SET
+            trazas = 0,
+            estado = 'pending',
+            ruta_trazas = NULL,
+            error_message = NULL,
+            started_at = NULL,
+            finished_at = NULL
+        WHERE foto_id = ?
+        """,
+        (photo_id,),
+    )
+    database.commit()
+    refresh_parcel_status(row["parcela_id"])
+    return True

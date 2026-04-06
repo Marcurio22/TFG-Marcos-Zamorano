@@ -48,6 +48,7 @@ def app():
             "COLLECTION_STORAGE_ROOT": collection_storage,
             "TRACE_WORKER_POLL_SECONDS": 0.01,
             "TRACE_WORKER_BATCH_SIZE": 1,
+            "TRACE_WORKER_STALE_SECONDS": 60,
             "AUTO_START_TRACE_WORKER": False,
             "SEG_USE_GPU": False,
             "SEG_MODEL_TEMPLATE": model_template,
