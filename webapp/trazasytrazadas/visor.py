@@ -653,7 +653,14 @@ def _visor_probe_source(
         width=96,
         height=96,
     )
-    status_code, content_type, body = _visor_http_get(probe_url, timeout=15)
+
+    try:
+        status_code, content_type, body = _visor_http_get(
+            probe_url,
+            timeout=15,
+        )
+    except Exception:
+        return False
 
     if status_code >= 400:
         return False
@@ -864,9 +871,7 @@ def _visor_fetch_tile_bytes(
 
 
 def register_visor_routes(bp) -> None:
-    """
-    Registra en el blueprint principal las rutas del visor cartográfico.
-    """
+    """Registra en el blueprint principal las rutas del visor cartográfico."""
 
     @bp.route("/visor", methods=["GET"])
     def visor():
@@ -930,8 +935,8 @@ def register_visor_routes(bp) -> None:
                     jsonify(
                         {
                             "error": _(
-                                "No se ha encontrado cobertura PNOA adecuada"
-                                " para el área seleccionada."
+                                "No se ha encontrado cobertura PNOA adecuada "
+                                "para el área seleccionada."
                             )
                         }
                     ),
@@ -1033,9 +1038,13 @@ def register_visor_routes(bp) -> None:
     def visor_download_tile():
         """Descarga una tesela individual del visor mediante proxy backend."""
         try:
-            source, bbox3857, width, height, filename = (
-                _visor_parse_tile_request(request.args)
-            )
+            (
+                source,
+                bbox3857,
+                width,
+                height,
+                filename,
+            ) = _visor_parse_tile_request(request.args)
             image_bytes = _visor_fetch_tile_bytes(
                 source,
                 bbox3857,
@@ -1056,17 +1065,15 @@ def register_visor_routes(bp) -> None:
 
     @bp.route("/visor/download/zip", methods=["POST"])
     def visor_download_zip():
-        """Genera un ZIP con las teselas del visor
-            usando el backend como proxy."""
+        """Genera un ZIP con las teselas del visor usando el backend."""
         payload = request.get_json(silent=True) or {}
         source_id = payload.get("source_id", "")
         source = _visor_source_by_id(source_id)
         tiles = payload.get("tiles", [])
 
         if source is None:
-            return jsonify(
-                {"error": _("La fuente solicitada no existe.")}
-            ), 400
+            return jsonify({
+                "error": _("La fuente solicitada no existe.")}), 400
 
         if not isinstance(tiles, list) or not tiles:
             return (

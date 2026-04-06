@@ -3,7 +3,8 @@
 Utilidades de acceso e inicialización de SQLite para la aplicación.
 
 Este módulo centraliza la apertura/cierre de conexiones, la creación del
-esquema y la integración con la app factory de Flask.
+esquema y una migración ligera aditiva para compatibilidad con versiones
+anteriores del esquema.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -18,12 +19,7 @@ from flask.cli import with_appcontext
 
 
 def get_db() -> sqlite3.Connection:
-    """
-    Devuelve la conexión SQLite asociada al contexto actual de Flask.
-
-    La conexión se reutiliza dentro de la misma petición y activa claves
-    foráneas para respetar la integridad referencial definida en el esquema.
-    """
+    """Devuelve la conexión SQLite asociada al contexto actual de Flask."""
     if "db" not in g:
         database_path = current_app.config["DATABASE"]
         connection = sqlite3.connect(
@@ -44,17 +40,69 @@ def close_db(_error=None) -> None:
         connection.close()
 
 
-def init_db() -> None:
-    """
-    Crea el esquema SQLite de forma idempotente.
+def _table_columns(database: sqlite3.Connection, table_name: str) -> set[str]:
+    """Devuelve el conjunto de columnas actuales de una tabla."""
+    rows = database.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return {row["name"] for row in rows}
 
-    El esquema vive en schema.sql para mantener la definición relacional en un
-    único punto y facilitar su evolución.
+
+def _migrate_collection_schema() -> None:
     """
+    Aplica migraciones aditivas mínimas para fotos procesables en background.
+
+    Se usa porque CREATE TABLE IF NOT EXISTS no modifica tablas ya existentes.
+    """
+    database = get_db()
+    photo_columns = _table_columns(database, "foto")
+    statements = []
+
+    if "estado" not in photo_columns:
+        statements.append(
+            "ALTER TABLE foto ADD COLUMN estado "
+            "TEXT NOT NULL DEFAULT 'pending'"
+        )
+    if "error_message" not in photo_columns:
+        statements.append(
+            "ALTER TABLE foto ADD COLUMN error_message TEXT"
+        )
+    if "started_at" not in photo_columns:
+        statements.append(
+            "ALTER TABLE foto ADD COLUMN started_at TEXT"
+        )
+    if "finished_at" not in photo_columns:
+        statements.append(
+            "ALTER TABLE foto ADD COLUMN finished_at TEXT"
+        )
+    if "attempt_count" not in photo_columns:
+        statements.append(
+            "ALTER TABLE foto ADD COLUMN attempt_count "
+            "INTEGER NOT NULL DEFAULT 0"
+        )
+
+    for statement in statements:
+        database.execute(statement)
+
+    if statements:
+        database.commit()
+
+    # Normaliza filas antiguas ya marcadas con trazas.
+    database.execute(
+        """
+        UPDATE foto
+        SET estado = 'completed'
+        WHERE trazas = 1 AND estado = 'pending'
+        """
+    )
+    database.commit()
+
+
+def init_db() -> None:
+    """Crea el esquema SQLite y aplica migraciones aditivas."""
     database = get_db()
     with current_app.open_resource("schema.sql") as schema_file:
         database.executescript(schema_file.read().decode("utf-8"))
     database.commit()
+    _migrate_collection_schema()
 
 
 @click.command("init-db")

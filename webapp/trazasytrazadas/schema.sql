@@ -50,6 +50,12 @@ CREATE TABLE IF NOT EXISTS foto (
     ruta_foto TEXT NOT NULL,
     ruta_trazas TEXT,
     trazas INTEGER NOT NULL DEFAULT 0 CHECK (trazas IN (0, 1)),
+    estado TEXT NOT NULL DEFAULT 'pending'
+        CHECK (estado IN ('pending', 'processing', 'completed', 'failed')),
+    error_message TEXT,
+    started_at TEXT,
+    finished_at TEXT,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
     tile_id TEXT NOT NULL,
     row_index INTEGER NOT NULL,
     col_index INTEGER NOT NULL,

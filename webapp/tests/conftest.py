@@ -30,6 +30,7 @@ def app():
     output = os.path.join(tmpdir.name, "outputs")
     models = os.path.join(tmpdir.name, "models")
     database = os.path.join(tmpdir.name, "trazasytrazadas.sqlite")
+    collection_storage = os.path.join(tmpdir.name, "collection")
 
     model_template = (
         "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr"
@@ -44,6 +45,10 @@ def app():
             "OUTPUT_FOLDER": output,
             "SEG_MODELS_DIR": models,
             "DATABASE": database,
+            "COLLECTION_STORAGE_ROOT": collection_storage,
+            "TRACE_WORKER_POLL_SECONDS": 0.01,
+            "TRACE_WORKER_BATCH_SIZE": 1,
+            "AUTO_START_TRACE_WORKER": False,
             "SEG_USE_GPU": False,
             "SEG_MODEL_TEMPLATE": model_template,
             "SEG_N_FOLDS": 1,

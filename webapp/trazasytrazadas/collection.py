@@ -12,6 +12,7 @@ Versión: 0.1
 
 from __future__ import annotations
 
+import os
 import io
 import json
 import zipfile
@@ -32,7 +33,10 @@ from flask_babel import gettext as _
 from .collection_store import (
     delete_zone,
     get_photo,
+    get_storage_abspath,
     get_zone_detail,
+    get_zone_live_status,
+    list_zone_status_summaries,
     list_zones,
 )
 from .visor import _visor_fetch_tile_bytes, _visor_source_by_id
@@ -46,7 +50,8 @@ def _flash_ok(message: str) -> None:
 
 
 def _safe_internal_redirect(target: str | None, fallback: str) -> str:
-    """Acepta solo redirecciones internas relativas para evitar open redirect."""
+    """Acepta solo redirecciones internas
+        relativas para evitar open redirect."""
     if not target:
         return fallback
 
@@ -86,7 +91,13 @@ def _load_zone_or_404(parcel_id: int) -> dict:
 
 
 def _fetch_photo_bytes(photo: dict) -> bytes:
-    """Descarga los bytes de una tesela persistida usando el proxy backend."""
+    """Obtiene los bytes de una tesela,
+        priorizando el fichero local persistido."""
+    local_image_path = get_storage_abspath(photo.get("ruta_foto"))
+    if local_image_path and os.path.exists(local_image_path):
+        with open(local_image_path, "rb") as image_file:
+            return image_file.read()
+
     source = _visor_source_by_id(photo["source_id"])
     if source is None:
         raise RuntimeError(_("La fuente de la tesela ya no está disponible."))
@@ -136,12 +147,45 @@ def register_collection_routes(bp) -> None:
                 listing["total_pages"],
             ),
             per_page_options=COLLECTION_PER_PAGE_OPTIONS,
-            current_query=request.full_path.rstrip("?") or url_for("trazas.collection"),
+            current_query=request.full_path.rstrip(
+                "?") or url_for("trazas.collection"),
         )
+
+    @bp.route("/coleccion/status", methods=["GET"])
+    def collection_status():
+        """Devuelve el estado resumido de varias zonas para polling ligero."""
+        raw_ids = request.args.get("ids", "").strip()
+        parcel_ids = []
+
+        for chunk in raw_ids.split(","):
+            chunk = chunk.strip()
+            if not chunk:
+                continue
+            try:
+                parcel_id = int(chunk)
+            except ValueError:
+                continue
+            if parcel_id > 0 and parcel_id not in parcel_ids:
+                parcel_ids.append(parcel_id)
+
+        return jsonify(
+            {
+                "zones": list_zone_status_summaries(parcel_ids),
+            }
+        )
+
+    @bp.route("/coleccion/<int:parcel_id>/status", methods=["GET"])
+    def collection_zone_status(parcel_id: int):
+        """Devuelve el estado completo de una zona y sus fotos."""
+        status_payload = get_zone_live_status(parcel_id)
+        if status_payload is None:
+            return jsonify({"error": _("La zona solicitada no existe.")}), 404
+        return jsonify(status_payload)
 
     @bp.route("/coleccion/<int:parcel_id>/preview", methods=["GET"])
     def collection_preview(parcel_id: int):
-        """Devuelve una preview inline basada en la primera tesela de la zona."""
+        """Devuelve una preview inline basada en
+            la primera tesela de la zona."""
         detail = _load_zone_or_404(parcel_id)
         if not detail["photos"]:
             return jsonify({"error": _("La zona no contiene teselas.")}), 404
@@ -181,7 +225,8 @@ def register_collection_routes(bp) -> None:
         ) as archive:
             for photo in detail["photos"]:
                 try:
-                    archive.writestr(photo["filename"], _fetch_photo_bytes(photo))
+                    archive.writestr(photo["filename"],
+                                     _fetch_photo_bytes(photo))
                     log["downloaded"].append(photo["filename"])
                 except Exception as exc:  # pragma: no cover
                     log["failed"].append(

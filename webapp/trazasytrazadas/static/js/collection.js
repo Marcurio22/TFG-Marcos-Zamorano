@@ -1,8 +1,8 @@
 /**
  * Lógica de interacción de la colección de imágenes.
  *
- * Gestiona la preview modal de cada zona, el auto-submit del selector de
- * tamaño de página y la confirmación visual previa al borrado permanente.
+ * Gestiona la preview modal, el borrado con modal DaisyUI y el polling
+ * ligero de estados para colección y galería.
  *
  * Autor: Marcos Zamorano Lasso
  * Versión: 0.1
@@ -14,9 +14,20 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       previewTitle: "Preview de la zona",
       previewError: "No se ha podido cargar la preview de la zona.",
+      progressText: "{completed}/{total} teselas completadas",
+      zoneCompleted: "Trazas completadas",
+      zoneProcessing: "Procesando",
+      zonePending: "En espera",
+      zoneFailed: "Error",
+      photoCompleted: "Trazas calculadas",
+      photoProcessing: "Calculando trazas",
+      photoPending: "Trazas no calculadas",
+      photoFailed: "Error de cálculo",
     },
     CFG.i18n || {}
   );
+
+  const POLL_INTERVAL_MS = Number(CFG.pollIntervalMs || 5000);
 
   const previewModal = document.getElementById("zone-preview-modal");
   const previewTitle = document.getElementById("zone-preview-title");
@@ -31,7 +42,117 @@ document.addEventListener("DOMContentLoaded", () => {
   const confirmDeleteButton = document.getElementById("confirm-delete-button");
 
   const perPageSelect = document.querySelector("[data-collection-per-page]");
+  const galleryRoot = document.querySelector("[data-gallery-zone-root]");
   let pendingDeleteForm = null;
+
+  function formatTemplate(template, values) {
+    return Object.entries(values).reduce((result, [key, value]) => {
+      return result.replaceAll(`{${key}}`, String(value));
+    }, template);
+  }
+
+  function renderZoneStateMarkup(status) {
+    if (status === "completed") {
+      return `
+        <span class="inline-flex items-center justify-center text-success" title="${I18N.zoneCompleted}">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2.5"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="w-6 h-6">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+        </span>
+      `;
+    }
+
+    if (status === "processing") {
+      return `<span class="loading loading-spinner loading-md text-primary" title="${I18N.zoneProcessing}"></span>`;
+    }
+
+    if (status === "failed") {
+      return `<span class="badge badge-error badge-outline">${I18N.zoneFailed}</span>`;
+    }
+
+    return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
+  }
+
+  function renderZoneBadgeMarkup(status) {
+    if (status === "completed") {
+      return `<span class="badge badge-success badge-outline">${I18N.zoneCompleted}</span>`;
+    }
+
+    if (status === "processing") {
+      return `<span class="badge badge-info badge-outline">${I18N.zoneProcessing}</span>`;
+    }
+
+    if (status === "failed") {
+      return `<span class="badge badge-error badge-outline">${I18N.zoneFailed}</span>`;
+    }
+
+    return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
+  }
+
+  function renderPhotoStateMarkup(status) {
+    if (status === "completed") {
+      return `
+        <span class="inline-flex items-center justify-center text-success" title="${I18N.photoCompleted}">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2.5"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="w-6 h-6">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+        </span>
+      `;
+    }
+
+    if (status === "processing") {
+      return `<span class="loading loading-spinner loading-md text-primary" title="${I18N.photoProcessing}"></span>`;
+    }
+
+    if (status === "failed") {
+      return `
+        <span class="inline-flex items-center justify-center text-error" title="${I18N.photoFailed}">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="w-6 h-6">
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+          </svg>
+        </span>
+      `;
+    }
+
+    return `
+      <span class="inline-flex items-center justify-center text-base-content/45" title="${I18N.photoPending}">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="w-6 h-6">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12h8"></path>
+        </svg>
+      </span>
+    `;
+  }
 
   function resetPreviewModal() {
     if (!loadingEl || !errorEl || !imageEl) return;
@@ -113,5 +234,133 @@ document.addEventListener("DOMContentLoaded", () => {
       const form = perPageSelect.closest("form");
       if (form) form.submit();
     });
+  }
+
+  async function refreshCollectionStatuses() {
+    const statusUrl = CFG.urls && CFG.urls.statusCollection;
+    const rows = Array.from(document.querySelectorAll("[data-zone-row]"));
+    if (!statusUrl || rows.length === 0) {
+      return;
+    }
+
+    const ids = rows
+      .map((row) => row.dataset.zoneId)
+      .filter(Boolean)
+      .join(",");
+
+    if (!ids) {
+      return;
+    }
+
+    const url = new URL(statusUrl, window.location.origin);
+    url.searchParams.set("ids", ids);
+    url.searchParams.set("_ts", Date.now().toString());
+
+    const response = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+    const zones = Array.isArray(payload.zones) ? payload.zones : [];
+    const byId = new Map(zones.map((zone) => [String(zone.parcela_id), zone]));
+
+    rows.forEach((row) => {
+      const zone = byId.get(row.dataset.zoneId);
+      if (!zone) {
+        return;
+      }
+
+      const stateEl = row.querySelector("[data-zone-state]");
+      const progressEl = row.querySelector("[data-zone-progress]");
+
+      if (stateEl) {
+        stateEl.innerHTML = renderZoneStateMarkup(zone.estado || zone.status);
+        stateEl.dataset.zoneStatus = zone.estado || zone.status;
+      }
+
+      if (progressEl) {
+        progressEl.textContent = formatTemplate(I18N.progressText, {
+          completed: zone.completed_tiles || 0,
+          total: zone.tile_count || 0,
+        });
+      }
+    });
+  }
+
+  async function refreshGalleryStatus() {
+    if (!galleryRoot) {
+      return;
+    }
+
+    const statusUrl = galleryRoot.dataset.zoneStatusUrl;
+    if (!statusUrl) {
+      return;
+    }
+
+    const url = new URL(statusUrl, window.location.origin);
+    url.searchParams.set("_ts", Date.now().toString());
+
+    const response = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+    const badgeEl = document.querySelector("[data-zone-status-badge]");
+    const progressSummaryEl = document.querySelector("[data-zone-progress-summary]");
+
+    if (badgeEl) {
+      badgeEl.innerHTML = renderZoneBadgeMarkup(payload.estado || payload.status);
+    }
+
+    if (progressSummaryEl) {
+      progressSummaryEl.textContent = formatTemplate(I18N.progressText, {
+        completed: payload.completed_tiles || 0,
+        total: payload.tile_count || 0,
+      });
+    }
+
+    const photos = Array.isArray(payload.photos) ? payload.photos : [];
+    const byId = new Map(photos.map((photo) => [String(photo.foto_id), photo]));
+
+    document.querySelectorAll("[data-photo-status]").forEach((container) => {
+      const photo = byId.get(container.dataset.photoId);
+      if (!photo) {
+        return;
+      }
+
+      container.innerHTML = renderPhotoStateMarkup(photo.estado);
+      container.dataset.photoState = photo.estado;
+
+      if (photo.estado === "completed") {
+        container.title = I18N.photoCompleted;
+      } else if (photo.estado === "processing") {
+        container.title = I18N.photoProcessing;
+      } else if (photo.estado === "failed") {
+        container.title = I18N.photoFailed;
+      } else {
+        container.title = I18N.photoPending;
+      }
+    });
+  }
+
+  async function runPollingTick() {
+    try {
+      await refreshCollectionStatuses();
+      await refreshGalleryStatus();
+    } catch (_error) {
+      // Polling silencioso: no interrumpe la UI si falla una consulta puntual.
+    }
+  }
+
+  if (document.querySelector("[data-zone-row]") || galleryRoot) {
+    window.setInterval(runPollingTick, Math.max(1000, POLL_INTERVAL_MS));
   }
 });

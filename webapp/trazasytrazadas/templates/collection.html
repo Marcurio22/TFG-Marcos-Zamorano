@@ -100,7 +100,7 @@ Versión: 0.1
                         </thead>
                         <tbody>
                             {% for item in listing["zones"] %}
-                                <tr>
+                                <tr data-zone-row data-zone-id="{{ item.parcela_id }}">
                                     <td class="align-top min-w-72">
                                         <div class="flex items-start gap-3">
                                             <div class="mt-1 text-primary">
@@ -118,6 +118,9 @@ Versión: 0.1
                                                 </div>
                                                 <div class="text-xs opacity-65">
                                                     {{ item.fecha }} · {{ item.source_label }} · {{ item.tile_count }} {{ _("teselas") }}
+                                                </div>
+                                                <div class="text-xs opacity-65" data-zone-progress>
+                                                    {{ _("%(completed)s/%(total)s teselas completadas", completed=item.completed_tiles, total=item.tile_count) }}
                                                 </div>
                                             </div>
                                         </div>
@@ -160,28 +163,30 @@ Versión: 0.1
                                         </a>
                                     </td>
                                     <td class="text-center align-middle">
-                                        {% if item.estado == 'completed' %}
-                                            <span class="inline-flex items-center justify-center text-success"
-                                                  title="{{ _("Trazas completadas") }}">
-                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                     viewBox="0 0 24 24"
-                                                     fill="none"
-                                                     stroke="currentColor"
-                                                     stroke-width="2.5"
-                                                     stroke-linecap="round"
-                                                     stroke-linejoin="round"
-                                                     class="w-6 h-6">
-                                                    <path d="M20 6 9 17l-5-5" />
-                                                </svg>
-                                            </span>
-                                        {% elif item.estado == 'processing' %}
-                                            <span class="loading loading-spinner loading-md text-info"
-                                                  title="{{ _("Procesando") }}"></span>
-                                        {% elif item.estado == 'failed' %}
-                                            <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
-                                        {% else %}
-                                            <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
-                                        {% endif %}
+                                        <div data-zone-state data-zone-status="{{ item.estado }}">
+                                            {% if item.estado == 'completed' %}
+                                                <span class="inline-flex items-center justify-center text-success"
+                                                      title="{{ _("Trazas completadas") }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         viewBox="0 0 24 24"
+                                                         fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2.5"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round"
+                                                         class="w-6 h-6">
+                                                        <path d="M20 6 9 17l-5-5" />
+                                                    </svg>
+                                                </span>
+                                            {% elif item.estado == 'processing' %}
+                                                <span class="loading loading-spinner loading-md text-primary"
+                                                      title="{{ _("Procesando") }}"></span>
+                                            {% elif item.estado == 'failed' %}
+                                                <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                                            {% else %}
+                                                <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="align-middle min-w-56">
                                         <div class="flex flex-wrap items-center gap-2">
@@ -330,9 +335,22 @@ Versión: 0.1
     </dialog>
     <script>
         window.COLLECTION_APP = {{ {
+        "urls": {
+            "statusCollection": url_for("trazas.collection_status")
+        },
+        "pollIntervalMs": 5000,
         "i18n": {
             "previewTitle": _("Preview de la zona"),
-            "previewError": _("No se ha podido cargar la preview de la zona.")
+            "previewError": _("No se ha podido cargar la preview de la zona."),
+            "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
+            "zoneCompleted": _("Trazas completadas"),
+            "zoneProcessing": _("Procesando"),
+            "zonePending": _("En espera"),
+            "zoneFailed": _("Error"),
+            "photoCompleted": _("Trazas calculadas"),
+            "photoProcessing": _("Calculando trazas"),
+            "photoPending": _("Trazas no calculadas"),
+            "photoFailed": _("Error de cálculo")
         }
         } | tojson }};
     </script>

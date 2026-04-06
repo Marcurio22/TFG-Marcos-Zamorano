@@ -27,22 +27,27 @@ Versión: 0.1
                class="btn btn-sm btn-outline">{{ _("Descargar ZIP") }}</a>
         </div>
     </section>
-    <section class="card bg-base-100 border border-base-200 shadow-sm mb-4">
+    <section class="card bg-base-100 border border-base-200 shadow-sm mb-4"
+             data-gallery-zone-root
+             data-zone-id="{{ zone.parcela_id }}"
+             data-zone-status-url="{{ url_for('trazas.collection_zone_status', parcel_id=zone.parcela_id) }}">
         <div class="card-body gap-4">
             <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold">{{ _("Galería de la zona") }} #{{ zone.parcela_id }}</h2>
                     <p class="text-sm opacity-75">{{ _("Teselas guardadas a partir de la cuadrícula generada en el visor.") }}</p>
                 </div>
-                {% if zone.estado == 'completed' %}
-                    <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
-                {% elif zone.estado == 'processing' %}
-                    <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
-                {% elif zone.estado == 'failed' %}
-                    <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
-                {% else %}
-                    <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
-                {% endif %}
+                <span data-zone-status-badge>
+                    {% if zone.estado == 'completed' %}
+                        <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
+                    {% elif zone.estado == 'processing' %}
+                        <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
+                    {% elif zone.estado == 'failed' %}
+                        <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                    {% else %}
+                        <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                    {% endif %}
+                </span>
             </div>
             <div class="stats stats-vertical lg:stats-horizontal shadow-sm border border-base-200 bg-base-50">
                 <div class="stat">
@@ -59,6 +64,9 @@ Versión: 0.1
                     <div class="stat-title">{{ _("Fuente") }}</div>
                     <div class="stat-value text-base">{{ zone.source_label }}</div>
                     <div class="stat-desc">{{ zone.actual_resolution }} m/px · {{ zone.tile_count }} {{ _("teselas") }}</div>
+                    <div class="stat-desc" data-zone-progress-summary>
+                        {{ _("%(completed)s/%(total)s teselas completadas", completed=zone.completed_tiles, total=zone.tile_count) }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -83,7 +91,10 @@ Versión: 0.1
                                 </div>
                             </div>
                             <div class="shrink-0 pt-1"
-                                 title=" {% if photo.trace_status == 'completed' %} {{ _("Trazas calculadas") }} {% elif photo.trace_status == 'processing' %} {{ _("Calculando trazas") }} {% else %} {{ _("Trazas no calculadas") }} {% endif %} ">
+                                 data-photo-status
+                                 data-photo-id="{{ photo.foto_id }}"
+                                 data-photo-state="{{ photo.estado }}"
+                                 title=" {% if photo.trace_status == 'completed' %} {{ _("Trazas calculadas") }} {% elif photo.trace_status == 'processing' %} {{ _("Calculando trazas") }} {% elif photo.estado == 'failed' %} {{ _("Error de cálculo") }} {% else %} {{ _("Trazas no calculadas") }} {% endif %} ">
                                 {% if photo.trace_status == 'completed' %}
                                     <span class="inline-flex items-center justify-center text-success">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -99,6 +110,21 @@ Versión: 0.1
                                     </span>
                                 {% elif photo.trace_status == 'processing' %}
                                     <span class="loading loading-spinner loading-md text-primary"></span>
+                                {% elif photo.estado == 'failed' %}
+                                    <span class="inline-flex items-center justify-center text-error">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round"
+                                             class="w-6 h-6">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
+                                    </span>
                                 {% else %}
                                     <span class="inline-flex items-center justify-center text-base-content/45">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -129,4 +155,21 @@ Versión: 0.1
             <span>{{ _("La zona seleccionada no contiene teselas guardadas.") }}</span>
         </div>
     {% endif %}
+    <script>
+    window.COLLECTION_APP = {{ {
+      "pollIntervalMs": 5000,
+      "i18n": {
+        "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
+        "zoneCompleted": _("Trazas completadas"),
+        "zoneProcessing": _("Procesando"),
+        "zonePending": _("En espera"),
+        "zoneFailed": _("Error"),
+        "photoCompleted": _("Trazas calculadas"),
+        "photoProcessing": _("Calculando trazas"),
+        "photoPending": _("Trazas no calculadas"),
+        "photoFailed": _("Error de cálculo")
+      }
+    } | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/collection.js') }}"></script>
 {% endblock %}

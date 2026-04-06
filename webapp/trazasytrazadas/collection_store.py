@@ -13,10 +13,11 @@ Versión: 0.1
 from __future__ import annotations
 
 import json
+import os
 from math import ceil
 from urllib.parse import urlparse
 
-from flask import url_for
+from flask import current_app, url_for
 from flask_babel import gettext as _
 
 from .db import get_db
@@ -55,15 +56,65 @@ def _route_path_only(url: str) -> str:
         return f"{path}?{parsed.query}"
     return path
 
+
+def get_collection_storage_root() -> str:
+    """Devuelve la carpeta raíz de almacenamiento físico de la colección."""
+    root = current_app.config["COLLECTION_STORAGE_ROOT"]
+    os.makedirs(root, exist_ok=True)
+    return root
+
+
+def get_storage_abspath(relative_path: str | None) -> str | None:
+    """
+    Convierte una ruta relativa de la colección en ruta absoluta segura.
+
+    Si la ruta es inválida o apunta fuera del root configurado, devuelve None.
+    """
+    if not relative_path:
+        return None
+
+    root = os.path.abspath(get_collection_storage_root())
+    absolute_path = os.path.abspath(os.path.join(root, relative_path))
+
+    if os.path.commonpath([root, absolute_path]) != root:
+        return None
+
+    return absolute_path
+
+
+def _relative_storage_path(absolute_path: str) -> str:
+    """Convierte una ruta absoluta de colección a una
+        ruta relativa persistible."""
+    root = os.path.abspath(get_collection_storage_root())
+    return os.path.relpath(absolute_path, root).replace(os.sep, "/")
+
+
+def _parcel_root_dir(parcel_id: int) -> str:
+    """Devuelve la carpeta raíz física de una parcela."""
+    return os.path.join(get_collection_storage_root(),
+                        "parcelas", str(parcel_id))
+
+
+def _parcel_tiles_dir(parcel_id: int) -> str:
+    """Devuelve la carpeta física de teselas de una parcela."""
+    return os.path.join(_parcel_root_dir(parcel_id), "tiles")
+
+
+def _parcel_traces_dir(parcel_id: int) -> str:
+    """Devuelve la carpeta física de resultados de trazas de una parcela."""
+    return os.path.join(_parcel_root_dir(parcel_id), "traces")
+
+
 def _photo_trace_status(photo: dict) -> str:
     """
     Deriva el estado visual de trazas para una foto.
 
-    Se deja preparado el valor processing para una futura integración
-    de cálculo en segundo plano sin rehacer la galería.
+    Se apoya en el campo persistido estado para que la galería refleje
+    pending / processing / completed sin lógica duplicada en frontend.
     """
-    if int(photo.get("trazas", 0)) == 1:
-        return "completed"
+    status = (photo.get("estado") or "pending").strip().lower()
+    if status in {"completed", "processing"}:
+        return status
     return "pending"
 
 
@@ -89,8 +140,8 @@ def save_generated_zone(
     """
     Persiste una nueva zona generada por el visor y todas sus teselas.
 
-    Cada generación de cuadrícula crea una parcela y tantas fotos como teselas
-    existan en el plan devuelto por el visor.
+    En esta versión solo guarda metadata en SQLite. La descarga física de las
+    teselas se difiere al worker de trazas para no bloquear la petición web.
     """
     if status not in ALLOWED_ZONE_STATUSES:
         raise ValueError("Estado de zona no soportado.")
@@ -154,6 +205,7 @@ def save_generated_zone(
         bounds = tile.get("bounds", {})
         bbox_tile = tile.get("bbox3857", {})
         center_lat, center_lng = _center_from_bounds(bounds)
+
         cursor.execute(
             """
             INSERT INTO foto (
@@ -166,6 +218,11 @@ def save_generated_zone(
                 ruta_foto,
                 ruta_trazas,
                 trazas,
+                estado,
+                error_message,
+                started_at,
+                finished_at,
+                attempt_count,
                 tile_id,
                 row_index,
                 col_index,
@@ -175,7 +232,10 @@ def save_generated_zone(
                 bbox3857_json,
                 bounds_json,
                 source_id
-            ) VALUES (?, DATE('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (
+                ?, DATE('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?
+            )
             """,
             (
                 parcel_id,
@@ -184,6 +244,11 @@ def save_generated_zone(
                 center_lng,
                 center_lat,
                 _route_path_only(tile.get("download_url", "")),
+                None,
+                0,
+                "pending",
+                None,
+                None,
                 None,
                 0,
                 tile["id"],
@@ -247,6 +312,8 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
             p.tile_height,
             p.created_at,
             COUNT(f.foto_id) AS tile_count,
+            SUM(CASE WHEN f.estado = 'completed' THEN 1 ELSE 0 END)
+                AS completed_tiles,
             MIN(f.foto_id) AS preview_foto_id
         FROM parcela p
         LEFT JOIN foto f ON f.parcela_id = p.parcela_id
@@ -261,6 +328,8 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     zones = []
     for row in rows:
         item = _row_to_dict(row)
+        item["tile_count"] = int(item.get("tile_count") or 0)
+        item["completed_tiles"] = int(item.get("completed_tiles") or 0)
         item["origin"] = {
             "lat": float(item["pto_origen_lat"]),
             "lng": float(item["pto_origen_lng"]),
@@ -340,6 +409,11 @@ def get_zone_detail(parcel_id: int) -> dict | None:
             ruta_foto,
             ruta_trazas,
             trazas,
+            estado,
+            error_message,
+            started_at,
+            finished_at,
+            attempt_count,
             tile_id,
             row_index,
             col_index,
@@ -369,7 +443,7 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     parcel["preview_photo_id"] = photos[0]["foto_id"] if photos else None
     parcel["photos"] = photos
     parcel["completed_tiles"] = sum(
-        1 for photo in photos if int(photo["trazas"]) == 1
+        1 for photo in photos if photo.get("estado") == "completed"
     )
     return parcel
 
@@ -453,6 +527,11 @@ def get_photo(photo_id: int) -> dict | None:
             ruta_foto,
             ruta_trazas,
             trazas,
+            estado,
+            error_message,
+            started_at,
+            finished_at,
+            attempt_count,
             tile_id,
             row_index,
             col_index,
@@ -479,7 +558,8 @@ def get_photo(photo_id: int) -> dict | None:
 
 
 def delete_zone(parcel_id: int) -> bool:
-    """Elimina una parcela y sus fotos asociadas mediante borrado en cascada."""
+    """Elimina una parcela y sus fotos asociadas
+        mediante borrado en cascada."""
     database = get_db()
     cursor = database.execute(
         "DELETE FROM parcela WHERE parcela_id = ?",
@@ -487,3 +567,330 @@ def delete_zone(parcel_id: int) -> bool:
     )
     database.commit()
     return cursor.rowcount > 0
+
+
+def save_photo_traces_result(photo: dict, traces: dict) -> str:
+    """Guarda el resultado JSON de trazas de una foto
+        y devuelve su ruta relativa."""
+    os.makedirs(_parcel_traces_dir(photo["parcela_id"]), exist_ok=True)
+    filename_root, _ext = os.path.splitext(photo["filename"])
+    traces_filename = f"{filename_root}_traces.json"
+    traces_absolute_path = os.path.join(
+        _parcel_traces_dir(photo["parcela_id"]),
+        traces_filename,
+    )
+
+    with open(traces_absolute_path, "w", encoding="utf-8") as traces_file:
+        json.dump(traces, traces_file, ensure_ascii=False, indent=2)
+
+    return _relative_storage_path(traces_absolute_path)
+
+
+def materialize_photo_tile(photo: dict) -> str:
+    """
+    Garantiza que la tesela de una foto exista físicamente en disco.
+
+    Si ya existe localmente, devuelve su ruta absoluta.
+    Si no existe, la descarga desde la fuente cartográfica, la guarda en
+    instance/collection y actualiza ruta_foto en SQLite.
+    """
+    local_path = get_storage_abspath(photo.get("ruta_foto"))
+    if local_path and os.path.exists(local_path):
+        return local_path
+
+    from .visor import _visor_fetch_tile_bytes, _visor_source_by_id
+
+    source = _visor_source_by_id(photo["source_id"])
+    if source is None:
+        raise RuntimeError(_("La fuente de la tesela ya no está disponible."))
+
+    bbox = photo["bbox3857"]
+    bbox3857 = (
+        float(bbox["xmin"]),
+        float(bbox["ymin"]),
+        float(bbox["xmax"]),
+        float(bbox["ymax"]),
+    )
+
+    tile_bytes = _visor_fetch_tile_bytes(
+        source,
+        bbox3857,
+        int(photo["width"]),
+        int(photo["height"]),
+    )
+
+    os.makedirs(_parcel_tiles_dir(photo["parcela_id"]), exist_ok=True)
+    absolute_path = os.path.join(
+        _parcel_tiles_dir(photo["parcela_id"]),
+        photo["filename"],
+    )
+
+    with open(absolute_path, "wb") as output_file:
+        output_file.write(tile_bytes)
+
+    relative_path = _relative_storage_path(absolute_path)
+
+    database = get_db()
+    database.execute(
+        """
+        UPDATE foto
+        SET ruta_foto = ?
+        WHERE foto_id = ?
+        """,
+        (relative_path, photo["foto_id"]),
+    )
+    database.commit()
+
+    photo["ruta_foto"] = relative_path
+    return absolute_path
+
+
+def claim_pending_photos(*, limit: int = 1) -> list[dict]:
+    """
+    Reclama fotos pendientes y las marca como processing.
+
+    En esta iteración se usa con un único worker, pero queda preparado para
+    reclamación transaccional básica sobre SQLite.
+    """
+    database = get_db()
+    limit = max(1, int(limit))
+
+    database.execute("BEGIN IMMEDIATE")
+    id_rows = database.execute(
+        """
+        SELECT foto_id
+        FROM foto
+        WHERE estado = 'pending'
+        ORDER BY foto_id ASC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+
+    photo_ids = [row["foto_id"] for row in id_rows]
+    if not photo_ids:
+        database.commit()
+        return []
+
+    placeholders = ",".join("?" for _ in photo_ids)
+    database.execute(
+        f"""
+        UPDATE foto
+        SET
+            estado = 'processing',
+            started_at = COALESCE(started_at, CURRENT_TIMESTAMP),
+            finished_at = NULL,
+            error_message = NULL,
+            attempt_count = COALESCE(attempt_count, 0) + 1
+        WHERE foto_id IN ({placeholders})
+        """,
+        photo_ids,
+    )
+    database.commit()
+
+    photos = [get_photo(photo_id) for photo_id in photo_ids]
+    for photo in photos:
+        if photo is not None:
+            refresh_parcel_status(photo["parcela_id"])
+
+    return [photo for photo in photos if photo is not None]
+
+
+def mark_photo_completed(photo_id: int, trace_relative_path: str) -> None:
+    """Marca una foto como completada y actualiza el estado de su parcela."""
+    database = get_db()
+    row = database.execute(
+        "SELECT parcela_id FROM foto WHERE foto_id = ?",
+        (photo_id,),
+    ).fetchone()
+    if row is None:
+        return
+
+    database.execute(
+        """
+        UPDATE foto
+        SET
+            trazas = 1,
+            estado = 'completed',
+            ruta_trazas = ?,
+            error_message = NULL,
+            finished_at = CURRENT_TIMESTAMP
+        WHERE foto_id = ?
+        """,
+        (trace_relative_path, photo_id),
+    )
+    database.commit()
+    refresh_parcel_status(row["parcela_id"])
+
+
+def mark_photo_failed(photo_id: int, message: str) -> None:
+    """Marca una foto como fallida y actualiza el estado de su parcela."""
+    database = get_db()
+    row = database.execute(
+        "SELECT parcela_id FROM foto WHERE foto_id = ?",
+        (photo_id,),
+    ).fetchone()
+    if row is None:
+        return
+
+    database.execute(
+        """
+        UPDATE foto
+        SET
+            trazas = 0,
+            estado = 'failed',
+            error_message = ?,
+            finished_at = CURRENT_TIMESTAMP
+        WHERE foto_id = ?
+        """,
+        (message[:1000], photo_id),
+    )
+    database.commit()
+    refresh_parcel_status(row["parcela_id"])
+
+
+def refresh_parcel_status(parcel_id: int) -> str:
+    """Recalcula el estado agregado de una parcela a partir de sus fotos."""
+    database = get_db()
+    summary = database.execute(
+        """
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN estado = 'pending' THEN 1 ELSE 0 END)
+                AS pending_count,
+            SUM(CASE WHEN estado = 'processing' THEN 1 ELSE 0 END)
+                AS processing_count,
+            SUM(CASE WHEN estado = 'completed' THEN 1 ELSE 0 END)
+                AS completed_count,
+            SUM(CASE WHEN estado = 'failed' THEN 1 ELSE 0 END) AS failed_count
+        FROM foto
+        WHERE parcela_id = ?
+        """,
+        (parcel_id,),
+    ).fetchone()
+
+    total = int(summary["total"] or 0)
+    pending_count = int(summary["pending_count"] or 0)
+    processing_count = int(summary["processing_count"] or 0)
+    completed_count = int(summary["completed_count"] or 0)
+    failed_count = int(summary["failed_count"] or 0)
+
+    if total == 0 or pending_count == total:
+        status = "pending"
+    elif completed_count == total:
+        status = "completed"
+    elif failed_count == total:
+        status = "failed"
+    elif processing_count > 0:
+        status = "processing"
+    elif pending_count > 0 and completed_count > 0:
+        status = "processing"
+    elif pending_count > 0 and failed_count > 0:
+        status = "processing"
+    elif failed_count > 0 and completed_count > 0:
+        status = "failed"
+    else:
+        status = "processing"
+
+    database.execute(
+        """
+        UPDATE parcela
+        SET
+            estado = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE parcela_id = ?
+        """,
+        (status, parcel_id),
+    )
+    database.commit()
+    return status
+
+
+def get_zone_status_summary(parcel_id: int) -> dict | None:
+    """
+    Devuelve un resumen de estado de una parcela.
+
+    Incluye contadores agregados de teselas por estado para pintar la colección
+    y monitorizar el progreso sin cargar toda la galería.
+    """
+    database = get_db()
+    row = database.execute(
+        """
+        SELECT
+            p.parcela_id,
+            p.estado,
+            COUNT(f.foto_id) AS tile_count,
+            SUM(CASE WHEN f.estado = 'pending' THEN 1 ELSE 0 END)
+                AS pending_tiles,
+            SUM(CASE WHEN f.estado = 'processing' THEN 1 ELSE 0 END)
+                AS processing_tiles,
+            SUM(CASE WHEN f.estado = 'completed' THEN 1 ELSE 0 END)
+                AS completed_tiles,
+            SUM(CASE WHEN f.estado = 'failed' THEN 1 ELSE 0 END)
+                AS failed_tiles
+        FROM parcela p
+        LEFT JOIN foto f ON f.parcela_id = p.parcela_id
+        WHERE p.parcela_id = ?
+        GROUP BY p.parcela_id
+        """,
+        (parcel_id,),
+    ).fetchone()
+
+    if row is None:
+        return None
+
+    summary = _row_to_dict(row)
+    for key in (
+        "tile_count",
+        "pending_tiles",
+        "processing_tiles",
+        "completed_tiles",
+        "failed_tiles",
+    ):
+        summary[key] = int(summary.get(key) or 0)
+    return summary
+
+
+def list_zone_status_summaries(parcel_ids: list[int]) -> list[dict]:
+    """Devuelve el resumen de estado para varias parcelas."""
+    summaries = []
+    for parcel_id in parcel_ids:
+        summary = get_zone_status_summary(parcel_id)
+        if summary is not None:
+            summaries.append(summary)
+    return summaries
+
+
+def get_zone_live_status(parcel_id: int) -> dict | None:
+    """
+    Devuelve el estado vivo completo de una parcela y sus fotos.
+
+    Se usa para polling en galería y combina resumen agregado con el estado
+    individual de cada foto.
+    """
+    summary = get_zone_status_summary(parcel_id)
+    if summary is None:
+        return None
+
+    database = get_db()
+    photo_rows = database.execute(
+        """
+        SELECT
+            foto_id,
+            estado,
+            trazas
+        FROM foto
+        WHERE parcela_id = ?
+        ORDER BY row_index ASC, col_index ASC, foto_id ASC
+        """,
+        (parcel_id,),
+    ).fetchall()
+
+    photos = []
+    for row in photo_rows:
+        photo = _row_to_dict(row)
+        photo["trace_status"] = _photo_trace_status(photo)
+        photos.append(photo)
+
+    summary["photos"] = photos
+    return summary

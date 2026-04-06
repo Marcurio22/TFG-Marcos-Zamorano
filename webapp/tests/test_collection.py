@@ -8,10 +8,23 @@ borrado en cascada de parcelas y fotos asociadas.
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
 """
+import io
+from PIL import Image
 
 from trazasytrazadas import visor as visor_module
-from trazasytrazadas.collection_store import get_zone_detail
+from trazasytrazadas.collection_store import (
+    get_zone_detail,
+    refresh_parcel_status,
+)
 from trazasytrazadas.db import get_db
+
+
+def _fake_jpeg_bytes() -> bytes:
+    """Genera un JPEG mínimo válido para la persistencia local de teselas."""
+    image = Image.new("RGB", (16, 16), color=(35, 90, 160))
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    return buffer.getvalue()
 
 
 def _register_zone(client, monkeypatch):
@@ -22,6 +35,12 @@ def _register_zone(client, monkeypatch):
         visor_module,
         "_visor_select_source",
         lambda _bbox, _resolution: (source, 0.25, []),
+    )
+
+    monkeypatch.setattr(
+        visor_module,
+        "_visor_fetch_tile_bytes",
+        lambda _source, _bbox, _width, _height: _fake_jpeg_bytes(),
     )
 
     def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
@@ -166,7 +185,8 @@ def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert "La zona se ha eliminado correctamente.".encode("utf-8") in response.data
+    assert "La zona se ha eliminado correctamente.".encode(
+        "utf-8") in response.data
 
     with app.app_context():
         database = get_db()
@@ -181,3 +201,66 @@ def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):
 
     assert parcel_count == 0
     assert photo_count == 0
+
+
+def test_collection_status_endpoint_returns_zone_summary(app,
+                                                         client, monkeypatch):
+    """Comprueba el endpoint JSON resumido de estados de colección."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    response = client.get(f"/coleccion/status?ids={parcel_id}")
+    assert response.status_code == 200
+
+    payload = response.get_json()
+    assert "zones" in payload
+    assert len(payload["zones"]) == 1
+    zone = payload["zones"][0]
+    assert zone["parcela_id"] == parcel_id
+    assert zone["estado"] == "pending"
+    assert zone["tile_count"] == 2
+    assert zone["completed_tiles"] == 0
+
+
+def test_collection_zone_status_endpoint_returns_photo_states(
+    app, client, monkeypatch
+):
+    """Comprueba el endpoint JSON detallado de una zona y sus fotos."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        database.execute(
+            """
+            UPDATE foto
+            SET estado = 'processing'
+            WHERE parcela_id = ?
+              AND row_index = 1
+              AND col_index = 1
+            """,
+            (parcel_id,),
+        )
+        database.execute(
+            """
+            UPDATE foto
+            SET estado = 'completed', trazas = 1
+            WHERE parcela_id = ?
+              AND row_index = 1
+              AND col_index = 2
+            """,
+            (parcel_id,),
+        )
+        database.commit()
+        refresh_parcel_status(parcel_id)
+
+    response = client.get(f"/coleccion/{parcel_id}/status")
+    assert response.status_code == 200
+
+    payload = response.get_json()
+    assert payload["parcela_id"] == parcel_id
+    assert payload["estado"] == "processing"
+    assert payload["tile_count"] == 2
+    assert payload["completed_tiles"] == 1
+    assert payload["processing_tiles"] == 1
+    assert len(payload["photos"]) == 2
+    assert payload["photos"][0]["estado"] == "processing"
+    assert payload["photos"][1]["estado"] == "completed"

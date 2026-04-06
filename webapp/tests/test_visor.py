@@ -9,7 +9,18 @@ Autor: Marcos Zamorano Lasso
 Versión: 0.1
 """
 
+import io
+from PIL import Image
+
 from trazasytrazadas import visor as visor_module
+
+
+def _fake_jpeg_bytes() -> bytes:
+    """Genera un JPEG mínimo válido para tests de persistencia local."""
+    image = Image.new("RGB", (16, 16), color=(20, 140, 90))
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    return buffer.getvalue()
 
 
 def test_visor_page_renders(client):
@@ -60,7 +71,17 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
             1,
         )
 
-    monkeypatch.setattr(visor_module, "_visor_build_tiles", _fake_tiles)
+    monkeypatch.setattr(
+        visor_module,
+        "_visor_build_tiles",
+        _fake_tiles,
+    )
+
+    monkeypatch.setattr(
+        visor_module,
+        "_visor_fetch_tile_bytes",
+        lambda _source, _bbox, _width, _height: _fake_jpeg_bytes(),
+    )
 
     response = client.post(
         "/visor/grid-plan",
