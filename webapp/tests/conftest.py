@@ -53,6 +53,7 @@ def app():
             "SEG_USE_GPU": False,
             "SEG_MODEL_TEMPLATE": model_template,
             "SEG_N_FOLDS": 1,
+            "COLLECTION_PHOTO_RETRY_ENABLE_SECONDS": 0,
         }
     )
 

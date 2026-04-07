@@ -112,9 +112,38 @@ Versión: 0.1
                                                 </svg>
                                             </div>
                                             <div class="space-y-1">
-                                                <div class="font-semibold text-sm">{{ "%.6f"|format(item.origin.lat) }}, {{ "%.6f"|format(item.origin.lng) }}</div>
+                                                {% if item.nombre_coleccion %}
+                                                    <button type="button"
+                                                            class="font-semibold text-sm text-left hover:text-primary hover:underline"
+                                                            data-action="open-zone-rename"
+                                                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
+                                                            data-zone-name="{{ item.nombre_coleccion }}"
+                                                            data-zone-display-name="{{ item.display_name }}"
+                                                            data-redirect-to="{{ current_query }}">
+                                                        {{ item.display_name }}
+                                                    </button>
+                                                {% endif %}
+                                                <div>
+                                                    <button type="button"
+                                                            class="font-semibold text-sm text-left hover:text-primary hover:underline"
+                                                            data-action="open-zone-rename"
+                                                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
+                                                            data-zone-name="{{ item.nombre_coleccion or '' }}"
+                                                            data-zone-display-name="{{ item.display_name }}"
+                                                            data-redirect-to="{{ current_query }}">
+                                                        {{ "%.6f"|format(item.origin.lat) }}, {{ "%.6f"|format(item.origin.lng) }}
+                                                    </button>
+                                                </div>
                                                 <div class="text-sm opacity-75">
-                                                    {{ "%.6f"|format(item.destination.lat) }}, {{ "%.6f"|format(item.destination.lng) }}
+                                                    <button type="button"
+                                                            class="text-left hover:text-primary hover:underline"
+                                                            data-action="open-zone-rename"
+                                                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
+                                                            data-zone-name="{{ item.nombre_coleccion or '' }}"
+                                                            data-zone-display-name="{{ item.display_name }}"
+                                                            data-redirect-to="{{ current_query }}">
+                                                        {{ "%.6f"|format(item.destination.lat) }}, {{ "%.6f"|format(item.destination.lng) }}
+                                                    </button>
                                                 </div>
                                                 <div class="text-xs opacity-65">
                                                     {{ item.fecha }} · {{ item.source_label }} · {{ item.tile_count }} {{ _("teselas") }}
@@ -130,7 +159,7 @@ Versión: 0.1
                                                 class="btn btn-square btn-sm btn-primary"
                                                 data-action="open-zone-preview"
                                                 data-preview-url="{{ url_for('trazas.collection_preview', parcel_id=item.parcela_id) }}"
-                                                data-preview-title="{{ _("Preview de la zona") }} #{{ item.parcela_id }}">
+                                                data-preview-title="{{ _("Preview de la zona") }} · {{ item.display_name }}">
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  viewBox="0 0 24 24"
                                                  fill="none"
@@ -282,6 +311,46 @@ Versión: 0.1
             <img id="zone-preview-image"
                  alt="{{ _("Preview de la zona") }}"
                  class="hidden mt-4 w-full rounded-box border border-base-200" />
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="{{ _("Cerrar") }}"></button>
+        </form>
+    </dialog>
+    <dialog id="zone-rename-modal" class="modal">
+        <div class="modal-box max-w-lg">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="font-bold text-lg">{{ _("Renombrar colección") }}</h3>
+                    <p id="rename-zone-current-display" class="text-sm opacity-75"></p>
+                </div>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost"
+                            aria-label="{{ _("Cerrar") }}">✕</button>
+                </form>
+            </div>
+            <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
+                <input type="hidden"
+                       name="redirect_to"
+                       id="rename-zone-redirect-to"
+                       value="{{ current_query }}">
+                <label class="form-control">
+                    <div class="label pb-1">
+                        <span class="label-text">{{ _("Nombre de la colección") }}</span>
+                    </div>
+                    <input id="rename-zone-name-input"
+                           name="name"
+                           type="text"
+                           maxlength="120"
+                           class="input input-bordered w-full"
+                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}" />
+                </label>
+            </form>
+            <div class="modal-action">
+                <button type="submit" form="zone-rename-form" class="btn btn-primary">{{ _("Guardar") }}</button>
+                <form method="dialog">
+                    <button class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                </form>
+            </div>
         </div>
         <form method="dialog" class="modal-backdrop">
             <button aria-label="{{ _("Cerrar") }}"></button>

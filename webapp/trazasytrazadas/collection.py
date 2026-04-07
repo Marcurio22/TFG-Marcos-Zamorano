@@ -12,14 +12,15 @@ Versión: 0.1
 
 from __future__ import annotations
 
-import os
 import io
 import json
+import os
 import zipfile
 from urllib.parse import urlparse
 
 from flask import (
     abort,
+    current_app,
     flash,
     jsonify,
     redirect,
@@ -29,6 +30,7 @@ from flask import (
     url_for,
 )
 from flask_babel import gettext as _
+from PIL import Image
 
 from .collection_store import (
     delete_zone,
@@ -38,11 +40,23 @@ from .collection_store import (
     get_zone_live_status,
     list_zone_status_summaries,
     list_zones,
+    photo_retry_is_enabled,
     retry_photo,
+    update_zone_name,
 )
-from .visor import _visor_fetch_tile_bytes, _visor_source_by_id
+from .visor import (
+    _visor_fetch_tile_bytes,
+    _visor_source_by_id,
+)
 
 COLLECTION_PER_PAGE_OPTIONS = (10, 25, 50)
+COLLECTION_PREVIEW_MAX_WIDTH = 1024
+COLLECTION_PREVIEW_MAX_HEIGHT = 640
+_PREVIEW_RESAMPLING = getattr(
+    getattr(Image, "Resampling", Image),
+    "LANCZOS",
+    Image.LANCZOS,
+)
 
 
 def _flash_ok(message: str) -> None:
@@ -118,6 +132,91 @@ def _fetch_photo_bytes(photo: dict) -> bytes:
     )
 
 
+def _build_zone_preview_bytes(detail: dict) -> bytes:
+    """
+    Construye una preview exacta de la zona a partir de sus teselas y luego la
+    reduce proporcionalmente para que quepa dentro de 1024x640.
+
+    No recorta ni deforma la imagen final: solo la escala manteniendo la
+    relación de aspecto, por lo que el área representada sigue siendo
+    exactamente la seleccionada por el usuario.
+    """
+    photos = detail.get("photos") or []
+    if not photos:
+        raise RuntimeError(_("La zona no contiene teselas."))
+
+    col_widths: dict[int, int] = {}
+    row_heights: dict[int, int] = {}
+
+    for photo in photos:
+        col_index = int(photo["col_index"])
+        row_index = int(photo["row_index"])
+        col_widths[col_index] = max(
+            col_widths.get(col_index, 0),
+            int(photo["width"]),
+        )
+        row_heights[row_index] = max(
+            row_heights.get(row_index, 0),
+            int(photo["height"]),
+        )
+
+    col_offsets: dict[int, int] = {}
+    row_offsets: dict[int, int] = {}
+
+    current_x = 0
+    for col_index in sorted(col_widths):
+        col_offsets[col_index] = current_x
+        current_x += col_widths[col_index]
+
+    current_y = 0
+    for row_index in sorted(row_heights):
+        row_offsets[row_index] = current_y
+        current_y += row_heights[row_index]
+
+    total_width = max(1, current_x)
+    total_height = max(1, current_y)
+
+    canvas = Image.new("RGB", (total_width, total_height), (245, 245, 245))
+    loaded_tiles = 0
+
+    for photo in photos:
+        try:
+            image_bytes = _fetch_photo_bytes(photo)
+            with Image.open(io.BytesIO(image_bytes)) as image:
+                tile = image.convert("RGB")
+                expected_size = (int(photo["width"]), int(photo["height"]))
+
+                if tile.size != expected_size:
+                    tile = tile.resize(expected_size, _PREVIEW_RESAMPLING)
+
+                x = col_offsets[int(photo["col_index"])]
+                y = row_offsets[int(photo["row_index"])]
+                canvas.paste(tile, (x, y))
+                loaded_tiles += 1
+        except Exception:
+            current_app.logger.warning(
+                "No se ha podido cargar la tesela %s para la preview "
+                "de la zona %s",
+                photo.get("foto_id"),
+                detail.get("parcela_id"),
+                exc_info=True,
+            )
+
+    if loaded_tiles == 0:
+        raise RuntimeError(_("No se ha podido cargar la preview de la zona."))
+
+    preview = canvas.copy()
+    preview.thumbnail(
+        (COLLECTION_PREVIEW_MAX_WIDTH, COLLECTION_PREVIEW_MAX_HEIGHT),
+        _PREVIEW_RESAMPLING,
+    )
+
+    buffer = io.BytesIO()
+    preview.save(buffer, format="JPEG", quality=90)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
 def register_collection_routes(bp) -> None:
     """Registra las rutas HTTP de la nueva colección de imágenes."""
 
@@ -185,16 +284,28 @@ def register_collection_routes(bp) -> None:
 
     @bp.route("/coleccion/<int:parcel_id>/preview", methods=["GET"])
     def collection_preview(parcel_id: int):
-        """Devuelve una preview inline basada en
-            la primera tesela de la zona."""
+        """Devuelve una preview inline exacta de la zona completa."""
         detail = _load_zone_or_404(parcel_id)
-        if not detail["photos"]:
-            return jsonify({"error": _("La zona no contiene teselas.")}), 404
 
         try:
-            image_bytes = _fetch_photo_bytes(detail["photos"][0])
+            image_bytes = _build_zone_preview_bytes(detail)
         except RuntimeError as exc:
             return jsonify({"error": str(exc)}), 502
+        except Exception:
+            current_app.logger.exception(
+                "No se ha podido construir la preview de la zona %s",
+                parcel_id,
+            )
+            return (
+                jsonify(
+                    {
+                        "error": _(
+                            "No se ha podido cargar la preview de la zona."
+                        )
+                    }
+                ),
+                502,
+            )
 
         return send_file(
             io.BytesIO(image_bytes),
@@ -251,6 +362,32 @@ def register_collection_routes(bp) -> None:
             download_name=zip_name,
         )
 
+    @bp.route("/coleccion/<int:parcel_id>/rename", methods=["POST"])
+    def collection_rename(parcel_id: int):
+        """Actualiza el nombre visible de una colección."""
+        _load_zone_or_404(parcel_id)
+        raw_name = request.form.get("name", "")
+
+        try:
+            update_zone_name(parcel_id, raw_name)
+        except ValueError as exc:
+            flash(str(exc), "error")
+        else:
+            if raw_name.strip():
+                _flash_ok(
+                    _("El nombre de la colección se "
+                        "ha actualizado correctamente.")
+                )
+            else:
+                _flash_ok(_("La colección ha recuperado "
+                            "su nombre por defecto."))
+
+        redirect_to = _safe_internal_redirect(
+            request.form.get("redirect_to"),
+            url_for("trazas.collection"),
+        )
+        return redirect(redirect_to)
+
     @bp.route("/coleccion/<int:parcel_id>/delete", methods=["POST"])
     def collection_delete(parcel_id: int):
         """Elimina permanentemente una zona de la colección."""
@@ -268,21 +405,29 @@ def register_collection_routes(bp) -> None:
 
     @bp.route("/coleccion/fotos/<int:photo_id>/retry", methods=["POST"])
     def collection_photo_retry(photo_id: int):
-        """Marca una tesela para reintentar el cálculo de su traza."""
+        """Marca una tesela para recalcular sus trazas."""
         photo = get_photo(photo_id)
         if photo is None:
             abort(404)
 
-        if photo["estado"] == "completed":
-            flash(_("La tesela ya está completada."), "info")
+        if not photo_retry_is_enabled(photo):
+            flash(
+                _(
+                    "La recalculación estará disponible 2 "
+                    "minutos después de crear la tesela."
+                ),
+                "warning",
+            )
         else:
             retry_photo(photo_id)
-            _flash_ok(_("La tesela se ha marcado para recalcular la traza."))
+            _flash_ok(_("La tesela se ha marcado para recalcular las trazas."))
 
         redirect_to = _safe_internal_redirect(
             request.form.get("redirect_to"),
-            url_for("trazas.collection_gallery",
-                    parcel_id=photo["parcela_id"]),
+            url_for(
+                "trazas.collection_gallery",
+                parcel_id=photo["parcela_id"],
+            ),
         )
         return redirect(redirect_to)
 

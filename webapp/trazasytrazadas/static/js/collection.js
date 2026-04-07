@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       photoFailed: "Error de cálculo",
       photoStale: "Procesamiento atascado",
       retryTrace: "Reintentar",
-      recalculateTrace: "Recalcular",
+      recalculateTrace: "Recalcular trazas",
       download: "Descargar",
     },
     CFG.i18n || {}
@@ -44,6 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteZoneOrigin = document.getElementById("delete-zone-origin");
   const deleteZoneDestination = document.getElementById("delete-zone-destination");
   const confirmDeleteButton = document.getElementById("confirm-delete-button");
+  const renameModal = document.getElementById("zone-rename-modal");
+  const renameForm = document.getElementById("zone-rename-form");
+  const renameInput = document.getElementById("rename-zone-name-input");
+  const renameRedirect = document.getElementById("rename-zone-redirect-to");
+  const renameCurrentDisplay = document.getElementById("rename-zone-current-display");
 
   const perPageSelect = document.querySelector("[data-collection-per-page]");
   const galleryRoot = document.querySelector("[data-gallery-zone-root]");
@@ -189,15 +194,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPhotoActionsMarkup(options) {
     const parts = [];
     const redirectTo = window.location.pathname + window.location.search;
+    const retryDisabledAttrs = options.canRetry ? "" : ' disabled aria-disabled="true"';
+    const retryDisabledClass = options.canRetry ? "" : " btn-disabled";
 
-    if (options.canRetry && options.retryUrl) {
-      const label =
-        options.status === "failed" ? I18N.retryTrace : I18N.recalculateTrace;
-
+    if (options.retryUrl) {
       parts.push(`
         <form method="post" action="${htmlEscape(options.retryUrl)}" class="inline-flex">
           <input type="hidden" name="redirect_to" value="${htmlEscape(redirectTo)}">
-          <button type="submit" class="btn btn-sm btn-warning">${htmlEscape(label)}</button>
+          <button type="submit"
+                  class="btn btn-sm btn-warning${retryDisabledClass}"${retryDisabledAttrs}>
+            ${htmlEscape(I18N.recalculateTrace)}
+          </button>
         </form>
       `);
     }
@@ -210,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return parts.join("");
   }
-
+  
   function resetPreviewModal() {
     if (!loadingEl || !errorEl || !imageEl) return;
     loadingEl.classList.remove("hidden");
@@ -285,6 +292,32 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  document.querySelectorAll("[data-action='open-zone-rename']").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!renameModal || !renameForm || !renameInput) {
+        return;
+      }
+
+      renameForm.setAttribute("action", button.dataset.renameUrl || "");
+      renameInput.value = button.dataset.zoneName || "";
+
+      if (renameRedirect) {
+        renameRedirect.value =
+          button.dataset.redirectTo || (window.location.pathname + window.location.search);
+      }
+
+      if (renameCurrentDisplay) {
+        renameCurrentDisplay.textContent = button.dataset.zoneDisplayName || "";
+      }
+
+      renameModal.showModal();
+      window.setTimeout(() => {
+        renameInput.focus();
+        renameInput.select();
+      }, 50);
+    });
+  });
 
   if (perPageSelect) {
     perPageSelect.addEventListener("change", () => {

@@ -156,7 +156,10 @@ def test_collection_gallery_route_renders_saved_tiles(client, monkeypatch):
 
     response = client.get(f"/coleccion/{parcel_id}/galeria")
     assert response.status_code == 200
-    assert "Galería de la zona".encode("utf-8") in response.data
+    assert "Teselas guardadas a partir de la cuadrícula "
+    "generada en el visor.".encode(
+        "utf-8"
+    ) in response.data
     assert b"tile_1.jpg" in response.data
     assert b"tile_2.jpg" in response.data
 
@@ -307,7 +310,7 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert "La tesela se ha marcado para recalcular la traza.".encode(
+    assert "La tesela se ha marcado para recalcular las trazas.".encode(
         "utf-8"
     ) in response.data
 
@@ -327,3 +330,28 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
         assert row["started_at"] is None
         assert row["finished_at"] is None
         assert row["ruta_trazas"] is None
+
+
+def test_collection_zone_rename_updates_db_and_gallery_title(
+    app, client, monkeypatch
+):
+    """Comprueba que una colección puede renombrarse y verse en galería."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    response = client.post(
+        f"/coleccion/{parcel_id}/rename",
+        data={
+            "name": "Parcela norte",
+            "redirect_to": f"/coleccion/{parcel_id}/galeria",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Parcela norte" in response.data
+
+    with app.app_context():
+        detail = get_zone_detail(parcel_id)
+        assert detail is not None
+        assert detail["nombre_coleccion"] == "Parcela norte"
+        assert detail["display_name"] == "Parcela norte"

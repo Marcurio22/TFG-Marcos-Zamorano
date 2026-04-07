@@ -271,7 +271,7 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert "La tesela se ha marcado para recalcular la traza.".encode(
+    assert "La tesela se ha marcado para recalcular las trazas.".encode(
         "utf-8"
     ) in response.data
 

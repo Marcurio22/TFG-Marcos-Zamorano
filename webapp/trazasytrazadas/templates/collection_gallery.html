@@ -8,7 +8,7 @@ Autor: Marcos Zamorano Lasso
 Versión: 0.1
 -->
 {% extends "base.html" %}
-{% block title %}{{ _("Galería de zona") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block title %}{{ zone.display_name }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
 {% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-3{% endblock %}
 {% block content %}
     <section class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -34,7 +34,7 @@ Versión: 0.1
         <div class="card-body gap-4">
             <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-bold">{{ _("Galería de la zona") }} #{{ zone.parcela_id }}</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold">{{ zone.display_name }}</h2>
                     <p class="text-sm opacity-75">{{ _("Teselas guardadas a partir de la cuadrícula generada en el visor.") }}</p>
                 </div>
                 <span data-zone-status-badge>
@@ -49,16 +49,30 @@ Versión: 0.1
                     {% endif %}
                 </span>
             </div>
-            <div class="stats stats-vertical lg:stats-horizontal shadow-sm border border-base-200 bg-base-50">
+            <div class="stats stats-vertical lg:stats-horizontal shadow-sm border border-base-200 bg-base-50 w-full">
                 <div class="stat">
                     <div class="stat-title">{{ _("Punto origen") }}</div>
-                    <div class="stat-value text-base">{{ "%.6f"|format(zone.origin.lat) }}, {{ "%.6f"|format(zone.origin.lng) }}</div>
+                    <button type="button"
+                            class="stat-value text-base text-left hover:text-primary hover:underline"
+                            data-action="open-zone-rename"
+                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=zone.parcela_id) }}"
+                            data-zone-name="{{ zone.nombre_coleccion or '' }}"
+                            data-zone-display-name="{{ zone.display_name }}"
+                            data-redirect-to="{{ request.full_path }}">
+                        {{ "%.6f"|format(zone.origin.lat) }}, {{ "%.6f"|format(zone.origin.lng) }}
+                    </button>
                 </div>
                 <div class="stat">
                     <div class="stat-title">{{ _("Punto destino") }}</div>
-                    <div class="stat-value text-base">
+                    <button type="button"
+                            class="stat-value text-base text-left hover:text-primary hover:underline"
+                            data-action="open-zone-rename"
+                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=zone.parcela_id) }}"
+                            data-zone-name="{{ zone.nombre_coleccion or '' }}"
+                            data-zone-display-name="{{ zone.display_name }}"
+                            data-redirect-to="{{ request.full_path }}">
                         {{ "%.6f"|format(zone.destination.lat) }}, {{ "%.6f"|format(zone.destination.lng) }}
-                    </div>
+                    </button>
                 </div>
                 <div class="stat">
                     <div class="stat-title">{{ _("Fuente") }}</div>
@@ -94,7 +108,7 @@ Versión: 0.1
                                  data-photo-status
                                  data-photo-id="{{ photo.foto_id }}"
                                  data-photo-state="{{ photo.estado }}"
-                                 title=" {% if photo.is_stale %} {{ _("Procesamiento atascado") }} {% elif photo.trace_status == 'completed' %} {{ _("Trazas calculadas") }} {% elif photo.trace_status == 'processing' %} {{ _("Calculando trazas") }} {% elif photo.estado == 'failed' %} {{ _("Error de cálculo") }} {% else %} {{ _("Trazas no calculadas") }} {% endif %} ">
+                                 title="{% if photo.is_stale %}{{ _("Procesamiento atascado") }}{% elif photo.trace_status == 'completed' %}{{ _("Trazas calculadas") }}{% elif photo.trace_status == 'processing' %}{{ _("Calculando trazas") }}{% elif photo.estado == 'failed' %}{{ _("Error de cálculo") }}{% else %}{{ _("Trazas no calculadas") }}{% endif %}">
                                 {% if photo.is_stale %}
                                     <span class="inline-flex items-center justify-center text-warning">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -162,20 +176,16 @@ Versión: 0.1
                              data-photo-id="{{ photo.foto_id }}"
                              data-photo-retry-url="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
                              data-photo-download-url="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}">
-                            {% if photo.can_retry %}
-                                <form method="post"
-                                      action="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
-                                      class="inline-flex">
-                                    <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
-                                    <button type="submit" class="btn btn-sm btn-warning">
-                                        {% if photo.estado == 'failed' %}
-                                            {{ _("Reintentar") }}
-                                        {% else %}
-                                            {{ _("Recalcular") }}
-                                        {% endif %}
-                                    </button>
-                                </form>
-                            {% endif %}
+                            <form method="post"
+                                  action="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                                  class="inline-flex">
+                                <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+                                <button type="submit"
+                                        class="btn btn-sm btn-warning {% if not photo.can_retry %}btn-disabled{% endif %}"
+                                        {% if not photo.can_retry %}disabled aria-disabled="true"{% endif %}>
+                                    {{ _("Recalcular trazas") }}
+                                </button>
+                            </form>
                             <a href="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
                                class="btn btn-sm btn-outline">{{ _("Descargar") }}</a>
                         </div>
@@ -188,25 +198,65 @@ Versión: 0.1
             <span>{{ _("La zona seleccionada no contiene teselas guardadas.") }}</span>
         </div>
     {% endif %}
+    <dialog id="zone-rename-modal" class="modal">
+        <div class="modal-box max-w-lg">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="font-bold text-lg">{{ _("Renombrar colección") }}</h3>
+                    <p id="rename-zone-current-display" class="text-sm opacity-75"></p>
+                </div>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost"
+                            aria-label="{{ _("Cerrar") }}">✕</button>
+                </form>
+            </div>
+            <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
+                <input type="hidden"
+                       name="redirect_to"
+                       id="rename-zone-redirect-to"
+                       value="{{ request.full_path }}">
+                <label class="form-control">
+                    <div class="label pb-1">
+                        <span class="label-text">{{ _("Nombre de la colección") }}</span>
+                    </div>
+                    <input id="rename-zone-name-input"
+                           name="name"
+                           type="text"
+                           maxlength="120"
+                           class="input input-bordered w-full"
+                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}" />
+                </label>
+            </form>
+            <div class="modal-action">
+                <button type="submit" form="zone-rename-form" class="btn btn-primary">{{ _("Guardar") }}</button>
+                <form method="dialog">
+                    <button class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="{{ _("Cerrar") }}"></button>
+        </form>
+    </dialog>
     <script>
-    window.COLLECTION_APP = {{ {
-      "pollIntervalMs": 5000,
-      "i18n": {
-        "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
-        "zoneCompleted": _("Trazas completadas"),
-        "zoneProcessing": _("Procesando"),
-        "zonePending": _("En espera"),
-        "zoneFailed": _("Error"),
-        "photoCompleted": _("Trazas calculadas"),
-        "photoProcessing": _("Calculando trazas"),
-        "photoPending": _("Trazas no calculadas"),
-        "photoFailed": _("Error de cálculo"),
-        "photoStale": _("Procesamiento atascado"),
-        "retryTrace": _("Reintentar"),
-        "recalculateTrace": _("Recalcular"),
-        "download": _("Descargar"),
-      }
-    } | tojson }};
+        window.COLLECTION_APP = {{ {
+            "pollIntervalMs": 5000,
+            "i18n": {
+                "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
+                "zoneCompleted": _("Trazas completadas"),
+                "zoneProcessing": _("Procesando"),
+                "zonePending": _("En espera"),
+                "zoneFailed": _("Error"),
+                "photoCompleted": _("Trazas calculadas"),
+                "photoProcessing": _("Calculando trazas"),
+                "photoPending": _("Trazas no calculadas"),
+                "photoFailed": _("Error de cálculo"),
+                "photoStale": _("Procesamiento atascado"),
+                "retryTrace": _("Reintentar"),
+                "recalculateTrace": _("Recalcular trazas"),
+                "download": _("Descargar")
+            }
+        } | tojson }};
     </script>
     <script src="{{ url_for('static', filename='js/collection.js') }}"></script>
 {% endblock %}

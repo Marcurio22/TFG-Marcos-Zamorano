@@ -25,6 +25,7 @@ from .db import get_db
 
 DEFAULT_SYSTEM_USER_ID = 1
 ALLOWED_ZONE_STATUSES = {"pending", "processing", "completed", "failed"}
+COLLECTION_NAME_MAX_LENGTH = 120
 
 
 def _row_to_dict(row) -> dict:
@@ -56,6 +57,107 @@ def _route_path_only(url: str) -> str:
     if parsed.query:
         return f"{path}?{parsed.query}"
     return path
+
+
+def _ensure_parcela_name_column() -> None:
+    """Añade la columna de nombre de colección si aún no existe."""
+    database = get_db()
+    columns = {
+        row["name"]
+        for row in database.execute("PRAGMA table_info(parcela)").fetchall()
+    }
+    if "nombre_coleccion" not in columns:
+        database.execute(
+            "ALTER TABLE parcela ADD COLUMN nombre_coleccion TEXT")
+        database.commit()
+
+
+def _zone_default_name(
+    origin_lat: float,
+    origin_lng: float,
+    destination_lat: float,
+    destination_lng: float,
+) -> str:
+    """Construye el nombre por defecto visible de una colección."""
+    return (
+        f"{origin_lat:.6f}, {origin_lng:.6f}"
+        f" · "
+        f"{destination_lat:.6f}, {destination_lng:.6f}"
+    )
+
+
+def _zone_display_name_from_row(row: dict) -> str:
+    """Devuelve el nombre visible de la colección a partir de una fila."""
+    explicit_name = (row.get("nombre_coleccion") or "").strip()
+    if explicit_name:
+        return explicit_name
+
+    return _zone_default_name(
+        float(row["pto_origen_lat"]),
+        float(row["pto_origen_lng"]),
+        float(row["pto_fin_lat"]),
+        float(row["pto_fin_lng"]),
+    )
+
+
+def photo_retry_is_enabled(photo: dict) -> bool:
+    """Indica si el recálculo manual ya está habilitado para una tesela."""
+    created_at = _parse_db_timestamp(photo.get("created_at"))
+    if created_at is None:
+        return True
+
+    seconds = int(
+        current_app.config.get("COLLECTION_PHOTO_RETRY_ENABLE_SECONDS", 120)
+    )
+    age = datetime.now(timezone.utc) - created_at
+    return age >= timedelta(seconds=max(0, seconds))
+
+
+def update_zone_name(parcel_id: int, raw_name: str) -> str | None:
+    """Actualiza el nombre persistido de una colección."""
+    _ensure_parcela_name_column()
+
+    normalized = " ".join((raw_name or "").split()).strip()
+    if len(normalized) > COLLECTION_NAME_MAX_LENGTH:
+        raise ValueError(
+            _(
+                "El nombre de la colección no puede"
+                "superar %(count)s caracteres.",
+                count=COLLECTION_NAME_MAX_LENGTH,
+            )
+        )
+
+    database = get_db()
+    cursor = database.execute(
+        """
+        UPDATE parcela
+        SET
+            nombre_coleccion = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE parcela_id = ?
+        """,
+        (normalized or None, parcel_id),
+    )
+    database.commit()
+
+    if cursor.rowcount == 0:
+        return None
+
+    row = database.execute(
+        """
+        SELECT
+            nombre_coleccion,
+            pto_origen_lat,
+            pto_origen_lng,
+            pto_fin_lat,
+            pto_fin_lng
+        FROM parcela
+        WHERE parcela_id = ?
+        """,
+        (parcel_id,),
+    ).fetchone()
+
+    return _zone_display_name_from_row(_row_to_dict(row))
 
 
 def _parse_db_timestamp(value: str | None) -> datetime | None:
@@ -95,9 +197,8 @@ def _photo_is_stale(photo: dict) -> bool:
 
 
 def _photo_can_retry(photo: dict) -> bool:
-    """Indica si una foto puede reintentarse manualmente."""
-    status = (photo.get("estado") or "").strip().lower()
-    return status == "failed" or _photo_is_stale(photo)
+    """Indica si una foto puede recalcularse manualmente ya."""
+    return photo_retry_is_enabled(photo)
 
 
 def get_collection_storage_root() -> str:
@@ -188,6 +289,8 @@ def save_generated_zone(
     """
     if status not in ALLOWED_ZONE_STATUSES:
         raise ValueError("Estado de zona no soportado.")
+
+    _ensure_parcela_name_column()
 
     south, west, north, east = bbox4326
     xmin, ymin, xmax, ymax = bbox3857
@@ -312,6 +415,8 @@ def save_generated_zone(
 
 def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     """Devuelve un listado paginado de parcelas de la colección."""
+    _ensure_parcela_name_column()
+
     database = get_db()
     page = max(1, int(page))
     per_page = max(1, min(int(per_page), 100))
@@ -322,6 +427,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     where_clause = """
         WHERE (
             ? = ''
+            OR COALESCE(p.nombre_coleccion, '') LIKE ?
             OR p.source_label LIKE ?
             OR p.fecha LIKE ?
             OR CAST(p.pto_origen_lat AS TEXT) LIKE ?
@@ -330,7 +436,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
             OR CAST(p.pto_fin_lng AS TEXT) LIKE ?
         )
     """
-    params = (search, like, like, like, like, like, like)
+    params = (search, like, like, like, like, like, like, like)
 
     total = database.execute(
         f"SELECT COUNT(*) AS total FROM parcela p {where_clause}",
@@ -341,6 +447,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
         f"""
         SELECT
             p.parcela_id,
+            p.nombre_coleccion,
             p.pto_origen_lat,
             p.pto_origen_lng,
             p.pto_fin_lat,
@@ -381,6 +488,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
             "lat": float(item["pto_fin_lat"]),
             "lng": float(item["pto_fin_lng"]),
         }
+        item["display_name"] = _zone_display_name_from_row(item)
         zones.append(item)
 
     total_pages = max(1, ceil(total / per_page)) if total else 1
@@ -396,12 +504,15 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
 
 def get_zone_detail(parcel_id: int) -> dict | None:
     """Recupera una parcela y todas sus fotos asociadas."""
+    _ensure_parcela_name_column()
+
     database = get_db()
 
     parcel_row = database.execute(
         """
         SELECT
             parcela_id,
+            nombre_coleccion,
             usuario_id,
             tamano_metros,
             pto_origen_lat,
@@ -438,6 +549,7 @@ def get_zone_detail(parcel_id: int) -> dict | None:
         "lat": float(parcel["pto_fin_lat"]),
         "lng": float(parcel["pto_fin_lng"]),
     }
+    parcel["display_name"] = _zone_display_name_from_row(parcel)
 
     photo_rows = database.execute(
         """
@@ -532,6 +644,7 @@ def get_zone_plan(parcel_id: int) -> dict | None:
 
     return {
         "parcel_id": detail["parcela_id"],
+        "display_name": detail["display_name"],
         "origin": detail["origin"],
         "destination": detail["destination"],
         "bbox": detail["bbox"],
@@ -860,18 +973,20 @@ def refresh_parcel_status(parcel_id: int) -> str:
 
 
 def get_zone_status_summary(parcel_id: int) -> dict | None:
-    """
-    Devuelve un resumen de estado de una parcela.
+    """Devuelve un resumen de estado de una parcela."""
+    _ensure_parcela_name_column()
 
-    Incluye contadores agregados de teselas por estado para pintar la colección
-    y monitorizar el progreso sin cargar toda la galería.
-    """
     database = get_db()
     row = database.execute(
         """
         SELECT
             p.parcela_id,
             p.estado,
+            p.nombre_coleccion,
+            p.pto_origen_lat,
+            p.pto_origen_lng,
+            p.pto_fin_lat,
+            p.pto_fin_lng,
             COUNT(f.foto_id) AS tile_count,
             SUM(CASE WHEN f.estado = 'pending' THEN 1 ELSE 0 END)
                 AS pending_tiles,
@@ -901,6 +1016,8 @@ def get_zone_status_summary(parcel_id: int) -> dict | None:
         "failed_tiles",
     ):
         summary[key] = int(summary.get(key) or 0)
+
+    summary["display_name"] = _zone_display_name_from_row(summary)
     return summary
 
 
@@ -932,7 +1049,8 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
             foto_id,
             estado,
             trazas,
-            started_at
+            started_at,
+            created_at
         FROM foto
         WHERE parcela_id = ?
         ORDER BY row_index ASC, col_index ASC, foto_id ASC
