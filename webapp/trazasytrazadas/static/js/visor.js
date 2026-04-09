@@ -68,17 +68,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const sourceSummaryEl = document.getElementById("source-summary");
   const downloadsSummaryEl = document.getElementById("downloads-summary");
   const resolutionSelect = document.getElementById("resolution-select");
+  const openControlsBtn = document.getElementById("open-controls-btn");
+  const controlsModal = document.getElementById("visor-controls-modal");
   const generateGridBtn = document.getElementById("generate-grid-btn");
   const resetSelectionBtn = document.getElementById("reset-selection-btn");
   const downloadAllBtn = document.getElementById("download-all-btn");
   const downloadListEl = document.getElementById("download-list");
+  const downloadsSectionEl = document.getElementById("downloads-section");
 
   const map = L.map(mapEl, {
     center: DEFAULTS.center,
     zoom: DEFAULTS.zoom,
     minZoom: DEFAULTS.minZoom,
     maxZoom: DEFAULTS.maxZoom,
+    maxBoundsViscosity: 1.0,
   });
+
+  const initialMapBounds = map.getBounds();
+  map.setMaxBounds(initialMapBounds);
 
   const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -141,12 +148,51 @@ document.addEventListener("DOMContentLoaded", () => {
     if (alertsEl) alertsEl.innerHTML = "";
   }
 
+  function dismissAlert(alertEl) {
+    if (!alertEl) return;
+    alertEl.style.transition = "opacity 250ms ease";
+    alertEl.style.opacity = "0";
+    window.setTimeout(() => alertEl.remove(), 260);
+  }
+
+  function scrollToDownloads() {
+    if (!downloadsSectionEl) return;
+    downloadsSectionEl.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   function addAlert(kind, message) {
     if (!alertsEl) return;
+
     const div = document.createElement("div");
-    div.className = `alert shadow-sm ${kind}`;
-    div.innerHTML = `<span class="text-sm">${message}</span>`;
+    div.className = `alert ${kind} shadow-lg max-w-2xl`;
+
+    div.innerHTML = `
+      <span class="text-sm sm:text-base">${message}</span>
+      <button type="button"
+              class="btn btn-sm btn-ghost ml-auto"
+              aria-label="Cerrar">
+        <svg xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-4 h-4">
+          <path d="M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z" />
+        </svg>
+      </button>
+    `;
+
+    const closeBtn = div.querySelector("button");
+    closeBtn?.addEventListener("click", () => dismissAlert(div));
+
     alertsEl.appendChild(div);
+
+    window.setTimeout(() => {
+      if (div.isConnected) {
+        dismissAlert(div);
+      }
+    }, 5000);
   }
 
   function setEmptyDownloadsList() {
@@ -435,12 +481,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentPlan = data;
       renderPreviewLayer(data);
-      if (data.parcel_id && URLS.collection) {
-        addAlert(
-          "alert-success",
-          `${I18N.zoneRegistered} <a class="link font-semibold" href="${URLS.collection}">${I18N.openCollection}</a>`
-        );
-      }
       renderGrid(data);
       renderDownloadList(data);
 
@@ -455,6 +495,21 @@ document.addEventListener("DOMContentLoaded", () => {
           height: data.tile_height,
         })}`
       );
+
+      if (controlsModal?.open) {
+        controlsModal.close();
+      }
+
+      if (data.parcel_id && URLS.collection) {
+        addAlert(
+          "alert-success",
+          `${I18N.zoneRegistered} <a class="link font-semibold" href="${URLS.collection}">${I18N.openCollection}</a>`
+        );
+      }
+
+      window.requestAnimationFrame(() => {
+        scrollToDownloads();
+      });
 
       (data.warnings || []).forEach((warning) => {
         addAlert(`alert-${warning.level || "warning"}`, warning.message);
@@ -535,6 +590,10 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSelectionSummaryFromBounds(selectionBounds);
     map.fitBounds(selectionBounds.pad(0.15));
     resetGridState();
+  });
+
+  openControlsBtn?.addEventListener("click", () => {
+    controlsModal?.showModal();
   });
 
   generateGridBtn.addEventListener("click", generateGrid);

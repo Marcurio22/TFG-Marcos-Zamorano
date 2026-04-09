@@ -27,17 +27,28 @@ html {
 
 /* Ajustes del visor cartográfico. */
 #visor-map {
-  min-height: 60vh;
-  height: clamp(30rem, 68vh, 52rem);
+  min-height: 68vh;
+  height: clamp(38rem, 78vh, 68rem);
 }
 
 .leaflet-container {
   font: inherit;
 }
 
+.visor-tooltip::before {
+  white-space: normal;
+  max-width: 22rem;
+  text-align: left;
+  line-height: 1.35;
+}
+
 @media (max-width: 1024px) {
   #visor-map {
-    min-height: 50vh;
-    height: 58vh;
+    min-height: 58vh;
+    height: 64vh;
+  }
+
+  .visor-tooltip::before {
+    max-width: 16rem;
   }
 }
