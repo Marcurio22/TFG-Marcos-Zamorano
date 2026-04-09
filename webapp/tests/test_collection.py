@@ -501,3 +501,27 @@ def test_collection_download_zip_includes_traces_artifacts(
         assert archive.read(f"output/{filename_root}_traces.png").startswith(
             b"\x89PNG\r\n\x1a\n"
         )
+
+
+def test_collection_download_zip_uses_collection_name(
+    app, client, monkeypatch
+):
+    """El ZIP de zona usa el nombre visible de la colección cuando existe."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    rename_response = client.post(
+        f"/coleccion/{parcel_id}/rename",
+        data={
+            "name": "Ondas",
+            "redirect_to": f"/coleccion/{parcel_id}/galeria",
+        },
+        follow_redirects=True,
+    )
+    assert rename_response.status_code == 200
+
+    response = client.get(f"/coleccion/{parcel_id}/download-zip")
+    assert response.status_code == 200
+    assert (
+        'filename=Ondas_tiles.zip'
+        in response.headers["Content-Disposition"]
+    )

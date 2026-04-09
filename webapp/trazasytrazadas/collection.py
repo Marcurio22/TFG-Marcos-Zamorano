@@ -31,6 +31,7 @@ from flask import (
 )
 from flask_babel import gettext as _
 from PIL import Image
+from werkzeug.utils import secure_filename
 
 from .collection_store import (
     delete_zone,
@@ -225,6 +226,14 @@ def _build_photo_download_zip(photo: dict) -> tuple[bytes, str]:
 
     zip_buffer.seek(0)
     return zip_buffer.getvalue(), zip_name
+
+
+def _zone_download_filename(detail: dict) -> str:
+    """Construye un nombre de descarga legible para el ZIP de una zona."""
+    base_name = secure_filename((detail.get("display_name") or "").strip())
+    if not base_name:
+        base_name = f"parcela_{detail['parcela_id']}"
+    return f"{base_name}_tiles.zip"
 
 
 def _build_zone_preview_bytes(detail: dict) -> bytes:
@@ -476,7 +485,7 @@ def register_collection_routes(bp) -> None:
             )
 
         zip_buffer.seek(0)
-        zip_name = f"coleccion_parcela_{parcel_id}_tiles.zip"
+        zip_name = _zone_download_filename(detail)
         return send_file(
             zip_buffer,
             mimetype="application/zip",
