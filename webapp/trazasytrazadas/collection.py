@@ -132,6 +132,101 @@ def _fetch_photo_bytes(photo: dict) -> bytes:
     )
 
 
+def _fetch_photo_traces(photo: dict) -> dict:
+    """Recupera el JSON de trazas persistido para una tesela."""
+    traces_path = get_storage_abspath(photo.get("ruta_trazas"))
+    if not traces_path:
+        raise FileNotFoundError(_("No hay trazas calculadas todavía."))
+
+    if not os.path.exists(traces_path):
+        raise FileNotFoundError(
+            _(
+                "Archivo de trazas no encontrado. "
+                "Vuelve a calcularlas."
+            )
+        )
+
+    try:
+        with open(traces_path, "r", encoding="utf-8") as traces_file:
+            return json.load(traces_file)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            _(
+                "Archivo de trazas corrupto o inválido. "
+                "Vuelve a calcularlas."
+            )
+        ) from exc
+
+
+def _render_photo_traces_overlay_png(
+    photo: dict,
+    image_bytes: bytes | None = None,
+    traces: dict | None = None,
+) -> bytes:
+    """Genera una PNG con las trazas pintadas sobre la tesela."""
+    if image_bytes is None:
+        image_bytes = _fetch_photo_bytes(photo)
+    if traces is None:
+        traces = _fetch_photo_traces(photo)
+
+    xs = traces.get("xs", [])
+    ys = traces.get("ys", [])
+
+    with Image.open(io.BytesIO(image_bytes)) as image:
+        overlay = image.convert("RGB")
+
+    pixels = overlay.load()
+    width, height = overlay.size
+
+    for x, y in zip(xs, ys):
+        px = int(x)
+        py = int(y)
+        if 0 <= px < width and 0 <= py < height:
+            pixels[px, py] = (255, 0, 0)
+
+    buffer = io.BytesIO()
+    overlay.save(buffer, format="PNG")
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def _build_photo_download_zip(photo: dict) -> tuple[bytes, str]:
+    """Construye el ZIP descargable de una tesela con sus artefactos."""
+    image_bytes = _fetch_photo_bytes(photo)
+    traces = _fetch_photo_traces(photo)
+    overlay_png = _render_photo_traces_overlay_png(
+        photo,
+        image_bytes=image_bytes,
+        traces=traces,
+    )
+
+    filename_root, extension = os.path.splitext(photo["filename"])
+    zip_suffix = _("resultados")
+    zip_name = f"{filename_root}_{zip_suffix}.zip"
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(
+        zip_buffer,
+        "w",
+        compression=zipfile.ZIP_DEFLATED,
+    ) as archive:
+        archive.writestr(
+            f"input/{filename_root}{extension}",
+            image_bytes,
+        )
+        archive.writestr(
+            f"output/{filename_root}_traces.json",
+            json.dumps(traces, ensure_ascii=False, indent=2).encode("utf-8"),
+        )
+        archive.writestr(
+            f"output/{filename_root}_traces.png",
+            overlay_png,
+        )
+
+    zip_buffer.seek(0)
+    return zip_buffer.getvalue(), zip_name
+
+
 def _build_zone_preview_bytes(detail: dict) -> bytes:
     """
     Construye una preview exacta de la zona a partir de sus teselas y luego la
@@ -337,8 +432,35 @@ def register_collection_routes(bp) -> None:
         ) as archive:
             for photo in detail["photos"]:
                 try:
-                    archive.writestr(photo["filename"],
-                                     _fetch_photo_bytes(photo))
+                    image_bytes = _fetch_photo_bytes(photo)
+                    filename_root, extension = os.path.splitext(
+                        photo["filename"])
+
+                    archive.writestr(
+                        f"input/{filename_root}{extension}",
+                        image_bytes,
+                    )
+
+                    if photo.get("ruta_trazas"):
+                        traces = _fetch_photo_traces(photo)
+                        overlay_png = _render_photo_traces_overlay_png(
+                            photo,
+                            image_bytes=image_bytes,
+                            traces=traces,
+                        )
+                        archive.writestr(
+                            f"output/{filename_root}_traces.json",
+                            json.dumps(
+                                traces,
+                                ensure_ascii=False,
+                                indent=2,
+                            ).encode("utf-8"),
+                        )
+                        archive.writestr(
+                            f"output/{filename_root}_traces.png",
+                            overlay_png,
+                        )
+
                     log["downloaded"].append(photo["filename"])
                 except Exception as exc:  # pragma: no cover
                     log["failed"].append(
@@ -450,12 +572,48 @@ def register_collection_routes(bp) -> None:
             download_name=photo["filename"],
         )
 
-    @bp.route("/coleccion/fotos/<int:photo_id>/download", methods=["GET"])
-    def collection_photo_download(photo_id: int):
-        """Descarga una tesela concreta persistida en la colección."""
+    @bp.route("/coleccion/fotos/<int:photo_id>/traces", methods=["GET"])
+    def collection_photo_traces(photo_id: int):
+        """Devuelve el JSON de trazas asociado a una tesela concreta."""
         photo = get_photo(photo_id)
         if photo is None:
             abort(404)
+
+        try:
+            traces = _fetch_photo_traces(photo)
+        except FileNotFoundError as exc:
+            return jsonify({"error": str(exc)}), 404
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 500
+
+        return jsonify(traces)
+
+    @bp.route("/coleccion/fotos/<int:photo_id>/download", methods=["GET"])
+    def collection_photo_download(photo_id: int):
+        """Descarga una tesela concreta o sus resultados si ya existen."""
+        photo = get_photo(photo_id)
+        if photo is None:
+            abort(404)
+
+        if photo.get("ruta_trazas"):
+            try:
+                zip_bytes, zip_name = _build_photo_download_zip(photo)
+            except RuntimeError as exc:
+                return jsonify({"error": str(exc)}), 502
+            except (FileNotFoundError, ValueError) as exc:
+                current_app.logger.warning(
+                    "No se han podido preparar los resultados de la foto %s",
+                    photo_id,
+                    exc_info=True,
+                )
+                return jsonify({"error": str(exc)}), 409
+
+            return send_file(
+                io.BytesIO(zip_bytes),
+                mimetype="application/zip",
+                as_attachment=True,
+                download_name=zip_name,
+            )
 
         try:
             image_bytes = _fetch_photo_bytes(photo)

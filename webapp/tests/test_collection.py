@@ -9,8 +9,13 @@ Autor: Marcos Zamorano Lasso
 Versión: 0.1
 """
 import io
+import json
+import os
+import zipfile
+
 from PIL import Image
 
+from trazasytrazadas import collection as collection_module
 from trazasytrazadas import visor as visor_module
 from trazasytrazadas.collection_store import (
     get_zone_detail,
@@ -39,6 +44,11 @@ def _register_zone(client, monkeypatch):
 
     monkeypatch.setattr(
         visor_module,
+        "_visor_fetch_tile_bytes",
+        lambda _source, _bbox, _width, _height: _fake_jpeg_bytes(),
+    )
+    monkeypatch.setattr(
+        collection_module,
         "_visor_fetch_tile_bytes",
         lambda _source, _bbox, _width, _height: _fake_jpeg_bytes(),
     )
@@ -116,6 +126,63 @@ def _register_zone(client, monkeypatch):
     payload = response.get_json()
     assert payload["parcel_id"] is not None
     return int(payload["parcel_id"])
+
+
+def _mark_photo_completed_with_traces(
+    app,
+    parcel_id,
+    *,
+    row_index=1,
+    col_index=1,
+    traces=None,
+):
+    """Asocia un JSON de trazas persistido a una tesela concreta."""
+    if traces is None:
+        traces = {"xs": [1, 2, 3], "ys": [4, 5, 6]}
+
+    with app.app_context():
+        database = get_db()
+        photo_row = database.execute(
+            """
+            SELECT foto_id, filename
+            FROM foto
+            WHERE parcela_id = ?
+              AND row_index = ?
+              AND col_index = ?
+            """,
+            (parcel_id, row_index, col_index),
+        ).fetchone()
+
+        assert photo_row is not None
+
+        filename_root, _extension = os.path.splitext(photo_row["filename"])
+        relative_path = (
+            f"parcelas/{parcel_id}/traces/{filename_root}_traces.json"
+        )
+        absolute_path = os.path.join(
+            app.config["COLLECTION_STORAGE_ROOT"],
+            relative_path,
+        )
+        os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+
+        with open(absolute_path, "w", encoding="utf-8") as traces_file:
+            json.dump(traces, traces_file, ensure_ascii=False, indent=2)
+
+        database.execute(
+            """
+            UPDATE foto
+            SET
+                estado = 'completed',
+                trazas = 1,
+                ruta_trazas = ?
+            WHERE foto_id = ?
+            """,
+            (relative_path, photo_row["foto_id"]),
+        )
+        database.commit()
+        refresh_parcel_status(parcel_id)
+
+        return int(photo_row["foto_id"]), photo_row["filename"], traces
 
 
 def test_collection_page_renders_empty_state(client):
@@ -355,3 +422,82 @@ def test_collection_zone_rename_updates_db_and_gallery_title(
         assert detail is not None
         assert detail["nombre_coleccion"] == "Parcela norte"
         assert detail["display_name"] == "Parcela norte"
+
+
+def test_collection_photo_traces_endpoint_returns_json(
+    app, client, monkeypatch
+):
+    """Comprueba que una tesela completada expone su JSON de trazas."""
+    parcel_id = _register_zone(client, monkeypatch)
+    photo_id, _filename, traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+    )
+
+    response = client.get(f"/coleccion/fotos/{photo_id}/traces")
+    assert response.status_code == 200
+    assert response.get_json() == traces
+
+
+def test_collection_photo_download_returns_zip_when_traces_exist(
+    app, client, monkeypatch
+):
+    """Descarga un ZIP con imagen, JSON y overlay
+        si la tesela ya tiene trazas."""
+    parcel_id = _register_zone(client, monkeypatch)
+    _photo_id, filename, traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+    )
+
+    response = client.get(f"/coleccion/fotos/{_photo_id}/download")
+    assert response.status_code == 200
+    assert response.mimetype == "application/zip"
+
+    filename_root, extension = os.path.splitext(filename)
+    with zipfile.ZipFile(io.BytesIO(response.data), "r") as archive:
+        names = set(archive.namelist())
+        assert names == {
+            f"input/{filename_root}{extension}",
+            f"output/{filename_root}_traces.json",
+            f"output/{filename_root}_traces.png",
+        }
+        assert json.loads(
+            archive.read(f"output/{filename_root}_traces.json").decode("utf-8")
+        ) == traces
+        assert archive.read(f"output/{filename_root}_traces.png").startswith(
+            b"\x89PNG\r\n\x1a\n"
+        )
+
+
+def test_collection_download_zip_includes_traces_artifacts(
+    app, client, monkeypatch
+):
+    """El ZIP de la galería incluye artefactos
+        extra para teselas completadas."""
+    parcel_id = _register_zone(client, monkeypatch)
+    photo_id, filename, traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=2,
+    )
+
+    response = client.get(f"/coleccion/{parcel_id}/download-zip")
+    assert response.status_code == 200
+    assert response.mimetype == "application/zip"
+
+    filename_root, extension = os.path.splitext(filename)
+    with zipfile.ZipFile(io.BytesIO(response.data), "r") as archive:
+        names = set(archive.namelist())
+        assert "input/tile_1.jpg" in names
+        assert "input/tile_2.jpg" in names
+        assert f"output/{filename_root}_traces.json" in names
+        assert f"output/{filename_root}_traces.png" in names
+        assert "log.json" in names
+        assert json.loads(
+            archive.read(f"output/{filename_root}_traces.json").decode("utf-8")
+        ) == traces
+        assert archive.read(f"output/{filename_root}_traces.png").startswith(
+            b"\x89PNG\r\n\x1a\n"
+        )

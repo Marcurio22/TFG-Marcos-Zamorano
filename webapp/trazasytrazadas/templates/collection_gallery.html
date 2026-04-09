@@ -1,8 +1,9 @@
 <!--
-Galería mínima de teselas asociadas a una zona persistida.
+Galería de teselas asociadas a una zona persistida.
 
-Esta vista permite revisar las teselas guardadas para una parcela y descargar
-cada imagen individualmente sin persistir archivos derivados en disco.
+Esta vista permite revisar las teselas guardadas para una parcela, abrir cada
+imagen en un visor ampliado y descargar la imagen individual o el ZIP completo
+con los artefactos disponibles.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -88,13 +89,33 @@ Versión: 0.1
     {% if zone.photos %}
         <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {% for photo in zone.photos %}
-                <article class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-                    <figure class="bg-base-200/40">
-                        <img src="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
-                             alt="{{ _("Tesela") }} {{ photo.row_index }}-{{ photo.col_index }}"
-                             class="w-full object-cover"
-                             loading="lazy" />
-                    </figure>
+                <article class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden h-full"
+                         data-gallery-photo-card
+                         data-photo-id="{{ photo.foto_id }}"
+                         data-photo-title="{{ _("Tesela %(row)s-%(col)s", row=photo.row_index, col=photo.col_index) }}"
+                         data-photo-image-url="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
+                         data-photo-traces-url="{{ url_for('trazas.collection_photo_traces', photo_id=photo.foto_id) }}"
+                         data-photo-download-url="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
+                         data-photo-retry-url="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                         data-photo-filename="{{ photo.filename }}"
+                         data-photo-center-lat="{{ "%.6f"|format(photo.latitud) }}"
+                         data-photo-center-lng="{{ "%.6f"|format(photo.longitud) }}"
+                         data-photo-width="{{ photo.width }}"
+                         data-photo-height="{{ photo.height }}"
+                         data-photo-state="{{ photo.estado }}"
+                         data-photo-trace-status="{{ photo.trace_status }}"
+                         data-photo-can-retry="{{ 1 if photo.can_retry else 0 }}">
+                    <button type="button"
+                            class="block w-full text-left"
+                            data-action="open-photo-viewer"
+                            aria-label="{{ _("Abrir tesela en grande") }}">
+                        <figure class="bg-base-200/40 h-56 sm:h-60 flex items-center justify-center overflow-hidden">
+                            <img src="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
+                                 alt="{{ _("Tesela") }} {{ photo.row_index }}-{{ photo.col_index }}"
+                                 class="max-h-full w-full object-contain"
+                                 loading="lazy" />
+                        </figure>
+                    </button>
                     <div class="card-body gap-3">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
@@ -198,6 +219,76 @@ Versión: 0.1
             <span>{{ _("La zona seleccionada no contiene teselas guardadas.") }}</span>
         </div>
     {% endif %}
+    <dialog id="photo-viewer-modal" class="modal">
+        <div class="modal-box max-w-6xl p-0">
+            <div class="border-b border-base-200 px-4 py-3 sm:px-6 flex items-start justify-between gap-3">
+                <div>
+                    <h3 id="photo-viewer-title" class="font-bold text-lg"></h3>
+                    <p id="photo-viewer-subtitle" class="text-sm opacity-75"></p>
+                </div>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost"
+                            aria-label="{{ _("Cerrar") }}">✕</button>
+                </form>
+            </div>
+            <div class="px-4 py-4 sm:px-6 space-y-4">
+                <div class="rounded-box border border-base-200 bg-base-200/40 p-3 sm:p-4 flex justify-center">
+                    <div class="relative inline-block max-w-full">
+                        <img id="photo-viewer-image"
+                             alt=""
+                             class="block max-h-[70vh] w-auto max-w-full rounded-lg" />
+                        <canvas id="photo-viewer-canvas"
+                                class="pointer-events-none absolute left-0 top-0 hidden"></canvas>
+                    </div>
+                </div>
+                <div id="photo-viewer-loading" class="hidden justify-center">
+                    <span class="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+                <div id="photo-viewer-error" class="alert alert-error hidden text-sm"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    <div class="rounded-box border border-base-200 bg-base-50 px-4 py-3">
+                        <div class="text-xs uppercase tracking-wide opacity-60">{{ _("Archivo") }}</div>
+                        <div id="photo-viewer-filename" class="mt-1 font-medium break-all"></div>
+                    </div>
+                    <div class="rounded-box border border-base-200 bg-base-50 px-4 py-3">
+                        <div class="text-xs uppercase tracking-wide opacity-60">{{ _("Centro aprox.") }}</div>
+                        <div id="photo-viewer-center" class="mt-1 font-medium"></div>
+                    </div>
+                    <div class="rounded-box border border-base-200 bg-base-50 px-4 py-3">
+                        <div class="text-xs uppercase tracking-wide opacity-60">{{ _("Dimensiones") }}</div>
+                        <div id="photo-viewer-dimensions" class="mt-1 font-medium"></div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <form id="photo-viewer-retry-form" method="post" class="inline-flex">
+                            <input type="hidden"
+                                   name="redirect_to"
+                                   id="photo-viewer-retry-redirect"
+                                   value="{{ request.full_path }}">
+                            <button id="photo-viewer-retry-button"
+                                    type="submit"
+                                    class="btn btn-sm btn-warning">{{ _("Recalcular trazas") }}</button>
+                        </form>
+                        <button id="photo-viewer-draw-button"
+                                type="button"
+                                class="btn btn-sm btn-primary">{{ _("Dibujar trazas") }}</button>
+                        <a id="photo-viewer-download-link"
+                           href="#"
+                           class="btn btn-sm btn-outline">{{ _("Descargar") }}</a>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm opacity-75">{{ _("Overlay") }}</span>
+                        <span id="photo-viewer-draw-status"
+                              class="badge badge-neutral badge-outline">{{ _("Sin dibujar") }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="{{ _("Cerrar") }}"></button>
+        </form>
+    </dialog>
     <dialog id="zone-rename-modal" class="modal">
         <div class="modal-box max-w-lg">
             <div class="flex items-start justify-between gap-3">
@@ -254,7 +345,14 @@ Versión: 0.1
                 "photoStale": _("Procesamiento atascado"),
                 "retryTrace": _("Reintentar"),
                 "recalculateTrace": _("Recalcular trazas"),
-                "download": _("Descargar")
+                "drawTrace": _("Dibujar trazas"),
+                "download": _("Descargar"),
+                "viewerImagePreview": _("Vista ampliada de la tesela seleccionada."),
+                "viewerDrawn": _("Trazas dibujadas"),
+                "viewerNotDrawn": _("Sin dibujar"),
+                "viewerDrawing": _("Dibujando..."),
+                "viewerDrawUnavailable": _("Todavía no hay trazas calculadas para esta tesela."),
+                "viewerDrawError": _("No se han podido dibujar las trazas sobre la imagen.")
             }
         } | tojson }};
     </script>
