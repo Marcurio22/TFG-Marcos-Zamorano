@@ -82,10 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
     minZoom: DEFAULTS.minZoom,
     maxZoom: DEFAULTS.maxZoom,
     maxBoundsViscosity: 1.0,
+    zoomControl: false,
   });
 
   const initialMapBounds = map.getBounds();
   map.setMaxBounds(initialMapBounds);
+  L.control.zoom({ position: "bottomleft" }).addTo(map);
 
   const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,

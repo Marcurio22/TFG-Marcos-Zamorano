@@ -12,30 +12,36 @@ Versión: 0.1
 {% block title %}{{ _("Visor") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
 {% block page_container_class %}w-full max-w-none px-3 sm:px-4 py-3{% endblock %}
 {% block content %}
-  <div id="visor-alerts" class="toast toast-top toast-center z-[60] mt-4"></div>
+  <div id="visor-alerts" class="toast toast-top toast-center visor-toast"></div>
   <section class="space-y-4">
-    <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
+    <div class="card bg-base-100 shadow-sm border border-base-200">
       <div class="card-body p-0">
         <div class="relative">
-          <div class="absolute top-3 left-3 z-[700] flex flex-wrap gap-2">
+          <div class="absolute top-4 left-4 z-[700] flex flex-wrap gap-2 items-center">
             <button id="open-controls-btn"
                     type="button"
                     class="btn btn-sm btn-primary shadow-sm">{{ _("Controles") }}</button>
-            <div class="tooltip tooltip-right visor-tooltip"
+            <div class="tooltip tooltip-bottom visor-tooltip visor-tooltip-help"
                  data-tip="{{ _("Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona automáticamente la mejor ortofoto disponible y aplica fallback si la resolución pedida no existe en la zona.") }}">
               <button type="button"
-                      class="btn btn-sm btn-circle btn-outline bg-base-100/95 border-base-300">?</button>
+                      class="btn btn-sm btn-circle btn-outline bg-white text-base-content border-base-300 shadow-sm">
+                ?
+              </button>
             </div>
             <div class="tooltip tooltip-right visor-tooltip"
-                 data-tip="{{ _("Formato fijo por tesela: 1024 × 640 px. La resolución elegida modifica el terreno cubierto por cada imagen, no su tamaño en píxeles.") }}">
+                 data-tip="{{ _("Formato fijo por tesela: 1024 × 640 px.") }}">
               <button type="button"
-                      class="btn btn-sm btn-outline bg-base-100/95 border-base-300">1024 × 640</button>
+                      class="btn btn-sm btn-outline bg-white text-base-content border-base-300 shadow-sm">
+                1024 × 640
+              </button>
             </div>
           </div>
-          <div class="absolute top-3 right-3 z-[700]">
-            <div class="tooltip tooltip-left visor-tooltip"
-                 data-tip="{{ _("Base visible: OpenStreetMap + PNOA de máxima actualidad. El área navegable queda limitada al encuadre inicial del visor.") }}">
-              <div class="badge badge-info badge-outline bg-base-100/95">{{ _("OpenStreetMap + PNOA") }}</div>
+          <div class="absolute top-4 right-20 z-[700]">
+            <div class="tooltip tooltip-bottom tooltip-left visor-tooltip"
+                 data-tip="{{ _("Base visible: OpenStreetMap + PNOA de máxima actualidad.") }}">
+              <div class="badge badge-info badge-outline bg-white text-base-content border-base-300 shadow-sm">
+                {{ _("OpenStreetMap + PNOA") }}
+              </div>
             </div>
           </div>
           <div id="visor-map" class="w-full"></div>
@@ -45,12 +51,16 @@ Versión: 0.1
     <section id="downloads-section">
       <div class="card bg-base-100 shadow-sm border border-base-200">
         <div class="card-body gap-4">
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
             <h3 class="card-title text-lg">{{ _("Lista de descargas") }}</h3>
-            <button id="download-all-btn"
-                    type="button"
-                    class="btn btn-sm btn-outline"
-                    disabled>{{ _("Descargar ZIP") }}</button>
+            <div class="flex items-center gap-2">
+              <a href="{{ url_for("trazas.collection") }}"
+                 class="btn btn-sm btn-primary">{{ _("Abrir colección") }}</a>
+              <button id="download-all-btn"
+                      type="button"
+                      class="btn btn-sm btn-outline"
+                      disabled>{{ _("Descargar ZIP") }}</button>
+            </div>
           </div>
           <div id="download-list" class="flex flex-col gap-2">
             <div class="text-sm opacity-70">{{ _("Genera primero la cuadrícula para obtener las teselas descargables.") }}</div>

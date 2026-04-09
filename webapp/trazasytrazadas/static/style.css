@@ -35,20 +35,55 @@ html {
   font: inherit;
 }
 
-.visor-tooltip::before {
-  white-space: normal;
-  max-width: 22rem;
-  text-align: left;
-  line-height: 1.35;
+.visor-tooltip {
+  position: relative;
+  z-index: 9999;
 }
 
-@media (max-width: 1024px) {
-  #visor-map {
-    min-height: 58vh;
-    height: 64vh;
-  }
+.visor-tooltip::before,
+.visor-tooltip::after {
+  z-index: 10000 !important;
+}
 
-  .visor-tooltip::before {
-    max-width: 16rem;
-  }
+.visor-tooltip::before {
+  white-space: normal;
+  width: min(19rem, calc(100vw - 3rem));
+  max-width: none;
+  text-align: left;
+  line-height: 1.35;
+  font-size: 0.95rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.visor-tooltip-help::before {
+  width: min(17rem, calc(100vw - 3rem));
+}
+
+#visor-alerts,
+.visor-toast {
+  position: fixed;
+  top: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999 !important;
+  pointer-events: none;
+  width: auto;
+  max-width: calc(100vw - 1.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#visor-alerts .alert,
+.visor-toast .alert {
+  pointer-events: auto;
+  width: min(42rem, calc(100vw - 2rem));
+  max-width: min(42rem, calc(100vw - 2rem));
+}
+
+dialog#visor-controls-modal,
+dialog#visor-controls-modal::backdrop,
+#visor-controls-modal .modal-box,
+#visor-controls-modal .modal-backdrop {
+  z-index: 9998 !important;
 }
