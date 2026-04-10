@@ -422,6 +422,42 @@ Finalmente, el bloque central del \textit{sprint} consistió en crear las difere
 
 Como muestra la Figura~\ref{fig:brsprint13}, el avance se mantuvo relativamente estable durante los primeros días, al concentrarse el trabajo en ajustes de diseño y en tareas de preparación. A partir del 23--24 de marzo el descenso se acelera, coincidiendo con el cierre de las pantallas principales y la consolidación de la nueva lógica de estado en la interfaz, quedando el \textit{sprint} cerrado el 26 de marzo.
 
+\subsection{Sprint 14 - Ajustes y consolidación durante Semana Santa}
+El \textit{Sprint 14} se desarrolló durante el periodo de Semana Santa. Para esta iteración estimé una dedicación total de 26~horas, y finalmente invertí 24~horas y 25~minutos. En esta iteración el avance estuvo condicionado por carga académica: durante los primeros días apenas pude progresar y, además, el \textit{sprint} se amplió un día adicional. A partir de ese punto, el grueso del trabajo se concentró en la segunda mitad del \textit{sprint}, donde fui cerrando tareas de forma progresiva hasta completar el bloque planificado.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Modificar el apartado de métricas en la memoria.
+	\item Ajustar el \textit{layout} del mapa.
+	\item Modificar la lógica de imágenes para mantener la relación de aspecto.
+	\item Incorporar \textit{tooltips} en el visor.
+	\item Añadir un campo de descripción para cada zona.
+	\item Cambiar la previsualización de imagen por la previsualización de la zona seleccionada.
+	\item Implementar la lógica de trazas en segundo plano.
+	\item Redactar una explicación del problema de licencias asociado a GEE.
+	\item Corregir aspectos relevantes de la memoria.
+	\item Implementar la lógica de visualización de imagen en grande.
+	\item Investigar posibles errores en el mapa.
+	\item Investigar posibles errores en la colección de imágenes.
+\end{itemize}
+
+Durante los primeros días prioricé ajustes de documentación y cambios que no requerían una implementación extensa. En concreto, revisé el apartado de métricas de la memoria para mejorar su claridad, y realicé correcciones puntuales en secciones relevantes del documento, con el objetivo de mantener el texto alineado con la evolución real de la aplicación.
+
+A continuación, centré el trabajo en consolidar el flujo del visor geoespacial. Por un lado, ajusté el \textit{layout} del mapa e incorporé \textit{tooltips} para mejorar la interpretabilidad de la interfaz. Por otro, modifiqué la lógica de imágenes para conservar correctamente la relación de aspecto, para que así las imágenes se parecieran más a las de entrenamiento. Hice también que se pudiera cambiar el nombre de cada galería y cambié la previsualización para que, en lugar de mostrar únicamente la primera imagen, se mostrase la \textit{preview} de la zona seleccionada completa.
+
+En la parte más técnica del \textit{sprint}, creé la lógica de trazas en segundo plano y la visualización de la imagen en grande, de forma que la aplicación pudiese gestionar mejor operaciones de cálculo sin bloquear la experiencia de uso y, al mismo tiempo, permitir una inspección más cómoda del resultado. Además, documenté de forma específica el problema de licencias asociado a GEE, ya que era necesario dejar constancia en la memoria de las limitaciones y condicionantes de uso de esta tecnología.
+
+Por último, reservé parte del cierre del \textit{sprint} a tareas de verificación: investigué posibles errores tanto en el mapa como en la colección de imágenes, revisando el comportamiento en casos límite y buscando incoherencias derivadas de los cambios recientes.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint14}
+	\caption[Burndown Report del Sprint 14]{Burndown Report del Sprint 14.}
+	\label{fig:brsprint14}
+\end{figure}
+
+Como se aprecia en la Figura~\ref{fig:brsprint14}, el \textit{burndown} refleja un inicio prácticamente plano, coherente con la menor disponibilidad de los primeros días. También se observa un ajuste en la línea ideal, debido a la ampliación del \textit{sprint} en un día por motivos académicos. A partir de la mitad del periodo el descenso se acelera, mostrando cómo el cierre de tareas se concentró en los últimos días, hasta completar el \textit{sprint} al final de la semana.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
