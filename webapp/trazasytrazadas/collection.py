@@ -34,6 +34,7 @@ from PIL import Image
 from werkzeug.utils import secure_filename
 
 from .collection_store import (
+    ZoneDeleteError,
     delete_zone,
     get_photo,
     get_storage_abspath,
@@ -44,6 +45,8 @@ from .collection_store import (
     photo_retry_is_enabled,
     retry_photo,
     update_zone_name,
+    retry_zone_pending_and_failed,
+    zone_retry_is_enabled,
 )
 from .visor import (
     _visor_fetch_tile_bytes,
@@ -522,15 +525,71 @@ def register_collection_routes(bp) -> None:
     @bp.route("/coleccion/<int:parcel_id>/delete", methods=["POST"])
     def collection_delete(parcel_id: int):
         """Elimina permanentemente una zona de la colección."""
-        deleted = delete_zone(parcel_id)
-        if deleted:
-            _flash_ok(_("La zona se ha eliminado correctamente."))
+        try:
+            deleted = delete_zone(parcel_id)
+        except ZoneDeleteError as exc:
+            current_app.logger.exception(
+                "Error al eliminar la zona %s de la colección.",
+                parcel_id,
+            )
+            flash(str(exc), "error")
         else:
-            flash(_("La zona solicitada no existe."), "error")
+            if deleted:
+                _flash_ok(_("La zona se ha eliminado correctamente."))
+            else:
+                flash(_("La zona solicitada no existe."), "error")
 
         redirect_to = _safe_internal_redirect(
             request.form.get("redirect_to"),
             url_for("trazas.collection"),
+        )
+        return redirect(redirect_to)
+
+    @bp.route("/coleccion/<int:parcel_id>/retry-pending-failed",
+              methods=["POST"])
+    def collection_zone_retry_pending_failed(parcel_id: int):
+        """Recalcula solo las teselas pendientes o con error de una zona."""
+        detail = _load_zone_or_404(parcel_id)
+        photos = detail.get("photos") or []
+
+        if not zone_retry_is_enabled(photos):
+            if (
+                detail.get("tile_count")
+                and detail.get("completed_tiles") == detail.get("tile_count")
+            ):
+                flash(
+                    _("Todas las teselas ya tienen las trazas calculadas."),
+                    "info",
+                )
+            else:
+                flash(
+                    _(
+                        "La recalculación masiva estará disponible cuando "
+                        "existan teselas pendientes con al menos 2 minutos "
+                        "de antigüedad o teselas con error."
+                    ),
+                    "warning",
+                )
+        else:
+            retried_count = retry_zone_pending_and_failed(parcel_id)
+            if retried_count > 0:
+                _flash_ok(
+                    _(
+                        "Se han marcado %(count)s teselas pendientes o con "
+                        "error para recalcular las trazas.",
+                        count=retried_count,
+                    )
+                )
+            else:
+                flash(
+                    _("No hay teselas pendientes o con "
+                        "error para recalcular."),
+                    "info",
+                )
+
+        redirect_to = _safe_internal_redirect(
+            request.form.get("redirect_to"),
+            url_for("trazas.collection_gallery", parcel_id=parcel_id),
         )
         return redirect(redirect_to)
 

@@ -19,7 +19,9 @@ from trazasytrazadas import collection as collection_module
 from trazasytrazadas import visor as visor_module
 from trazasytrazadas.collection_store import (
     get_zone_detail,
+    materialize_photo_tile,
     refresh_parcel_status,
+    get_zone_live_status,
 )
 from trazasytrazadas.db import get_db
 
@@ -271,6 +273,42 @@ def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):
 
     assert parcel_count == 0
     assert photo_count == 0
+
+
+def test_collection_delete_removes_zone_storage(app, client, monkeypatch):
+    """Comprueba que el borrado también elimina la carpeta física."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        detail = get_zone_detail(parcel_id)
+        assert detail is not None
+        assert detail["photos"]
+
+        first_photo = detail["photos"][0]
+        tile_path = materialize_photo_tile(first_photo)
+        assert os.path.exists(tile_path)
+
+        parcel_root = os.path.join(
+            app.config["COLLECTION_STORAGE_ROOT"],
+            "parcelas",
+            str(parcel_id),
+        )
+        assert os.path.isdir(parcel_root)
+
+    response = client.post(
+        f"/coleccion/{parcel_id}/delete",
+        data={"redirect_to": "/coleccion"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+
+    with app.app_context():
+        parcel_root = os.path.join(
+            app.config["COLLECTION_STORAGE_ROOT"],
+            "parcelas",
+            str(parcel_id),
+        )
+        assert not os.path.exists(parcel_root)
 
 
 def test_collection_status_endpoint_returns_zone_summary(app,
@@ -525,3 +563,156 @@ def test_collection_download_zip_uses_collection_name(
         'filename=Ondas_tiles.zip'
         in response.headers["Content-Disposition"]
     )
+
+
+def test_collection_zone_retry_pending_only_skips_completed(
+    app, client, monkeypatch
+):
+    """El recálculo masivo toca pending, pero no invalida completed."""
+    app.config["COLLECTION_PHOTO_RETRY_ENABLE_SECONDS"] = 0
+    parcel_id = _register_zone(client, monkeypatch)
+
+    completed_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=1,
+    )
+
+    response = client.post(
+        f"/coleccion/{parcel_id}/retry-pending-failed",
+        data={"redirect_to": f"/coleccion/{parcel_id}/galeria"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+
+    with app.app_context():
+        database = get_db()
+        rows = database.execute(
+            """
+            SELECT foto_id, estado, error_message, ruta_trazas
+            FROM foto
+            WHERE parcela_id = ?
+            ORDER BY row_index ASC, col_index ASC
+            """,
+            (parcel_id,),
+        ).fetchall()
+
+        assert len(rows) == 2
+
+        assert rows[0]["foto_id"] == completed_photo_id
+        assert rows[0]["estado"] == "completed"
+        assert rows[0]["ruta_trazas"] is not None
+
+        assert rows[1]["estado"] == "pending"
+        assert rows[1]["error_message"] is None
+        assert rows[1]["ruta_trazas"] is None
+
+
+def test_collection_zone_retry_failed_only_skips_completed(
+    app, client, monkeypatch
+):
+    """El recálculo masivo resetea failed, pero mantiene completed."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    completed_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=1,
+    )
+    failed_photo_id, failed_filename, failed_traces = (
+        _mark_photo_completed_with_traces(
+            app,
+            parcel_id,
+            row_index=1,
+            col_index=2,
+            traces={"xs": [7, 8], "ys": [9, 10]},
+        )
+    )
+
+    with app.app_context():
+        database = get_db()
+        database.execute(
+            """
+            UPDATE foto
+            SET
+                estado = 'failed',
+                error_message = 'boom',
+                started_at = CURRENT_TIMESTAMP,
+                finished_at = CURRENT_TIMESTAMP
+            WHERE foto_id = ?
+            """,
+            (failed_photo_id,),
+        )
+        database.commit()
+        refresh_parcel_status(parcel_id)
+
+        failed_filename_root, _extension = os.path.splitext(failed_filename)
+        failed_trace_path = os.path.join(
+            app.config["COLLECTION_STORAGE_ROOT"],
+            "parcelas",
+            str(parcel_id),
+            "traces",
+            f"{failed_filename_root}_traces.json",
+        )
+        assert os.path.exists(failed_trace_path)
+
+    response = client.post(
+        f"/coleccion/{parcel_id}/retry-pending-failed",
+        data={"redirect_to": f"/coleccion/{parcel_id}/galeria"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+
+    with app.app_context():
+        database = get_db()
+        rows = database.execute(
+            """
+            SELECT foto_id, estado, error_message, started_at,
+                finished_at, ruta_trazas
+            FROM foto
+            WHERE parcela_id = ?
+            ORDER BY row_index ASC, col_index ASC
+            """,
+            (parcel_id,),
+        ).fetchall()
+
+        assert len(rows) == 2
+
+        assert rows[0]["foto_id"] == completed_photo_id
+        assert rows[0]["estado"] == "completed"
+        assert rows[0]["ruta_trazas"] is not None
+
+        assert rows[1]["foto_id"] == failed_photo_id
+        assert rows[1]["estado"] == "pending"
+        assert rows[1]["error_message"] is None
+        assert rows[1]["started_at"] is None
+        assert rows[1]["finished_at"] is None
+        assert rows[1]["ruta_trazas"] is None
+
+        failed_filename_root, _extension = os.path.splitext(failed_filename)
+        failed_trace_path = os.path.join(
+            app.config["COLLECTION_STORAGE_ROOT"],
+            "parcelas",
+            str(parcel_id),
+            "traces",
+            f"{failed_filename_root}_traces.json",
+        )
+        assert not os.path.exists(failed_trace_path)
+
+
+def test_collection_zone_status_disables_bulk_retry_when_completed(
+    app, client, monkeypatch
+):
+    """La galería no habilita el botón si toda la zona está completada."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(app, parcel_id, row_index=1, col_index=1)
+    _mark_photo_completed_with_traces(app, parcel_id, row_index=1, col_index=2)
+
+    with app.app_context():
+        payload = get_zone_live_status(parcel_id)
+        assert payload is not None
+        assert payload["estado"] == "completed"
+        assert payload["can_retry_all"] is False

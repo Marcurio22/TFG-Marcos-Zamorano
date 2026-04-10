@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const photoViewerDimensions = document.getElementById("photo-viewer-dimensions");
   const photoViewerRetryForm = document.getElementById("photo-viewer-retry-form");
   const photoViewerRetryButton = document.getElementById("photo-viewer-retry-button");
+  const zoneRetryAllButton = document.querySelector("[data-zone-retry-all-button]");
   const photoViewerRetryRedirect = document.getElementById("photo-viewer-retry-redirect");
   const photoViewerDrawButton = document.getElementById("photo-viewer-draw-button");
   const photoViewerDownloadLink = document.getElementById("photo-viewer-download-link");
@@ -142,6 +143,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
+  }
+
+  function updateZoneRetryAllButton(payload) {
+    if (!zoneRetryAllButton) {
+      return;
+    }
+
+    const total = Number(payload.tile_count || 0);
+    const completed = Number(payload.completed_tiles || 0);
+    const allCompleted = total > 0 && completed === total;
+    const canRetryAll = Boolean(payload.can_retry_all);
+
+    zoneRetryAllButton.disabled = !canRetryAll;
+    zoneRetryAllButton.classList.toggle("btn-disabled", !canRetryAll);
+    zoneRetryAllButton.setAttribute(
+      "aria-disabled",
+      canRetryAll ? "false" : "true"
+    );
+
+    if (canRetryAll) {
+      zoneRetryAllButton.title = I18N.retryZoneReady || "";
+    } else if (allCompleted) {
+      zoneRetryAllButton.title = I18N.retryZoneDisabledCompleted || "";
+    } else {
+      zoneRetryAllButton.title = I18N.retryZoneDisabledWait || "";
+    }
   }
 
   function renderPhotoStateMarkup(status, isStale) {
@@ -756,6 +783,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (badgeEl) {
       badgeEl.innerHTML = renderZoneBadgeMarkup(payload.estado || payload.status);
     }
+
+    updateZoneRetryAllButton(payload);
 
     if (progressSummaryEl) {
       progressSummaryEl.textContent = formatTemplate(I18N.progressText, {

@@ -38,17 +38,31 @@ Versión: 0.1
                     <h2 class="text-xl sm:text-2xl font-bold">{{ zone.display_name }}</h2>
                     <p class="text-sm opacity-75">{{ _("Teselas guardadas a partir de la cuadrícula generada en el visor.") }}</p>
                 </div>
-                <span data-zone-status-badge>
-                    {% if zone.estado == 'completed' %}
-                        <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
-                    {% elif zone.estado == 'processing' %}
-                        <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
-                    {% elif zone.estado == 'failed' %}
-                        <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
-                    {% else %}
-                        <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
-                    {% endif %}
-                </span>
+                <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <form method="post"
+                          action="{{ url_for('trazas.collection_zone_retry_pending_failed', parcel_id=zone.parcela_id) }}"
+                          class="inline-flex">
+                        <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+                        <button type="submit"
+                                class="btn btn-sm btn-warning {% if not zone.can_retry_all %}btn-disabled{% endif %}"
+                                data-zone-retry-all-button
+                                title="{% if zone.can_retry_all %}{{ _("Recalcular solo las teselas pendientes o con error.") }}{% elif zone.tile_count and zone.completed_tiles == zone.tile_count %}{{ _("Todas las teselas ya tienen las trazas calculadas.") }}{% else %}{{ _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error.") }}{% endif %}"
+                                {% if not zone.can_retry_all %}disabled aria-disabled="true"{% else %}aria-disabled="false"{% endif %}>
+                            {{ _("Recalcular pendientes y errores") }}
+                        </button>
+                    </form>
+                    <span data-zone-status-badge>
+                        {% if zone.estado == 'completed' %}
+                            <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
+                        {% elif zone.estado == 'processing' %}
+                            <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
+                        {% elif zone.estado == 'failed' %}
+                            <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                        {% else %}
+                            <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                        {% endif %}
+                    </span>
+                </div>
             </div>
             <div class="stats stats-vertical lg:stats-horizontal shadow-sm border border-base-200 bg-base-50 w-full">
                 <div class="stat">
@@ -359,7 +373,10 @@ Versión: 0.1
                 "viewerNotDrawn": _("Sin dibujar"),
                 "viewerDrawing": _("Dibujando..."),
                 "viewerDrawUnavailable": _("Todavía no hay trazas calculadas para esta tesela."),
-                "viewerDrawError": _("No se han podido dibujar las trazas sobre la imagen.")
+                "viewerDrawError": _("No se han podido dibujar las trazas sobre la imagen."),
+                "retryZoneReady": _("Recalcular solo las teselas pendientes o con error."),
+"retryZoneDisabledCompleted": _("Todas las teselas ya tienen las trazas calculadas."),
+"retryZoneDisabledWait": _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error.")
             }
         } | tojson }};
     </script>

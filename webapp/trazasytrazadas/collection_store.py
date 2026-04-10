@@ -15,8 +15,10 @@ from __future__ import annotations
 import json
 import os
 from math import ceil
+import shutil
 from urllib.parse import urlparse
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from flask import current_app, url_for
 from flask_babel import gettext as _
@@ -26,6 +28,10 @@ from .db import get_db
 DEFAULT_SYSTEM_USER_ID = 1
 ALLOWED_ZONE_STATUSES = {"pending", "processing", "completed", "failed"}
 COLLECTION_NAME_MAX_LENGTH = 120
+
+
+class ZoneDeleteError(RuntimeError):
+    """Error controlado al eliminar una zona de la colección."""
 
 
 def _row_to_dict(row) -> dict:
@@ -201,6 +207,24 @@ def _photo_can_retry(photo: dict) -> bool:
     return photo_retry_is_enabled(photo)
 
 
+def _zone_photo_is_retryable(photo: dict) -> bool:
+    """Indica si una tesela entra en el recálculo masivo de la zona."""
+    status = (photo.get("estado") or "pending").strip().lower()
+
+    if status == "failed":
+        return True
+
+    if status != "pending":
+        return False
+
+    return photo_retry_is_enabled(photo)
+
+
+def zone_retry_is_enabled(photos: list[dict]) -> bool:
+    """Indica si la zona puede recalcular pendientes o errores."""
+    return any(_zone_photo_is_retryable(photo) for photo in (photos or []))
+
+
 def get_collection_storage_root() -> str:
     """Devuelve la carpeta raíz de almacenamiento físico de la colección."""
     root = current_app.config["COLLECTION_STORAGE_ROOT"]
@@ -247,6 +271,33 @@ def _parcel_tiles_dir(parcel_id: int) -> str:
 def _parcel_traces_dir(parcel_id: int) -> str:
     """Devuelve la carpeta física de resultados de trazas de una parcela."""
     return os.path.join(_parcel_root_dir(parcel_id), "traces")
+
+
+def _parcel_delete_staging_dir() -> str:
+    """Devuelve la carpeta temporal para borrados físicos seguros."""
+    staging_dir = os.path.join(get_collection_storage_root(), ".deleted")
+    os.makedirs(staging_dir, exist_ok=True)
+    return staging_dir
+
+
+def _stage_parcel_dir_for_delete(
+    parcel_id: int,
+) -> tuple[str | None, str | None]:
+    """
+    Mueve temporalmente la carpeta física de una parcela antes de borrarla.
+
+    Esto permite restaurarla si el borrado en SQLite falla antes del commit.
+    """
+    parcel_root = _parcel_root_dir(parcel_id)
+    if not os.path.isdir(parcel_root):
+        return None, None
+
+    staged_path = os.path.join(
+        _parcel_delete_staging_dir(),
+        f"parcela_{parcel_id}_{uuid4().hex}",
+    )
+    os.replace(parcel_root, staged_path)
+    return parcel_root, staged_path
 
 
 def _photo_trace_status(photo: dict) -> str:
@@ -602,6 +653,7 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     parcel["completed_tiles"] = sum(
         1 for photo in photos if photo.get("estado") == "completed"
     )
+    parcel["can_retry_all"] = zone_retry_is_enabled(photos)
     return parcel
 
 
@@ -716,15 +768,64 @@ def get_photo(photo_id: int) -> dict | None:
 
 
 def delete_zone(parcel_id: int) -> bool:
-    """Elimina una parcela y sus fotos asociadas
-        mediante borrado en cascada."""
+    """
+    Elimina una parcela, sus fotos asociadas y su almacenamiento físico.
+
+    La carpeta de la parcela se mueve primero a una zona temporal. Si el
+    borrado en SQLite falla, se intenta restaurar. Si el commit tiene éxito,
+    la carpeta temporal se purga definitivamente.
+    """
     database = get_db()
-    cursor = database.execute(
-        "DELETE FROM parcela WHERE parcela_id = ?",
+    row = database.execute(
+        "SELECT parcela_id FROM parcela WHERE parcela_id = ?",
         (parcel_id,),
-    )
-    database.commit()
-    return cursor.rowcount > 0
+    ).fetchone()
+
+    if row is None:
+        return False
+
+    parcel_root = None
+    staged_path = None
+    cursor = None
+
+    try:
+        parcel_root, staged_path = _stage_parcel_dir_for_delete(parcel_id)
+
+        cursor = database.execute(
+            "DELETE FROM parcela WHERE parcela_id = ?",
+            (parcel_id,),
+        )
+        database.commit()
+    except Exception as exc:
+        database.rollback()
+
+        if parcel_root and staged_path and os.path.exists(staged_path):
+            try:
+                os.replace(staged_path, parcel_root)
+            except OSError:
+                current_app.logger.exception(
+                    "No se pudo restaurar la carpeta física de la parcela %s "
+                    "tras un fallo de borrado.",
+                    parcel_id,
+                )
+
+        raise ZoneDeleteError(
+            _(
+                "No se ha podido eliminar completamente la zona. "
+                "Inténtalo de nuevo."
+            )
+        ) from exc
+
+    if staged_path and os.path.exists(staged_path):
+        try:
+            shutil.rmtree(staged_path)
+        except OSError:
+            current_app.logger.exception(
+                "No se pudo purgar la carpeta temporal de la parcela %s.",
+                parcel_id,
+            )
+
+    return bool(cursor and cursor.rowcount > 0)
 
 
 def save_photo_traces_result(photo: dict, traces: dict) -> str:
@@ -1067,7 +1168,61 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
         photos.append(photo)
 
     summary["photos"] = photos
+    summary["can_retry_all"] = zone_retry_is_enabled(photos)
     return summary
+
+
+def retry_zone_pending_and_failed(parcel_id: int) -> int:
+    """
+    Marca para recalcular solo las teselas pending o failed de una zona.
+
+    Las teselas completed no se tocan. Las processing tampoco.
+    """
+    detail = get_zone_detail(parcel_id)
+    if detail is None:
+        return 0
+
+    photos = detail.get("photos") or []
+    if not zone_retry_is_enabled(photos):
+        return 0
+
+    target_photos = [
+        photo for photo in photos
+        if (photo.get("estado") or "pending").strip().lower()
+        in {"pending", "failed"}
+    ]
+    if not target_photos:
+        return 0
+
+    for photo in target_photos:
+        trace_absolute_path = get_storage_abspath(photo.get("ruta_trazas"))
+        if trace_absolute_path and os.path.exists(trace_absolute_path):
+            try:
+                os.remove(trace_absolute_path)
+            except OSError:
+                pass
+
+    photo_ids = [int(photo["foto_id"]) for photo in target_photos]
+    placeholders = ",".join("?" for _ in photo_ids)
+
+    database = get_db()
+    database.execute(
+        f"""
+        UPDATE foto
+        SET
+            trazas = 0,
+            estado = 'pending',
+            ruta_trazas = NULL,
+            error_message = NULL,
+            started_at = NULL,
+            finished_at = NULL
+        WHERE foto_id IN ({placeholders})
+        """,
+        photo_ids,
+    )
+    database.commit()
+    refresh_parcel_status(parcel_id)
+    return len(photo_ids)
 
 
 def retry_photo(photo_id: int) -> bool:
