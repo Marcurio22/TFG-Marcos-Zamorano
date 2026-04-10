@@ -34,152 +34,258 @@ Versión: 0.1
     <link rel="apple-touch-icon"
           href="{{ url_for('static', filename='img/favicon.png') }}">
   </head>
-  <body class="min-h-screen bg-base-200 text-base-content flex flex-col">
+  <body class="min-h-screen bg-base-200 text-base-content">
     <!-- Fondo visual común de la interfaz. -->
     <div class="pointer-events-none fixed inset-0 z-0">
       <div class="absolute inset-0 bg-cover bg-center opacity-30 blur-[1.5px] saturate-75"
            style="background-image:url('{{ url_for('static', filename='img/background.png') }}')"></div>
-      <div class="absolute inset-0 bg-base-200/65"></div>
+      <div class="absolute inset-0 bg-base-200/45"></div>
     </div>
-    <!-- Cabecera principal y selector de idioma. -->
-    <header class="bg-primary text-primary-content shadow-sm relative z-50">
-      <div class="max-w-5xl mx-auto px-3 sm:px-4">
-        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center py-3 gap-y-2">
-          <div class="hidden sm:block"></div>
-          <div class="justify-self-center text-center">
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm">{{ _("Trazas de Herbívoros") }}</h1>
-          </div>
-          <div class="justify-self-center sm:justify-self-end mt-1 sm:mt-0">
-            {% set FLAG_FILES = {
-              "es": "img/flags/es.svg",
-              "en": "img/flags/gb.svg",
-              "fr": "img/flags/fr.svg",
-              "it": "img/flags/it.svg",
-              "de": "img/flags/de.svg"
-            } %}
-            <div class="dropdown dropdown-end z-50">
-              <label tabindex="0"
-                     class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
-                <span class="inline-flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
-                    <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg') ) }}"
-                         alt="{{ LANGUAGES.get(current_lang, _('Idioma') ) }}"
-                         width="24"
-                         height="24"
-                         class="w-full h-full object-cover" />
-                  </span>
-                  <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, _('Idioma') ) }}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       viewBox="0 0 20 20"
-                       fill="currentColor"
-                       class="w-4 h-4 opacity-90">
-                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
-                  </svg>
-                </span>
+    <!-- Drawer (DaisyUI) -->
+    <div class="drawer">
+      <input id="app-drawer" type="checkbox" class="drawer-toggle" />
+      <!-- Contenido principal -->
+      <div class="drawer-content min-h-screen flex flex-col relative z-10">
+        <!-- Cabecera principal y selector de idioma. -->
+        <header class="bg-primary text-primary-content shadow-sm relative z-50">
+          <div class="px-3 sm:px-4">
+            <div class="relative py-3">
+              <!-- Botón toggle drawer -->
+              <label for="app-drawer"
+                     class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
+                     role="button"
+                     aria-label="{{ _("Abrir menú") }}">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="w-6 h-6">
+                  <path d="M4 6h16" />
+                  <path d="M4 12h16" />
+                  <path d="M4 18h16" />
+                </svg>
               </label>
-              <ul tabindex="0"
-                  class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
-                <li class="menu-title">
-                  <span>{{ _("Idioma") }}</span>
-                </li>
-                {% for code, name in LANGUAGES.items() %}
-                  <li>
-                    <a href="{{ url_for('trazas.index', lang=code) }}"
-                       class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
-                      <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
-                        <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg') ) }}"
-                             alt="{{ name }}"
-                             width="28"
-                             height="28"
+              <!-- Título centrado -->
+              <div class="max-w-5xl mx-auto flex items-center justify-center">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm text-center">
+                  {{ _("Trazas de Herbívoros") }}
+                </h1>
+              </div>
+              <!-- Selector de idioma a la derecha -->
+              <div class="absolute right-0 top-1/2 -translate-y-1/2">
+                {% set FLAG_FILES = {
+                  "es": "img/flags/es.svg",
+                  "en": "img/flags/gb.svg",
+                  "fr": "img/flags/fr.svg",
+                  "it": "img/flags/it.svg",
+                  "de": "img/flags/de.svg"
+                } %}
+                <div class="dropdown dropdown-end z-50">
+                  <label tabindex="0"
+                         class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
+                    <span class="inline-flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
+                        <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg') ) }}"
+                             alt="{{ LANGUAGES.get(current_lang, _('Idioma') ) }}"
+                             width="24"
+                             height="24"
                              class="w-full h-full object-cover" />
                       </span>
-                      <span class="flex-1">{{ name }}</span>
-                      {% if code == current_lang %}
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             viewBox="0 0 20 20"
-                             fill="currentColor"
-                             class="w-4 h-4 opacity-70">
-                          <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z" clip-rule="evenodd" />
-                        </svg>
-                      {% endif %}
-                    </a>
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-    <!-- Mensajes flash renderizados con estilos de DaisyUI. -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="toast toast-top toast-center z-50 mt-4">
-          {% for category, message in messages %}
-            {% set alert_class = "alert-info" %}
-            {% if category in ['error', 'danger'] %}
-              {% set alert_class = "alert-error" %}
-            {% elif category == 'success' %}
-              {% set alert_class = "alert-success" %}
-            {% elif category == 'warning' %}
-              {% set alert_class = "alert-warning" %}
-            {% endif %}
-            <div class="alert {{ alert_class }} shadow-lg">
-              <span class="text-sm sm:text-base">{{ message }}</span>
-              <button type="button"
-                      class="btn btn-sm btn-ghost ml-auto"
-                      aria-label="Cerrar"
-                      onclick="this.closest('.alert').remove();">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 20 20"
-                     fill="currentColor"
-                     class="w-4 h-4">
-                  <path d="M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z" />
-                </svg>
-              </button>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-    <!-- Contenedor principal para las vistas hijas. -->
-    <main class="flex-1 relative z-10">
-      <div class="max-w-5xl mx-auto px-3 sm:px-4 py-3">
-        {% block content %}{% endblock %}
-      </div>
-    </main>
-    <!-- Pie de página común de la aplicación. -->
-    <footer class="border-t border-base-300 bg-base-200">
-      <div class="max-w-5xl mx-auto px-3 sm:px-4 py-8">
-        <div class="footer footer-center">
-          <div class="grid gap-3">
-            <div class="flex items-center justify-center gap-3">
-              <div class="text-center">
-                <a href="https://www.ubu.es/"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="font-semibold link link-hover">{{ _("Universidad de Burgos") }}</a>
-                <div class="text-sm opacity-75">
-                  {{ _("TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por computador") }}
+                      <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, _('Idioma') ) }}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg"
+                           viewBox="0 0 20 20"
+                           fill="currentColor"
+                           class="w-4 h-4 opacity-90">
+                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                      </svg>
+                    </span>
+                  </label>
+                  <ul tabindex="0"
+                      class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
+                    <li class="menu-title">
+                      <span>{{ _("Idioma") }}</span>
+                    </li>
+                    {% for code, name in LANGUAGES.items() %}
+                      <li>
+                        <a href="{{ url_for('trazas.index', lang=code) }}"
+                           class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
+                          <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
+                            <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg') ) }}"
+                                 alt="{{ name }}"
+                                 width="28"
+                                 height="28"
+                                 class="w-full h-full object-cover" />
+                          </span>
+                          <span class="flex-1">{{ name }}</span>
+                          {% if code == current_lang %}
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 20 20"
+                                 fill="currentColor"
+                                 class="w-4 h-4 opacity-70">
+                              <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z" clip-rule="evenodd" />
+                            </svg>
+                          {% endif %}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
                 </div>
               </div>
             </div>
-            <div class="text-xs opacity-70">© {{ 2026 }} · Marcos Zamorano Lasso</div>
           </div>
-        </div>
+        </header>
+        <!-- Mensajes flash renderizados con estilos de DaisyUI. -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="toast toast-top toast-center z-50 mt-4">
+              {% for category, message in messages %}
+                {% set alert_class = "alert-info" %}
+                {% if category in ['error', 'danger'] %}
+                  {% set alert_class = "alert-error" %}
+                {% elif category == 'success' %}
+                  {% set alert_class = "alert-success" %}
+                {% elif category == 'warning' %}
+                  {% set alert_class = "alert-warning" %}
+                {% endif %}
+                <div class="alert {{ alert_class }} shadow-lg">
+                  <span class="text-sm sm:text-base">{{ message }}</span>
+                  <button type="button"
+                          class="btn btn-sm btn-ghost ml-auto"
+                          aria-label="Cerrar"
+                          onclick="this.closest('.alert').remove();">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 20 20"
+                         fill="currentColor"
+                         class="w-4 h-4">
+                      <path d="M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z" />
+                    </svg>
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <!-- Contenedor principal para las vistas hijas. -->
+        <main class="flex-1 relative z-10">
+          <div class="{% block page_container_class %}max-w-5xl mx-auto px-3 sm:px-4 py-3{% endblock %}">
+            {% block content %}{% endblock %}
+          </div>
+        </main>
+        <!-- Pie de página común de la aplicación. -->
+        <footer class="border-t border-base-300 bg-transparent relative z-10"
+                style="background-color: rgba(255, 255, 255, 0.20);
+                       backdrop-filter: blur(6px)">
+          <div class="max-w-5xl mx-auto px-3 sm:px-4 py-8">
+            <div class="footer footer-center bg-transparent">
+              <div class="grid gap-3">
+                <div class="flex items-center justify-center gap-3">
+                  <div class="text-center">
+                    <a href="https://www.ubu.es/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="font-semibold link link-hover">{{ _("Universidad de Burgos") }}</a>
+                    <div class="text-sm opacity-75">
+                      {{ _("TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por computador") }}
+                    </div>
+                  </div>
+                </div>
+                <div class="text-xs opacity-70">© {{ 2026 }} · Marcos Zamorano Lasso</div>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <!-- Cierre automático de mensajes flash visibles en pantalla. -->
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          document.querySelectorAll(".toast .alert").forEach((alertEl) => {
+            setTimeout(() => {
+              alertEl.style.transition = "opacity 250ms ease";
+              alertEl.style.opacity = "0";
+              setTimeout(() => alertEl.remove(), 260);
+            }, 5000);
+          });
+        });
+        </script>
       </div>
-    </footer>
-    <!-- Cierre automático de mensajes flash visibles en pantalla. -->
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".toast .alert").forEach((alertEl) => {
-        setTimeout(() => {
-          alertEl.style.transition = "opacity 250ms ease";
-          alertEl.style.opacity = "0";
-          setTimeout(() => alertEl.remove(), 260);
-        }, 5000);
-      });
-    });
-    </script>
+      <!-- Menú lateral -->
+      <div class="drawer-side z-40">
+        <label for="app-drawer"
+               class="drawer-overlay"
+               aria-label="{{ _("Cerrar menú") }}"></label>
+        {% set current_ep = request.endpoint or '' %}
+        {% set is_home = (current_ep == 'trazas.index') %}
+        {% set is_visor = (current_ep == 'trazas.visor') %}
+        {% set is_collection = (current_ep == 'trazas.collection') %}
+        <aside class="w-80 min-h-full bg-primary text-primary-content shadow-xl">
+          <div class="px-5 py-5 font-black tracking-wide text-2xl border-b border-white/20 drop-shadow-sm">{{ _("Menú") }}</div>
+          <ul class="menu p-0 bg-primary text-primary-content divide-y divide-white/10">
+            <li class="w-full border-t border-white/10">
+              <a href="{{ url_for("trazas.index") }}"
+                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 hover:bg-white/10 {% if is_home %}bg-white/15 pointer-events-none{% endif %}"
+                 {% if is_home %}aria-current="page"{% endif %}
+                 onclick="document.getElementById('app-drawer').checked = false;">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="w-5 h-5">
+                  <path d="M3 10.5 12 3l9 7.5" />
+                  <path d="M5 10v10h14V10" />
+                  <path d="M9 20v-6h6v6" />
+                </svg>
+                <span class="whitespace-nowrap">{{ _("Home") }}</span>
+              </a>
+            </li>
+            <li class="w-full border-t border-white/10">
+              <a href="{{ url_for("trazas.visor") }}"
+                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 hover:bg-white/10 {% if is_visor %}bg-white/15 pointer-events-none{% endif %}"
+                 {% if is_visor %}aria-current="page"{% endif %}
+                 onclick="document.getElementById('app-drawer').checked = false;">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="w-5 h-5">
+                  <path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" />
+                  <path d="M9 3v15" />
+                  <path d="M15 6v15" />
+                </svg>
+                <span class="whitespace-nowrap">{{ _("Visor") }}</span>
+              </a>
+            </li>
+            <li class="w-full border-t border-white/10">
+              <a href="{{ url_for("trazas.collection") }}"
+                 class="w-full rounded-none px-5 py-4 text-base sm:text-lg font-semibold gap-3 hover:bg-white/10 {% if is_collection %}bg-white/15 pointer-events-none{% endif %}"
+                 {% if is_collection %}aria-current="page"{% endif %}
+                 onclick="document.getElementById('app-drawer').checked = false;">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="w-5 h-5">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                <span class="whitespace-nowrap">{{ _("Colección de imágenes") }}</span>
+              </a>
+            </li>
+          </ul>
+        </aside>
+      </div>
+    </div>
   </body>
 </html>

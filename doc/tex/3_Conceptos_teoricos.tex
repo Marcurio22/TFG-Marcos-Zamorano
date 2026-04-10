@@ -17,18 +17,18 @@ Sobre estas representaciones, el sistema ejecuta tareas como clasificación, det
 	\begin{subfigure}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{Image-segmentation-example}
-		\caption{Ejemplo para segmentación. Fuente: MartinThoma, licencia CC0 1.0.}
+		\caption{Ejemplo para segmentación.}
 		\label{fig:Image-segmentation-example}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[t]{0.48\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{Image-segmentation-example-segmented}
-		\caption{Ejemplo de segmentación, donde distintas regiones quedan diferenciadas para facilitar interpretación a nivel de escena. Fuente: MartinThoma, licencia CC0 1.0.}
+		\caption{Ejemplo de segmentación con regiones diferenciadas.}
 		\label{fig:Image-segmentation-example-segmented}
 	\end{subfigure}
 	
-	\caption{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada.}
+	\caption{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada. Fuente: MartinThoma. Licencia: CC0 1.0.}
 	\label{fig:segmentation-example-pair}
 \end{figure}
 
@@ -37,8 +37,8 @@ En esta sección se introducen los fundamentos teóricos que sustentan la segmen
 
 
 \subsubsection{Aprendizaje Profundo}
-El Aprendizaje Profundo es un paradigma de machine learning basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
-Funciona de una forma que, una clase de hipótesis de altísima capacidad, realizada por composiciones profundas de operadores paramétricos y no linealidades puntuales, aprende representaciones jerárquicas de los datos optimizando un funcional de riesgo empírico.
+El Aprendizaje Profundo es un paradigma de \textit{machine learning} basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
+Funciona de la siguiente manera: un modelo muy flexible, formado por varias capas de operaciones con parámetros y funciones no lineales, aprende a extraer representaciones jerárquicas de los datos ajustando sus parámetros para minimizar el error en los ejemplos de entrenamiento.
 
 El éxito del Aprendizaje Profundo se atribuye a su capacidad para trabajar con arquitecturas muy grandes y profundas, con millones de parámetros, logrando avances significativos en el reconocimiento de imágenes~\cite{ronneberger2015unet, diezpastora2025trails, neloy2024autoencoders, he2016resnet}. 
 Este resuelve la necesidad de los sistemas de visión de extraer la representación de características más efectiva a partir de datos complejos~\cite{neloy2024autoencoders}, automatizando lo que antes requería el diseño manual de características.
@@ -48,17 +48,17 @@ En el marco del Aprendizaje Profundo, la profundidad de las representaciones y d
 
 Sin embargo, el aumento de la profundidad introduce un desafío conocido como el problema de la degradación. Esta ocurre cuando, al aumentar las capas apiladas, la precisión del entrenamiento se deteriora. Teóricamente, un modelo más profundo no debería tener un error de entrenamiento mayor que su contraparte menos profunda. El hecho de que esto suceda indica que los algoritmos de optimización actuales tienen dificultades para encontrar soluciones que optimicen estas estructuras ultra-profundas~\cite{he2016resnet}. 
 
-Esto debido a que, a medida que la información o el gradiente pasan por muchas capas, pueden desvanecerse antes de alcanzar el inicio o el final de la red~\cite{huang2018densenet}.
+Esto se debe a que, a medida que la información o el gradiente pasan por muchas capas, pueden desvanecerse antes de alcanzar el inicio o el final de la red~\cite{huang2018densenet}.
 
-\subsubsection{Predicción Densa (Dense prediction)}
+\subsubsection{Predicción Densa (\textit{Dense prediction})}
 La predicción densa es una formulación de inferencia estructurada en la que el sistema estima, para cada ubicación del dominio espacial de la entrada, una variable de salida perteneciente a un espacio de etiquetas o a un espacio continuo~\cite{zhang2022constructionautomation}. En visión por computador abarca tanto clasificación por elemento, como regresión por elemento, dando lugar a campos de salida con fuerte dependencia local y coherencia geométrica~\cite{zhao2017pspnet, lin2017fpn}. 
 
-Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por downsampling~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
+Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por \textit{downsampling}~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
 
 Operativamente, la predicción densa se implementa con \textit{encoders–decoders} convolucionales que combinan \textit{downsampling} para agregar contexto y \textit{upsampling} para reconstruir resolución, asistidos por \textit{skip connections} por concatenación para preservar información de detalle~\cite{ronneberger2015unet, bala2025visiontranscoder, badrinarayanan2016segnet}.
 
 \subsubsection{Segmentación Semántica}
-La segmentación semántica es una tarea de predicción densa en Visión por Computadora cuyo objetivo es la clasificación a nivel de píxel~\cite{bala2025visiontranscoder, ji2022automation}, mediante la asignación de una etiqueta de clase semántica a cada píxel de una imagen de entrada. A diferencia de tareas como la clasificación, la segmentación semántica proporciona una comprensión completa del escenario, prediciendo así la categoría, ubicación y forma de cada elemento.
+La segmentación semántica es una tarea de predicción densa en Visión por Computador cuyo objetivo es la clasificación a nivel de píxel~\cite{bala2025visiontranscoder, ji2022automation}, mediante la asignación de una etiqueta de clase semántica a cada píxel de una imagen de entrada. A diferencia de tareas como la clasificación, la segmentación semántica proporciona una comprensión completa del escenario, prediciendo así la categoría, ubicación y forma de cada elemento.
 
 Este proceso típicamente se implementa a través de una arquitectura de red neuronal profunda de codificador-decodificador, llamada \textit{encoder-decoder} de manera tradicional~\cite{ji2022automation, neloy2024autoencoders, bala2025visiontranscoder}.
 
@@ -127,7 +127,7 @@ El funcionamiento en la segmentación se basa en este marco bifásico de codific
 
 Las capas convolucionales son el núcleo de la CNN y componen la ruta principal del codificador~\cite{ji2022automation, badrinarayanan2016segnet}. En estas, se realiza la operación de convolución, que utiliza un conjunto de \textit{kernels} con pesos entrenables para convertir los datos de entrada en mapas de características~\cite{ji2022automation}. 
 
-El \textit{kernel} se desliza sobre la entrada con un \textit{stride} para producir la salida espacial~\cite{he2016resnet}. Mediante este proceso de \textit{downsampling} codifica la información de entrada en una representación de características de alto nivel downsampleada~\cite{ji2022automation, badrinarayanan2016segnet}.
+El \textit{kernel} se desliza sobre la entrada con un \textit{stride} para producir la salida espacial~\cite{he2016resnet}. Mediante este proceso de \textit{downsampling} codifica la información de entrada en una representación de características de alto nivel submuestreada~\cite{ji2022automation, badrinarayanan2016segnet}.
 
 \item \textbf{Capas Deconvolucionales (Deconvolutional Layers)}
 
@@ -172,11 +172,11 @@ Desde el punto de vista del entrenamiento, \textit{ReLU} contribuye a mitigar el
 \subsubsection{Función Softmax}
 La función \textit{Softmax} se emplea habitualmente en la capa final de redes neuronales de clasificación y segmentación para transformar las salidas no normalizadas del modelo, conocidas como \textit{logits}, en una distribución de probabilidad: \begin{equation}
 	\mathrm{Softmax}(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}, \qquad k=1,\dots,K
-\end{equation}.
+\end{equation}
 
 Esta transformación garantiza que los valores resultantes sean no negativos y que su suma sea igual a uno, lo que permite interpretarlos directamente como probabilidades asociadas a cada clase~\cite{Goodfellow-et-al-2016}.
 
-En el contexto de la segmentación semántica, la función Softmax se aplica de forma independiente a cada píxel, produciendo para cada uno de ellos un vector de probabilidades sobre las clases posibles. La etiqueta final asignada corresponde a la clase con mayor probabilidad, lo que da lugar a mapas de segmentación interpretables y coherentes. Este mecanismo resulta especialmente adecuado en problemas multiclase, donde es necesario modelar explícitamente la competencia entre clases en cada posición espacial de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}.
+En el contexto de la segmentación semántica, la función \textit{Softmax} se aplica de forma independiente a cada píxel, produciendo para cada uno de ellos un vector de probabilidades sobre las clases posibles. La etiqueta final asignada corresponde a la clase con mayor probabilidad, lo que da lugar a mapas de segmentación interpretables y coherentes. Este mecanismo resulta especialmente adecuado en problemas multiclase, donde es necesario modelar explícitamente la competencia entre clases en cada posición espacial de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}.
 
 \subsection{Consideraciones de generalización y propiedades espaciales}
 En esta subsección se agrupan conceptos que determinan hasta qué punto un modelo de segmentación es fiable fuera del conjunto de entrenamiento y cómo conserva la estructura geométrica de la escena al producir predicciones densas. Por un lado, se revisa el \textit{overfitting} como riesgo central de generalización en aprendizaje profundo y las estrategias habituales para controlarlo durante el entrenamiento. Por otro lado, se introducen propiedades espaciales clave en visión por computador, en particular la invarianza y la equivarianza traslacional, que describen cómo debe comportarse el modelo ante desplazamientos en la imagen y explican por qué ciertas arquitecturas resultan especialmente adecuadas para mantener coherencia espacial en tareas de segmentación semántica~\cite{Goodfellow-et-al-2016, dumoulin2018guide, khan2022transformersvision}.
@@ -199,16 +199,16 @@ En redes neuronales convolucionales, esta propiedad se deriva directamente de la
 En contraste con la invarianza traslacional, que busca reducir la sensibilidad del modelo a la posición absoluta de los objetos para favorecer el reconocimiento global, la equivarianza preserva explícitamente la información espacial. Ambas propiedades no son excluyentes, sino complementarias: mientras la invarianza resulta clave en tareas de clasificación, la equivarianza constituye un requisito fundamental en problemas de predicción densa, como la segmentación semántica, donde la coherencia espacial de la salida es crítica.
 
 \subsection{Arquitecturas de Segmentación Semántica}
-En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como U-Net, Feature Pyramid Network y UPerNet, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como SegFormer. Asimismo, se incluye PSPNet, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
+En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como \textit{U-Net}, \textit{Feature Pyramid Network} y \textit{UPerNet}, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como \textit{SegFormer}. Asimismo, se incluye \textit{PSPNet}, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
 
 
 \subsubsection{U-Net}
-La red neuronal convolucional U-Net constituye un paradigma fundamental en el ámbito de la segmentación densa debido a su capacidad para operar eficientemente con conjuntos de datos de entrenamiento limitados~\cite{ronneberger2015unet}. Esta arquitectura presenta una topología simétrica en forma de U que integra un codificador y un decodificador~\cite{ronneberger2015unet, Dimitrovski2024}. El codificador aplica sucesivamente convoluciones seguidas de unidades de activación lineal rectificada y operaciones de \textit{max-pooling} para la extracción de características contextuales y la reducción de la dimensionalidad espacial~\cite{ronneberger2015unet, ji2022automation}. Por su parte, el decodificador realiza procesos de \textit{upsampling} con el fin de recuperar la resolución original de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}. 
+La red neuronal convolucional \textit{U-Net} constituye un paradigma fundamental en el ámbito de la segmentación densa debido a su capacidad para operar eficientemente con conjuntos de datos de entrenamiento limitados~\cite{ronneberger2015unet}. Esta arquitectura presenta una topología simétrica en forma de U que integra un codificador y un decodificador~\cite{ronneberger2015unet, Dimitrovski2024}. El codificador aplica sucesivamente convoluciones seguidas de unidades de activación lineal rectificada y operaciones de \textit{max-pooling} para la extracción de características contextuales y la reducción de la dimensionalidad espacial~\cite{ronneberger2015unet, ji2022automation}. Por su parte, el decodificador realiza procesos de \textit{upsampling} con el fin de recuperar la resolución original de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}. 
 
 El componente diferencial de este modelo reside en la implementación de conexiones de salto que concatenan mapas de características de alta resolución del codificador con las capas correspondientes del decodificador~\cite{ronneberger2015unet, diezpastora2025trails}. Dicho mecanismo permite la preservación de detalles espaciales que se degradan habitualmente durante el submuestreo, garantizando una localización precisa de los límites de los objetos en tareas críticas como la imagen médica o la teledetección~\cite{Dimitrovski2024}.
 
 \subsubsection{Feature Pyramid Network}
-La arquitectura Feature Pyramid Network constituye un extractor de características de propósito general diseñado para explotar la jerarquía piramidal inherente a las redes neuronales convolucionales profundas~\cite{lin2017fpn}. Este framework implementa una ruta descendente con conexiones laterales que permite la propagación de información semántica de alto nivel hacia mapas de características de mayor resolución espacial~\cite{lin2017fpn, ji2022automation}. 
+La arquitectura \textit{Feature Pyramid Network} constituye un extractor de características de propósito general diseñado para explotar la jerarquía piramidal inherente a las redes neuronales convolucionales profundas~\cite{lin2017fpn}. Este \textit{framework} implementa una ruta descendente con conexiones laterales que permite la propagación de información semántica de alto nivel hacia mapas de características de mayor resolución espacial~\cite{lin2017fpn, ji2022automation}. 
 
 Operacionalmente, el sistema fusiona representaciones semánticamente robustas provenientes de capas profundas con mapas de características semánticamente débiles pero espacialmente precisos de etapas tempranas~\cite{lin2017fpn, xiao2018upernet}. La importancia de este diseño radica en su capacidad para generar una representación multiescala donde todos los niveles poseen una fuerte carga semántica, facilitando la detección y segmentación de objetos en un rango extenso de escalas sin incurrir en costes computacionales significativos~\cite{lin2017fpn}.
 
@@ -216,21 +216,21 @@ Operacionalmente, el sistema fusiona representaciones semánticamente robustas p
 \subsubsection{UPerNet}
 El modelo \textit{Unified Perceptual Parsing Network}, denominado \textit{UPerNet}, se erige sobre la arquitectura de redes de pirámide de características para resolver la segmentación de múltiples conceptos visuales de forma simultánea~\cite{xiao2018upernet}. Este diseño estructural adopta el esquema de una \textit{Feature Pyramid Network} y lo potencia mediante la integración de un \textit{Pyramid Pooling Module} sobre la capa de características más profunda del codificador~\cite{xiao2018upernet, zhao2017pspnet}. El funcionamiento del sistema se basa en la fusión jerárquica de representaciones provenientes de diversas etapas de la red, donde los mapas de niveles superiores aportan información semántica global y los niveles inferiores proporcionan detalles geométricos finos~\cite{xiao2018upernet, lin2017fpn}. 
 
-Mediante la interpolación bilineal y la concatenación de estos mapas de características multiescala, UPerNet logra una proyección no lineal eficiente hacia un espacio de alta dimensionalidad que captura relaciones espaciales complejas~\cite{xiao2018upernet}. Su importancia en el estado del arte radica en la capacidad para generar mapas de segmentación semánticamente ricos sin incurrir en la elevada carga computacional de las convoluciones dilatadas tradicionales, permitiendo la identificación de objetos, sus partes y materiales bajo un único proceso de inferencia unificado~\cite{xiao2018upernet, lin2017fpn}.
+Mediante la interpolación bilineal y la concatenación de estos mapas de características multiescala, \textit{UPerNet} logra una proyección no lineal eficiente hacia un espacio de alta dimensionalidad que captura relaciones espaciales complejas~\cite{xiao2018upernet}. Su importancia en el estado del arte radica en la capacidad para generar mapas de segmentación semánticamente ricos sin incurrir en la elevada carga computacional de las convoluciones dilatadas tradicionales, permitiendo la identificación de objetos, sus partes y materiales bajo un único proceso de inferencia unificado~\cite{xiao2018upernet, lin2017fpn}.
 
 \subsubsection{SegFormer}
-SegFormer representa un paradigma avanzado de segmentación semántica que unifica codificadores basados en transformadores jerárquicos con decodificadores ligeros de perceptrón multicapa~\cite{xie2021segformer, Dimitrovski2024}. A diferencia de los Vision Transformers convencionales, esta arquitectura introduce un codificador libre de codificaciones posicionales mediante el uso de convoluciones superpuestas, lo que permite inferir sobre resoluciones de imagen variables sin degradación del rendimiento~\cite{xie2021segformer, cai2023efficientvit}. 
+\textit{SegFormer} representa un paradigma avanzado de segmentación semántica que unifica codificadores basados en transformadores jerárquicos con decodificadores ligeros de perceptrón multicapa~\cite{xie2021segformer, Dimitrovski2024}. A diferencia de los \textit{Vision Transformers} convencionales, esta arquitectura introduce un codificador libre de codificaciones posicionales mediante el uso de convoluciones superpuestas, lo que permite inferir sobre resoluciones de imagen variables sin degradación del rendimiento~\cite{xie2021segformer, cai2023efficientvit}. 
 
-El funcionamiento del sistema se fundamenta en la generación de características multiescala que capturan simultáneamente dependencias de largo alcance y detalles locales, enviando estas representaciones a un decodificador All-MLP que agrega eficientemente la información contextual~\cite{xie2021segformer, Dimitrovski2024}. La relevancia de SegFormer en el estado del arte se debe a su alta eficiencia computacional y robustez, logrando resultados competitivos en tareas de predicción densa de alta resolución al mitigar la complejidad cuadrática inherente a los mecanismos de autoatención estándar~\cite{xie2021segformer, cai2023efficientvit}.
+El funcionamiento del sistema se fundamenta en la generación de características multiescala que capturan simultáneamente dependencias de largo alcance y detalles locales, enviando estas representaciones a un decodificador \textit{All-MLP} que agrega eficientemente la información contextual~\cite{xie2021segformer, Dimitrovski2024}. La relevancia de \textit{SegFormer} en el estado del arte se debe a su alta eficiencia computacional y robustez, logrando resultados competitivos en tareas de predicción densa de alta resolución al mitigar la complejidad cuadrática inherente a los mecanismos de autoatención estándar~\cite{xie2021segformer, cai2023efficientvit}.
 
 \subsubsection{PSPNet (Pyramid Scene Parsing Network)}
-El framework \textit{Pyramid Scene Parsing Network} constituye un avance fundamental en la segmentación de escenas complejas al introducir mecanismos para la explotación exhaustiva de la información de contexto global~\cite{zhao2017pspnet}. 
+El \textit{framework Pyramid Scene Parsing Network} constituye un avance fundamental en la segmentación de escenas complejas al introducir mecanismos para la explotación exhaustiva de la información de contexto global~\cite{zhao2017pspnet}. 
 
 Esta arquitectura surge como respuesta a la limitación intrínseca de las redes completamente convolucionales tradicionales, donde el campo receptivo empírico resulta insuficiente para capturar dependencias espaciales de largo alcance en capas profundas~\cite{zhao2017pspnet, xiao2018upernet}. La pieza central del modelo es el \textit{Pyramid Pooling Module} (PPM), el cual recolecta representaciones de subregiones en múltiples escalas para construir una jerarquía de prioridades globales que guían la clasificación a nivel de píxel~\cite{zhao2017pspnet}.
 
 Operacionalmente, el PPM divide el mapa de características generado por un codificador basado en bloques residuales en cuatro niveles de granularidad distintos, aplicando operaciones de \textit{pooling} con tamaños de bin de $1\times 1$, $2\times 2$, $3\times 3$ y $6\times 6$~\cite{zhao2017pspnet, he2016resnet}. A continuación, cada nivel se somete a una convolución de $1\times 1$ para realizar una reducción de dimensionalidad y se remuestrea mediante interpolación bilineal hasta alcanzar la resolución original de la etapa~\cite{zhao2017pspnet, lin2017fpn}. Estos mapas enriquecidos se concatenan con el flujo de información original para formar una representación final que encapsula tanto el detalle geométrico local como la coherencia semántica global, mitigando errores comunes en la identificación de objetos con apariencias similares pero contextos dispares~\cite{zhao2017pspnet, diezpastora2025trails}.
 
-Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de PSPNet se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
+Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de \textit{PSPNet} se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
 
 \subsection{Tipos de Encoder}
 A continuación, se describen los principales tipos de \textit{encoder} considerados en el trabajo~\cite{diezpastora2025trails}, entendiendo el codificador como el componente encargado de transformar la imagen de entrada en una jerarquía de representaciones cada vez más abstractas, ricas semánticamente y, por lo general, de menor resolución espacial. 
@@ -240,9 +240,9 @@ La elección del \textit{encoder} resulta determinante en segmentación semánti
 \subsubsection{Autoencoder}
 Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo objetivo es aprender una representación compacta de los datos de entrada sin utilizar etiquetas. La red se compone de dos partes claramente diferenciadas: un codificador, que transforma la entrada original de alta dimensionalidad en una representación latente de menor dimensión, y un decodificador, que reconstruye la entrada a partir de dicha representación minimizando el error de reconstrucción. Este esquema de compresión y reconstrucción obliga al modelo a retener la información más relevante de los datos, eliminando redundancias y atenuando el ruido~\cite{neloy2024autoencoders}.
 
-Desde un punto de vista práctico, el espacio latente aprendido por el autoencoder recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
+Desde un punto de vista práctico, el espacio latente aprendido por el \textit{autoencoder} recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
 
-Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los autoencoders variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
+Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los \textit{autoencoders} variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
 
 \subsubsection{Resumen de encoders empleados}
 
@@ -253,12 +253,14 @@ Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacid
 	\renewcommand{\arraystretch}{1.15}
 	
 	\begin{tabularx}{\textwidth}{
-			@{} >{\raggedright\arraybackslash}p{0.22\textwidth}
-			>{\centering\arraybackslash}p{0.10\textwidth}
+			@{}
+			>{\raggedright\arraybackslash}p{0.20\textwidth}
+			>{\centering\arraybackslash}p{0.09\textwidth}
 			X
-			>{\raggedright\arraybackslash}p{0.18\textwidth} @{}}
+			>{\raggedright\arraybackslash}p{0.12\textwidth}
+			@{}}
 		\toprule
-		\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción} & \textbf{Referencia} \\
+		\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción} & \textbf{Ref.} \\
 		\midrule
 		ConvNeXt (Small) & 50 & CNN modernizada con decisiones inspiradas en Transformers para mejorar precisión manteniendo eficiencia. & \cite{liu2022convnext, Chang2024UNeXt} \\
 		EfficientViT-B3 & 12 & Codificador eficiente para predicción densa que combina extracción local con atención ligera para capturar contexto global. & \cite{cai2023efficientvit, LIAO2024102401} \\
@@ -282,80 +284,48 @@ Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacid
 \end{table}
 
 \subsection{Evaluación experimental de la segmentación semántica}
-En esta subsección se formaliza la evaluación experimental de un sistema de segmentación semántica, estableciendo un marco común para medir su rendimiento de manera reproducible y comparable. Para ello, se introduce en primer lugar una notación a nivel de píxel que permite expresar las predicciones y las etiquetas de referencia de forma rigurosa. Sobre esta base, se describe la validación cruzada como estrategia para estimar la capacidad de generalización del modelo frente a particiones distintas del conjunto de datos~\cite{Goodfellow-et-al-2016, kohavi1995study}. Finalmente, se definen las métricas de evaluación empleadas, derivadas de la matriz de confusión mediante los conteos de verdaderos y falsos positivos y negativos, destacando IoU, precisión, \textit{recall} y $F_1$ como medidas complementarias para cuantificar, respectivamente, el solapamiento geométrico, la selectividad, la cobertura y el equilibrio entre ambos criterios en escenarios de predicción densa~\cite{minaee2022segmentationSurvey, Dimitrovski2024, powers2020}.
+En esta subsección se formaliza la evaluación experimental de un sistema de segmentación semántica, estableciendo un marco común para medir su rendimiento de manera reproducible y comparable~\cite{minaee2022segmentationSurvey,TahaHanbury2015}.
 
-\subsubsection{Notación}
-Sea \(\Omega\) el conjunto de píxeles de la imagen y sea \(\mathcal{C}\) el conjunto de clases considerado en la tarea de segmentación. Para cada píxel \(i \in \Omega\), \(y_i \in \mathcal{C}\) denota la etiqueta de referencia y \(\hat{y}_i \in \mathcal{C}\) la etiqueta predicha por el modelo. Para una clase \(c \in \mathcal{C}\), se emplea la función indicadora \(\mathbb{1}[\cdot]\), que toma valor 1 cuando la condición evaluada es verdadera y 0 en caso contrario.
-
-\subsubsection{Validación cruzada}
-La validación cruzada es una técnica de evaluación diseñada para estimar la capacidad de generalización de un modelo mediante la partición sistemática del conjunto de datos en varios subconjuntos o \textit{folds}. En cada iteración, el modelo se entrena sobre una parte de los datos y se evalúa sobre el subconjunto restante, de forma que todas las muestras participan tanto en entrenamiento como en validación a lo largo del proceso~\cite{Goodfellow-et-al-2016}.
-
-En visión por computador, y especialmente en segmentación semántica, esta estrategia resulta útil cuando el tamaño del conjunto de datos es limitado o presenta alta variabilidad espacial. La validación cruzada permite obtener estimaciones de rendimiento más robustas y menos dependientes de una única partición, reduciendo el riesgo de conclusiones sesgadas sobre la calidad del modelo~\cite{kohavi1995study}.
-
-Sobre las predicciones obtenidas en cada \textit{fold}, el rendimiento del modelo se cuantifica mediante las métricas definidas a continuación, calculadas a partir de la comparación entre las máscaras predichas y las etiquetas de referencia a nivel de píxel.
+Para ello, se definen las métricas de evaluación empleadas, combinando medidas de solapamiento, rendimiento temporal y propiedades geométricas derivadas de la máscara con el objetivo de caracterizar tanto la equivalencia entre segmentaciones como su impacto estructural sobre las trazas detectadas~\cite{gonzalez2008dip,zhang1984thinning}.
 
 \subsubsection{Métricas de evaluación}
 
-Para analizar el comportamiento de un modelo de segmentación semántica no basta con observar visualmente las máscaras generadas, sino que resulta necesario descomponer la predicción en categorías básicas que permitan cuantificar de forma precisa sus aciertos y errores. 
+Para analizar el comportamiento de un modelo de segmentación semántica no basta con observar visualmente las máscaras generadas, sino que resulta necesario cuantificar de forma objetiva sus aciertos y errores, especialmente cuando la clase de interés corresponde a estructuras finas, discontinuas o de bajo contraste, como las trazas de herbivoría. 
 
-En este contexto, la comparación entre la máscara predicha y la referencia anotada puede expresarse a partir de cuatro casos fundamentales: verdaderos positivos, falsos positivos, falsos negativos y verdaderos negativos. Estas magnitudes constituyen la base para la definición de métricas más complejas y permiten interpretar con mayor claridad el tipo de error cometido por el modelo durante la segmentación.
+En este contexto, resulta habitual combinar métricas de solapamiento, que miden la coincidencia entre máscaras binarias, con medidas derivadas de la geometría de la predicción.
+
+Adicionalmente, la evaluación puede formularse en términos de la matriz de confusión, descomponiendo la comparación entre predicción y referencia en cuatro conteos básicos~\cite{sokolova2009systematic,powers2020}:
 
 \begin{enumerate}
 	\item \textbf{Verdadero positivo (TP)}
-	
-	Un valor se considera como un verdadero positivo cuando el modelo asigna correctamente la clase de interés a un píxel o región y dicha asignación coincide con la etiqueta correspondiente en los datos de referencia. En segmentación semántica, los verdaderos positivos representan las zonas del objeto final que han sido correctamente delimitadas por el modelo.
+	 
+	Corresponde a un píxel que pertenece a una traza en la referencia y que el modelo segmenta correctamente como traza. En términos prácticos, representa porciones de senda correctamente identificadas.
 	
 	\item \textbf{Falso positivo (FP)}
+	  
+	Se produce cuando el modelo segmenta como traza un píxel que en la referencia es fondo. En este problema suele interpretarse como ruido.
 	
-	Un falso positivo se produce cuando el modelo clasifica como perteneciente a la clase de interés un píxel o región que, según los datos de referencia, no forma parte de dicha clase. Dentro del contexto de la segmentación semántica, este tipo de error se traduce en la detección incorrecta de áreas o estructuras que no deberían haber sido segmentadas.
+	\item \textbf{Falso negativo (FN)} 
 	
-	\item \textbf{Falso negativo (FN)}
-	
-	Un falso negativo ocurre cuando el modelo no identifica un píxel o región que sí pertenece a la clase de interés de acuerdo con los datos de referencia. En términos prácticos, los falsos negativos reflejan omisiones en la segmentación, donde partes relevantes del objeto o estructura no han sido capturadas por la predicción.
+	Un píxel que sí pertenece a una traza en la referencia pero el modelo lo clasifica como fondo. En la práctica representa omisiones, segmentos de traza no detectados.
 	
 	\item \textbf{Verdadero negativo (TN)}
-	
-	Un verdadero negativo corresponde a aquellos píxeles o regiones que el modelo clasifica correctamente como no pertenecientes a la clase de interés, en concordancia con los datos de referencia. Aunque en segmentación semántica esta categoría suele ser mayoritaria, su consideración resulta necesaria para el cálculo de métricas globales y para analizar el comportamiento del modelo frente a clases predominantes.
+	 
+	Un píxel que es fondo en la referencia y que el modelo predice correctamente como fondo.
 \end{enumerate}
 
-De forma más rigurosa, estos cuatro conteos pueden expresarse matemáticamente para una clase \(c\) del siguiente modo:
+En esta segmentación binaria, la clase positiva corresponde a píxeles pertenecientes a la traza de herbivoría, mientras que la clase negativa representa el suelo sin traza, que he denominado como fondo.
 
-\begin{equation}
-	\begin{aligned}
-		TP_c &= \sum_{i\in\Omega} \mathbb{1}[y_i=c \ \wedge\ \hat{y}_i=c], \\
-		FP_c &= \sum_{i\in\Omega} \mathbb{1}[y_i\neq c \ \wedge\ \hat{y}_i=c], \\
-		FN_c &= \sum_{i\in\Omega} \mathbb{1}[y_i=c \ \wedge\ \hat{y}_i\neq c], \\
-		TN_c &= \sum_{i\in\Omega} \mathbb{1}[y_i\neq c \ \wedge\ \hat{y}_i\neq c].
-	\end{aligned}
-	\label{eq:tp-fp-fn-tn}
-\end{equation}
-
-% begin equation o dos corchetes de apertura y de cierre
-La organización de estos cuatro conteos dentro de la matriz de confusión puede verse de forma esquemática en la Tabla~\ref{tab:confusion-matrix}.
-
-\begin{table}[H]
-	\centering
-	\renewcommand{\arraystretch}{1.4}
-	\begin{tabular}{lcc}
-		\toprule
-		& \textbf{Predicho: Positivo} & \textbf{Predicho: Negativo} \\
-		\midrule
-		\textbf{Real: Positivo} & $TP$ & $FN$ \\
-		\textbf{Real: Negativo} & $FP$ & $TN$ \\
-		\bottomrule
-	\end{tabular}
-	\caption{Estructura de la matriz de confusión a partir de $TP$, $FP$, $FN$ y $TN$.}
-	\label{tab:confusion-matrix}
-\end{table}
+En la comparación realizada entre rutas de inferencia, las métricas de solapamiento se calculan entre las máscaras generadas por \texttt{pickle} y por \textit{PyTorch/TorchScript}, sin emplear anotación externa~\cite{paszke2019pytorch}.
 
 \subsubsection{Intersección sobre la Unión (IoU)}
-La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU), también conocida como índice de Jaccard~\cite{minaee2022segmentationSurvey}, es una medida ampliamente empleada para evaluar la calidad de las predicciones en tareas de segmentación semántica. Se define como la razón entre el área de solapamiento y el área total cubierta por la segmentación predicha y la máscara de referencia, tomando valores comprendidos entre cero y uno, como se ve en la siguiente fórmula~\cite{Dimitrovski2024}:\begin{equation}
-	\mathrm{IoU}_c = \frac{TP_c}{TP_c + FP_c + FN_c}
+La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU) mide el solapamiento relativo entre dos máscaras binarias. En esta comparativa se define como:
+\begin{equation}
+	\mathrm{IoU} = \frac{|M_{\text{pickle}} \cap M_{\text{torch}}|}{|M_{\text{pickle}} \cup M_{\text{torch}}|}
 \end{equation}
+donde \(M_{\text{pickle}}\) es la máscara generada por el modelo cargado con \texttt{pickle} y \(M_{\text{torch}}\) la máscara generada por la ruta \textit{PyTorch/TorchScript}. Un valor cercano a uno indica una equivalencia espacial alta, mientras que valores menores reflejan discrepancias localizadas~\cite{minaee2022segmentationSurvey,Dimitrovski2024,TahaHanbury2015}.
 
-Esta métrica cuantifica directamente la coherencia espacial entre la predicción del modelo y los datos de referencia, penalizando tanto las detecciones espurias como las omisiones. Por ello, la IoU resulta especialmente adecuada para analizar la fidelidad geométrica de las segmentaciones obtenidas, ya que es sensible a desplazamientos, errores en los bordes y discontinuidades, aspectos estrechamente relacionados con la preservación de la correspondencia espacial en el modelo~\cite{TahaHanbury2015, long2015fcn}.
-
-Desde un punto de vista geométrico, esta relación de solapamiento entre la máscara predicha y la referencia puede interpretarse como se ilustra en la Figura~\ref{fig:iou-venn}.
+Desde un punto de vista geométrico, esta comparación puede interpretarse como el solapamiento entre ambas máscaras, tal y como se ilustra en la Figura~\ref{fig:iou-venn}.
 
 \begin{figure}[H]
 	\centering
@@ -365,41 +335,40 @@ Desde un punto de vista geométrico, esta relación de solapamiento entre la má
 			\fill[gray!35] (1.4,0) circle (1.6);
 			\draw (0,0) circle (1.6);
 			\draw (1.4,0) circle (1.6);
-			\node at (-0.2,1.9) {GT};
-			\node at (1.6,1.9) {Pred};
+			\node at (-0.2,1.9) {$M_{\text{pickle}}$};
+			\node at (1.8,1.9) {$M_{\text{torch}}$};
 			\node at (0.7,0) {$\cap$};
 		\end{scope}
-		\node[align=center] at (0.7,-2.3) {$\mathrm{IoU}=\dfrac{|\text{GT}\cap \text{Pred}|}{|\text{GT}\cup \text{Pred}|}$};
 	\end{tikzpicture}
-	\caption{Interpretación geométrica de IoU como solapamiento entre máscara predicha y referencia.}
+	\caption{Interpretación geométrica de IoU como solapamiento entre las máscaras generadas por \texttt{pickle} y por \textit{PyTorch/TorchScript}.}
 	\label{fig:iou-venn}
 \end{figure}
 
-\subsubsection{Precisión}
-La precisión es una métrica que cuantifica la proporción de predicciones positivas correctas respecto al total de píxeles que el modelo ha etiquetado como pertenecientes a una clase determinada: \begin{equation}
-	\mathrm{Precisión}_c = \frac{TP_c}{TP_c + FP_c}
+\subsubsection{Coeficiente Dice}
+El coeficiente \textit{Dice} es otra medida de solapamiento, especialmente utilizada en segmentación binaria, y en este contexto se calcula como:
+\begin{equation}
+	\mathrm{Dice} = \frac{2\,|M_{\text{pickle}} \cap M_{\text{torch}}|}{|M_{\text{pickle}}| + |M_{\text{torch}}|}
 \end{equation}
+Al igual que IoU, valores altos implican que ambas rutas de inferencia generan máscaras muy similares; no obstante, \textit{Dice} tiende a ser menos severo que IoU en casos de clases minoritarias~\cite{TahaHanbury2015,minaee2022segmentationSurvey}.
 
-En segmentación semántica, esta medida evalúa hasta qué punto las regiones segmentadas por el modelo corresponden realmente a la clase de interés, penalizando la presencia de falsos positivos~\cite{Dimitrovski2024, powers2020}.
+\subsubsection{Métricas temporales de rendimiento}
+Para evaluar la eficiencia práctica de cada enfoque se midieron tiempos de carga y tiempos de inferencia por \textit{fold} en el banco de pruebas. En particular:
+\begin{itemize}
+	\item \textbf{Tiempo de carga (\texttt{load\_ms})} Tiempo necesario para cargar el modelo desde disco.
+	\item \textbf{Tiempo de inferencia medio (\texttt{infer\_ms\_mean})} Media del tiempo de ejecución del \textit{forward} sobre una misma imagen, tras un calentamiento para estabilizar el rendimiento.
+	\item \textbf{Desviación estándar (\texttt{infer\_ms\_std})} Variabilidad del tiempo de inferencia entre repeticiones, empleado para detectar fluctuaciones del sistema.
+\end{itemize}
 
-Un valor alto de precisión indica que el modelo es selectivo al asignar una clase, reduciendo la sobre-segmentación de áreas incorrectas. Esta propiedad resulta especialmente relevante cuando la presencia de falsas detecciones puede inducir interpretaciones erróneas del resultado, como la identificación indebida de estructuras inexistentes en la imagen~\cite{ji2022automation, sokolova2009systematic}.
+\subsubsection{Métricas geométricas derivadas de la máscara}
+Además del solapamiento entre predicciones, se calcularon métricas simples sobre la máscara binaria para interpretar cuantitativamente la estructura de las trazas detectadas:
+\begin{itemize}
+	\item \textbf{Área segmentada (\texttt{area\_px})} Número de píxeles clasificados como traza, interpretado como la extensión total detectada.
+	\item \textbf{Longitud del esqueleto (\texttt{skeleton\_len\_px})} Longitud en píxeles del esqueleto de la máscara, utilizada como aproximación a la longitud de las sendas detectadas~\cite{zhang1984thinning}.
+	\item \textbf{Número de componentes conexas (\texttt{n\_components})} Cantidad de regiones desconectadas segmentadas, indicador de discontinuidades en la detección~\cite{gonzalez2008dip}.
+	\item \textbf{Grosor medio estimado (\texttt{mean\_thickness\_px})} Aproximación del grosor medio de la traza, calculada a partir de la relación entre área y longitud del esqueleto~\cite{zhang1984thinning}.
+\end{itemize}
 
-\subsubsection{Recall}
-El \textit{recall}, también conocido como sensibilidad, evalúa hasta qué punto un modelo es capaz de detectar correctamente los píxeles que pertenecen a una clase determinada. Esta métrica mide la fracción de elementos de la clase objetivo que han sido identificados por el modelo en relación con el total de píxeles de dicha clase presentes en los datos de referencia~\cite{Dimitrovski2024, powers2020}: \begin{equation}
-	\mathrm{Recall}_c = \frac{TP_c}{TP_c + FN_c}
-\end{equation}
-
-En el ámbito de la segmentación semántica, un valor alto de \textit{recall} indica que el modelo cubre adecuadamente las estructuras de interés, reduciendo la cantidad de regiones omitidas. Esta propiedad resulta especialmente relevante en aplicaciones donde la pérdida de información es crítica, como en la detección de sendas, infraestructuras lineales o patrones espaciales de baja visibilidad~\cite{ji2022automation, sokolova2009systematic}.
-
-\subsubsection{$F_1$ Score}
-El $F_1$ Score es una métrica compuesta que combina la precisión y el \textit{recall} mediante su media armónica, proporcionando una medida equilibrada del rendimiento del modelo: \begin{equation}
-	F_{1,c} = 2\cdot \frac{\mathrm{Precisión}_c\cdot \mathrm{Recall}_c}{\mathrm{Precisión}_c + \mathrm{Recall}_c}
-\end{equation}
-
-A diferencia de la media aritmética, esta formulación penaliza fuertemente los casos en los que una de las dos métricas presenta valores bajos~\cite{Dimitrovski2024}.
-
-En tareas de segmentación semántica con desequilibrio entre clases, el $F_1$ Score ofrece una evaluación más representativa que la exactitud global, ya que refleja simultáneamente la capacidad del modelo para detectar correctamente una clase y para evitar falsas detecciones. Por ello, es especialmente útil cuando se analizan clases minoritarias o estructuras de pequeña extensión espacial~\cite{ji2022automation, sokolova2009systematic}.
-
+Estas medidas complementan las métricas de solapamiento, ya que permiten comprobar si pequeñas discrepancias entre rutas de inferencia se traducen en cambios apreciables en la morfología global de las trazas.
 
 
 

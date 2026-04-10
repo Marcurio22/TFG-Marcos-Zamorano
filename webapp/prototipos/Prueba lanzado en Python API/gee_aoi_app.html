@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GEE AOI (2 puntos) → Miniatura / Descarga</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .wrap { display: grid; grid-template-columns: 420px 1fr; height: 100vh; }
+    .panel { padding: 14px; border-right: 1px solid #e5e5e5; overflow: auto; }
+    #map { height: 100vh; }
+    h1 { font-size: 18px; margin: 0 0 10px 0; }
+    .small { color: #555; font-size: 13px; line-height: 1.35; }
+    label { display:block; margin-top: 10px; font-size: 13px; color:#333; }
+    input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 10px; margin-top: 6px; }
+    button { width: 100%; padding: 10px; margin-top: 10px; border: 0; border-radius: 12px; cursor: pointer; font-weight: 600; }
+    button.primary { background: #1a73e8; color: #fff; }
+    button.secondary { background: #f1f3f4; }
+    .row { display:flex; gap:10px; }
+    .row > * { flex:1; }
+    .chip { display:inline-block; padding: 4px 8px; background:#f1f3f4; border-radius: 999px; font-size: 12px; margin-right: 6px; }
+    .status { margin-top: 10px; font-size: 13px; white-space: pre-wrap; }
+    img.preview { width: 100%; border-radius: 12px; border: 1px solid #e5e5e5; margin-top: 10px; }
+    a { color:#1a73e8; }
+    .warn { color:#8a4b00; }
+    code { background:#f6f8fa; padding: 2px 6px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <h1>AOI por 2 puntos → Miniatura (getThumbURL) / Descarga (getDownloadURL)</h1>
+    <div class="small">
+      1) Haz <b>dos clics</b> en el mapa (esquina 1 y esquina 2).<br/>
+      2) El servidor (Python + GEE) genera:<br/>
+      <span class="chip">Miniatura PNG/JPG</span> vía <code>ee.Image.getThumbURL</code><br/>
+      <span class="chip">GeoTIFF</span> vía <code>ee.Image.getDownloadURL</code> (para recortes pequeños).<br/><br/>
+      <span class="warn">Nota:</span> si el AOI es grande o la escala muy fina, el GeoTIFF puede fallar por límites. En ese caso usa “Exportar a Drive”.
+    </div>
+
+    <label>Dataset (se genera una <b>composición</b>, no una lista de escenas)</label>
+    <select id="dataset">
+      <option value="S2_MEDIAN">Sentinel‑2 SR (composición mediana RGB)</option>
+      <option value="L89_MEDIAN">Landsat 8/9 SR (composición mediana RGB)</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label>Fecha inicio</label>
+        <input id="start" value="2024-06-01" placeholder="YYYY-MM-DD"/>
+      </div>
+      <div>
+        <label>Fecha fin</label>
+        <input id="end" value="2024-09-30" placeholder="YYYY-MM-DD"/>
+      </div>
+    </div>
+
+    <label>Nubosidad máxima (%) (solo filtra metadatos; la composición ayuda)</label>
+    <input id="cloud" value="20" />
+
+    <div class="row">
+      <div>
+        <label>Scale (m/px) para GeoTIFF</label>
+        <input id="scale" value="10" />
+      </div>
+      <div>
+        <label>Formato miniatura</label>
+        <select id="thumbfmt">
+          <option value="png">PNG</option>
+          <option value="jpg">JPG</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Ancho de miniatura (px)</label>
+    <input id="thumbw" value="1024" />
+
+    <button class="primary" id="btnThumb">Generar miniatura</button>
+    <button class="secondary" id="btnDownload">Generar enlace GeoTIFF</button>
+    <button class="secondary" id="btnExport">Exportar a Drive (recomendado si falla)</button>
+    <button class="secondary" id="btnClear">Limpiar puntos</button>
+
+    <div class="status" id="status">Puntos: 0/2</div>
+
+    <div id="thumbBlock" style="display:none">
+      <img id="thumbImg" class="preview" />
+      <div class="small" style="margin-top:6px">
+        Si no se ve, abre el enlace: <a id="thumbLink" target="_blank">miniatura</a>
+      </div>
+    </div>
+
+    <div id="downloadBlock" style="display:none; margin-top:10px">
+      <div class="small">
+        Enlace GeoTIFF: <a id="downloadLink" target="_blank">descargar</a>
+      </div>
+    </div>
+
+    <div id="exportBlock" style="display:none; margin-top:10px">
+      <div class="small">
+        Export Task ID: <b id="taskId"></b><br/>
+        Se exporta a una carpeta de Drive llamada <b>GEE_AOI_EXPORTS</b>.
+      </div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([40.4168, -3.7038], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  let pts = [];
+  let markers = [];
+  let rect = null;
+
+  const statusEl = document.getElementById('status');
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  function updateStatus() {
+    setStatus(`Puntos: ${pts.length}/2\n` + (pts.length===2 ? `AOI listo.` : `Haz clic en el mapa para añadir puntos.`));
+  }
+
+  function clearAll() {
+    pts = [];
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+    if (rect) map.removeLayer(rect);
+    rect = null;
+    document.getElementById('thumbBlock').style.display = 'none';
+    document.getElementById('downloadBlock').style.display = 'none';
+    document.getElementById('exportBlock').style.display = 'none';
+    updateStatus();
+  }
+
+  function drawRect() {
+    if (rect) map.removeLayer(rect);
+    if (pts.length < 2) return;
+
+    const p1 = pts[0], p2 = pts[1];
+    const bounds = L.latLngBounds([p1.lat, p1.lng], [p2.lat, p2.lng]);
+    rect = L.rectangle(bounds, {color:'#ffeb3b', weight:2, fillOpacity:0.25}).addTo(map);
+    map.fitBounds(bounds.pad(0.2));
+  }
+
+  map.on('click', (e) => {
+    if (pts.length >= 2) return;
+    pts.push({lat: e.latlng.lat, lng: e.latlng.lng});
+    const m = L.marker(e.latlng).addTo(map);
+    markers.push(m);
+    drawRect();
+    updateStatus();
+  });
+
+  async function postJson(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data && data.error ? data.error : `HTTP ${res.status}`);
+    return data;
+  }
+
+  function currentParams() {
+    if (pts.length < 2) throw new Error('Necesitas 2 puntos.');
+    return {
+      p1: pts[0], p2: pts[1],
+      dataset: document.getElementById('dataset').value,
+      start: document.getElementById('start').value,
+      end: document.getElementById('end').value,
+      cloud: parseFloat(document.getElementById('cloud').value || '20'),
+      scale: parseFloat(document.getElementById('scale').value || '10'),
+      thumb_format: document.getElementById('thumbfmt').value,
+      thumb_width: parseInt(document.getElementById('thumbw').value || '1024', 10),
+    };
+  }
+
+  document.getElementById('btnClear').onclick = clearAll;
+
+  document.getElementById('btnThumb').onclick = async () => {
+    try {
+      setStatus('Generando miniatura...');
+      const data = await postJson('/api/thumb', currentParams());
+      document.getElementById('thumbImg').src = data.url;
+      const a = document.getElementById('thumbLink');
+      a.href = data.url; a.textContent = data.url;
+      document.getElementById('thumbBlock').style.display = 'block';
+      setStatus('Miniatura lista.');
+    } catch (err) {
+      setStatus('Error: ' + err.message);
+    }
+  };
+
+  document.getElementById('btnDownload').onclick = async () => {
+    try {
+      setStatus('Generando enlace GeoTIFF...');
+      const data = await postJson('/api/download', currentParams());
+      const a = document.getElementById('downloadLink');
+      a.href = data.url; a.textContent = data.url;
+      document.getElementById('downloadBlock').style.display = 'block';
+      setStatus('Enlace GeoTIFF listo.');
+    } catch (err) {
+      setStatus('Error: ' + err.message);
+    }
+  };
+
+  document.getElementById('btnExport').onclick = async () => {
+    try {
+      setStatus('Creando export a Drive...');
+      const data = await postJson('/api/export', currentParams());
+      document.getElementById('taskId').textContent = data.task_id;
+      document.getElementById('exportBlock').style.display = 'block';
+      setStatus('Export creado. Revisa Google Drive (carpeta GEE_AOI_EXPORTS).');
+    } catch (err) {
+      setStatus('Error: ' + err.message);
+    }
+  };
+
+  updateStatus();
+</script>
+</body>
+</html>

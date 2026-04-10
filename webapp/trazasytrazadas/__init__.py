@@ -17,7 +17,7 @@ from datetime import timedelta
 from flask import Flask, request, session
 from flask_babel import Babel, get_locale
 
-from . import traces
+from . import db, traces, trace_worker
 
 # Babel (i18n)
 babel = Babel()
@@ -78,6 +78,15 @@ def create_app(test_config=None):
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
+        DATABASE=os.path.join(app.instance_path, "trazasytrazadas.sqlite"),
+
+        # ----- Configuración de almacenamiento y trazas en segundo plano -----
+        COLLECTION_STORAGE_ROOT=os.path.join(app.instance_path, "collection"),
+        TRACE_WORKER_POLL_SECONDS=2.0,
+        TRACE_WORKER_BATCH_SIZE=1,
+        AUTO_START_TRACE_WORKER=True,
+        TRACE_WORKER_STALE_SECONDS=600,
+        COLLECTION_PHOTO_RETRY_ENABLE_SECONDS=120,
 
         # ------------------ Configuración ML ------------------
         # Carpeta donde van los pesos por fold.
@@ -124,6 +133,14 @@ def create_app(test_config=None):
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
     os.makedirs(app.config["SEG_MODELS_DIR"], exist_ok=True)
+
+    # Integración de base de datos SQLite.
+    db.init_app(app)
+    trace_worker.init_app(app)
+
+    with app.app_context():
+        db.init_db()
+        os.makedirs(app.config["COLLECTION_STORAGE_ROOT"], exist_ok=True)
 
     # Registrar blueprint principal.
     app.register_blueprint(traces.bp)

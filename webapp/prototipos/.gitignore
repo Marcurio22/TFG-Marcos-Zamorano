@@ -1,0 +1,11 @@
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Georreferenciación
+*.tif
+
+# Jupyter Notebook
+.ipynb_checkpoints/

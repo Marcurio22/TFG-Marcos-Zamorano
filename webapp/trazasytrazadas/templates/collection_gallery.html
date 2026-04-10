@@ -1,0 +1,384 @@
+<!--
+Galería de teselas asociadas a una zona persistida.
+
+Esta vista permite revisar las teselas guardadas para una parcela, abrir cada
+imagen en un visor ampliado y descargar la imagen individual o el ZIP completo
+con los artefactos disponibles.
+
+Autor: Marcos Zamorano Lasso
+Versión: 0.1
+-->
+{% extends "base.html" %}
+{% block title %}{{ zone.display_name }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-3{% endblock %}
+{% block content %}
+    <section class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="breadcrumbs text-sm">
+            <ul>
+                <li>
+                    <a href="{{ url_for("trazas.collection") }}">{{ _("Colección de imágenes") }}</a>
+                </li>
+                <li>{{ _("Galería") }}</li>
+            </ul>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ url_for('trazas.visor', parcel_id=zone.parcela_id) }}"
+               class="btn btn-sm btn-primary">{{ _("Ver en el mapa") }}</a>
+            <a href="{{ url_for('trazas.collection_download_zip', parcel_id=zone.parcela_id) }}"
+               class="btn btn-sm btn-outline">{{ _("Descargar ZIP") }}</a>
+        </div>
+    </section>
+    <section class="card bg-base-100 border border-base-200 shadow-sm mb-4"
+             data-gallery-zone-root
+             data-zone-id="{{ zone.parcela_id }}"
+             data-zone-status-url="{{ url_for('trazas.collection_zone_status', parcel_id=zone.parcela_id) }}">
+        <div class="card-body gap-4">
+            <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold">{{ zone.display_name }}</h2>
+                    <p class="text-sm opacity-75">{{ _("Teselas guardadas a partir de la cuadrícula generada en el visor.") }}</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <form method="post"
+                          action="{{ url_for('trazas.collection_zone_retry_pending_failed', parcel_id=zone.parcela_id) }}"
+                          class="inline-flex">
+                        <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+                        <button type="submit"
+                                class="btn btn-sm btn-warning {% if not zone.can_retry_all %}btn-disabled{% endif %}"
+                                data-zone-retry-all-button
+                                title="{% if zone.can_retry_all %}{{ _("Recalcular solo las teselas pendientes o con error.") }}{% elif zone.tile_count and zone.completed_tiles == zone.tile_count %}{{ _("Todas las teselas ya tienen las trazas calculadas.") }}{% else %}{{ _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error.") }}{% endif %}"
+                                {% if not zone.can_retry_all %}disabled aria-disabled="true"{% else %}aria-disabled="false"{% endif %}>
+                            {{ _("Recalcular pendientes y errores") }}
+                        </button>
+                    </form>
+                    <span data-zone-status-badge>
+                        {% if zone.estado == 'completed' %}
+                            <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
+                        {% elif zone.estado == 'processing' %}
+                            <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
+                        {% elif zone.estado == 'failed' %}
+                            <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                        {% else %}
+                            <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="stats stats-vertical lg:stats-horizontal shadow-sm border border-base-200 bg-base-50 w-full">
+                <div class="stat">
+                    <div class="stat-title">{{ _("Punto origen") }}</div>
+                    <button type="button"
+                            class="stat-value text-base text-left hover:text-primary hover:underline"
+                            data-action="open-zone-rename"
+                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=zone.parcela_id) }}"
+                            data-zone-name="{{ zone.nombre_coleccion or '' }}"
+                            data-zone-display-name="{{ zone.display_name }}"
+                            data-redirect-to="{{ request.full_path }}">
+                        {{ "%.6f"|format(zone.origin.lat) }}, {{ "%.6f"|format(zone.origin.lng) }}
+                    </button>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">{{ _("Punto destino") }}</div>
+                    <button type="button"
+                            class="stat-value text-base text-left hover:text-primary hover:underline"
+                            data-action="open-zone-rename"
+                            data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=zone.parcela_id) }}"
+                            data-zone-name="{{ zone.nombre_coleccion or '' }}"
+                            data-zone-display-name="{{ zone.display_name }}"
+                            data-redirect-to="{{ request.full_path }}">
+                        {{ "%.6f"|format(zone.destination.lat) }}, {{ "%.6f"|format(zone.destination.lng) }}
+                    </button>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">{{ _("Fuente") }}</div>
+                    <div class="stat-value text-base">{{ zone.source_label }}</div>
+                    <div class="stat-desc">{{ zone.actual_resolution }} m/px · {{ zone.tile_count }} {{ _("teselas") }}</div>
+                    <div class="stat-desc" data-zone-progress-summary>
+                        {{ _("%(completed)s/%(total)s teselas completadas", completed=zone.completed_tiles, total=zone.tile_count) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% if zone.photos %}
+        <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {% for photo in zone.photos %}
+                <article class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden h-full"
+                         data-gallery-photo-card
+                         data-photo-id="{{ photo.foto_id }}"
+                         data-photo-title="{{ _("Tesela %(row)s-%(col)s", row=photo.row_index, col=photo.col_index) }}"
+                         data-photo-image-url="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
+                         data-photo-traces-url="{{ url_for('trazas.collection_photo_traces', photo_id=photo.foto_id) }}"
+                         data-photo-download-url="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
+                         data-photo-retry-url="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                         data-photo-filename="{{ photo.filename }}"
+                         data-photo-center-lat="{{ "%.6f"|format(photo.latitud) }}"
+                         data-photo-center-lng="{{ "%.6f"|format(photo.longitud) }}"
+                         data-photo-width="{{ photo.width }}"
+                         data-photo-height="{{ photo.height }}"
+                         data-photo-state="{{ photo.estado }}"
+                         data-photo-trace-status="{{ photo.trace_status }}"
+                         data-photo-can-retry="{{ 1 if photo.can_retry else 0 }}">
+                    <button type="button"
+                            class="block w-full text-left"
+                            data-action="open-photo-viewer"
+                            aria-label="{{ _("Abrir tesela en grande") }}">
+                        <figure class="bg-base-200/40 h-56 sm:h-60 flex items-center justify-center overflow-hidden">
+                            <img src="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
+                                 alt="{{ _("Tesela") }} {{ photo.row_index }}-{{ photo.col_index }}"
+                                 class="max-h-full w-full object-contain"
+                                 loading="lazy" />
+                        </figure>
+                    </button>
+                    <div class="card-body gap-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h3 class="card-title text-base">{{ _("Tesela %(row)s-%(col)s", row=photo.row_index, col=photo.col_index) }}</h3>
+                                <p class="text-xs opacity-75 break-all">{{ photo.filename }}</p>
+                                <div class="mt-2 text-sm opacity-80">
+                                    {{ _("Centro aprox.: %(lat)s, %(lng)s", lat="%.6f"|format(photo.latitud) , lng="%.6f"|format(photo.longitud)) }}
+                                </div>
+                            </div>
+                            <div class="shrink-0 pt-1"
+                                 data-photo-status
+                                 data-photo-id="{{ photo.foto_id }}"
+                                 data-photo-state="{{ photo.estado }}"
+                                 title="{% if photo.is_stale %}{{ _("Procesamiento atascado") }}{% elif photo.trace_status == 'completed' %}{{ _("Trazas calculadas") }}{% elif photo.trace_status == 'processing' %}{{ _("Calculando trazas") }}{% elif photo.estado == 'failed' %}{{ _("Error de cálculo") }}{% else %}{{ _("Trazas no calculadas") }}{% endif %}">
+                                {% if photo.is_stale %}
+                                    <span class="inline-flex items-center justify-center text-warning">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round"
+                                             class="w-6 h-6">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
+                                    </span>
+                                {% elif photo.trace_status == 'completed' %}
+                                    <span class="inline-flex items-center justify-center text-success">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2.5"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round"
+                                             class="w-6 h-6">
+                                            <path d="M20 6 9 17l-5-5" />
+                                        </svg>
+                                    </span>
+                                {% elif photo.trace_status == 'processing' %}
+                                    <span class="loading loading-spinner loading-md text-primary"></span>
+                                {% elif photo.estado == 'failed' %}
+                                    <span class="inline-flex items-center justify-center text-error">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round"
+                                             class="w-6 h-6">
+                                            <path d="M12 9v4" />
+                                            <path d="M12 17h.01" />
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                                        </svg>
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center justify-center text-base-content/45">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 24 24"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             stroke-width="2"
+                                             stroke-linecap="round"
+                                             stroke-linejoin="round"
+                                             class="w-6 h-6">
+                                            <circle cx="12" cy="12" r="9" />
+                                            <path d="M8 12h8" />
+                                        </svg>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-actions justify-end mt-4 gap-2"
+                             data-photo-actions
+                             data-photo-id="{{ photo.foto_id }}"
+                             data-photo-retry-url="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                             data-photo-download-url="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}">
+                            <form method="post"
+                                  action="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
+                                  class="inline-flex">
+                                <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+                                <button type="submit"
+                                        class="btn btn-sm btn-warning {% if not photo.can_retry %}btn-disabled{% endif %}"
+                                        {% if not photo.can_retry %}disabled aria-disabled="true"{% endif %}>
+                                    {{ _("Recalcular trazas") }}
+                                </button>
+                            </form>
+                            <a href="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
+                               class="btn btn-sm btn-outline">{{ _("Descargar") }}</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <div class="alert alert-info">
+            <span>{{ _("La zona seleccionada no contiene teselas guardadas.") }}</span>
+        </div>
+    {% endif %}
+    <dialog id="photo-viewer-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-5xl max-h-[92vh] p-0">
+            <div class="border-b border-base-200 px-4 py-3 sm:px-6 flex items-start justify-between gap-3">
+                <div>
+                    <h3 id="photo-viewer-title" class="font-bold text-lg"></h3>
+                    <p id="photo-viewer-subtitle" class="text-sm opacity-75"></p>
+                </div>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost"
+                            aria-label="{{ _("Cerrar") }}">✕</button>
+                </form>
+            </div>
+            <div class="px-4 py-4 sm:px-6 space-y-4">
+                <div class="rounded-box border border-base-200 bg-base-200/40 p-3 sm:p-4 flex justify-center">
+                    <div class="relative inline-block max-w-full">
+                        <img id="photo-viewer-image"
+                             alt=""
+                             class="block max-h-[44vh] lg:max-h-[48vh] w-auto max-w-full rounded-lg" />
+                        <canvas id="photo-viewer-canvas"
+                                class="pointer-events-none absolute left-0 top-0 hidden"></canvas>
+                    </div>
+                </div>
+                <div id="photo-viewer-loading" class="hidden justify-center">
+                    <span class="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+                <div id="photo-viewer-error" class="alert alert-error hidden text-sm"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    <div class="rounded-box border border-base-200 bg-base-50 px-4 py-3">
+                        <div class="text-xs uppercase tracking-wide opacity-60">{{ _("Archivo") }}</div>
+                        <div id="photo-viewer-filename" class="mt-1 font-medium break-all"></div>
+                    </div>
+                    <div class="rounded-box border border-base-200 bg-base-50 px-4 py-3">
+                        <div class="text-xs uppercase tracking-wide opacity-60">{{ _("Centro aprox.") }}</div>
+                        <div id="photo-viewer-center" class="mt-1 font-medium"></div>
+                    </div>
+                    <div class="rounded-box border border-base-200 bg-base-50 px-4 py-3">
+                        <div class="text-xs uppercase tracking-wide opacity-60">{{ _("Dimensiones") }}</div>
+                        <div id="photo-viewer-dimensions" class="mt-1 font-medium"></div>
+                    </div>
+                </div>
+                <div class="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <form id="photo-viewer-retry-form" method="post" class="inline-flex">
+                            <input type="hidden"
+                                   name="redirect_to"
+                                   id="photo-viewer-retry-redirect"
+                                   value="{{ request.full_path }}">
+                            <button id="photo-viewer-retry-button"
+                                    type="submit"
+                                    class="btn btn-md btn-warning min-w-[11rem] justify-center">
+                                {{ _("Recalcular trazas") }}
+                            </button>
+                        </form>
+                        <button id="photo-viewer-draw-button"
+                                type="button"
+                                class="btn btn-md btn-primary min-w-[10rem] justify-center">
+                            {{ _("Dibujar trazas") }}
+                        </button>
+                        <a id="photo-viewer-download-link"
+                           href="#"
+                           class="btn btn-md btn-outline min-w-[9rem] justify-center">{{ _("Descargar") }}</a>
+                    </div>
+                    <div class="flex items-center gap-2 lg:justify-self-end">
+                        <span class="text-sm opacity-75">{{ _("Overlay") }}</span>
+                        <span id="photo-viewer-draw-status"
+                              class="inline-flex items-center"
+                              aria-live="polite">
+                            <span class="badge badge-neutral badge-outline">{{ _("Sin dibujar") }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="{{ _("Cerrar") }}"></button>
+        </form>
+    </dialog>
+    <dialog id="zone-rename-modal" class="modal">
+        <div class="modal-box max-w-lg">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="font-bold text-lg">{{ _("Renombrar colección") }}</h3>
+                    <p id="rename-zone-current-display" class="text-sm opacity-75"></p>
+                </div>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost"
+                            aria-label="{{ _("Cerrar") }}">✕</button>
+                </form>
+            </div>
+            <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
+                <input type="hidden"
+                       name="redirect_to"
+                       id="rename-zone-redirect-to"
+                       value="{{ request.full_path }}">
+                <label class="form-control">
+                    <div class="label pb-1">
+                        <span class="label-text">{{ _("Nombre de la colección") }}</span>
+                    </div>
+                    <input id="rename-zone-name-input"
+                           name="name"
+                           type="text"
+                           maxlength="120"
+                           class="input input-bordered w-full"
+                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}" />
+                </label>
+            </form>
+            <div class="modal-action">
+                <button type="submit" form="zone-rename-form" class="btn btn-primary">{{ _("Guardar") }}</button>
+                <form method="dialog">
+                    <button class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button aria-label="{{ _("Cerrar") }}"></button>
+        </form>
+    </dialog>
+    <script>
+        window.COLLECTION_APP = {{ {
+            "pollIntervalMs": 5000,
+            "i18n": {
+                "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
+                "zoneCompleted": _("Trazas completadas"),
+                "zoneProcessing": _("Procesando"),
+                "zonePending": _("En espera"),
+                "zoneFailed": _("Error"),
+                "photoCompleted": _("Trazas calculadas"),
+                "photoProcessing": _("Calculando trazas"),
+                "photoPending": _("Trazas no calculadas"),
+                "photoFailed": _("Error de cálculo"),
+                "photoStale": _("Procesamiento atascado"),
+                "retryTrace": _("Reintentar"),
+                "recalculateTrace": _("Recalcular trazas"),
+                "drawTrace": _("Dibujar trazas"),
+                "download": _("Descargar"),
+                "viewerImagePreview": _("Vista ampliada de la tesela seleccionada."),
+                "viewerDrawn": _("Trazas dibujadas"),
+                "viewerNotDrawn": _("Sin dibujar"),
+                "viewerDrawing": _("Dibujando..."),
+                "viewerDrawUnavailable": _("Todavía no hay trazas calculadas para esta tesela."),
+                "viewerDrawError": _("No se han podido dibujar las trazas sobre la imagen."),
+                "retryZoneReady": _("Recalcular solo las teselas pendientes o con error."),
+"retryZoneDisabledCompleted": _("Todas las teselas ya tienen las trazas calculadas."),
+"retryZoneDisabledWait": _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error.")
+            }
+        } | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/collection.js') }}"></script>
+{% endblock %}

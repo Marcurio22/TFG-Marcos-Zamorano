@@ -2,20 +2,56 @@
 
 \section{Introducción}
 
-\section{Diseño de datos}
 
-\section{Diseño arquitectónico}
-\begin{figure}[h]
+\section{Diseño de datos}
+El diseño de datos define la estructura de persistencia que soporta el funcionamiento de la aplicación, garantizando que la información se almacene de forma coherente, trazable y escalable. En este apartado se presenta el esquema lógico de la base de datos, con el objetivo de justificar las entidades principales del dominio, sus relaciones y las restricciones de integridad que permiten mantener consistencia entre usuarios, parcelas, imágenes procesadas y resultados generados por el sistema.
+
+\begin{figure}[tbp]
 	\centering
-	\includegraphics[width=\textwidth]{../assets/mockup/Mockup_web.pdf}
-	\caption{Mockup de la web}
+	\includegraphics[
+	width=\textwidth,
+	trim=0 670 0 0,
+	clip
+	]{img/Diagrama_E-R.pdf}
+	\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
+	\label{fig:esquemaerbbdd}
 \end{figure}
 
-\subsection{Arquitectura general de la aplicación}
+\subsection{Modelo Entidad--Relación}
+El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el manejo de la información necesaria en el flujo de la aplicación se han definido las siguientes entidades, junto con sus relaciones y cardinalidades:
+
+\begin{itemize}
+	\item \textbf{Usuario:} representa a la persona registrada en la aplicación y constituye el origen del control de acceso. Incluye un identificador que actúa como clave primaria, así como atributos de autenticación y perfil, como el nombre de usuario, el correo electrónico, la contraseña, el rol y la fecha de alta. Un usuario puede crear múltiples parcelas, lo que queda reflejado mediante una relación uno a muchos.
+	
+	\item \textbf{Parcela:} representa una unidad de trabajo asociada a un usuario, entendida como el área seleccionada por el mismo sobre el que se pretende organizar la información de análisis. Dispone de un identificador como clave primaria y, además, almacena atributos espaciales y descriptivos, como el tamaño en metros, el punto de origen, el punto final y una fecha asociada a la parcela. Cada una de ellas puede generar un \textit{grid} con múltiples fotos, estableciendo de nuevo una relación uno a muchos.
+	
+	\item \textbf{Foto:} modela cada imagen procesada dentro de una parcela y concentra los metadatos necesarios para su trazabilidad. Incluye un identificador como clave primaria y atributos como fecha de captura, resolución expresada en valor y unidad, coordenadas geográficas y rutas de almacenamiento, diferenciando la ruta de la imagen original y la ruta del resultado de trazas. Una foto puede contener exactamente un conjunto de trazas asociado, formalizado mediante una relación uno a uno.
+	
+	\item \textbf{Trazas:} representa el resultado generado por el sistema a partir de una foto concreta. Contiene un identificador como clave primaria y una ruta asociada al recurso resultante. Cada uno de estos ficheros .json están asociados a una imagen, por ello, obtenemos la relación uno a uno.
+\end{itemize}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 550 0 0,
+	clip
+	]{img/Esquema_relacional_BBDD.pdf}
+	\caption[Diagrama relacional de la base de datos]{Diagrama relacional de la base de datos.}
+	\label{fig:esquemarelacionalbbdd}
+\end{figure}
+
+En la Figura~\ref{fig:esquemarelacionalbbdd} se recoge la traducción del modelo conceptual al esquema relacional, estructurado en las tablas \textit{Usuario}, \textit{Parcela} y \textit{Foto}. La tabla \textit{Usuario} concentra los atributos de identificación y control de acceso, mientras que \textit{Parcela} actúa como entidad dependiente mediante la clave foránea \texttt{usuario\_id}, estableciendo una relación uno a muchos que permite organizar el histórico de trabajo por zonas o unidades de análisis. A su vez, la tabla \textit{Foto} se vincula a \textit{Parcela} a través de \texttt{parcela\_id}, almacenando tanto metadatos relevantes para caracterizar la imagen, como la fecha de captura y la resolución expresada en valor y unidad, como información de georreferenciación mediante latitud y longitud.
+
+En este esquema relacional, el resultado del procesamiento no se modela como una entidad independiente, sino que se incorpora directamente en \textit{Foto} mediante el atributo \texttt{ruta\_trazas}. De este modo, cada registro de imagen incluye la ruta al recurso original, \texttt{ruta\_foto}, y la ruta al artefacto generado tras la inferencia, \texttt{ruta\_trazas}, estableciendo una correspondencia directa entre entrada y salida. Esta decisión simplifica el modelo de datos en la fase actual del proyecto, al asumir un único resultado asociado por imagen procesada, y reduce la necesidad de \textit{joins} para recuperar el resultado, manteniendo al mismo tiempo la trazabilidad necesaria para visualización, descarga y auditoría del flujo de procesamiento. 
+
+En caso de evolución futura hacia múltiples ejecuciones o salidas por imagen, este diseño podría extenderse sin ambigüedad mediante la reintroducción de una entidad específica para resultados o ejecuciones.
+
+\section{Diseño arquitectónico}
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.7\linewidth]{img/diagrama_flujo}
+	\includegraphics[width=1.5\linewidth]{img/diagrama_flujo}
 	\caption[Diagrama de Flujo de la Aplicación]{}
 	\label{fig:diagramaflujo}
 \end{figure}
@@ -33,7 +69,7 @@ Este diseño garantiza una separación clara de responsabilidades, evitando que 
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.7\linewidth]{img/diagrama_secuencia}
+	\includegraphics[width=1.5\linewidth]{img/diagrama_secuencia}
 	\caption[Diagrama de Secuencia de la aplicación]{}
 	\label{fig:diagramasecuencia}
 \end{figure}
@@ -46,8 +82,171 @@ Posteriormente, cuando el usuario solicita el cálculo de trazas, el servidor ej
 
 Una vez cerrado el modal, el navegador solicita explícitamente los resultados mediante una petición \textit{GET traces}. El servidor lee el fichero JSON previamente generado y lo devuelve al cliente, donde el código JavaScript se encarga de dibujar las trazas sobre el \textit{canvas} y reflejar visualmente el estado de la aplicación.
 
-Finalmente, si el usuario decide eliminar la imagen, se envía una petición \textit{POST delete}. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
+Finalmente, si el usuario decide eliminar la imagen, se envía una petición del tipo \textit{post} a la ruta \textit{delete} del sistema. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
 
+\section{Diseño web}
+
+En este apartado se presentan los \textit{mockups} de las principales pantallas de la aplicación, con el objetivo de concretar el flujo de interacción previsto y servir de soporte a la especificación funcional. Estas maquetas permiten validar, de forma temprana, tanto la distribución de la interfaz como la secuencia de acciones que guían al usuario a través del \textit{pipeline} de procesamiento, desde la selección de una ortoimagen hasta la obtención y visualización de las trazas detectadas.
+
+\subsubsection{Página principal}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=1
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: página principal]{Mockup de la web: página principal.}
+	\label{fig:mockupweb1}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb1} representa el estado inicial de la aplicación, cuando todavía no se ha cargado ninguna imagen. En la parte superior se dispone una barra de acciones que agrupa las operaciones principales del sistema, insertar y borrar imagen, calcular trazas y dibujar trazas, mientras que la zona central actúa como área de trabajo, ofreciendo un contenedor de subida y previsualización. Este diseño prioriza la claridad del flujo, de modo que el usuario identifique desde el primer momento cuál es el punto de entrada del proceso y qué pasos debe ejecutar para pasar de la imagen de entrada a la representación visual del resultado.
+
+\subsubsection{Imagen insertada}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=2
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: imagen insertada]{Mockup de la web: imagen insertada.}
+	\label{fig:mockupweb2}
+\end{figure}
+
+El estado inmediatamente posterior a la página principal~\ref{fig:mockupweb1} se alcanza cuando el usuario pulsa \textit{Insertar imagen} y selecciona el fichero que desea analizar. En ese momento, la interfaz pasa a mostrar la imagen cargada, tal y como se aprecia en la Figura~\ref{fig:mockupweb2}. De este modo, el contenedor que en la pantalla inicial presentaba el texto \textit{upload image} se sustituye por la previsualización de la ortoimagen, quedando esta disponible para su inspección en el cliente y para la ejecución posterior del cálculo de trazas.
+
+\subsubsection{Modal de trazas calculadas}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=3
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: modal de trazas]{Mockup de la web: modal de trazas.}
+	\label{fig:mockupweb3}
+\end{figure}
+
+Una vez se pulse el botón \textit{Calcular trazas}, aparecerá un modal superpuesto sobre la imagen indicando que el proceso de inferencia ha finalizado y que el siguiente paso consiste en representar el resultado. Para ello, tal y como se muestra en la Figura~\ref{fig:mockupweb3}, el usuario deberá pulsar el botón \textit{Dibujar trazas}.
+\subsubsection{Trazas dibujadas}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=4
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: trazas dibujadas]{Mockup de la web: trazas dibujadas.}
+	\label{fig:mockupweb4}
+\end{figure}
+
+Tras hacer uso del botón \textit{Dibujar trazas} y, suponiendo que se ha seguido correctamente el flujo previo, se mostrará la ortoimagen original con las trazas superpuestas. De este modo, las sendas detectadas quedan resaltadas y son fácilmente inspeccionables por el usuario, tal y como se aprecia en la Figura~\ref{fig:mockupweb4}.
+
+\subsubsection{Modal de error}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=5
+	]{../assets/mockup/Mockup_web.pdf}
+	\caption[Mockup de la web: modal de error]{Mockup de la web: modal de error.}
+	\label{fig:mockupweb5}
+\end{figure}
+
+Si se interrumpe el flujo de la aplicación o se produce algún error durante la ejecución, el sistema mostrará un modal informativo indicando que no ha sido posible completar correctamente el proceso. Este comportamiento permite comunicar la incidencia de forma clara y mantener la interfaz en un estado consistente, tal y como se observa en la Figura~\ref{fig:mockupweb5}.
+
+\subsubsection{Menú de la web}
+En este segundo \textit{mockup} se aborda la ampliación funcional orientada al tratamiento geoespacial de la aplicación, incorporando un flujo de trabajo basado en selección de zonas, generación de teselas y gestión de resultados.
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=1
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: menú]{Mockup de la web: menú.}
+	\label{fig:mockupweb6}
+\end{figure}
+
+En primer lugar, se introduce un menú de navegación, tal y como se observa en la Figura~\ref{fig:mockupweb6}. Esta incorporación resulta necesaria al evolucionar la aplicación desde una única pantalla hacia un conjunto de vistas diferenciadas, permitiendo el acceso rápido a cada módulo y garantizando una navegación clara entre funcionalidades.
+
+\subsubsection{Visor}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=2
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: visor]{Mockup de la web: visor.}
+	\label{fig:mockupweb7}
+\end{figure}
+
+La siguiente pantalla corresponde al visor cartográfico, mostrado en la Figura~\ref{fig:mockupweb7}. En esta vista se integrará un mapa interactivo mediante \textit{Leaflet}, capaz de cargar ortofotografía del PNOA a niveles de \textit{zoom} adecuados. Una vez alcanzada la escala de trabajo, el usuario seleccionará dos puntos para definir un rectángulo delimitador, entendido como zona de interés. A partir de dicha geometría, el sistema generará un conjunto de teselas correspondientes al recorte definido, asociando cada imagen resultante a la zona seleccionada.
+
+\subsubsection{Colección de imágenes}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=3
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: colección de imágenes]{Mockup de la web: colección de imágenes.}
+	\label{fig:mockupweb8}
+\end{figure}
+
+Una vez generadas las teselas, el usuario podrá acceder a la colección de zonas registradas, representada en la Figura~\ref{fig:mockupweb8}. Esta pantalla organiza en una tabla todas las zonas creadas, mostrando como metadatos informativos las coordenadas de origen y fin del recuadro, junto con un conjunto de acciones asociadas. Entre ellas, se contempla la previsualización de la zona, la descarga de un fichero \texttt{.zip} con las teselas generadas y un indicador de estado que refleje si el cálculo de trazas ya se ha completado para todas las imágenes. Adicionalmente, se incluyen accesos directos a la galería, a la visualización de la zona en el mapa, y una opción de eliminación permanente del registro, junto con un control de paginación para navegar entre entradas.
+
+\subsubsection{Galería de imágenes}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=4
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: galería de imágenes]{Mockup de la web: galería de imágenes.}
+	\label{fig:mockupweb9}
+\end{figure}
+
+Al acceder a la galería, se presenta un listado de las imágenes asociadas a la zona seleccionada, tal y como se observa en la Figura~\ref{fig:mockupweb9}. Cada elemento incluye su identificación y metadatos básicos, además de un indicador de progreso que señala si las trazas han sido calculadas. Este cálculo se plantea como un proceso automático, de modo que el usuario pueda supervisar el estado sin intervención adicional.
+
+\subsubsection{Imagen resaltada}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=5
+	]{../assets/mockup/Mockup_web_pte2.pdf}
+	\caption[Mockup de la web: imagen resaltada]{Mockup de la web: imagen resaltada.}
+	\label{fig:mockupweb10}
+\end{figure}
+
+Por último, la Figura~\ref{fig:mockupweb10} muestra la vista de detalle de una imagen individual. En esta pantalla se habilita la consulta de la imagen a mayor resolución y la inspección de sus características, incorporando además acciones explícitas sobre el procesado. En particular, se incluye un botón para dibujar las trazas, únicamente cuando estas hayan sido calculadas previamente, y un botón para recalcularlas en caso de fallo o inconsistencia durante la ejecución automática.
 
 \section{Diseño procedimental}
 
