@@ -81,9 +81,25 @@ html {
   max-width: min(42rem, calc(100vw - 2rem));
 }
 
-dialog#visor-controls-modal,
-dialog#visor-controls-modal::backdrop,
-#visor-controls-modal .modal-box,
-#visor-controls-modal .modal-backdrop {
+dialog#visor-controls-modal {
   z-index: 9998 !important;
+}
+
+dialog#visor-controls-modal::backdrop {
+  z-index: 9997 !important;
+}
+
+#visor-controls-modal .modal-backdrop {
+  z-index: 9997 !important;
+}
+
+#visor-controls-modal .modal-box {
+  position: relative;
+  z-index: 10000 !important;
+  pointer-events: auto;
+}
+
+#visor-controls-modal[open] {
+  display: grid;
+  place-items: center;
 }
