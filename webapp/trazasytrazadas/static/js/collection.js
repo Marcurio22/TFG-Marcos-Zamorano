@@ -71,9 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const photoViewerRetryButton = document.getElementById("photo-viewer-retry-button");
   const zoneRetryAllButton = document.querySelector("[data-zone-retry-all-button]");
   const photoViewerRetryRedirect = document.getElementById("photo-viewer-retry-redirect");
-  const photoViewerDrawButton = document.getElementById("photo-viewer-draw-button");
+  const photoViewerDrawToggle = document.getElementById("photo-viewer-draw-toggle");
   const photoViewerDownloadLink = document.getElementById("photo-viewer-download-link");
-  const photoViewerDrawStatus = document.getElementById("photo-viewer-draw-status");
+  const photoViewerTraceStatus = document.getElementById("photo-viewer-trace-status");
 
   const perPageSelect = document.querySelector("[data-collection-per-page]");
   const galleryRoot = document.querySelector("[data-gallery-zone-root]");
@@ -275,29 +275,56 @@ document.addEventListener("DOMContentLoaded", () => {
     return parts.join("");
   }
 
-  function renderViewerDrawStatusMarkup(state) {
-    if (state === "loading") {
-      return `
-        <span class="badge badge-info badge-outline gap-2">
-          <span class="loading loading-spinner loading-xs"></span>
-          ${htmlEscape(I18N.viewerDrawing)}
-        </span>
-      `;
+  function getPhotoVisualTraceStatus(photo) {
+    if (!photo) {
+      return "pending";
     }
 
-    if (state === "drawn") {
-      return `<span class="badge badge-success badge-outline">${htmlEscape(I18N.viewerDrawn)}</span>`;
+    if (photo.status === "failed") {
+      return "failed";
     }
 
-    return `<span class="badge badge-neutral badge-outline">${htmlEscape(I18N.viewerNotDrawn)}</span>`;
+    return photo.traceStatus || "pending";
   }
 
-  function setViewerDrawStatus(state) {
-    if (!photoViewerDrawStatus) {
+  function getPhotoVisualTraceTitle(status) {
+    if (status === "completed") {
+      return I18N.photoCompleted;
+    }
+
+    if (status === "processing") {
+      return I18N.photoProcessing;
+    }
+
+    if (status === "failed") {
+      return I18N.photoFailed;
+    }
+
+    return I18N.photoPending;
+  }
+
+  function syncPhotoViewerTraceStatus() {
+    if (!photoViewerTraceStatus) {
       return;
     }
-    photoViewerDrawStatus.innerHTML = renderViewerDrawStatusMarkup(state);
-    photoViewerDrawStatus.dataset.state = state;
+
+    const card = getPhotoCard(currentViewerPhotoId);
+    const photo = getPhotoDataFromCard(card);
+    const visualStatus = getPhotoVisualTraceStatus(photo);
+
+    photoViewerTraceStatus.innerHTML = renderPhotoStateMarkup(visualStatus, false);
+    photoViewerTraceStatus.title = getPhotoVisualTraceTitle(visualStatus);
+    photoViewerTraceStatus.dataset.photoState = visualStatus;
+  }
+
+  function resetPhotoViewerDrawToggle() {
+    if (!photoViewerDrawToggle) {
+      return;
+    }
+
+    photoViewerDrawToggle.checked = false;
+    photoViewerDrawToggle.disabled = true;
+    photoViewerDrawToggle.setAttribute("aria-disabled", "true");
   }
 
   function resetPreviewModal() {
@@ -376,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.clearRect(0, 0, photoViewerCanvas.width, photoViewerCanvas.height);
     }
     photoViewerCanvas.classList.add("hidden");
-    setViewerDrawStatus("idle");
+    syncPhotoViewerTraceStatus();
   }
 
   function resizePhotoViewerCanvas() {
@@ -427,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     photoViewerCanvas.classList.remove("hidden");
-    setViewerDrawStatus("drawn");
+    syncPhotoViewerTraceStatus();
   }
 
   function updatePhotoViewerControls(photo) {
@@ -448,10 +475,19 @@ document.addEventListener("DOMContentLoaded", () => {
       photoViewerRetryButton.classList.toggle("btn-disabled", !photo.canRetry);
     }
 
-    if (photoViewerDrawButton) {
+    if (photoViewerDrawToggle) {
       const canDraw = photo.traceStatus === "completed";
-      photoViewerDrawButton.disabled = !canDraw;
-      photoViewerDrawButton.classList.toggle("btn-disabled", !canDraw);
+
+      if (!canDraw && photoViewerDrawToggle.checked) {
+        photoViewerDrawToggle.checked = false;
+        clearPhotoViewerOverlay();
+      }
+
+      photoViewerDrawToggle.disabled = !canDraw;
+      photoViewerDrawToggle.setAttribute(
+        "aria-disabled",
+        canDraw ? "false" : "true"
+      );
     }
 
     if (photoViewerDownloadLink) {
@@ -468,6 +504,9 @@ document.addEventListener("DOMContentLoaded", () => {
     clearPhotoViewerError();
     clearPhotoViewerOverlay();
 
+    if (photoViewerDrawToggle) {
+      photoViewerDrawToggle.checked = false;
+    }
     if (photoViewerTitle) {
       photoViewerTitle.textContent = photo.title;
     }
@@ -485,6 +524,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     updatePhotoViewerControls(photo);
+    syncPhotoViewerTraceStatus();
 
     if (photoViewerLoading) {
       photoViewerLoading.classList.remove("hidden");
@@ -522,16 +562,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const card = getPhotoCard(currentViewerPhotoId);
     const photo = getPhotoDataFromCard(card);
     if (!photo) {
-      return;
+      return false;
     }
 
     if (photo.traceStatus !== "completed") {
       showPhotoViewerError(I18N.viewerDrawUnavailable);
-      return;
+      return false;
     }
 
     clearPhotoViewerError();
-    setViewerDrawStatus("loading");
+    syncPhotoViewerTraceStatus();
 
     try {
       const tracesUrl = new URL(photo.tracesUrl, window.location.origin);
@@ -550,9 +590,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ys: Array.isArray(payload.ys) ? payload.ys : [],
       };
       drawCurrentViewerTraces();
+      return true;
     } catch (error) {
       clearPhotoViewerOverlay();
       showPhotoViewerError(error.message || I18N.viewerDrawError);
+      return false;
     }
   }
 
@@ -607,9 +649,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  if (photoViewerDrawButton) {
-    photoViewerDrawButton.addEventListener("click", async () => {
-      await drawViewerTraces();
+  if (photoViewerDrawToggle) {
+    photoViewerDrawToggle.addEventListener("change", async () => {
+      if (photoViewerDrawToggle.disabled) {
+        photoViewerDrawToggle.checked = false;
+        return;
+      }
+
+      if (!photoViewerDrawToggle.checked) {
+        clearPhotoViewerError();
+        clearPhotoViewerOverlay();
+        return;
+      }
+
+      const drawn = await drawViewerTraces();
+      if (!drawn) {
+        photoViewerDrawToggle.checked = false;
+      }
     });
   }
 
@@ -618,6 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
       currentViewerPhotoId = null;
       clearPhotoViewerError();
       clearPhotoViewerOverlay();
+      resetPhotoViewerDrawToggle();
       if (photoViewerImage) {
         photoViewerImage.removeAttribute("src");
         photoViewerImage.alt = "";
@@ -845,6 +902,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentViewerPhotoId && currentViewerPhotoId === String(photo.foto_id)) {
         updatePhotoViewerControls(getPhotoDataFromCard(card));
+        syncPhotoViewerTraceStatus();
       }
     });
   }

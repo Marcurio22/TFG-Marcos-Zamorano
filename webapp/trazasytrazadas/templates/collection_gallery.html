@@ -286,22 +286,23 @@ Versión: 0.1
                                 {{ _("Recalcular trazas") }}
                             </button>
                         </form>
-                        <button id="photo-viewer-draw-button"
-                                type="button"
-                                class="btn btn-md btn-primary min-w-[10rem] justify-center">
-                            {{ _("Dibujar trazas") }}
-                        </button>
+                        <label class="inline-flex min-w-[14rem] items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-2">
+                            <span class="text-sm font-medium">{{ _("Dibujar trazas") }}</span>
+                            <input id="photo-viewer-draw-toggle"
+                                   type="checkbox"
+                                   class="checkbox checkbox-primary"
+                                   disabled
+                                   aria-disabled="true">
+                        </label>
                         <a id="photo-viewer-download-link"
                            href="#"
                            class="btn btn-md btn-outline min-w-[9rem] justify-center">{{ _("Descargar") }}</a>
                     </div>
                     <div class="flex items-center gap-2 lg:justify-self-end">
-                        <span class="text-sm opacity-75">{{ _("Overlay") }}</span>
-                        <span id="photo-viewer-draw-status"
+                        <span class="text-sm opacity-75">{{ _("Estado de trazas") }}</span>
+                        <span id="photo-viewer-trace-status"
                               class="inline-flex items-center"
-                              aria-live="polite">
-                            <span class="badge badge-neutral badge-outline">{{ _("Sin dibujar") }}</span>
-                        </span>
+                              aria-live="polite"></span>
                     </div>
                 </div>
             </div>
