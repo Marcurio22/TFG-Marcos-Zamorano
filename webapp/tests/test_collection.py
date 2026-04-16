@@ -19,6 +19,7 @@ from trazasytrazadas import collection as collection_module
 from trazasytrazadas import visor as visor_module
 from trazasytrazadas.collection_store import (
     get_zone_detail,
+    get_zone_preview_abspath,
     materialize_photo_tile,
     refresh_parcel_status,
     get_zone_live_status,
@@ -716,3 +717,44 @@ def test_collection_zone_status_disables_bulk_retry_when_completed(
         assert payload is not None
         assert payload["estado"] == "completed"
         assert payload["can_retry_all"] is False
+
+
+def test_collection_preview_persists_file_on_first_request(
+    app, client, monkeypatch
+):
+    """La primera llamada de preview guarda el JPEG persistido en disco."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    response = client.get(f"/coleccion/{parcel_id}/preview")
+    assert response.status_code == 200
+    assert response.mimetype == "image/jpeg"
+
+    with app.app_context():
+        preview_path = get_zone_preview_abspath(parcel_id)
+        assert os.path.exists(preview_path)
+
+        with open(preview_path, "rb") as preview_file:
+            assert preview_file.read(3) == b"\xff\xd8\xff"
+
+
+def test_collection_preview_reuses_persisted_file(
+    app, client, monkeypatch
+):
+    """Una preview ya persistida se reutiliza sin reconstruirse."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    first_response = client.get(f"/coleccion/{parcel_id}/preview")
+    assert first_response.status_code == 200
+
+    def _fail_if_rebuilt(_detail):
+        raise AssertionError("La preview no debería reconstruirse.")
+
+    monkeypatch.setattr(
+        collection_module,
+        "_build_zone_preview_bytes",
+        _fail_if_rebuilt,
+    )
+
+    second_response = client.get(f"/coleccion/{parcel_id}/preview")
+    assert second_response.status_code == 200
+    assert second_response.mimetype == "image/jpeg"

@@ -273,6 +273,42 @@ def _parcel_traces_dir(parcel_id: int) -> str:
     return os.path.join(_parcel_root_dir(parcel_id), "traces")
 
 
+def _parcel_preview_dir(parcel_id: int) -> str:
+    """Devuelve la carpeta física de previews de una parcela."""
+    return os.path.join(_parcel_root_dir(parcel_id), "preview")
+
+
+def get_zone_preview_abspath(parcel_id: int) -> str:
+    """Devuelve la ruta absoluta de la preview persistida de una parcela."""
+    return os.path.join(_parcel_preview_dir(parcel_id), "zone_preview.jpg")
+
+
+def save_zone_preview_bytes(parcel_id: int, image_bytes: bytes) -> str:
+    """
+    Guarda en disco la preview JPEG de una zona y devuelve su ruta absoluta.
+
+    La escritura se hace sobre un fichero temporal y luego se reemplaza el
+    destino final para evitar previews corruptas si algo falla a mitad.
+    """
+    os.makedirs(_parcel_preview_dir(parcel_id), exist_ok=True)
+
+    preview_path = get_zone_preview_abspath(parcel_id)
+    temp_path = f"{preview_path}.{uuid4().hex}.tmp"
+
+    try:
+        with open(temp_path, "wb") as preview_file:
+            preview_file.write(image_bytes)
+        os.replace(temp_path, preview_path)
+    finally:
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+    return preview_path
+
+
 def _parcel_delete_staging_dir() -> str:
     """Devuelve la carpeta temporal para borrados físicos seguros."""
     staging_dir = os.path.join(get_collection_storage_root(), ".deleted")

@@ -40,12 +40,14 @@ from .collection_store import (
     get_storage_abspath,
     get_zone_detail,
     get_zone_live_status,
+    get_zone_preview_abspath,
     list_zone_status_summaries,
     list_zones,
     photo_retry_is_enabled,
     retry_photo,
-    update_zone_name,
     retry_zone_pending_and_failed,
+    save_zone_preview_bytes,
+    update_zone_name,
     zone_retry_is_enabled,
 )
 from .visor import (
@@ -393,6 +395,15 @@ def register_collection_routes(bp) -> None:
     def collection_preview(parcel_id: int):
         """Devuelve una preview inline exacta de la zona completa."""
         detail = _load_zone_or_404(parcel_id)
+        preview_path = get_zone_preview_abspath(parcel_id)
+
+        if os.path.exists(preview_path):
+            return send_file(
+                preview_path,
+                mimetype="image/jpeg",
+                as_attachment=False,
+                download_name=f"parcela_{parcel_id}_preview.jpg",
+            )
 
         try:
             image_bytes = _build_zone_preview_bytes(detail)
@@ -414,8 +425,22 @@ def register_collection_routes(bp) -> None:
                 502,
             )
 
+        try:
+            preview_path = save_zone_preview_bytes(parcel_id, image_bytes)
+        except OSError:
+            current_app.logger.exception(
+                "No se ha podido persistir la preview de la zona %s",
+                parcel_id,
+            )
+            return send_file(
+                io.BytesIO(image_bytes),
+                mimetype="image/jpeg",
+                as_attachment=False,
+                download_name=f"parcela_{parcel_id}_preview.jpg",
+            )
+
         return send_file(
-            io.BytesIO(image_bytes),
+            preview_path,
             mimetype="image/jpeg",
             as_attachment=False,
             download_name=f"parcela_{parcel_id}_preview.jpg",
