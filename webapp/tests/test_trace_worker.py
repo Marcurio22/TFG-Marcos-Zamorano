@@ -10,6 +10,7 @@ Versión: 0.1
 
 import io
 import os
+import threading
 
 from PIL import Image
 
@@ -291,3 +292,57 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
         assert row["started_at"] is None
         assert row["finished_at"] is None
         assert row["ruta_trazas"] is None
+
+
+def test_trigger_trace_worker_does_not_start_when_app_is_testing(
+    app, monkeypatch
+):
+    """No debe arrancar ningún thread si la app está en modo testing."""
+    app.config["AUTO_START_TRACE_WORKER"] = True
+    created_threads = []
+
+    class _UnexpectedThread:
+        def __init__(self, *args, **kwargs):
+            created_threads.append((args, kwargs))
+
+        def start(self):
+            created_threads.append("started")
+
+        def is_alive(self):
+            return False
+
+    monkeypatch.setattr(worker_module.threading, "Thread", _UnexpectedThread)
+
+    started = worker_module.trigger_trace_worker(app)
+
+    assert started is False
+    assert created_threads == []
+
+
+def test_trigger_trace_worker_does_not_start_when_thread_is_alive(
+    app, monkeypatch
+):
+    """No debe crear otro thread si ya hay uno vivo drenando la cola."""
+    app.config["AUTO_START_TRACE_WORKER"] = True
+    app.config["TESTING"] = False
+    created_threads = []
+
+    class _AliveThread:
+        def is_alive(self):
+            return True
+
+    def _unexpected_thread(*args, **kwargs):
+        created_threads.append((args, kwargs))
+        raise AssertionError("No debería crearse un nuevo thread.")
+
+    monkeypatch.setattr(worker_module.threading, "Thread", _unexpected_thread)
+
+    app.extensions["trace_worker"] = {
+        "lock": threading.Lock(),
+        "thread": _AliveThread(),
+    }
+
+    started = worker_module.trigger_trace_worker(app)
+
+    assert started is False
+    assert created_threads == []

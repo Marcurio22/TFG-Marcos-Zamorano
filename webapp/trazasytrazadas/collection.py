@@ -55,6 +55,8 @@ from .visor import (
     _visor_source_by_id,
 )
 
+from .trace_worker import trigger_trace_worker
+
 COLLECTION_PER_PAGE_OPTIONS = (10, 25, 50)
 COLLECTION_PREVIEW_MAX_WIDTH = 1024
 COLLECTION_PREVIEW_MAX_HEIGHT = 640
@@ -598,6 +600,7 @@ def register_collection_routes(bp) -> None:
         else:
             retried_count = retry_zone_pending_and_failed(parcel_id)
             if retried_count > 0:
+                trigger_trace_worker(current_app._get_current_object())
                 _flash_ok(
                     _(
                         "Se han marcado %(count)s teselas pendientes o con "
@@ -635,6 +638,7 @@ def register_collection_routes(bp) -> None:
             )
         else:
             retry_photo(photo_id)
+            trigger_trace_worker(current_app._get_current_object())
             _flash_ok(_("La tesela se ha marcado para recalcular las trazas."))
 
         redirect_to = _safe_internal_redirect(

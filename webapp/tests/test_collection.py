@@ -758,3 +758,56 @@ def test_collection_preview_reuses_persisted_file(
     second_response = client.get(f"/coleccion/{parcel_id}/preview")
     assert second_response.status_code == 200
     assert second_response.mimetype == "image/jpeg"
+
+
+def test_collection_photo_retry_triggers_worker(app, client, monkeypatch):
+    """El retry manual de una tesela debe disparar el worker bajo demanda."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        photo_row = database.execute(
+            """
+            SELECT foto_id
+            FROM foto
+            WHERE parcela_id = ?
+            ORDER BY foto_id ASC
+            LIMIT 1
+            """,
+            (parcel_id,),
+        ).fetchone()
+
+        photo_id = int(photo_row["foto_id"])
+
+        database.execute(
+            """
+            UPDATE foto
+            SET
+                estado = 'failed',
+                error_message = 'boom',
+                started_at = CURRENT_TIMESTAMP,
+                finished_at = CURRENT_TIMESTAMP
+            WHERE foto_id = ?
+            """,
+            (photo_id,),
+        )
+        database.commit()
+        refresh_parcel_status(parcel_id)
+
+    triggered = []
+
+    monkeypatch.setattr(
+        collection_module,
+        "trigger_trace_worker",
+        lambda app_obj: triggered.append(app_obj) or True,
+    )
+
+    response = client.post(
+        f"/coleccion/fotos/{photo_id}/retry",
+        data={"redirect_to": f"/coleccion/{parcel_id}/galeria"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert len(triggered) == 1
+    assert triggered[0] is app

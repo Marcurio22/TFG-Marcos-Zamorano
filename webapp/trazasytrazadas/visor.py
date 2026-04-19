@@ -17,6 +17,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from .collection_store import get_zone_plan, save_generated_zone
+from .trace_worker import trigger_trace_worker
 
 import numpy as np
 from PIL import Image
@@ -979,6 +980,8 @@ def register_visor_routes(bp) -> None:
                     tiles=tiles,
                     status="pending",
                 )
+                if saved_zone_id is not None:
+                    trigger_trace_worker(current_app._get_current_object())
             except Exception:
                 current_app.logger.exception(
                     "No se ha podido persistir la zona generada en SQLite"
