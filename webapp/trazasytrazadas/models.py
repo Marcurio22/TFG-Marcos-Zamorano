@@ -12,11 +12,11 @@ Versión: 0.1
 """
 
 from __future__ import annotations
-
+from flask_login import UserMixin
 from .db import db
 
 
-class Usuario(db.Model):
+class Usuario(UserMixin, db.Model):
     """Modelo de usuario persistido en SQLite."""
     __tablename__ = "usuario"
     __table_args__ = (
@@ -27,14 +27,15 @@ class Usuario(db.Model):
     )
 
     usuario_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nombre_usuario = db.Column(db.Text, nullable=False, unique=True)
-    contrasena = db.Column(db.Text, nullable=False)
-    correo_electronico = db.Column(db.Text, nullable=False, unique=True)
-    rol = db.Column(db.Text, nullable=False)
+    nombre_usuario = db.Column(db.String(50), nullable=False, unique=True)
+    contrasena = db.Column(db.String(255), nullable=False)
+    correo_electronico = db.Column(db.String(50), nullable=False, unique=True)
+    telefono = db.Column(db.String(20), nullable=True)
+    rol = db.Column(db.String(20), nullable=False)
     fecha_alta = db.Column(
-        db.Text,
+        db.DateTime,
         nullable=False,
-        server_default=db.text("CURRENT_TIMESTAMP"),
+        server_default=db.func.current_timestamp(),
     )
 
     parcelas = db.relationship(
@@ -42,6 +43,10 @@ class Usuario(db.Model):
         back_populates="usuario",
         lazy="select",
     )
+
+    def get_id(self) -> str:
+        """Devuelve el identificador serializable del usuario."""
+        return str(self.usuario_id)
 
 
 class Parcela(db.Model):

@@ -18,7 +18,7 @@ from flask import Flask, request, session
 from flask_babel import Babel, get_locale
 from pathlib import Path
 
-from . import db, traces, trace_worker
+from . import auth, db, traces, trace_worker
 
 # Babel (i18n)
 babel = Babel()
@@ -143,8 +143,9 @@ def create_app(test_config=None):
     os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
     os.makedirs(app.config["SEG_MODELS_DIR"], exist_ok=True)
 
-    # Integración de base de datos SQLite.
+    # Integración de extensiones.
     db.init_app(app)
+    auth.init_app(app)
     trace_worker.init_app(app)
 
     with app.app_context():

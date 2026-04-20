@@ -38,6 +38,7 @@ from werkzeug.utils import secure_filename
 from .segmentation_inference import compute_traces_from_segmentation
 from .visor import register_visor_routes
 from .collection import register_collection_routes
+from .auth import register_auth_routes
 from PIL import Image
 
 # Blueprint principal de la aplicación.
@@ -46,6 +47,7 @@ bp = Blueprint("trazas", __name__)
 # Registro de rutas auxiliares del visor.
 register_visor_routes(bp)
 register_collection_routes(bp)
+register_auth_routes(bp)
 
 # Utilidades internas.
 

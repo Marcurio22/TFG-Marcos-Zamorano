@@ -71,6 +71,7 @@ def _migrate_legacy_schema(database: sqlite3.Connection) -> None:
     """
     photo_columns = _table_columns(database, "foto")
     parcel_columns = _table_columns(database, "parcela")
+    user_columns = _table_columns(database, "usuario")
     statements: list[str] = []
 
     if "estado" not in photo_columns:
@@ -98,6 +99,10 @@ def _migrate_legacy_schema(database: sqlite3.Connection) -> None:
     if "nombre_coleccion" not in parcel_columns:
         statements.append(
             "ALTER TABLE parcela ADD COLUMN nombre_coleccion TEXT"
+        )
+    if "telefono" not in user_columns:
+        statements.append(
+            "ALTER TABLE usuario ADD COLUMN telefono TEXT"
         )
 
     for statement in statements:

@@ -1,0 +1,123 @@
+{% extends "auth_base.html" %}
+{% block title %}{{ _("Registrarse") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block content %}
+    {% set input_class = "input input-bordered w-full rounded-none border-primary/30 bg-white text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" %}
+    <section class="w-full max-w-5xl border border-primary/45 bg-base-100/80 shadow-2xl backdrop-blur-sm">
+        <div class="px-5 py-6 sm:px-8 sm:py-8">
+            <h1 class="text-center text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-primary">
+                {{ _("Registrarse") }}
+            </h1>
+            <form method="post" class="mt-6 sm:mt-8">
+                {{ form.hidden_tag() }}
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_1px_1fr] gap-6 lg:gap-8 items-start">
+                    <div class="space-y-5">
+                        <div>
+                            <label for="{{ form.nombre_usuario.id }}"
+                                   class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-5 h-5">
+                                    <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5Z" />
+                                </svg>
+                                <span>{{ _("Usuario") }}</span>
+                            </label>
+                            {{ form.nombre_usuario(class=input_class,
+                                                        placeholder=_("Ej: Pepe1234") ,
+                            autocomplete="username"
+                            ) }}
+                            {% if form.nombre_usuario.errors %}
+                                <p class="mt-2 text-sm text-error">{{ form.nombre_usuario.errors[0] }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.correo_electronico.id }}"
+                                   class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-5 h-5">
+                                    <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h14.5A1.75 1.75 0 0 1 21 6.75v10.5A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.8.19 6.84 5.38a.6.6 0 0 0 .72 0l6.84-5.38a.25.25 0 0 0-.15-.44H4.95a.25.25 0 0 0-.15.44Z" />
+                                </svg>
+                                <span>{{ _("Correo electrónico") }}</span>
+                            </label>
+                            {{ form.correo_electronico(class=input_class,
+                                                        placeholder=_("Ej: pepe1234@gmail.com") ,
+                            autocomplete="email"
+                            ) }}
+                            {% if form.correo_electronico.errors %}
+                                <p class="mt-2 text-sm text-error">{{ form.correo_electronico.errors[0] }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.telefono.id }}"
+                                   class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-5 h-5">
+                                    <path d="M6.62 10.79a15.91 15.91 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.36 11.36 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.49a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.58 1 1 0 0 1-.24 1.01l-2.2 2.2Z" />
+                                </svg>
+                                <span>{{ _("Teléfono (opcional)") }}</span>
+                            </label>
+                            {{ form.telefono(class=input_class,
+                                                        placeholder=_("Introduzca aquí su teléfono") ,
+                            autocomplete="tel"
+                            ) }}
+                            {% if form.telefono.errors %}<p class="mt-2 text-sm text-error">{{ form.telefono.errors[0] }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="hidden lg:block h-full bg-primary/35"></div>
+                    <div class="space-y-5">
+                        <div>
+                            <label for="{{ form.contrasena.id }}"
+                                   class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-5 h-5">
+                                    <path fill-rule="evenodd" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm3 8V7a3 3 0 1 0-6 0v3h6Z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ _("Contraseña") }}</span>
+                            </label>
+                            {{ form.contrasena(class=input_class,
+                                                        placeholder=_("Introduzca aquí la contraseña") ,
+                            autocomplete="new-password"
+                            ) }}
+                            {% if form.contrasena.errors %}<p class="mt-2 text-sm text-error">{{ form.contrasena.errors[0] }}</p>{% endif %}
+                            <p class="mt-2 text-xs text-base-content/70">
+                                {{ _("Debe tener más de 8 caracteres, una mayúscula, un número y un carácter especial.") }}
+                            </p>
+                        </div>
+                        <div>
+                            <label for="{{ form.repetir_contrasena.id }}"
+                                   class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-5 h-5">
+                                    <path fill-rule="evenodd" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm3 8V7a3 3 0 1 0-6 0v3h6Z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ _("Repetir contraseña") }}</span>
+                            </label>
+                            {{ form.repetir_contrasena(class=input_class,
+                                                        placeholder=_("Introduzca aquí la contraseña") ,
+                            autocomplete="new-password"
+                            ) }}
+                            {% if form.repetir_contrasena.errors %}
+                                <p class="mt-2 text-sm text-error">{{ form.repetir_contrasena.errors[0] }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="pt-2 flex flex-col items-center gap-3">
+                            {{ form.submit(class="btn btn-primary min-w-48 rounded-sm border-none text-lg font-semibold") }}
+                            <div class="text-center text-primary">
+                                <div class="text-sm">{{ _("¿Ya tiene cuenta?") }}</div>
+                                <div class="font-medium opacity-70">{{ _("Iniciar sesión") }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+{% endblock %}
