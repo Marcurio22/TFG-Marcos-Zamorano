@@ -14,6 +14,8 @@ import tempfile
 
 import pytest
 
+from trazasytrazadas.db import db
+
 # Añadir la carpeta raíz de webapp al sys.path antes de importar el paquete.
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
@@ -58,7 +60,13 @@ def app():
     )
 
     yield app
-    tmpdir.cleanup()
+
+    try:
+        with app.app_context():
+            db.session.remove()
+            db.engine.dispose()
+    finally:
+        tmpdir.cleanup()
 
 
 @pytest.fixture

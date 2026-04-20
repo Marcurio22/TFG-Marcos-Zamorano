@@ -16,6 +16,7 @@ import os
 from datetime import timedelta
 from flask import Flask, request, session
 from flask_babel import Babel, get_locale
+from pathlib import Path
 
 from . import db, traces, trace_worker
 
@@ -115,6 +116,14 @@ def create_app(test_config=None):
         app.config.update(test_config)
     else:
         app.config.from_pyfile("config.py", silent=True)
+
+    # Configuración de SQLAlchemy.
+    database_path = Path(app.config["DATABASE"]).resolve()
+    app.config.setdefault(
+        "SQLALCHEMY_DATABASE_URI",
+        f"sqlite:///{database_path.as_posix()}",
+    )
+    app.config.setdefault("SQLALCHEMY_TRACK_MODIFICATIONS", False)
 
     # Configuración de internacionalización.
     app.config.setdefault("BABEL_DEFAULT_LOCALE", "es")
