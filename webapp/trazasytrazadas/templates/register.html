@@ -112,7 +112,10 @@
                             {{ form.submit(class="btn btn-primary min-w-48 rounded-sm border-none text-lg font-semibold") }}
                             <div class="text-center text-primary">
                                 <div class="text-sm">{{ _("¿Ya tiene cuenta?") }}</div>
-                                <div class="font-medium opacity-70">{{ _("Iniciar sesión") }}</div>
+                                <a href="{{ url_for("trazas.login") }}"
+                                   class="link link-hover text-lg font-semibold text-primary transition-colors hover:text-primary-focus">
+                                    {{ _("Iniciar sesión") }}
+                                </a>
                             </div>
                         </div>
                     </div>

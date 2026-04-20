@@ -2,7 +2,8 @@
 ===============================================================================
 Formularios de autenticación de la aplicación.
 
-Define los formularios y validaciones de entrada para el alta de usuarios.
+Define los formularios y validaciones de entrada para el alta de usuarios
+y el inicio de sesión.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -173,3 +174,35 @@ class RegistrationForm(FlaskForm):
                     "un carácter especial."
                 )
             )
+
+
+class LoginForm(FlaskForm):
+    """Formulario de inicio de sesión."""
+    nombre_usuario = StringField(
+        _l("Usuario"),
+        validators=[
+            DataRequired(message=_l("Introduce un nombre de usuario.")),
+            Length(
+                max=50,
+                message=_l(
+                    "El nombre de usuario no puede superar "
+                    "los 50 caracteres."
+                ),
+            ),
+        ],
+    )
+    contrasena = PasswordField(
+        _l("Contraseña"),
+        validators=[
+            DataRequired(message=_l("Introduce una contraseña.")),
+        ],
+    )
+    submit = SubmitField(_l("Iniciar sesión"))
+
+    def validate_nombre_usuario(self, field) -> None:
+        """Normaliza el nombre de usuario antes de validarlo."""
+        normalized = " ".join((field.data or "").split()).strip()
+        field.data = normalized
+
+        if not normalized:
+            raise ValidationError(_("Introduce un nombre de usuario."))
