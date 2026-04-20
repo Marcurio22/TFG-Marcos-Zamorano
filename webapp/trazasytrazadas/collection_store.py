@@ -65,19 +65,6 @@ def _route_path_only(url: str) -> str:
     return path
 
 
-def _ensure_parcela_name_column() -> None:
-    """Añade la columna de nombre de colección si aún no existe."""
-    database = get_db()
-    columns = {
-        row["name"]
-        for row in database.execute("PRAGMA table_info(parcela)").fetchall()
-    }
-    if "nombre_coleccion" not in columns:
-        database.execute(
-            "ALTER TABLE parcela ADD COLUMN nombre_coleccion TEXT")
-        database.commit()
-
-
 def _zone_default_name(
     origin_lat: float,
     origin_lng: float,
@@ -121,8 +108,6 @@ def photo_retry_is_enabled(photo: dict) -> bool:
 
 def update_zone_name(parcel_id: int, raw_name: str) -> str | None:
     """Actualiza el nombre persistido de una colección."""
-    _ensure_parcela_name_column()
-
     normalized = " ".join((raw_name or "").split()).strip()
     if len(normalized) > COLLECTION_NAME_MAX_LENGTH:
         raise ValueError(
@@ -377,8 +362,6 @@ def save_generated_zone(
     if status not in ALLOWED_ZONE_STATUSES:
         raise ValueError("Estado de zona no soportado.")
 
-    _ensure_parcela_name_column()
-
     south, west, north, east = bbox4326
     xmin, ymin, xmax, ymax = bbox3857
     width_m = max(0.0, xmax - xmin)
@@ -502,8 +485,6 @@ def save_generated_zone(
 
 def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     """Devuelve un listado paginado de parcelas de la colección."""
-    _ensure_parcela_name_column()
-
     database = get_db()
     page = max(1, int(page))
     per_page = max(1, min(int(per_page), 100))
@@ -591,8 +572,6 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
 
 def get_zone_detail(parcel_id: int) -> dict | None:
     """Recupera una parcela y todas sus fotos asociadas."""
-    _ensure_parcela_name_column()
-
     database = get_db()
 
     parcel_row = database.execute(
@@ -1111,8 +1090,6 @@ def refresh_parcel_status(parcel_id: int) -> str:
 
 def get_zone_status_summary(parcel_id: int) -> dict | None:
     """Devuelve un resumen de estado de una parcela."""
-    _ensure_parcela_name_column()
-
     database = get_db()
     row = database.execute(
         """

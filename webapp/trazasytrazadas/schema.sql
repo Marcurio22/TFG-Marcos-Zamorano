@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS parcela (
     tile_height INTEGER NOT NULL,
     estado TEXT NOT NULL DEFAULT 'pending'
         CHECK (estado IN ('pending', 'processing', 'completed', 'failed')),
+    nombre_coleccion TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuario (usuario_id)
