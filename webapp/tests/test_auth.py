@@ -446,3 +446,260 @@ def test_login_handles_database_error(app, client, monkeypatch):
 
     with client.session_transaction() as session:
         assert "_user_id" not in session
+
+
+def test_logout_clears_session_and_redirects_home(app, client):
+    """Cerrar sesión limpia la sesión activa y vuelve a portada."""
+    user_id = _create_user(
+        app,
+        username="usuario_logout",
+        email="logout@example.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post("/logout", follow_redirects=True)
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Has cerrado sesi" in html
+
+    with client.session_transaction() as session:
+        assert "_user_id" not in session
+
+
+def test_logout_requires_authenticated_user(client):
+    """Logout exige una sesión autenticada."""
+    response = client.post("/logout", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_drawer_shows_profile_and_logout_for_authenticated_user(app, client):
+    """El drawer muestra perfil y logout para usuarios autenticados."""
+    user_id = _create_user(
+        app,
+        username="usuario_menu",
+        email="menu@example.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Perfil" in html
+    assert "Cerrar sesión" in html
+    assert "Panel del Administrador" not in html
+
+
+def test_drawer_shows_admin_panel_for_admin_user(app, client):
+    """El drawer muestra el bloque admin solo a usuarios administradores."""
+    admin_id = _create_user(
+        app,
+        username="admin_menu",
+        email="admin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Panel del Administrador" in html
+    assert "Gestión de Usuarios" in html
+    assert "Gestión del Modelo" in html
+
+
+def test_drawer_shows_login_for_anonymous_user(client):
+    """El drawer muestra acceso a login cuando no hay sesión."""
+    response = client.get("/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Iniciar sesión" in html
+    assert "Perfil" not in html
+    assert "Cerrar sesión" not in html
+
+
+def test_profile_requires_login(client):
+    """La página de perfil exige autenticación."""
+    response = client.get("/perfil", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_profile_page_renders_current_user_data(app, client):
+    """El perfil muestra datos del usuario autenticado."""
+    user_id = _create_user(
+        app,
+        username="Nicoup",
+        email="nickurio@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with app.app_context():
+        user = db.session.get(Usuario, user_id)
+        joined_label = user.fecha_alta.strftime("%d/%m/%Y")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/perfil")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Nicoup" in html
+    assert "nickurio@gmail.com" in html
+    assert "No asociado" in html
+    assert joined_label in html
+    assert "Acceder al visor" in html
+    assert "Acceder a la colección" in html
+
+
+def test_profile_update_persists_changes(app, client):
+    """Editar perfil actualiza nombre, correo y teléfono en base de datos."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="Nicoup",
+        email="nickurio@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/editar",
+        data={
+            "nombre_usuario": "NicoupEditado",
+            "correo_electronico": "nicoupeditado@gmail.com",
+            "telefono": "+34 660 36 46 51",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Perfil actualizado correctamente." in html
+
+    with app.app_context():
+        user = db.session.get(Usuario, user_id)
+        assert user.nombre_usuario == "NicoupEditado"
+        assert user.correo_electronico == "nicoupeditado@gmail.com"
+        assert user.telefono == "+34 660 36 46 51"
+
+
+def test_profile_update_rejects_duplicate_username(app, client):
+    """No permite reutilizar un nombre de usuario ya existente."""
+    _disable_csrf(app)
+    owner_id = _create_user(
+        app,
+        username="Nicoup",
+        email="nickurio@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+    _create_user(
+        app,
+        username="UsuarioExistente",
+        email="otro@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(owner_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/editar",
+        data={
+            "nombre_usuario": "UsuarioExistente",
+            "correo_electronico": "nickurio@gmail.com",
+            "telefono": "",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Ya existe un usuario con ese nombre." in response.get_data(
+        as_text=True)
+
+
+def test_profile_update_rejects_duplicate_email(app, client):
+    """No permite reutilizar un correo ya existente."""
+    _disable_csrf(app)
+    owner_id = _create_user(
+        app,
+        username="Nicoup",
+        email="nickurio@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+    _create_user(
+        app,
+        username="OtroUsuario",
+        email="existente@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(owner_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/editar",
+        data={
+            "nombre_usuario": "Nicoup",
+            "correo_electronico": "existente@gmail.com",
+            "telefono": "",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Ya existe un usuario con ese correo electr" in response.get_data(
+        as_text=True)
+
+
+def test_profile_update_rejects_invalid_phone(app, client):
+    """No permite guardar teléfonos con formato inválido."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="Nicoup",
+        email="nickurio@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/editar",
+        data={
+            "nombre_usuario": "Nicoup",
+            "correo_electronico": "nickurio@gmail.com",
+            "telefono": "telefono@@@",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Introduce un tel" in response.get_data(as_text=True)

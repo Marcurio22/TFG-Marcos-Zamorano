@@ -16,6 +16,7 @@ import re
 
 from flask_babel import gettext as _, lazy_gettext as _l
 from flask_wtf import FlaskForm
+from flask_login import current_user
 from sqlalchemy import func, select
 from wtforms import PasswordField, StringField, SubmitField
 from wtforms.validators import (
@@ -206,3 +207,115 @@ class LoginForm(FlaskForm):
 
         if not normalized:
             raise ValidationError(_("Introduce un nombre de usuario."))
+
+
+class ProfileForm(FlaskForm):
+    """Formulario de edición de perfil de usuario."""
+    nombre_usuario = StringField(
+        _l("Usuario"),
+        validators=[
+            DataRequired(message=_l("Introduce un nombre de usuario.")),
+            Length(
+                min=3,
+                max=50,
+                message=_l(
+                    "El nombre de usuario debe tener entre 3 y 50 caracteres."
+                ),
+            ),
+            Regexp(
+                _USERNAME_RE,
+                message=_l(
+                    "El nombre de usuario solo puede contener letras, "
+                    "números, puntos, guiones y guiones bajos."
+                ),
+            ),
+        ],
+    )
+    correo_electronico = StringField(
+        _l("Correo electrónico"),
+        validators=[
+            DataRequired(message=_l("Introduce un correo electrónico.")),
+            Length(
+                max=50,
+                message=_l(
+                    "El correo electrónico no puede superar "
+                    "los 50 caracteres."
+                ),
+            ),
+            Email(message=_l("Introduce un correo electrónico válido.")),
+        ],
+    )
+    telefono = StringField(
+        _l("Teléfono (opcional)"),
+        validators=[
+            Optional(),
+            Length(
+                max=20,
+                message=_l(
+                    "El teléfono no puede superar los 20 caracteres."
+                ),
+            ),
+            Regexp(
+                _PHONE_RE,
+                message=_l(
+                    "Introduce un teléfono válido usando dígitos, espacios, "
+                    "+, paréntesis o guiones."
+                ),
+            ),
+        ],
+    )
+    submit = SubmitField(_l("Guardar cambios"))
+
+    def validate_nombre_usuario(self, field) -> None:
+        """Valida nombre de usuario único excluyendo al usuario actual."""
+        normalized = " ".join((field.data or "").split()).strip()
+        field.data = normalized
+
+        if not normalized:
+            raise ValidationError(_("Introduce un nombre de usuario."))
+
+        existing = db.session.execute(
+            select(Usuario.usuario_id).where(
+                func.lower(Usuario.nombre_usuario) == normalized.lower()
+            )
+        ).scalar_one_or_none()
+
+        if existing is None:
+            return
+
+        if (
+            current_user.is_authenticated
+            and int(existing) == int(current_user.usuario_id)
+        ):
+            return
+
+        raise ValidationError(_("Ya existe un usuario con ese nombre."))
+
+    def validate_correo_electronico(self, field) -> None:
+        """Valida correo único excluyendo al usuario actual."""
+        normalized = (field.data or "").strip().lower()
+        field.data = normalized
+
+        existing = db.session.execute(
+            select(Usuario.usuario_id).where(
+                func.lower(Usuario.correo_electronico) == normalized.lower()
+            )
+        ).scalar_one_or_none()
+
+        if existing is None:
+            return
+
+        if (
+            current_user.is_authenticated
+            and int(existing) == int(current_user.usuario_id)
+        ):
+            return
+
+        raise ValidationError(
+            _("Ya existe un usuario con ese correo electrónico.")
+        )
+
+    def validate_telefono(self, field) -> None:
+        """Normaliza el teléfono opcional antes de persistirlo."""
+        normalized = " ".join((field.data or "").split()).strip()
+        field.data = normalized

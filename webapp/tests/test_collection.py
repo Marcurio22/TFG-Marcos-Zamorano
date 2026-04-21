@@ -14,6 +14,7 @@ import os
 import zipfile
 
 from PIL import Image
+from werkzeug.security import generate_password_hash
 
 from trazasytrazadas import collection as collection_module
 from trazasytrazadas import visor as visor_module
@@ -24,7 +25,12 @@ from trazasytrazadas.collection_store import (
     refresh_parcel_status,
     get_zone_live_status,
 )
-from trazasytrazadas.db import get_db
+from trazasytrazadas.db import (
+    _reassign_legacy_parcels_to_configured_user,
+    db,
+    get_db,
+)
+from trazasytrazadas.models import Usuario
 
 
 def _fake_jpeg_bytes() -> bytes:
@@ -129,6 +135,26 @@ def _register_zone(client, monkeypatch):
     payload = response.get_json()
     assert payload["parcel_id"] is not None
     return int(payload["parcel_id"])
+
+
+def _create_user(
+    app,
+    *,
+    username: str,
+    email: str,
+    role: str = "user",
+) -> int:
+    """Crea un usuario persistido y devuelve su identificador."""
+    with app.app_context():
+        user = Usuario(
+            nombre_usuario=username,
+            correo_electronico=email,
+            contrasena=generate_password_hash("Password1!"),
+            rol=role,
+        )
+        db.session.add(user)
+        db.session.commit()
+        return int(user.usuario_id)
 
 
 def _mark_photo_completed_with_traces(
@@ -811,3 +837,74 @@ def test_collection_photo_retry_triggers_worker(app, client, monkeypatch):
     assert response.status_code == 200
     assert len(triggered) == 1
     assert triggered[0] is app
+
+
+def test_grid_plan_registers_zone_for_authenticated_user(
+    app,
+    client,
+    monkeypatch,
+):
+    """Una zona nueva se asocia al usuario autenticado."""
+    user_id = _create_user(
+        app,
+        username="Vindi22",
+        email="vindi@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        owner_id = database.execute(
+            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
+            (parcel_id,),
+        ).fetchone()["usuario_id"]
+
+    assert owner_id == user_id
+
+
+def test_grid_plan_registers_zone_for_system_user_when_anonymous(
+    app,
+    client,
+    monkeypatch,
+):
+    """Una zona nueva sigue usando el usuario técnico si no hay login."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        owner_id = database.execute(
+            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
+            (parcel_id,),
+        ).fetchone()["usuario_id"]
+
+    assert owner_id == 1
+
+
+def test_legacy_parcels_are_reassigned_to_configured_user(
+    app,
+    client,
+    monkeypatch,
+):
+    """Las parcelas heredadas del usuario técnico se reasignan a Vindi22."""
+    parcel_id = _register_zone(client, monkeypatch)
+    user_id = _create_user(
+        app,
+        username="Vindi22",
+        email="vindi@example.com",
+    )
+
+    with app.app_context():
+        _reassign_legacy_parcels_to_configured_user()
+
+        database = get_db()
+        owner_id = database.execute(
+            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
+            (parcel_id,),
+        ).fetchone()["usuario_id"]
+
+    assert owner_id == user_id

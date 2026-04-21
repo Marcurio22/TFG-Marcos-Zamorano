@@ -149,6 +149,74 @@ def _ensure_system_user() -> None:
     db.session.commit()
 
 
+def _reassign_legacy_parcels_to_configured_user() -> None:
+    """Reasigna parcelas heredadas del usuario técnico a un usuario real."""
+    target_username = " ".join(
+        (current_app.config.get("LEGACY_PARCEL_OWNER_USERNAME") or "").split()
+    ).strip()
+
+    if not target_username:
+        return
+
+    target_user_id = db.session.execute(
+        text(
+            """
+            SELECT usuario_id
+            FROM usuario
+            WHERE lower(nombre_usuario) = lower(:username)
+            LIMIT 1
+            """
+        ),
+        {"username": target_username},
+    ).scalar_one_or_none()
+
+    if target_user_id is None or int(target_user_id) == 1:
+        return
+
+    non_system_parcel_count = db.session.execute(
+        text(
+            """
+            SELECT COUNT(*)
+            FROM parcela
+            WHERE usuario_id != :system_user_id
+            """
+        ),
+        {"system_user_id": 1},
+    ).scalar_one()
+
+    if int(non_system_parcel_count or 0) > 0:
+        return
+
+    system_parcel_count = db.session.execute(
+        text(
+            """
+            SELECT COUNT(*)
+            FROM parcela
+            WHERE usuario_id = :system_user_id
+            """
+        ),
+        {"system_user_id": 1},
+    ).scalar_one()
+
+    if int(system_parcel_count or 0) == 0:
+        return
+
+    db.session.execute(
+        text(
+            """
+            UPDATE parcela
+            SET usuario_id = :target_user_id
+            WHERE usuario_id = :system_user_id
+            """
+        ),
+        {
+            "target_user_id": int(target_user_id),
+            "system_user_id": 1,
+        },
+    )
+    db.session.commit()
+
+
 def init_db() -> None:
     """Inicializa la base de datos."""
     legacy_db = get_db()
@@ -164,6 +232,7 @@ def init_db() -> None:
 
     db.create_all()
     _ensure_system_user()
+    _reassign_legacy_parcels_to_configured_user()
 
 
 @click.command("init-db")

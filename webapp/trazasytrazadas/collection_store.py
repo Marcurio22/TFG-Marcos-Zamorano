@@ -22,6 +22,7 @@ from uuid import uuid4
 
 from flask import current_app, url_for
 from flask_babel import gettext as _
+from flask_login import current_user
 
 from .db import get_db
 
@@ -335,7 +336,10 @@ def _photo_trace_status(photo: dict) -> str:
 
 
 def get_default_user_id() -> int:
-    """Devuelve el usuario por defecto mientras no exista login."""
+    """Devuelve el usuario propietario aplicable a nuevas zonas."""
+    if current_user.is_authenticated:
+        return int(current_user.usuario_id)
+
     return DEFAULT_SYSTEM_USER_ID
 
 

@@ -80,6 +80,7 @@ def create_app(test_config=None):
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
         DATABASE=os.path.join(app.instance_path, "trazasytrazadas.sqlite"),
+        LEGACY_PARCEL_OWNER_USERNAME="Vindi22",
 
         # ----- Configuración de almacenamiento y trazas en segundo plano -----
         COLLECTION_STORAGE_ROOT=os.path.join(app.instance_path, "collection"),
