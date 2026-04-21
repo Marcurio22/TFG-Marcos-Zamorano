@@ -81,6 +81,7 @@ def test_register_creates_user_and_hashes_password(app, client):
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     assert "Usuario registrado correctamente." in html
+    assert "Iniciar sesi" in html
 
     with app.app_context():
         user = db.session.execute(
@@ -100,7 +101,7 @@ def test_register_persists_optional_phone_when_present(app, client):
 
     response = client.post(
         "/registro",
-        data=_registration_payload(telefono="+34 600 11 22 33"),
+        data=_registration_payload(telefono="+34600112233"),
         follow_redirects=True,
     )
 
@@ -110,7 +111,7 @@ def test_register_persists_optional_phone_when_present(app, client):
         user = db.session.execute(
             db.select(Usuario).filter_by(nombre_usuario="Pepe1234")
         ).scalar_one()
-        assert user.telefono == "+34 600 11 22 33"
+        assert user.telefono == "+34600112233"
 
 
 def test_register_rejects_duplicate_username(app, client):
@@ -180,7 +181,7 @@ def test_register_rejects_invalid_phone(app, client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Introduce un tel" in html
+    assert "solo puede contener" in html
 
 
 def test_register_rejects_password_mismatch(app, client):
@@ -604,7 +605,7 @@ def test_profile_update_persists_changes(app, client):
         user = db.session.get(Usuario, user_id)
         assert user.nombre_usuario == "NicoupEditado"
         assert user.correo_electronico == "nicoupeditado@gmail.com"
-        assert user.telefono == "+34 660 36 46 51"
+        assert user.telefono == "+34660364651"
 
 
 def test_profile_update_rejects_duplicate_username(app, client):
@@ -702,4 +703,110 @@ def test_profile_update_rejects_invalid_phone(app, client):
     )
 
     assert response.status_code == 200
-    assert "Introduce un tel" in response.get_data(as_text=True)
+    assert "solo puede contener" in response.get_data(as_text=True)
+
+
+def test_register_normalizes_phone_with_default_prefix(app, client):
+    """Si no se indica prefijo, se usa +34 por defecto."""
+    _disable_csrf(app)
+
+    response = client.post(
+        "/registro",
+        data=_registration_payload(telefono="903 38 93 23"),
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+
+    with app.app_context():
+        user = db.session.execute(
+            db.select(Usuario).filter_by(nombre_usuario="Pepe1234")
+        ).scalar_one()
+        assert user.telefono == "+34903389323"
+
+
+def test_register_rejects_invalid_country_prefix(app, client):
+    """El prefijo internacional debe ser + y dos dígitos juntos."""
+    _disable_csrf(app)
+
+    response = client.post(
+        "/registro",
+        data=_registration_payload(telefono="+3 4 903389323"),
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "dos dígitos juntos" in html
+
+
+def test_profile_page_formats_phone_for_display(app, client):
+    """El perfil muestra el teléfono con formato legible estable."""
+    user_id = _create_user(
+        app,
+        username="Pepe1234",
+        email="pepe1234@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+        phone="+34903389323",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/perfil")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "(+34) 903 38 93 23" in html
+
+
+def test_login_page_renders_guest_access_button(client):
+    """La pantalla de login ofrece acceso a la parte básica como visitante."""
+    response = client.get("/login")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Continuar como visitante" in html
+
+
+def test_register_rejects_too_short_phone(app, client):
+    """El registro rechaza teléfonos demasiado cortos."""
+    _disable_csrf(app)
+
+    response = client.post(
+        "/registro",
+        data=_registration_payload(telefono="+34909"),
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "al menos 7 dígitos" in response.get_data(as_text=True)
+
+
+def test_profile_update_rejects_too_short_phone(app, client):
+    """El perfil rechaza teléfonos demasiado cortos."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="Nicoup",
+        email="nickurio@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/editar",
+        data={
+            "nombre_usuario": "Nicoup",
+            "correo_electronico": "nickurio@gmail.com",
+            "telefono": "+34909",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "al menos 7 dígitos" in response.get_data(as_text=True)

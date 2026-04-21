@@ -2,8 +2,8 @@
 ===============================================================================
 Formularios de autenticación de la aplicación.
 
-Define los formularios y validaciones de entrada para el alta de usuarios
-y el inicio de sesión.
+Define los formularios y validaciones de entrada para el alta de usuarios,
+el inicio de sesión y la edición del perfil.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -15,8 +15,8 @@ from __future__ import annotations
 import re
 
 from flask_babel import gettext as _, lazy_gettext as _l
-from flask_wtf import FlaskForm
 from flask_login import current_user
+from flask_wtf import FlaskForm
 from sqlalchemy import func, select
 from wtforms import PasswordField, StringField, SubmitField
 from wtforms.validators import (
@@ -33,7 +33,97 @@ from .db import db
 from .models import Usuario
 
 _USERNAME_RE = r"^[A-Za-zÀ-ÿ0-9_.-]+$"
-_PHONE_RE = r"^[0-9+() \-]{7,20}$"
+_PHONE_PREFIX_RE = re.compile(r"^\+(\d{2})(.*)$")
+
+
+def normalize_phone_number(value: str | None) -> str | None:
+    """Normaliza un teléfono y aplica +34 por defecto si no hay prefijo."""
+    raw = " ".join((value or "").split()).strip()
+
+    if not raw:
+        return None
+
+    if raw.startswith("+"):
+        match = _PHONE_PREFIX_RE.match(raw)
+        if match is None:
+            raise ValueError(
+                _(
+                    "Si indicas prefijo internacional, debe empezar por "
+                    "'+' seguido de dos dígitos juntos."
+                )
+            )
+        country = match.group(1)
+        rest = match.group(2).strip()
+    else:
+        country = "34"
+        rest = raw
+
+    if not rest:
+        raise ValueError(
+            _("Introduce el número de teléfono después del prefijo.")
+        )
+
+    if not re.fullmatch(r"[0-9 ]+", rest):
+        raise ValueError(
+            _("El teléfono solo puede contener dígitos y espacios.")
+        )
+
+    digits = rest.replace(" ", "")
+
+    if len(digits) < 7:
+        raise ValueError(
+            _("El teléfono debe incluir al menos 7 dígitos.")
+        )
+
+    normalized = f"+{country}{digits}"
+
+    if len(normalized) > 20:
+        raise ValueError(
+            _("El teléfono no puede superar los 20 caracteres.")
+        )
+
+    return normalized
+
+
+def format_phone_number_for_display(value: str | None) -> str:
+    """Formatea el teléfono para mostrarlo en perfil."""
+    if not value:
+        return _("No asociado")
+
+    try:
+        normalized = normalize_phone_number(value)
+    except ValueError:
+        return str(value)
+
+    if not normalized:
+        return _("No asociado")
+
+    country = normalized[1:3]
+    digits = normalized[3:]
+
+    if len(digits) == 9:
+        groups = [
+            digits[:3],
+            digits[3:5],
+            digits[5:7],
+            digits[7:9],
+        ]
+    else:
+        groups = []
+        remaining = digits
+
+        if len(remaining) > 4:
+            groups.append(remaining[:3])
+            remaining = remaining[3:]
+
+        while len(remaining) > 2:
+            groups.append(remaining[:2])
+            remaining = remaining[2:]
+
+        if remaining:
+            groups.append(remaining)
+
+    return f"(+{country}) {' '.join(groups)}"
 
 
 class RegistrationForm(FlaskForm):
@@ -76,19 +166,6 @@ class RegistrationForm(FlaskForm):
         _l("Teléfono (opcional)"),
         validators=[
             Optional(),
-            Length(
-                max=20,
-                message=_l(
-                    "El teléfono no puede superar los 20 caracteres."
-                ),
-            ),
-            Regexp(
-                _PHONE_RE,
-                message=_l(
-                    "Introduce un teléfono válido usando dígitos, espacios, "
-                    "+, paréntesis o guiones."
-                ),
-            ),
         ],
     )
     contrasena = PasswordField(
@@ -145,9 +222,17 @@ class RegistrationForm(FlaskForm):
             )
 
     def validate_telefono(self, field) -> None:
-        """Normaliza el teléfono opcional antes de persistirlo."""
-        normalized = " ".join((field.data or "").split()).strip()
-        field.data = normalized
+        """Normaliza y valida el teléfono opcional."""
+        if not (field.data or "").strip():
+            field.data = ""
+            return
+
+        try:
+            normalized = normalize_phone_number(field.data)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        field.data = normalized or ""
 
     def validate_contrasena(self, field) -> None:
         """Aplica la política mínima de complejidad de contraseña."""
@@ -249,19 +334,6 @@ class ProfileForm(FlaskForm):
         _l("Teléfono (opcional)"),
         validators=[
             Optional(),
-            Length(
-                max=20,
-                message=_l(
-                    "El teléfono no puede superar los 20 caracteres."
-                ),
-            ),
-            Regexp(
-                _PHONE_RE,
-                message=_l(
-                    "Introduce un teléfono válido usando dígitos, espacios, "
-                    "+, paréntesis o guiones."
-                ),
-            ),
         ],
     )
     submit = SubmitField(_l("Guardar cambios"))
@@ -316,6 +388,14 @@ class ProfileForm(FlaskForm):
         )
 
     def validate_telefono(self, field) -> None:
-        """Normaliza el teléfono opcional antes de persistirlo."""
-        normalized = " ".join((field.data or "").split()).strip()
-        field.data = normalized
+        """Normaliza y valida el teléfono opcional."""
+        if not (field.data or "").strip():
+            field.data = ""
+            return
+
+        try:
+            normalized = normalize_phone_number(field.data)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        field.data = normalized or ""

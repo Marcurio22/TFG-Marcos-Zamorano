@@ -142,15 +142,14 @@ def _create_user(
     *,
     username: str,
     email: str,
-    role: str = "user",
 ) -> int:
-    """Crea un usuario persistido y devuelve su identificador."""
+    """Crea un usuario persistido para pruebas de colección."""
     with app.app_context():
         user = Usuario(
             nombre_usuario=username,
             correo_electronico=email,
             contrasena=generate_password_hash("Password1!"),
-            rol=role,
+            rol="user",
         )
         db.session.add(user)
         db.session.commit()
@@ -908,3 +907,65 @@ def test_legacy_parcels_are_reassigned_to_configured_user(
         ).fetchone()["usuario_id"]
 
     assert owner_id == user_id
+
+
+def test_collection_gallery_returns_404_for_foreign_zone(
+    app,
+    client,
+    monkeypatch,
+):
+    """Un usuario no puede abrir la galería de una zona ajena."""
+    owner_id = _create_user(
+        app,
+        username="Vindi22",
+        email="vindi@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(owner_id)
+        session["_fresh"] = True
+
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with client.session_transaction() as session:
+        session.clear()
+
+    other_id = _create_user(
+        app,
+        username="Pepe1234",
+        email="pepe@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(other_id)
+        session["_fresh"] = True
+
+    response = client.get(f"/coleccion/{parcel_id}/galeria")
+    assert response.status_code == 404
+
+
+def test_anonymous_collection_does_not_show_authenticated_user_zone(
+    app,
+    client,
+    monkeypatch,
+):
+    """La colección anónima no muestra zonas guardadas por usuarios reales."""
+    owner_id = _create_user(
+        app,
+        username="Vindi22",
+        email="vindi@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(owner_id)
+        session["_fresh"] = True
+
+    _register_zone(client, monkeypatch)
+
+    with client.session_transaction() as session:
+        session.clear()
+
+    response = client.get("/coleccion")
+    assert response.status_code == 200
+    assert b"40.123456" not in response.data
+    assert b"40.654321" not in response.data

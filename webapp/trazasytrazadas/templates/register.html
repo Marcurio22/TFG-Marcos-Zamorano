@@ -61,10 +61,14 @@
                                 <span>{{ _("Teléfono (opcional)") }}</span>
                             </label>
                             {{ form.telefono(class=input_class,
-                                                        placeholder=_("Introduzca aquí su teléfono") ,
+                                                        placeholder=_("Ej: +34 999 99 99 99") ,
                             autocomplete="tel"
                             ) }}
-                            {% if form.telefono.errors %}<p class="mt-2 text-sm text-error">{{ form.telefono.errors[0] }}</p>{% endif %}
+                            {% if form.telefono.errors %}
+                                <p class="mt-2 text-sm text-error">{{ form.telefono.errors[0] }}</p>
+                            {% else %}
+                                <p class="mt-2 text-xs text-base-content/70">{{ _("Si no indicas prefijo, se usará +34 por defecto.") }}</p>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="hidden lg:block h-full bg-primary/35"></div>

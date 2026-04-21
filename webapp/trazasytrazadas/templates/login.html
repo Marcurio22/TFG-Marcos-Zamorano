@@ -69,6 +69,10 @@
                         </div>
                         <div class="pt-2 flex flex-col items-center gap-3">
                             {{ form.submit(class="btn btn-primary min-w-52 rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]") }}
+                            <a href="{{ url_for("trazas.index") }}"
+                               class="btn btn-outline btn-primary min-w-52 rounded-sm text-base font-semibold transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]">
+                                {{ _("Continuar como visitante") }}
+                            </a>
                             <div class="text-center text-primary">
                                 <div class="text-sm">{{ _("¿No tiene cuenta?") }}</div>
                                 <a href="{{ url_for("trazas.register") }}"

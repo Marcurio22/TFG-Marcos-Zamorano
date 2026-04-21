@@ -2,8 +2,8 @@
 ===============================================================================
 Rutas y utilidades de autenticación.
 
-Define el registro de usuarios, el inicio de sesión y la integración base con
-Flask-Login.
+Define el registro de usuarios, el inicio de sesión, el perfil y la
+integración base con Flask-Login.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -11,7 +11,9 @@ Versión: 0.1
 """
 
 from __future__ import annotations
+
 from datetime import datetime
+
 from flask import flash, redirect, render_template, url_for
 from flask_babel import gettext as _
 from flask_login import (
@@ -26,7 +28,12 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import db
-from .forms import LoginForm, ProfileForm, RegistrationForm
+from .forms import (
+    LoginForm,
+    ProfileForm,
+    RegistrationForm,
+    format_phone_number_for_display,
+)
 from .models import Usuario
 
 login_manager = LoginManager()
@@ -99,8 +106,14 @@ def register_auth_routes(bp) -> None:
                     "error",
                 )
             else:
-                flash(_("Usuario registrado correctamente."), "success")
-                return redirect(url_for("trazas.index"))
+                flash(
+                    _(
+                        "Usuario registrado correctamente. "
+                        "Ya puedes iniciar sesión."
+                    ),
+                    "success",
+                )
+                return redirect(url_for("trazas.login"))
 
         return render_template("register.html", form=form)
 
@@ -166,6 +179,7 @@ def register_auth_routes(bp) -> None:
             form=form,
             open_edit_form=False,
             joined_label=_format_user_joined_at(current_user.fecha_alta),
+            phone_label=format_phone_number_for_display(current_user.telefono),
         )
 
     @bp.route("/perfil/editar", methods=["POST"])
@@ -199,4 +213,5 @@ def register_auth_routes(bp) -> None:
             form=form,
             open_edit_form=True,
             joined_label=_format_user_joined_at(current_user.fecha_alta),
+            phone_label=format_phone_number_for_display(current_user.telefono),
         )

@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
-from flask import current_app, url_for
+from flask import current_app, has_request_context, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
 
@@ -337,10 +337,17 @@ def _photo_trace_status(photo: dict) -> str:
 
 def get_default_user_id() -> int:
     """Devuelve el usuario propietario aplicable a nuevas zonas."""
-    if current_user.is_authenticated:
-        return int(current_user.usuario_id)
+    if has_request_context():
+        user = current_user._get_current_object()
+        if user is not None and getattr(user, "is_authenticated", False):
+            return int(user.usuario_id)
 
     return DEFAULT_SYSTEM_USER_ID
+
+
+def _current_collection_owner_id() -> int:
+    """Devuelve el propietario efectivo de la colección visible actual."""
+    return get_default_user_id()
 
 
 def save_generated_zone(
@@ -490,6 +497,7 @@ def save_generated_zone(
 def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     """Devuelve un listado paginado de parcelas de la colección."""
     database = get_db()
+    owner_id = _current_collection_owner_id()
     page = max(1, int(page))
     per_page = max(1, min(int(per_page), 100))
     offset = (page - 1) * per_page
@@ -497,7 +505,8 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     like = f"%{search}%"
 
     where_clause = """
-        WHERE (
+        WHERE p.usuario_id = ?
+          AND (
             ? = ''
             OR COALESCE(p.nombre_coleccion, '') LIKE ?
             OR p.source_label LIKE ?
@@ -508,7 +517,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
             OR CAST(p.pto_fin_lng AS TEXT) LIKE ?
         )
     """
-    params = (search, like, like, like, like, like, like, like)
+    params = (owner_id, search, like, like, like, like, like, like, like)
 
     total = database.execute(
         f"SELECT COUNT(*) AS total FROM parcela p {where_clause}",
@@ -577,6 +586,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
 def get_zone_detail(parcel_id: int) -> dict | None:
     """Recupera una parcela y todas sus fotos asociadas."""
     database = get_db()
+    owner_id = _current_collection_owner_id()
 
     parcel_row = database.execute(
         """
@@ -602,8 +612,9 @@ def get_zone_detail(parcel_id: int) -> dict | None:
             updated_at
         FROM parcela
         WHERE parcela_id = ?
+          AND usuario_id = ?
         """,
-        (parcel_id,),
+        (parcel_id, owner_id),
     ).fetchone()
 
     if parcel_row is None:
@@ -740,41 +751,53 @@ def get_zone_plan(parcel_id: int) -> dict | None:
     }
 
 
-def get_photo(photo_id: int) -> dict | None:
+def get_photo(
+    photo_id: int,
+    *,
+    enforce_current_user: bool = True,
+) -> dict | None:
     """Recupera una foto concreta de la colección."""
     database = get_db()
+    params: list[int] = [photo_id]
+    owner_clause = ""
+
+    if enforce_current_user:
+        owner_clause = " AND p.usuario_id = ?"
+        params.append(_current_collection_owner_id())
+
     row = database.execute(
-        """
+        f"""
         SELECT
-            foto_id,
-            parcela_id,
-            fecha_foto,
-            resolucion_valor,
-            resolucion_unidad,
-            longitud,
-            latitud,
-            ruta_foto,
-            ruta_trazas,
-            trazas,
-            estado,
-            error_message,
-            started_at,
-            finished_at,
-            attempt_count,
-            tile_id,
-            row_index,
-            col_index,
-            filename,
-            width,
-            height,
-            bbox3857_json,
-            bounds_json,
-            source_id,
-            created_at
-        FROM foto
-        WHERE foto_id = ?
+            f.foto_id,
+            f.parcela_id,
+            f.fecha_foto,
+            f.resolucion_valor,
+            f.resolucion_unidad,
+            f.longitud,
+            f.latitud,
+            f.ruta_foto,
+            f.ruta_trazas,
+            f.trazas,
+            f.estado,
+            f.error_message,
+            f.started_at,
+            f.finished_at,
+            f.attempt_count,
+            f.tile_id,
+            f.row_index,
+            f.col_index,
+            f.filename,
+            f.width,
+            f.height,
+            f.bbox3857_json,
+            f.bounds_json,
+            f.source_id,
+            f.created_at
+        FROM foto f
+        JOIN parcela p ON p.parcela_id = f.parcela_id
+        WHERE f.foto_id = ? {owner_clause}
         """,
-        (photo_id,),
+        tuple(params),
     ).fetchone()
 
     if row is None:
@@ -795,9 +818,16 @@ def delete_zone(parcel_id: int) -> bool:
     la carpeta temporal se purga definitivamente.
     """
     database = get_db()
+    owner_id = _current_collection_owner_id()
+
     row = database.execute(
-        "SELECT parcela_id FROM parcela WHERE parcela_id = ?",
-        (parcel_id,),
+        """
+        SELECT parcela_id
+        FROM parcela
+        WHERE parcela_id = ?
+          AND usuario_id = ?
+        """,
+        (parcel_id, owner_id),
     ).fetchone()
 
     if row is None:
@@ -974,7 +1004,10 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
     )
     database.commit()
 
-    photos = [get_photo(photo_id) for photo_id in photo_ids]
+    photos = [
+        get_photo(photo_id, enforce_current_user=False)
+        for photo_id in photo_ids
+    ]
     for photo in photos:
         if photo is not None:
             refresh_parcel_status(photo["parcela_id"])
@@ -1095,6 +1128,8 @@ def refresh_parcel_status(parcel_id: int) -> str:
 def get_zone_status_summary(parcel_id: int) -> dict | None:
     """Devuelve un resumen de estado de una parcela."""
     database = get_db()
+    owner_id = _current_collection_owner_id()
+
     row = database.execute(
         """
         SELECT
@@ -1117,9 +1152,10 @@ def get_zone_status_summary(parcel_id: int) -> dict | None:
         FROM parcela p
         LEFT JOIN foto f ON f.parcela_id = p.parcela_id
         WHERE p.parcela_id = ?
+          AND p.usuario_id = ?
         GROUP BY p.parcela_id
         """,
-        (parcel_id,),
+        (parcel_id, owner_id),
     ).fetchone()
 
     if row is None:
