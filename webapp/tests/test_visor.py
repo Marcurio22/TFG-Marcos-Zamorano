@@ -10,9 +10,19 @@ Versión: 0.1
 """
 
 import io
+import pytest
 from PIL import Image
 
 from trazasytrazadas import visor as visor_module
+
+
+@pytest.fixture(autouse=True)
+def _login_required_user(force_login):
+    """Todas las pruebas del visor se ejecutan autenticadas."""
+    force_login(
+        username="usuario_visor",
+        email="usuario_visor@example.com",
+    )
 
 
 def _fake_jpeg_bytes() -> bytes:

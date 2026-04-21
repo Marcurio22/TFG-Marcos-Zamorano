@@ -56,21 +56,27 @@ def init_app(app) -> None:
 
 
 def _format_user_joined_at(value) -> str:
-    """Devuelve la fecha de alta con formato DD/MM/AAAA."""
+    """Devuelve la fecha de alta con formato DD/MM/AAAA, HH:mm."""
     if value is None:
         return "-"
 
     if hasattr(value, "strftime"):
-        return value.strftime("%d/%m/%Y")
+        return value.strftime("%d/%m/%Y, %H:%M")
 
-    normalized = str(value).strip().replace(" ", "T")
+    normalized = str(value).strip().replace("T", " ")
 
-    try:
-        parsed = datetime.fromisoformat(normalized)
-    except ValueError:
-        return str(value)
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+    ):
+        try:
+            parsed = datetime.strptime(normalized, fmt)
+            return parsed.strftime("%d/%m/%Y, %H:%M")
+        except ValueError:
+            continue
 
-    return parsed.strftime("%d/%m/%Y")
+    return str(value)
 
 
 def register_auth_routes(bp) -> None:

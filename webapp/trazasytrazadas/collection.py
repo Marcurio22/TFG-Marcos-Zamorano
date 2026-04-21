@@ -30,6 +30,7 @@ from flask import (
     url_for,
 )
 from flask_babel import gettext as _
+from flask_login import login_required
 from PIL import Image
 from werkzeug.utils import secure_filename
 
@@ -332,6 +333,7 @@ def register_collection_routes(bp) -> None:
     """Registra las rutas HTTP de la nueva colección de imágenes."""
 
     @bp.route("/coleccion", methods=["GET"])
+    @login_required
     def collection():
         """Renderiza el listado persistente de zonas generadas."""
         try:
@@ -363,6 +365,7 @@ def register_collection_routes(bp) -> None:
         )
 
     @bp.route("/coleccion/status", methods=["GET"])
+    @login_required
     def collection_status():
         """Devuelve el estado resumido de varias zonas para polling ligero."""
         raw_ids = request.args.get("ids", "").strip()
@@ -386,6 +389,7 @@ def register_collection_routes(bp) -> None:
         )
 
     @bp.route("/coleccion/<int:parcel_id>/status", methods=["GET"])
+    @login_required
     def collection_zone_status(parcel_id: int):
         """Devuelve el estado completo de una zona y sus fotos."""
         status_payload = get_zone_live_status(parcel_id)
@@ -394,6 +398,7 @@ def register_collection_routes(bp) -> None:
         return jsonify(status_payload)
 
     @bp.route("/coleccion/<int:parcel_id>/preview", methods=["GET"])
+    @login_required
     def collection_preview(parcel_id: int):
         """Devuelve una preview inline exacta de la zona completa."""
         detail = _load_zone_or_404(parcel_id)
@@ -449,12 +454,14 @@ def register_collection_routes(bp) -> None:
         )
 
     @bp.route("/coleccion/<int:parcel_id>/galeria", methods=["GET"])
+    @login_required
     def collection_gallery(parcel_id: int):
         """Muestra una galería mínima de teselas asociadas a una zona."""
         detail = _load_zone_or_404(parcel_id)
         return render_template("collection_gallery.html", zone=detail)
 
     @bp.route("/coleccion/<int:parcel_id>/download-zip", methods=["GET"])
+    @login_required
     def collection_download_zip(parcel_id: int):
         """Genera un ZIP descargable a partir de las teselas persistidas."""
         detail = _load_zone_or_404(parcel_id)
@@ -524,6 +531,7 @@ def register_collection_routes(bp) -> None:
         )
 
     @bp.route("/coleccion/<int:parcel_id>/rename", methods=["POST"])
+    @login_required
     def collection_rename(parcel_id: int):
         """Actualiza el nombre visible de una colección."""
         _load_zone_or_404(parcel_id)
@@ -550,6 +558,7 @@ def register_collection_routes(bp) -> None:
         return redirect(redirect_to)
 
     @bp.route("/coleccion/<int:parcel_id>/delete", methods=["POST"])
+    @login_required
     def collection_delete(parcel_id: int):
         """Elimina permanentemente una zona de la colección."""
         try:
@@ -574,6 +583,7 @@ def register_collection_routes(bp) -> None:
 
     @bp.route("/coleccion/<int:parcel_id>/retry-pending-failed",
               methods=["POST"])
+    @login_required
     def collection_zone_retry_pending_failed(parcel_id: int):
         """Recalcula solo las teselas pendientes o con error de una zona."""
         detail = _load_zone_or_404(parcel_id)
@@ -622,6 +632,7 @@ def register_collection_routes(bp) -> None:
         return redirect(redirect_to)
 
     @bp.route("/coleccion/fotos/<int:photo_id>/retry", methods=["POST"])
+    @login_required
     def collection_photo_retry(photo_id: int):
         """Marca una tesela para recalcular sus trazas."""
         photo = get_photo(photo_id)
@@ -651,6 +662,7 @@ def register_collection_routes(bp) -> None:
         return redirect(redirect_to)
 
     @bp.route("/coleccion/fotos/<int:photo_id>/image", methods=["GET"])
+    @login_required
     def collection_photo_image(photo_id: int):
         """Sirve una tesela inline para la galería sin forzar descarga."""
         photo = get_photo(photo_id)
@@ -670,6 +682,7 @@ def register_collection_routes(bp) -> None:
         )
 
     @bp.route("/coleccion/fotos/<int:photo_id>/traces", methods=["GET"])
+    @login_required
     def collection_photo_traces(photo_id: int):
         """Devuelve el JSON de trazas asociado a una tesela concreta."""
         photo = get_photo(photo_id)
@@ -686,6 +699,7 @@ def register_collection_routes(bp) -> None:
         return jsonify(traces)
 
     @bp.route("/coleccion/fotos/<int:photo_id>/download", methods=["GET"])
+    @login_required
     def collection_photo_download(photo_id: int):
         """Descarga una tesela concreta o sus resultados si ya existen."""
         photo = get_photo(photo_id)

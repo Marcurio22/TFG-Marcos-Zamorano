@@ -345,8 +345,11 @@ def get_default_user_id() -> int:
     return DEFAULT_SYSTEM_USER_ID
 
 
-def _current_collection_owner_id() -> int:
+def _current_collection_owner_id() -> int | None:
     """Devuelve el propietario efectivo de la colección visible actual."""
+    if not has_request_context():
+        return None
+
     return get_default_user_id()
 
 
@@ -588,8 +591,15 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     database = get_db()
     owner_id = _current_collection_owner_id()
 
+    owner_clause = ""
+    params: list[int] = [parcel_id]
+
+    if owner_id is not None:
+        owner_clause = " AND usuario_id = ?"
+        params.append(owner_id)
+
     parcel_row = database.execute(
-        """
+        f"""
         SELECT
             parcela_id,
             nombre_coleccion,
@@ -611,10 +621,9 @@ def get_zone_detail(parcel_id: int) -> dict | None:
             created_at,
             updated_at
         FROM parcela
-        WHERE parcela_id = ?
-          AND usuario_id = ?
+        WHERE parcela_id = ?{owner_clause}
         """,
-        (parcel_id, owner_id),
+        tuple(params),
     ).fetchone()
 
     if parcel_row is None:
@@ -1130,8 +1139,15 @@ def get_zone_status_summary(parcel_id: int) -> dict | None:
     database = get_db()
     owner_id = _current_collection_owner_id()
 
+    owner_clause = ""
+    params: list[int] = [parcel_id]
+
+    if owner_id is not None:
+        owner_clause = " AND p.usuario_id = ?"
+        params.append(owner_id)
+
     row = database.execute(
-        """
+        f"""
         SELECT
             p.parcela_id,
             p.estado,
@@ -1151,11 +1167,10 @@ def get_zone_status_summary(parcel_id: int) -> dict | None:
                 AS failed_tiles
         FROM parcela p
         LEFT JOIN foto f ON f.parcela_id = p.parcela_id
-        WHERE p.parcela_id = ?
-          AND p.usuario_id = ?
+        WHERE p.parcela_id = ?{owner_clause}
         GROUP BY p.parcela_id
         """,
-        (parcel_id, owner_id),
+        tuple(params),
     ).fetchone()
 
     if row is None:

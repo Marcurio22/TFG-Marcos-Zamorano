@@ -555,7 +555,7 @@ def test_profile_page_renders_current_user_data(app, client):
 
     with app.app_context():
         user = db.session.get(Usuario, user_id)
-        joined_label = user.fecha_alta.strftime("%d/%m/%Y")
+        joined_label = user.fecha_alta.strftime("%d/%m/%Y, %H:%M")
 
     with client.session_transaction() as session:
         session["_user_id"] = str(user_id)
@@ -810,3 +810,123 @@ def test_profile_update_rejects_too_short_phone(app, client):
 
     assert response.status_code == 200
     assert "al menos 7 dígitos" in response.get_data(as_text=True)
+
+
+def test_profile_page_shows_admin_badge_for_admin(app, client):
+    """El perfil muestra la etiqueta de administrador solo para admins."""
+    admin_id = _create_user(
+        app,
+        username="AdminUser",
+        email="adminuser@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        user = db.session.get(Usuario, admin_id)
+        joined_label = user.fecha_alta.strftime("%d/%m/%Y, %H:%M")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/perfil")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Administrador" in html
+    assert joined_label in html
+
+
+def test_anonymous_user_cannot_access_visor(client):
+    """Un usuario anónimo no puede acceder al visor."""
+    response = client.get("/visor", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_anonymous_user_cannot_access_collection(client):
+    """Un usuario anónimo no puede acceder a la colección."""
+    response = client.get("/coleccion", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_anonymous_user_cannot_access_profile(client):
+    """Un usuario anónimo no puede acceder al perfil."""
+    response = client.get("/perfil", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_admin_panel_redirects_anonymous_user_to_login(client):
+    """El panel admin redirige a login si el usuario es anónimo."""
+    response = client.get("/admin/", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_admin_panel_forbids_regular_user(app, client):
+    """Un usuario normal no puede entrar en Flask-Admin."""
+    user_id = _create_user(
+        app,
+        username="usuario_normal",
+        email="normal@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="user",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/", follow_redirects=False)
+
+    assert response.status_code == 403
+
+
+def test_admin_panel_redirects_admin_to_user_management(app, client):
+    """El root admin redirige a la gestión de usuarios."""
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/admin/usuarios" in response.headers["Location"]
+
+
+def test_profile_page_shows_admin_links_for_admin(app, client):
+    """El perfil del administrador muestra accesos de gestión."""
+    admin_id = _create_user(
+        app,
+        username="AdminUser",
+        email="adminuser@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/perfil")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Administrador" in html
+    assert "Gestión de Usuarios" in html
+    assert "Gestión del Modelo" in html

@@ -11,6 +11,7 @@ Versión: 0.1
 import io
 import json
 import os
+import pytest
 import zipfile
 
 from PIL import Image
@@ -31,6 +32,15 @@ from trazasytrazadas.db import (
     get_db,
 )
 from trazasytrazadas.models import Usuario
+
+
+@pytest.fixture(autouse=True)
+def _login_required_user(force_login):
+    """Todas las pruebas de colección se ejecutan autenticadas."""
+    force_login(
+        username="usuario_coleccion",
+        email="usuario_coleccion@example.com",
+    )
 
 
 def _fake_jpeg_bytes() -> bytes:
@@ -866,44 +876,98 @@ def test_grid_plan_registers_zone_for_authenticated_user(
     assert owner_id == user_id
 
 
-def test_grid_plan_registers_zone_for_system_user_when_anonymous(
-    app,
-    client,
-    monkeypatch,
-):
-    """Una zona nueva sigue usando el usuario técnico si no hay login."""
-    parcel_id = _register_zone(client, monkeypatch)
+def test_anonymous_user_cannot_create_zone_from_visor(client):
+    """El usuario anónimo no puede crear zonas desde el visor."""
+    with client.session_transaction() as session:
+        session.clear()
 
-    with app.app_context():
-        database = get_db()
-        owner_id = database.execute(
-            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()["usuario_id"]
-
-    assert owner_id == 1
-
-
-def test_legacy_parcels_are_reassigned_to_configured_user(
-    app,
-    client,
-    monkeypatch,
-):
-    """Las parcelas heredadas del usuario técnico se reasignan a Vindi22."""
-    parcel_id = _register_zone(client, monkeypatch)
-    user_id = _create_user(
-        app,
-        username="Vindi22",
-        email="vindi@example.com",
+    response = client.post(
+        "/visor/grid-plan",
+        json={
+            "bbox": {
+                "south": 40.0,
+                "west": -4.0,
+                "north": 40.1,
+                "east": -3.8,
+            },
+            "origin": {"lat": 40.123456, "lng": -3.654321},
+            "destination": {"lat": 40.654321, "lng": -3.123456},
+            "resolution": 0.25,
+        },
+        follow_redirects=False,
     )
 
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_legacy_parcels_are_reassigned_to_configured_user(app):
+    """Las parcelas legacy del usuario técnico se reasignan a Vindi22."""
     with app.app_context():
+        database = get_db()
+
+        database.execute(
+            """
+            INSERT INTO parcela (
+                usuario_id,
+                tamano_metros,
+                pto_origen_lat,
+                pto_origen_lng,
+                pto_fin_lat,
+                pto_fin_lng,
+                bbox_json,
+                source_id,
+                source_label,
+                requested_resolution,
+                actual_resolution,
+                tile_width,
+                tile_height,
+                estado,
+                nombre_coleccion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                1,
+                100.0,
+                40.0,
+                -4.0,
+                40.1,
+                -3.8,
+                json.dumps(
+                    {
+                        "south": 40.0,
+                        "west": -4.0,
+                        "north": 40.1,
+                        "east": -3.8,
+                    }
+                ),
+                "pnoa2023",
+                "PNOA 2023",
+                0.25,
+                0.25,
+                1024,
+                640,
+                "pending",
+                "Legacy zone",
+            ),
+        )
+        database.commit()
+
+        user_id = _create_user(
+            app,
+            username="Vindi22",
+            email="vindi@example.com",
+        )
+
         _reassign_legacy_parcels_to_configured_user()
 
-        database = get_db()
         owner_id = database.execute(
-            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
+            """
+            SELECT usuario_id
+            FROM parcela
+            WHERE nombre_coleccion = ?
+            """,
+            ("Legacy zone",),
         ).fetchone()["usuario_id"]
 
     assert owner_id == user_id
@@ -944,28 +1008,12 @@ def test_collection_gallery_returns_404_for_foreign_zone(
     assert response.status_code == 404
 
 
-def test_anonymous_collection_does_not_show_authenticated_user_zone(
-    app,
-    client,
-    monkeypatch,
-):
-    """La colección anónima no muestra zonas guardadas por usuarios reales."""
-    owner_id = _create_user(
-        app,
-        username="Vindi22",
-        email="vindi@example.com",
-    )
-
-    with client.session_transaction() as session:
-        session["_user_id"] = str(owner_id)
-        session["_fresh"] = True
-
-    _register_zone(client, monkeypatch)
-
+def test_anonymous_collection_redirects_to_login(client):
+    """La colección exige autenticación para usuarios anónimos."""
     with client.session_transaction() as session:
         session.clear()
 
-    response = client.get("/coleccion")
-    assert response.status_code == 200
-    assert b"40.123456" not in response.data
-    assert b"40.654321" not in response.data
+    response = client.get("/coleccion", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]

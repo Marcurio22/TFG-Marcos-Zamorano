@@ -1,0 +1,54 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+    <div class="container-fluid">
+        <h2>Gestión del Modelo</h2>
+        <p>
+            <strong>Directorio de modelos:</strong>
+            <code>{{ models_dir }}</code>
+        </p>
+        <p>
+            <strong>Número de folds configurado:</strong>
+            {{ n_folds }}
+        </p>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Fold</th>
+                    <th>Base esperada</th>
+                    <th>Estado</th>
+                    <th>Ficheros encontrados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in folds %}
+                    <tr>
+                        <td>{{ item.fold }}</td>
+                        <td>
+                            <code>{{ item.expected_base }}</code>
+                        </td>
+                        <td>
+                            {% if item.configured %}
+                                <span class="label label-success">Disponible</span>
+                            {% else %}
+                                <span class="label label-danger">No encontrado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.available_files %}
+                                <ul style="margin:0; padding-left: 18px;">
+                                    {% for filename in item.available_files %}
+                                        <li>
+                                            <code>{{ filename }}</code>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <span class="text-muted">Sin ficheros</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

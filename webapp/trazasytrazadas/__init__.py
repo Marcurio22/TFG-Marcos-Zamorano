@@ -19,6 +19,7 @@ from flask_babel import Babel, get_locale
 from pathlib import Path
 
 from . import auth, db, traces, trace_worker
+from .admin import init_admin
 
 # Babel (i18n)
 babel = Babel()
@@ -158,5 +159,8 @@ def create_app(test_config=None):
 
     # Asocia la URL raíz con el endpoint principal del blueprint.
     app.add_url_rule("/", endpoint="trazas.index")
+
+    # Inicializa panel de administración.
+    init_admin(app)
 
     return app

@@ -10,6 +10,7 @@ Versión: 0.1
 
 import io
 import os
+import pytest
 import threading
 
 from PIL import Image
@@ -21,6 +22,16 @@ from trazasytrazadas.collection_store import (
     refresh_parcel_status
 )
 from trazasytrazadas.db import get_db
+
+
+@pytest.fixture(autouse=True)
+def _login_required_user(force_login):
+    """Las pruebas del worker que tocan visor/colección
+        se ejecutan autenticadas."""
+    force_login(
+        username="usuario_worker",
+        email="usuario_worker@example.com",
+    )
 
 
 def _fake_jpeg_bytes() -> bytes:

@@ -30,6 +30,7 @@ from flask import (
     url_for,
 )
 from flask_babel import gettext as _
+from flask_login import login_required
 
 # Configuración del visor PNOA.
 VISOR_RESOLUTION_STEPS = [0.1, 0.25, 0.5, 1.0, 2.0]
@@ -875,6 +876,7 @@ def register_visor_routes(bp) -> None:
     """Registra en el blueprint principal las rutas del visor cartográfico."""
 
     @bp.route("/visor", methods=["GET"])
+    @login_required
     def visor():
         """Renderiza la pantalla del visor cartográfico."""
         initial_zone = None
@@ -888,6 +890,7 @@ def register_visor_routes(bp) -> None:
         )
 
     @bp.route("/visor/grid-plan", methods=["POST"])
+    @login_required
     def visor_grid_plan():
         """Devuelve la planificación de teselas para el visor cartográfico."""
         payload = request.get_json(silent=True) or {}
@@ -1038,6 +1041,7 @@ def register_visor_routes(bp) -> None:
             )
 
     @bp.route("/visor/download/tile", methods=["GET"])
+    @login_required
     def visor_download_tile():
         """Descarga una tesela individual del visor mediante proxy backend."""
         try:
@@ -1067,6 +1071,7 @@ def register_visor_routes(bp) -> None:
         )
 
     @bp.route("/visor/download/zip", methods=["POST"])
+    @login_required
     def visor_download_zip():
         """Genera un ZIP con las teselas del visor usando el backend."""
         payload = request.get_json(silent=True) or {}

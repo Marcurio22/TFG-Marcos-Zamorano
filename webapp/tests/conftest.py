@@ -107,3 +107,36 @@ def mock_compute_traces(monkeypatch):
         return result
 
     return _apply
+
+
+@pytest.fixture
+def force_login(app, client):
+    """Autentica un usuario de pruebas en el cliente actual."""
+    from werkzeug.security import generate_password_hash
+    from trazasytrazadas.db import db
+    from trazasytrazadas.models import Usuario
+
+    def _force_login(
+        username: str = "usuario_test",
+        email: str = "usuario_test@example.com",
+        role: str = "user",
+    ) -> int:
+        with app.app_context():
+            user = Usuario(
+                nombre_usuario=username,
+                correo_electronico=email,
+                telefono=None,
+                contrasena=generate_password_hash("Password1!"),
+                rol=role,
+            )
+            db.session.add(user)
+            db.session.commit()
+            user_id = int(user.usuario_id)
+
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user_id)
+            session["_fresh"] = True
+
+        return user_id
+
+    return _force_login

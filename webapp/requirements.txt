@@ -7,6 +7,7 @@ colorama==0.4.6
 email-validator==2.3.0
 filelock==3.20.3
 Flask==3.1.2
+Flask-Admin==1.6.1
 flask-babel==4.0.0
 Flask-Login==0.6.3
 Flask-SQLAlchemy==3.1.1

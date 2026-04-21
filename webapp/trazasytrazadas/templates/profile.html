@@ -35,8 +35,24 @@
                     </form>
                 </div>
                 <div class="space-y-5">
-                    <div>
+                    <div class="flex items-center gap-3 flex-wrap">
                         <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-base-content">{{ current_user.nombre_usuario }}</h1>
+                        {% if current_user.is_authenticated and current_user.rol == "admin" %}
+                            <span class="inline-flex items-center gap-2 rounded-full border-2 border-primary px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-primary bg-transparent shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="w-4 h-4">
+                                    <path d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3z" />
+                                    <path d="M9.5 12.5l1.5 1.5 3.5-4" />
+                                </svg>
+                                <span>{{ _("Administrador") }}</span>
+                            </span>
+                        {% endif %}
                     </div>
                     <div class="space-y-4 text-lg sm:text-xl text-base-content/80">
                         <div class="flex items-center gap-3">
@@ -152,6 +168,21 @@
                        class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]">
                         {{ _("Acceder a la colección") }}
                     </a>
+                    {% if current_user.is_authenticated and current_user.rol == "admin" %}
+                        <div class="rounded-2xl border border-primary/25 bg-base-100/70 shadow-sm p-4">
+                            <div class="text-sm font-bold uppercase tracking-wide text-primary mb-3">{{ _("Panel del Administrador") }}</div>
+                            <div class="flex flex-col gap-3">
+                                <a href="{{ url_for("admin_usuarios.index_view") }}"
+                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold">
+                                    {{ _("Gestión de Usuarios") }}
+                                </a>
+                                <a href="{{ url_for("admin_folds.index") }}"
+                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold">
+                                    {{ _("Gestión del Modelo") }}
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
