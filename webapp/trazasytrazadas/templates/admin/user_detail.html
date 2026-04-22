@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}{{ user.nombre_usuario }} · {{ _("Gestión de Usuarios") }}{% endblock %}
+{% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-5{% endblock %}
+{% block content %}
+    <section class="space-y-4">
+        <a href="{{ url_for("admin_usuarios.index_view") }}"
+           class="link link-primary font-semibold inline-flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 class="w-4 h-4">
+                <path d="M15 18l-6-6 6-6" />
+                <path d="M21 12H9" />
+            </svg>
+            {{ _("Volver a gestión de usuarios") }}
+        </a>
+        <div class="card border border-primary/15 bg-base-100/85 shadow-xl backdrop-blur-sm">
+            <div class="card-body p-5 sm:p-8">
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-[180px_1fr]">
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="grid h-36 w-36 place-items-center rounded-full bg-primary text-primary-content shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="currentColor"
+                                 class="w-24 h-24">
+                                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5Z" />
+                            </svg>
+                        </div>
+                        {% if can_delete %}
+                            <form method="post"
+                                  action="{{ url_for('admin_usuarios.delete_view', user_id=user.usuario_id) }}"
+                                  class="w-full"
+                                  onsubmit="return confirm('{{ _("¿Seguro que quieres eliminar este usuario?") }}');">
+                                {{ action_form.hidden_tag() }}
+                                <button type="submit" class="btn btn-error w-full">{{ _("Eliminar usuario") }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-6">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h1 class="text-4xl sm:text-5xl font-black tracking-tight">{{ user.nombre_usuario }}</h1>
+                            {% if user.rol == "admin" %}
+                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-red-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-red-600 bg-red-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round"
+                                         class="w-4 h-4">
+                                        <path d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3z" />
+                                        <path d="M9.5 12.5l1.5 1.5 3.5-4" />
+                                    </svg>
+                                    <span>{{ _("Administrador") }}</span>
+                                </span>
+                            {% elif user.rol == "system" %}
+                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-slate-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-slate-700 bg-slate-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round"
+                                         class="w-4 h-4">
+                                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                                        <path d="M9 9h6v6H9z" />
+                                    </svg>
+                                    <span>{{ _("Sistema") }}</span>
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-emerald-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-emerald-700 bg-emerald-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 24 24"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         stroke-width="2"
+                                         stroke-linecap="round"
+                                         stroke-linejoin="round"
+                                         class="w-4 h-4">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                    </svg>
+                                    <span>{{ _("Usuario") }}</span>
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div class="rounded-2xl border border-base-300 bg-base-100/70 p-4">
+                                <div class="text-xs font-bold uppercase tracking-wide text-base-content/60">{{ _("ID de usuario") }}</div>
+                                <div class="mt-2 text-lg font-semibold">#{{ user.usuario_id }}</div>
+                            </div>
+                            <div class="rounded-2xl border border-base-300 bg-base-100/70 p-4">
+                                <div class="text-xs font-bold uppercase tracking-wide text-base-content/60">{{ _("Correo electrónico") }}</div>
+                                <div class="mt-2 text-lg break-all">{{ user.correo_electronico }}</div>
+                            </div>
+                            <div class="rounded-2xl border border-base-300 bg-base-100/70 p-4">
+                                <div class="text-xs font-bold uppercase tracking-wide text-base-content/60">{{ _("Teléfono") }}</div>
+                                <div class="mt-2 text-lg">{{ phone_label }}</div>
+                            </div>
+                            <div class="rounded-2xl border border-base-300 bg-base-100/70 p-4">
+                                <div class="text-xs font-bold uppercase tracking-wide text-base-content/60">{{ _("Fecha de alta") }}</div>
+                                <div class="mt-2 text-lg">{{ joined_label }}</div>
+                            </div>
+                            <div class="rounded-2xl border border-base-300 bg-base-100/70 p-4">
+                                <div class="text-xs font-bold uppercase tracking-wide text-base-content/60">{{ _("Rol") }}</div>
+                                <div class="mt-2 text-lg">{{ user.rol }}</div>
+                            </div>
+                            <div class="rounded-2xl border border-base-300 bg-base-100/70 p-4">
+                                <div class="text-xs font-bold uppercase tracking-wide text-base-content/60">{{ _("Parcelas asociadas") }}</div>
+                                <div class="mt-2 text-lg">{{ parcel_count }}</div>
+                            </div>
+                        </div>
+                        {% if parcel_count > 0 %}
+                            <div class="alert alert-warning">
+                                <span>{{ _("Este usuario tiene parcelas asociadas y no puede eliminarse hasta reasignarlas o eliminarlas.") }}</span>
+                            </div>
+                        {% endif %}
+                        {% if user.rol == "system" %}
+                            <div class="alert alert-info">
+                                <span>{{ _("El usuario del sistema está protegido y no puede editarse ni eliminarse desde esta pantalla.") }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="flex flex-wrap gap-3">
+                            {% if can_edit %}
+                                <a href="{{ url_for('admin_usuarios.edit_view', user_id=user.usuario_id) }}"
+                                   class="btn btn-primary">{{ _("Editar usuario") }}</a>
+                            {% endif %}
+                            <a href="{{ url_for("admin_usuarios.index_view") }}"
+                               class="btn btn-outline btn-primary">{{ _("Volver al listado") }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

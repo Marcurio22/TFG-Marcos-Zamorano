@@ -18,7 +18,7 @@ from flask_babel import gettext as _, lazy_gettext as _l
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from sqlalchemy import func, select
-from wtforms import PasswordField, StringField, SubmitField
+from wtforms import PasswordField, SelectField, StringField, SubmitField
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -399,3 +399,126 @@ class ProfileForm(FlaskForm):
             raise ValidationError(str(exc)) from exc
 
         field.data = normalized or ""
+
+
+class AdminUserEditForm(FlaskForm):
+    """Formulario de edición de usuarios desde el panel admin."""
+
+    def __init__(self, *args, user_id: int | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_id = user_id
+
+    nombre_usuario = StringField(
+        _l("Usuario"),
+        validators=[
+            DataRequired(message=_l("Introduce un nombre de usuario.")),
+            Length(
+                min=3,
+                max=50,
+                message=_l(
+                    "El nombre de usuario debe tener entre 3 y 50 caracteres."
+                ),
+            ),
+            Regexp(
+                _USERNAME_RE,
+                message=_l(
+                    "El nombre de usuario solo puede contener letras, "
+                    "números, puntos, guiones y guiones bajos."
+                ),
+            ),
+        ],
+    )
+    correo_electronico = StringField(
+        _l("Correo electrónico"),
+        validators=[
+            DataRequired(message=_l("Introduce un correo electrónico.")),
+            Length(
+                max=50,
+                message=_l(
+                    "El correo electrónico no puede superar "
+                    "los 50 caracteres."
+                ),
+            ),
+            Email(message=_l("Introduce un correo electrónico válido.")),
+        ],
+    )
+    telefono = StringField(
+        _l("Teléfono (opcional)"),
+        validators=[Optional()],
+    )
+    rol = SelectField(
+        _l("Rol"),
+        choices=[
+            ("user", _l("Usuario")),
+            ("admin", _l("Administrador")),
+        ],
+        validators=[
+            DataRequired(message=_l("Selecciona un rol válido.")),
+        ],
+    )
+    submit = SubmitField(_l("Guardar cambios"))
+
+    def validate_nombre_usuario(self, field) -> None:
+        """Valida nombre de usuario único excluyendo el usuario editado."""
+        normalized = " ".join((field.data or "").split()).strip()
+        field.data = normalized
+
+        if not normalized:
+            raise ValidationError(_("Introduce un nombre de usuario."))
+
+        existing = db.session.execute(
+            select(Usuario.usuario_id).where(
+                func.lower(Usuario.nombre_usuario) == normalized.lower()
+            )
+        ).scalar_one_or_none()
+
+        if existing is None:
+            return
+
+        if self.user_id is not None and int(existing) == int(self.user_id):
+            return
+
+        raise ValidationError(_("Ya existe un usuario con ese nombre."))
+
+    def validate_correo_electronico(self, field) -> None:
+        """Valida correo único excluyendo el usuario editado."""
+        normalized = (field.data or "").strip().lower()
+        field.data = normalized
+
+        existing = db.session.execute(
+            select(Usuario.usuario_id).where(
+                func.lower(Usuario.correo_electronico) == normalized.lower()
+            )
+        ).scalar_one_or_none()
+
+        if existing is None:
+            return
+
+        if self.user_id is not None and int(existing) == int(self.user_id):
+            return
+
+        raise ValidationError(
+            _("Ya existe un usuario con ese correo electrónico.")
+        )
+
+    def validate_telefono(self, field) -> None:
+        """Normaliza y valida el teléfono opcional."""
+        if not (field.data or "").strip():
+            field.data = ""
+            return
+
+        try:
+            normalized = normalize_phone_number(field.data)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        field.data = normalized or ""
+
+    def validate_rol(self, field) -> None:
+        """Restringe los roles editables desde el panel admin."""
+        if field.data not in {"user", "admin"}:
+            raise ValidationError(_("Selecciona un rol válido."))
+
+
+class AdminActionForm(FlaskForm):
+    """Formulario vacío para acciones protegidas por CSRF en admin."""

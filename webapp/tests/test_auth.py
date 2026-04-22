@@ -930,3 +930,153 @@ def test_profile_page_shows_admin_links_for_admin(app, client):
     assert "Administrador" in html
     assert "Gestión de Usuarios" in html
     assert "Gestión del Modelo" in html
+
+
+def test_admin_user_management_page_renders_summary_and_rows(app, client):
+    """La gestión de usuarios muestra cards resumen y el listado."""
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    _create_user(
+        app,
+        username="UsuarioPanel",
+        email="panel@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        phone="+34903389323",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/usuarios/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Gestión de Usuarios" in html
+    assert "Total de usuarios" in html
+    assert "Administradores" in html
+    assert "Usuarios regulares" in html
+    assert "UsuarioPanel" in html
+
+
+def test_admin_user_detail_hides_password_and_formats_phone(app, client):
+    """El detalle admin no muestra contraseña y formatea el teléfono."""
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    managed_user_id = _create_user(
+        app,
+        username="UsuarioDetalle",
+        email="detalle@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        phone="+34903389323",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    with app.app_context():
+        stored_hash = db.session.get(Usuario, managed_user_id).contrasena
+
+    response = client.get(f"/admin/usuarios/{managed_user_id}")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "UsuarioDetalle" in html
+    assert "(+34) 903 38 93 23" in html
+    assert "Contraseña" not in html
+    assert stored_hash not in html
+
+
+def test_admin_can_edit_user_from_management(app, client):
+    """El administrador puede editar un usuario desde la gestión."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    managed_user_id = _create_user(
+        app,
+        username="UsuarioEditar",
+        email="editar@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="user",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        f"/admin/usuarios/{managed_user_id}/editar",
+        data={
+            "nombre_usuario": "UsuarioEditado",
+            "correo_electronico": "editado@example.com",
+            "telefono": "+34 900 30 02 00",
+            "rol": "admin",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Usuario actualizado correctamente." in html
+
+    with app.app_context():
+        user = db.session.get(Usuario, managed_user_id)
+        assert user.nombre_usuario == "UsuarioEditado"
+        assert user.correo_electronico == "editado@example.com"
+        assert user.telefono == "+34900300200"
+        assert user.rol == "admin"
+
+
+def test_admin_can_delete_user_without_parcels(app, client):
+    """El administrador puede eliminar un usuario sin parcelas asociadas."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    managed_user_id = _create_user(
+        app,
+        username="UsuarioEliminar",
+        email="eliminar@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="user",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        f"/admin/usuarios/{managed_user_id}/eliminar",
+        data={},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Usuario eliminado correctamente." in html
+
+    with app.app_context():
+        user = db.session.get(Usuario, managed_user_id)
+        assert user is None

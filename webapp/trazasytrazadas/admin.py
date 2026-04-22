@@ -13,15 +13,58 @@ Versión: 0.1
 from __future__ import annotations
 
 import os
+from datetime import datetime
 
-from flask import abort, current_app, redirect, request, url_for
+from flask import abort, current_app, flash, redirect, request, url_for
 from flask_admin import Admin, AdminIndexView, BaseView, expose
-from flask_admin.contrib.sqla import ModelView
 from flask_babel import gettext as _
 from flask_login import current_user
+from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from .collection import COLLECTION_PER_PAGE_OPTIONS, _pagination_items
 from .db import db
-from .models import Usuario
+from .forms import (
+    AdminActionForm,
+    AdminUserEditForm,
+    format_phone_number_for_display,
+)
+from .models import Parcela, Usuario
+
+
+def _format_user_joined_at(value) -> str:
+    """Devuelve la fecha de alta con formato DD/MM/AAAA, HH:mm."""
+    if value is None:
+        return "-"
+
+    if hasattr(value, "strftime"):
+        return value.strftime("%d/%m/%Y, %H:%M")
+
+    normalized = str(value).strip().replace("T", " ")
+
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+    ):
+        try:
+            parsed = datetime.strptime(normalized, fmt)
+            return parsed.strftime("%d/%m/%Y, %H:%M")
+        except ValueError:
+            continue
+
+    return str(value)
+
+
+def _parse_positive_int(value, default: int) -> int:
+    """Convierte un valor a entero positivo,
+        devolviendo un fallback si falla."""
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+
+    return parsed if parsed > 0 else default
 
 
 class _AdminAccessMixin:
@@ -48,46 +91,250 @@ class SecureAdminIndexView(_AdminAccessMixin, AdminIndexView):
         return redirect(url_for("admin_usuarios.index_view"))
 
 
-class UserAdminView(_AdminAccessMixin, ModelView):
-    """Vista de gestión de usuarios."""
+class UserAdminView(_AdminAccessMixin, BaseView):
+    """Vista propia de gestión de usuarios, integrada con la UI de la app."""
 
-    can_view_details = True
-    can_create = False
-    can_delete = False
-    can_edit = True
+    def _get_user_or_404(self, user_id: int) -> Usuario:
+        """Recupera un usuario o devuelve 404 si no existe."""
+        user = db.session.get(Usuario, user_id)
+        if user is None:
+            abort(404)
+        return user
 
-    column_display_pk = True
-    column_list = (
-        "usuario_id",
-        "nombre_usuario",
-        "correo_electronico",
-        "telefono",
-        "rol",
-        "fecha_alta",
-    )
-    column_searchable_list = (
-        "nombre_usuario",
-        "correo_electronico",
-        "telefono",
-    )
-    column_filters = (
-        "rol",
-        "fecha_alta",
-    )
+    def _count_user_parcels(self, user_id: int) -> int:
+        """Cuenta cuántas parcelas tiene asociadas un usuario."""
+        return int(
+            db.session.execute(
+                select(func.count(Parcela.parcela_id)).where(
+                    Parcela.usuario_id == user_id
+                )
+            ).scalar_one()
+        )
 
-    form_columns = (
-        "nombre_usuario",
-        "correo_electronico",
-        "telefono",
-        "rol",
-    )
-    form_choices = {
-        "rol": [
-            ("user", _("Usuario")),
-            ("admin", _("Administrador")),
-            ("system", _("Sistema")),
+    @expose("/")
+    def index_view(self):
+        """Muestra el listado paginado de usuarios."""
+        search = (request.args.get("q") or "").strip()
+        page = _parse_positive_int(request.args.get("page"), 1)
+        per_page = _parse_positive_int(
+            request.args.get("per_page"),
+            COLLECTION_PER_PAGE_OPTIONS[0],
+        )
+
+        if per_page not in COLLECTION_PER_PAGE_OPTIONS:
+            per_page = COLLECTION_PER_PAGE_OPTIONS[0]
+
+        filters = []
+        if search:
+            search_pattern = f"%{search.lower()}%"
+            filters.append(
+                or_(
+                    func.lower(Usuario.nombre_usuario).like(search_pattern),
+                    func.lower(Usuario.correo_electronico).like(
+                        search_pattern),
+                    func.lower(func.coalesce(Usuario.telefono, "")).like(
+                        search_pattern
+                    ),
+                    func.lower(Usuario.rol).like(search_pattern),
+                )
+            )
+
+        total_users = int(
+            db.session.execute(
+                select(func.count(Usuario.usuario_id))
+            ).scalar_one()
+        )
+        total_admins = int(
+            db.session.execute(
+                select(func.count(Usuario.usuario_id)).where(
+                    Usuario.rol == "admin"
+                )
+            ).scalar_one()
+        )
+        total_regular = int(
+            db.session.execute(
+                select(func.count(Usuario.usuario_id)).where(
+                    Usuario.rol == "user"
+                )
+            ).scalar_one()
+        )
+
+        count_stmt = select(func.count(Usuario.usuario_id))
+        users_stmt = select(Usuario).order_by(Usuario.usuario_id.desc())
+
+        if filters:
+            count_stmt = count_stmt.where(*filters)
+            users_stmt = users_stmt.where(*filters)
+
+        filtered_total = int(db.session.execute(count_stmt).scalar_one())
+        total_pages = max(1, (filtered_total + per_page - 1) // per_page)
+
+        if page > total_pages:
+            page = total_pages
+
+        users = db.session.execute(
+            users_stmt.offset((page - 1) * per_page).limit(per_page)
+        ).scalars().all()
+
+        listing_rows = [
+            {
+                "user": user,
+                "phone_label": format_phone_number_for_display(user.telefono),
+                "joined_label": _format_user_joined_at(user.fecha_alta),
+                "can_delete": (
+                    user.rol != "system"
+                    and int(user.usuario_id) != int(current_user.usuario_id)
+                ),
+                "can_edit": user.rol != "system",
+            }
+            for user in users
         ]
-    }
+
+        listing = {
+            "users": listing_rows,
+            "total": filtered_total,
+            "page": page,
+            "per_page": per_page,
+            "search": search,
+            "total_pages": total_pages,
+        }
+
+        return self.render(
+            "admin/users.html",
+            summary={
+                "total_users": total_users,
+                "total_admins": total_admins,
+                "total_regular": total_regular,
+            },
+            listing=listing,
+            per_page_options=COLLECTION_PER_PAGE_OPTIONS,
+            pagination_items=_pagination_items(page, total_pages),
+            action_form=AdminActionForm(),
+        )
+
+    @expose("/<int:user_id>")
+    def detail_view(self, user_id: int):
+        """Muestra la ficha detallada de un usuario."""
+        user = self._get_user_or_404(user_id)
+        parcel_count = self._count_user_parcels(user_id)
+
+        return self.render(
+            "admin/user_detail.html",
+            user=user,
+            phone_label=format_phone_number_for_display(user.telefono),
+            joined_label=_format_user_joined_at(user.fecha_alta),
+            parcel_count=parcel_count,
+            can_edit=(user.rol != "system"),
+            can_delete=(
+                user.rol != "system"
+                and int(user.usuario_id) != int(current_user.usuario_id)
+                and parcel_count == 0
+            ),
+            action_form=AdminActionForm(),
+        )
+
+    @expose("/<int:user_id>/editar", methods=("GET", "POST"))
+    def edit_view(self, user_id: int):
+        """Permite editar un usuario desde el panel admin."""
+        user = self._get_user_or_404(user_id)
+
+        if user.rol == "system":
+            flash(
+                _(
+                    "El usuario del sistema no puede "
+                    "editarse desde esta vista."
+                ),
+                "warning",
+            )
+            return redirect(url_for("admin_usuarios.detail_view",
+                                    user_id=user_id))
+
+        form = AdminUserEditForm(obj=user, user_id=user_id)
+
+        if form.validate_on_submit():
+            user.nombre_usuario = form.nombre_usuario.data
+            user.correo_electronico = form.correo_electronico.data
+            user.telefono = form.telefono.data or None
+            user.rol = form.rol.data
+
+            try:
+                db.session.commit()
+            except (IntegrityError, SQLAlchemyError):
+                db.session.rollback()
+                flash(
+                    _(
+                        "No se ha podido actualizar el usuario. "
+                        "Revisa los datos e inténtalo de nuevo."
+                    ),
+                    "error",
+                )
+            else:
+                flash(_("Usuario actualizado correctamente."), "success")
+                return redirect(
+                    url_for("admin_usuarios.detail_view", user_id=user_id)
+                )
+
+        return self.render(
+            "admin/user_edit.html",
+            user=user,
+            form=form,
+        )
+
+    @expose("/<int:user_id>/eliminar", methods=("POST",))
+    def delete_view(self, user_id: int):
+        """Elimina un usuario si cumple las restricciones de seguridad."""
+        form = AdminActionForm()
+        if not form.validate_on_submit():
+            abort(400)
+
+        user = self._get_user_or_404(user_id)
+
+        if user.rol == "system":
+            flash(
+                _("El usuario del sistema no puede eliminarse."),
+                "warning",
+            )
+            return redirect(url_for("admin_usuarios.index_view"))
+
+        if int(user.usuario_id) == int(current_user.usuario_id):
+            flash(
+                _(
+                    "No puedes eliminar el usuario con "
+                    "el que has iniciado sesión."
+                ),
+                "warning",
+            )
+            return redirect(url_for("admin_usuarios.detail_view",
+                                    user_id=user_id))
+
+        parcel_count = self._count_user_parcels(user_id)
+        if parcel_count > 0:
+            flash(
+                _(
+                    "No se puede eliminar el usuario porque tiene "
+                    "parcelas asociadas."
+                ),
+                "warning",
+            )
+            return redirect(url_for("admin_usuarios.detail_view",
+                                    user_id=user_id))
+
+        try:
+            db.session.delete(user)
+            db.session.commit()
+        except (IntegrityError, SQLAlchemyError):
+            db.session.rollback()
+            flash(
+                _(
+                    "No se ha podido eliminar el usuario. "
+                    "Inténtalo de nuevo más tarde."
+                ),
+                "error",
+            )
+        else:
+            flash(_("Usuario eliminado correctamente."), "success")
+
+        return redirect(url_for("admin_usuarios.index_view"))
 
 
 class FoldsAdminView(_AdminAccessMixin, BaseView):
@@ -107,7 +354,8 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
         for fold in range(1, n_folds + 1):
             expected_base = model_template.format(fold=fold)
             matching_files = [
-                filename for filename in filenames
+                filename
+                for filename in filenames
                 if expected_base in filename
             ]
             folds.append(
@@ -143,8 +391,6 @@ def init_admin(app):
 
     admin.add_view(
         UserAdminView(
-            Usuario,
-            db.session,
             name=_("Gestión de Usuarios"),
             endpoint="admin_usuarios",
             url="/admin/usuarios",
