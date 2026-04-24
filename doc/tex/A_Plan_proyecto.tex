@@ -458,6 +458,49 @@ Por último, reservé parte del cierre del \textit{sprint} a tareas de verificac
 
 Como se aprecia en la Figura~\ref{fig:brsprint14}, el \textit{burndown} refleja un inicio prácticamente plano, coherente con la menor disponibilidad de los primeros días. También se observa un ajuste en la línea ideal, debido a la ampliación del \textit{sprint} en un día por motivos académicos. A partir de la mitad del periodo el descenso se acelera, mostrando cómo el cierre de tareas se concentró en los últimos días, hasta completar el \textit{sprint} al final de la semana.
 
+\subsection{Sprint 15 - Integración de usuarios y administración}
+El \textit{Sprint 15} se extendió durante casi dos semanas. Aunque inicialmente estaba planificado como un \textit{sprint} de una semana, por diversos motivos se decidió aplazar el cierre una semana adicional en el último momento, lo que afectó directamente a la planificación y explica que el \textit{burndown report} presente un comportamiento menos lineal de lo habitual. 
+
+Para este \textit{sprint} estimé una dedicación total de 23~horas y finalmente invertí 25~horas y 30~minutos. Durante los primeros días apenas pude avanzar y, además, una parte importante del trabajo consistió en tareas estructurales que requerían acumular varios cambios antes de poder dar cierres completos, por lo que el progreso quedó más concentrado al final del periodo.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Ajustar la interfaz del visor:
+	\begin{itemize}
+		\item Cambiar el ancho del mapa para que ocupase toda la pantalla.
+		\item Añadir un \textit{checkbox} de ``trazas dibujadas'' en cada tesela.
+		\item Modificar la \textit{preview} de la zona seleccionada para que se almacenase directamente en memoria.
+	\end{itemize}
+	\item Optimizar la lógica del \textit{worker} para evitar comprobaciones continuas innecesarias.
+	\item Diseñar el \textit{mockup} completo de la funcionalidad de usuarios.
+	\item Reestructurar la interacción con la base de datos, pasando de inserciones manuales a SQLAlchemy.
+	\item Implementar el sistema de usuarios:
+	\begin{itemize}
+		\item Crear pantallas de \textit{login} y registro.
+		\item Crear un menú de administrador.
+		\item Definir permisos de acceso a pantallas en función del tipo de usuario.
+		\item Crear un panel de gestión de usuarios.
+		\item Crear un panel de gestión del modelo.
+	\end{itemize}
+\end{itemize}
+
+En los primeros días abordé cambios principalmente visuales y de comportamiento del visor. En primer lugar, ajusté el mapa para que ocupase todo el ancho disponible, mejorando la experiencia de navegación y evitando el desaprovechamiento de espacio en pantallas grandes. A continuación, añadí un indicador por tesela mediante un \textit{checkbox} asociado a si las trazas estaban dibujadas, lo que facilitaba distinguir rápidamente el estado de cada elemento dentro de la vista. En paralelo, modifiqué la lógica de \textit{preview} de la zona seleccionada para que se almacenase directamente en memoria, reduciendo dependencias con almacenamiento temporal y simplificando el flujo de consulta y representación asociados a esta funcionalidad.
+
+Seguidamente, realicé ajustes internos para mejorar robustez. En concreto, modifiqué la lógica del \textit{worker} para que no estuviese comprobando continuamente el estado de forma activa, sino que operase de manera más eficiente.
+
+La segunda mitad del \textit{sprint} se centró en la nueva funcionalidad de usuarios. Primero elaboré el \textit{mockup} completo para tener claro el flujo de pantallas y el rol de cada perfil. A partir de ahí, reestructuré la interacción con base de datos: sustituí inserciones manuales por un enfoque basado en SQLAlchemy, de forma que el acceso a datos quedase más mantenible y coherente con el crecimiento del proyecto. Una vez estabilizada esta base, implementé las pantallas de \textit{login} y registro y construí el menú de administrador.
+
+Finalmente, desarrollé la capa de permisos, restringiendo el acceso a determinadas pantallas en función del tipo de usuario y del rol asignado, y creé los paneles de administración: uno para la gestión de usuarios y otro orientado a la gestión del modelo. Este bloque concentró buena parte del trabajo del \textit{sprint}, ya que dependía de tener cerradas previamente la navegación, la persistencia y la estructura de roles.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint15}
+	\caption[Burndown Report del Sprint 15]{Burndown Report del Sprint 15.}
+	\label{fig:brsprint15}
+\end{figure}
+
+Como se aprecia en la Figura~\ref{fig:brsprint15}, el \textit{burndown} presenta un comportamiento atípico. Por un lado, el descenso inicial es muy limitado, coherente con la baja disponibilidad de los primeros días y con el hecho de que varias tareas eran estructurales y no se podían cerrar de forma aislada. Por otro, se observa un reajuste a mitad del periodo: en ese punto se amplió el \textit{sprint} una semana adicional y se replanificó la línea ideal, lo que explica el cambio de pendiente en el tramo central. A partir de ahí, el cierre de tareas se concentra al final, cuando ya quedaron consolidadas las dependencias internas y el \textit{sprint} termina con una caída pronunciada hasta completarse el día 22 de abril.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
