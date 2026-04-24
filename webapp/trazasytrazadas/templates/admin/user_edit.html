@@ -20,7 +20,7 @@
             </svg>
             {{ _("Volver al detalle del usuario") }}
         </a>
-        <div class="card border border-primary/15 bg-base-100/85 shadow-xl backdrop-blur-sm">
+        <div class="card border border-primary/15 bg-base-100 shadow-xl">
             <div class="card-body p-5 sm:p-8">
                 <div class="mb-6">
                     <h2 class="text-2xl sm:text-3xl font-black tracking-tight">{{ _("Editar usuario") }}</h2>
@@ -28,6 +28,15 @@
                         {{ _("Actualiza la información visible y el rol de acceso del usuario seleccionado.") }}
                     </p>
                 </div>
+                {% if user.rol == "admin" %}
+                    <div class="alert alert-warning mb-5">
+                        <span>{{ _("El rol de un administrador está protegido y no puede cambiarse desde esta vista.") }}</span>
+                    </div>
+                {% elif user.rol == "system" %}
+                    <div class="alert alert-info mb-5">
+                        <span>{{ _("El usuario del sistema está protegido y no puede editarse desde esta vista.") }}</span>
+                    </div>
+                {% endif %}
                 <form method="post" class="grid grid-cols-1 gap-5 md:grid-cols-2">
                     {{ form.hidden_tag() }}
                     <div>
@@ -67,7 +76,14 @@
                                class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
                             <span>{{ _("Rol") }}</span>
                         </label>
-                        {{ form.rol(class=select_class) }}
+                        {% if user.rol == "admin" %}
+                            <input type="hidden" name="rol" value="admin">
+                            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                                {{ _("Administrador (protegido)") }}
+                            </div>
+                        {% else %}
+                            {{ form.rol(class=select_class) }}
+                        {% endif %}
                         {% if form.rol.errors %}<p class="mt-2 text-sm text-error">{{ form.rol.errors[0] }}</p>{% endif %}
                     </div>
                     <div class="md:col-span-2 flex flex-wrap justify-end gap-3 pt-2">

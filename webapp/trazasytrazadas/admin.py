@@ -176,19 +176,31 @@ class UserAdminView(_AdminAccessMixin, BaseView):
             users_stmt.offset((page - 1) * per_page).limit(per_page)
         ).scalars().all()
 
-        listing_rows = [
-            {
-                "user": user,
-                "phone_label": format_phone_number_for_display(user.telefono),
-                "joined_label": _format_user_joined_at(user.fecha_alta),
-                "can_delete": (
-                    user.rol != "system"
-                    and int(user.usuario_id) != int(current_user.usuario_id)
-                ),
-                "can_edit": user.rol != "system",
-            }
-            for user in users
-        ]
+        listing_rows = []
+        for user in users:
+            is_current_user = int(user.usuario_id) == int(
+                current_user.usuario_id)
+            is_system_user = user.rol == "system"
+            is_admin_user = user.rol == "admin"
+
+            listing_rows.append(
+                {
+                    "user": user,
+                    "phone_label": format_phone_number_for_display(
+                        user.telefono
+                    ),
+                    "joined_label": _format_user_joined_at(user.fecha_alta),
+                    "can_delete": (
+                        not is_system_user
+                        and not is_current_user
+                        and not is_admin_user
+                    ),
+                    "can_edit": not is_system_user,
+                    "is_current_user": is_current_user,
+                    "is_system_user": is_system_user,
+                    "is_admin_user": is_admin_user,
+                }
+            )
 
         listing = {
             "users": listing_rows,
@@ -218,18 +230,26 @@ class UserAdminView(_AdminAccessMixin, BaseView):
         user = self._get_user_or_404(user_id)
         parcel_count = self._count_user_parcels(user_id)
 
+        is_current_user = int(user.usuario_id) == int(current_user.usuario_id)
+        is_system_user = user.rol == "system"
+        is_admin_user = user.rol == "admin"
+
         return self.render(
             "admin/user_detail.html",
             user=user,
             phone_label=format_phone_number_for_display(user.telefono),
             joined_label=_format_user_joined_at(user.fecha_alta),
             parcel_count=parcel_count,
-            can_edit=(user.rol != "system"),
+            can_edit=(not is_system_user),
             can_delete=(
-                user.rol != "system"
-                and int(user.usuario_id) != int(current_user.usuario_id)
+                not is_system_user
+                and not is_current_user
+                and not is_admin_user
                 and parcel_count == 0
             ),
+            is_current_user=is_current_user,
+            is_system_user=is_system_user,
+            is_admin_user=is_admin_user,
             action_form=AdminActionForm(),
         )
 
@@ -252,10 +272,23 @@ class UserAdminView(_AdminAccessMixin, BaseView):
         form = AdminUserEditForm(obj=user, user_id=user_id)
 
         if form.validate_on_submit():
+            requested_role = form.rol.data
+
+            if user.rol == "admin" and requested_role != "admin":
+                flash(
+                    _(
+                        "No se puede retirar el rol de administrador "
+                        "desde esta vista."
+                    ),
+                    "warning",
+                )
+                return redirect(url_for("admin_usuarios.detail_view",
+                                        user_id=user_id))
+
             user.nombre_usuario = form.nombre_usuario.data
             user.correo_electronico = form.correo_electronico.data
             user.telefono = form.telefono.data or None
-            user.rol = form.rol.data
+            user.rol = "admin" if user.rol == "admin" else requested_role
 
             try:
                 db.session.commit()
@@ -298,10 +331,16 @@ class UserAdminView(_AdminAccessMixin, BaseView):
 
         if int(user.usuario_id) == int(current_user.usuario_id):
             flash(
-                _(
-                    "No puedes eliminar el usuario con "
-                    "el que has iniciado sesión."
-                ),
+                _("No puedes eliminar el usuario con el "
+                  "que has iniciado sesión."),
+                "warning",
+            )
+            return redirect(url_for("admin_usuarios.detail_view",
+                                    user_id=user_id))
+
+        if user.rol == "admin":
+            flash(
+                _("No se puede eliminar otro usuario administrador."),
                 "warning",
             )
             return redirect(url_for("admin_usuarios.detail_view",

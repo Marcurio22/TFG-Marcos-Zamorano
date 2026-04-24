@@ -31,7 +31,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="badge badge-outline badge-primary px-4 py-3">{{ _("SQLAlchemy") }}</div>
                 </div>
                 <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <article class="rounded-2xl border border-primary/10 bg-base-100 shadow-sm">
@@ -103,7 +102,7 @@
                 </div>
             </div>
         </div>
-        <div class="card border border-primary/15 bg-base-100/85 shadow-xl backdrop-blur-sm">
+        <div class="card border border-primary/15 bg-base-100 shadow-xl">
             <div class="card-body gap-5">
                 <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                     <div>
@@ -161,8 +160,8 @@
                     <input type="hidden" name="page" value="1" />
                 </form>
                 {% if listing.users %}
-                    <div class="overflow-x-auto rounded-box border border-base-200">
-                        <table class="table table-zebra table-pin-rows">
+                    <div class="overflow-x-auto rounded-box border border-base-200 bg-base-100 shadow-sm">
+                        <table class="table table-zebra table-pin-rows text-sm">
                             <thead>
                                 <tr>
                                     <th class="w-20">{{ _("ID") }}</th>
@@ -178,22 +177,24 @@
                                 {% for row in listing.users %}
                                     <tr>
                                         <td class="font-bold text-base-content/75">#{{ row.user.usuario_id }}</td>
-                                        <td>
-                                            <div class="flex items-center gap-3">
-                                                <div class="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary font-bold shadow-sm">
+                                        <td class="py-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary font-bold shadow-sm">
                                                     {{ row.user.nombre_usuario[:1]|upper }}
                                                 </div>
-                                                <div>
-                                                    <div class="font-semibold text-base-content">{{ row.user.nombre_usuario }}</div>
-                                                    <div class="text-xs text-base-content/60">{{ _("Usuario registrado") }}</div>
+                                                <div class="min-w-0">
+                                                    <div class="font-semibold text-base-content leading-tight">{{ row.user.nombre_usuario }}</div>
+                                                    <div class="text-[11px] text-base-content/55 leading-tight">{{ _("Registrado") }}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="min-w-72">
-                                            <span class="break-all">{{ row.user.correo_electronico }}</span>
+                                        <td class="max-w-[240px] py-3">
+                                            <span class="break-all leading-snug">{{ row.user.correo_electronico }}</span>
                                         </td>
-                                        <td class="min-w-56">
-                                            <span class="{% if row.phone_label == _('No asociado') %}text-base-content/55{% endif %}">{{ row.phone_label }}</span>
+                                        <td class="max-w-[170px] py-3">
+                                            <span class="leading-snug {% if row.phone_label == _('No asociado') %}text-base-content/55{% endif %}">
+                                                {{ row.phone_label }}
+                                            </span>
                                         </td>
                                         <td class="text-center">
                                             {% if row.user.rol == "admin" %}
@@ -243,26 +244,29 @@
                                                 </span>
                                             {% endif %}
                                         </td>
-                                        <td class="whitespace-nowrap">{{ row.joined_label }}</td>
-                                        <td>
-                                            <div class="flex flex-wrap justify-end gap-2">
+                                        <td class="whitespace-nowrap py-3 text-sm">{{ row.joined_label }}</td>
+                                        <td class="py-3">
+                                            <div class="flex flex-wrap justify-end gap-1.5">
                                                 <a href="{{ url_for('admin_usuarios.detail_view', user_id=row.user.usuario_id) }}"
-                                                   class="btn btn-sm btn-outline btn-primary">{{ _("Ver") }}</a>
+                                                   class="btn btn-xs btn-outline btn-primary">{{ _("Ver") }}</a>
                                                 {% if row.can_edit %}
                                                     <a href="{{ url_for('admin_usuarios.edit_view', user_id=row.user.usuario_id) }}"
-                                                       class="btn btn-sm btn-primary">{{ _("Editar") }}</a>
+                                                       class="btn btn-xs btn-primary">{{ _("Editar") }}</a>
                                                 {% endif %}
                                                 {% if row.can_delete %}
-                                                    <form method="post"
-                                                          action="{{ url_for('admin_usuarios.delete_view', user_id=row.user.usuario_id) }}"
-                                                          onsubmit="return confirm('{{ _("¿Seguro que quieres eliminar este usuario?") }}');">
-                                                        {{ action_form.hidden_tag() }}
-                                                        <button type="submit" class="btn btn-sm btn-outline btn-error">{{ _("Eliminar") }}</button>
-                                                    </form>
-                                                {% elif row.user.rol == "system" %}
-                                                    <span class="badge badge-outline badge-neutral">{{ _("Protegido") }}</span>
-                                                {% elif row.user.usuario_id == current_user.usuario_id %}
-                                                    <span class="badge badge-outline badge-info">{{ _("Sesión actual") }}</span>
+                                                    <button type="button"
+                                                            class="btn btn-xs btn-outline btn-error"
+                                                            data-delete-user-button
+                                                            data-user-name="{{ row.user.nombre_usuario }}"
+                                                            data-delete-url="{{ url_for('admin_usuarios.delete_view', user_id=row.user.usuario_id) }}">
+                                                        {{ _("Eliminar") }}
+                                                    </button>
+                                                {% elif row.is_system_user %}
+                                                    <span class="badge badge-outline badge-neutral badge-sm">{{ _("Protegido") }}</span>
+                                                {% elif row.is_current_user %}
+                                                    <span class="badge badge-outline badge-info badge-sm">{{ _("Actual") }}</span>
+                                                {% elif row.is_admin_user %}
+                                                    <span class="badge badge-outline badge-warning badge-sm">{{ _("Admin protegido") }}</span>
                                                 {% endif %}
                                             </div>
                                         </td>
@@ -299,7 +303,7 @@
                         </div>
                     {% endif %}
                 {% else %}
-                    <div class="rounded-2xl border border-dashed border-base-300 bg-base-100/60 p-8 text-center">
+                    <div class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
                         <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-base-200 text-base-content/70">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24"
@@ -322,4 +326,69 @@
             </div>
         </div>
     </section>
+    <dialog id="delete-user-modal" class="modal">
+        <div class="modal-box max-w-md border border-error/20 bg-base-100 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <div class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-error/10 text-error">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         class="h-6 w-6">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-base-content">{{ _("Eliminar usuario") }}</h3>
+                    <p class="mt-2 text-sm text-base-content/75">
+                        {{ _("Esta acción eliminará permanentemente el usuario seleccionado.") }}
+                    </p>
+                    <p class="mt-3 text-sm font-medium text-base-content">
+                        {{ _("Usuario:") }}
+                        <span id="delete-user-name" class="font-bold"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button type="submit" class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                </form>
+                <form id="delete-user-form" method="post">
+                    {{ action_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-error">{{ _("Eliminar") }}</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>{{ _("Cerrar") }}</button>
+        </form>
+    </dialog>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const deleteDialog = document.getElementById("delete-user-modal");
+      const deleteForm = document.getElementById("delete-user-form");
+      const deleteUserName = document.getElementById("delete-user-name");
+
+      document.querySelectorAll("[data-delete-user-button]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const deleteUrl = button.dataset.deleteUrl;
+          const userName = button.dataset.userName || "";
+
+          deleteForm.action = deleteUrl;
+          deleteUserName.textContent = userName;
+
+          if (typeof deleteDialog.showModal === "function") {
+            deleteDialog.showModal();
+          }
+        });
+      });
+    });
+    </script>
 {% endblock %}

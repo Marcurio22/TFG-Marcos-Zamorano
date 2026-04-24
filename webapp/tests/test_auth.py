@@ -1080,3 +1080,116 @@ def test_admin_can_delete_user_without_parcels(app, client):
     with app.app_context():
         user = db.session.get(Usuario, managed_user_id)
         assert user is None
+
+
+def test_admin_cannot_delete_another_admin(app, client):
+    """Un admin no puede eliminar a otro admin."""
+    _disable_csrf(app)
+
+    acting_admin_id = _create_user(
+        app,
+        username="admin_actor",
+        email="admin_actor@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    target_admin_id = _create_user(
+        app,
+        username="admin_target",
+        email="admin_target@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(acting_admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        f"/admin/usuarios/{target_admin_id}/eliminar",
+        data={},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "No se puede eliminar otro usuario administrador." in html
+
+    with app.app_context():
+        assert db.session.get(Usuario, target_admin_id) is not None
+
+
+def test_admin_cannot_delete_self_from_admin_view(app, client):
+    """Un admin no puede eliminar su propia cuenta desde admin."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_self",
+        email="admin_self@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        f"/admin/usuarios/{admin_id}/eliminar",
+        data={},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "No puedes eliminar el usuario con el "
+    "que has iniciado sesión." in html
+
+    with app.app_context():
+        assert db.session.get(Usuario, admin_id) is not None
+
+
+def test_admin_cannot_remove_admin_role_from_admin_user(app, client):
+    """Un admin no puede retirar el rol admin a otro admin."""
+    _disable_csrf(app)
+
+    acting_admin_id = _create_user(
+        app,
+        username="admin_actor",
+        email="admin_actor@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    target_admin_id = _create_user(
+        app,
+        username="admin_target",
+        email="admin_target@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(acting_admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        f"/admin/usuarios/{target_admin_id}/editar",
+        data={
+            "nombre_usuario": "admin_target",
+            "correo_electronico": "admin_target@example.com",
+            "telefono": "",
+            "rol": "user",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "No se puede retirar el rol de "
+    "administrador desde esta vista." in html
+
+    with app.app_context():
+        user = db.session.get(Usuario, target_admin_id)
+        assert user is not None
+        assert user.rol == "admin"
