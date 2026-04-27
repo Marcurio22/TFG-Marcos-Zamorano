@@ -70,8 +70,7 @@ def create_app(test_config=None):
 
     # Configuración por defecto.
     seg_model_template = (
-        "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_"
-        "lr.9e-05_epochs.60_fold.{fold}"
+        "fold.{fold}"
     )
 
     app.config.from_mapping(

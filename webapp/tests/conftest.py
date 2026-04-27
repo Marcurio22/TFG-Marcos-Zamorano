@@ -35,8 +35,7 @@ def app():
     collection_storage = os.path.join(tmpdir.name, "collection")
 
     model_template = (
-        "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr"
-        ".9e-05_epochs.60_fold.{fold}"
+        "fold.{fold}"
     )
 
     app = create_app(
