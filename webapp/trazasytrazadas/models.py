@@ -16,6 +16,14 @@ from flask_login import UserMixin
 from .db import db
 
 
+class AppSetting(db.Model):
+    """Configuración simple persistida de la aplicación."""
+    __tablename__ = "app_setting"
+
+    key = db.Column(db.Text, primary_key=True)
+    value = db.Column(db.Text, nullable=False)
+
+
 class Usuario(UserMixin, db.Model):
     """Modelo de usuario persistido en SQLite."""
     __tablename__ = "usuario"

@@ -1,10 +1,10 @@
 from __future__ import annotations
-
+from pathlib import Path
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from trazasytrazadas.db import db
-from trazasytrazadas.models import Usuario
+from trazasytrazadas.models import AppSetting, Usuario
 
 
 def _disable_csrf(app) -> None:
@@ -1193,3 +1193,145 @@ def test_admin_cannot_remove_admin_role_from_admin_user(app, client):
         user = db.session.get(Usuario, target_admin_id)
         assert user is not None
         assert user.rol == "admin"
+
+
+def test_admin_folds_page_lists_from_fold_zero(app, client):
+    """La gestión de folds lista folds reales empezando en fold.0."""
+    admin_id = _create_user(
+        app,
+        username="admin_folds",
+        email="admin_folds@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = app.config["SEG_MODELS_DIR"]
+        Path(models_dir, "fold.0").write_text("a", encoding="utf-8")
+        Path(models_dir, "fold.1").write_text("b", encoding="utf-8")
+        Path(models_dir, "fold.9").write_text("c", encoding="utf-8")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/folds/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "fold.0" in html
+    assert "fold.1" in html
+    assert "fold.9" in html
+    assert "fold.10" not in html
+
+
+def test_admin_folds_page_marks_fold_zero_as_default_active(app, client):
+    """Si no hay setting persistido, fold.0 actúa como activo por defecto."""
+    admin_id = _create_user(
+        app,
+        username="admin_folds",
+        email="admin_folds@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.0").write_text("a", encoding="utf-8")
+        (models_dir / "fold.1").write_text("b", encoding="utf-8")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/folds/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Activo: fold.0" in html
+
+
+def test_admin_can_activate_fold_and_persists_in_db(app, client):
+    """El administrador puede activar un fold y se persiste en SQLite."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_folds",
+        email="admin_folds@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.0").write_text("a", encoding="utf-8")
+        (models_dir / "fold.1").write_text("b", encoding="utf-8")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/activar",
+        data={"fold_name": "fold.1"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Modelo activo actualizado correctamente." in response.get_data(
+        as_text=True
+    )
+
+    with app.app_context():
+        setting = db.session.get(AppSetting, "active_fold_name")
+        assert setting is not None
+        assert setting.value == "fold.1"
+
+
+def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
+    """Renombrar el fold activo actualiza también la referencia persistida."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_folds",
+        email="admin_folds@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.3").write_text("x", encoding="utf-8")
+        db.session.add(AppSetting(key="active_fold_name", value="fold.3"))
+        db.session.commit()
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/renombrar",
+        data={
+            "current_name": "fold.3",
+            "new_name": "fold.7",
+        },
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Fold renombrado correctamente." in html
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert (models_dir / "fold.7").exists()
+        assert not (models_dir / "fold.3").exists()
+
+        setting = db.session.get(AppSetting, "active_fold_name")
+        assert setting is not None
+        assert setting.value == "fold.7"

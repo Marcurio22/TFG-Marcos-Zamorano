@@ -18,7 +18,13 @@ from flask_babel import gettext as _, lazy_gettext as _l
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from sqlalchemy import func, select
-from wtforms import PasswordField, SelectField, StringField, SubmitField
+from wtforms import (
+    HiddenField,
+    PasswordField,
+    SelectField,
+    StringField,
+    SubmitField,
+)
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -522,3 +528,48 @@ class AdminUserEditForm(FlaskForm):
 
 class AdminActionForm(FlaskForm):
     """Formulario vacío para acciones protegidas por CSRF en admin."""
+
+
+class AdminFoldRenameForm(FlaskForm):
+    """Formulario para renombrar un fold del sistema."""
+
+    current_name = HiddenField(
+        _l("Nombre actual"),
+        validators=[
+            DataRequired(message=_l("Falta el nombre actual del fold.")),
+        ],
+    )
+    new_name = StringField(
+        _l("Nuevo nombre"),
+        validators=[
+            DataRequired(message=_l("Introduce un nombre para el fold.")),
+            Length(
+                min=1,
+                max=100,
+                message=_l(
+                    "El nombre del fold debe tener entre 1 y 100 caracteres."
+                ),
+            ),
+            Regexp(
+                r"^[A-Za-z0-9._-]+$",
+                message=_l(
+                    "El nombre solo puede contener letras, números, puntos, "
+                    "guiones y guiones bajos."
+                ),
+            ),
+        ],
+    )
+    submit = SubmitField(_l("Guardar nombre"))
+
+    def validate_new_name(self, field) -> None:
+        """Normaliza y valida el nuevo nombre del fold."""
+        value = (field.data or "").strip()
+        field.data = value
+
+        if value in {".", ".."}:
+            raise ValidationError(_("Introduce un nombre de fold válido."))
+
+        if "/" in value or "\\" in value:
+            raise ValidationError(
+                _("El nombre del fold no puede contener rutas.")
+            )

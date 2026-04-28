@@ -28,8 +28,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from .model_store import (
+    get_active_fold_name,
+    parse_fold_index_from_name,
+)
 
 # Preprocesado de entrada.
+
 
 def _pad_to_multiple_of_32(
     img_t: torch.Tensor,
@@ -336,10 +341,24 @@ def predict_mask_ensemble(
 
     img_t, _, _ = _pad_to_multiple_of_32(img_t)
 
+    active_fold_name = get_active_fold_name(
+        models_dir=models_dir,
+        default_name="fold.0",
+    )
+
+    if active_fold_name is None:
+        active_fold_name = "fold.0"
+
+    active_fold_id = parse_fold_index_from_name(active_fold_name)
+    if active_fold_id is None:
+        raise ValueError(
+            f"El fold activo '{active_fold_name}' no sigue el formato fold.N."
+        )
+
     models, device = load_fold_pickle_models(
         models_dir=models_dir,
         model_template=model_template,
-        fold_id=0,  # Implementación actual: carga el fold 0.
+        fold_id=active_fold_id,
         use_gpu=use_gpu,
     )
 

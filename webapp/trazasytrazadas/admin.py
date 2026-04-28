@@ -12,7 +12,6 @@ Versión: 0.1
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 
 from flask import abort, current_app, flash, redirect, request, url_for
@@ -26,8 +25,15 @@ from .collection import COLLECTION_PER_PAGE_OPTIONS, _pagination_items
 from .db import db
 from .forms import (
     AdminActionForm,
+    AdminFoldRenameForm,
     AdminUserEditForm,
     format_phone_number_for_display,
+)
+from .model_store import (
+    get_active_fold_name,
+    list_fold_files,
+    rename_fold_file,
+    set_active_fold_name,
 )
 from .models import Parcela, Usuario
 
@@ -377,41 +383,76 @@ class UserAdminView(_AdminAccessMixin, BaseView):
 
 
 class FoldsAdminView(_AdminAccessMixin, BaseView):
-    """Vista simple para revisar la configuración de folds/modelos."""
+    """Gestión de folds/modelos del sistema."""
 
-    @expose("/")
+    @expose("/", methods=("GET",))
     def index(self):
-        models_dir = current_app.config["SEG_MODELS_DIR"]
-        model_template = current_app.config["SEG_MODEL_TEMPLATE"]
-        n_folds = int(current_app.config["SEG_N_FOLDS"])
+        folds = list_fold_files()
+        active_name = get_active_fold_name()
 
-        filenames = []
-        if os.path.isdir(models_dir):
-            filenames = sorted(os.listdir(models_dir))
-
-        folds = []
-        for fold in range(1, n_folds + 1):
-            expected_base = model_template.format(fold=fold)
-            matching_files = [
-                filename
-                for filename in filenames
-                if expected_base in filename
-            ]
-            folds.append(
-                {
-                    "fold": fold,
-                    "expected_base": expected_base,
-                    "available_files": matching_files,
-                    "configured": bool(matching_files),
-                }
-            )
+        rows = [
+            {
+                "name": fold["name"],
+                "index": fold["index"],
+                "is_active": fold["name"] == active_name,
+            }
+            for fold in folds
+        ]
 
         return self.render(
             "admin/folds.html",
-            models_dir=models_dir,
-            n_folds=n_folds,
-            folds=folds,
+            models_dir=str(current_app.config["SEG_MODELS_DIR"]),
+            fold_rows=rows,
+            active_fold_name=active_name,
+            action_form=AdminActionForm(),
+            rename_form=AdminFoldRenameForm(),
         )
+
+    @expose("/activar", methods=("POST",))
+    def activate(self):
+        form = AdminActionForm()
+        if not form.validate_on_submit():
+            abort(400)
+
+        fold_name = (request.form.get("fold_name") or "").strip()
+
+        try:
+            set_active_fold_name(fold_name)
+        except ValueError:
+            flash(_("El fold seleccionado no es válido."), "error")
+        except FileNotFoundError:
+            flash(_("El fold seleccionado no existe."), "error")
+        else:
+            flash(_("Modelo activo actualizado correctamente."), "success")
+
+        return redirect(url_for("admin_folds.index"))
+
+    @expose("/renombrar", methods=("POST",))
+    def rename(self):
+        form = AdminFoldRenameForm()
+        if not form.validate_on_submit():
+            for field_errors in form.errors.values():
+                for error in field_errors:
+                    flash(error, "warning")
+            return redirect(url_for("admin_folds.index"))
+
+        try:
+            rename_fold_file(
+                current_name=form.current_name.data,
+                new_name=form.new_name.data,
+            )
+        except ValueError as exc:
+            flash(str(exc), "warning")
+        except FileNotFoundError:
+            flash(_("El fold que intentas renombrar no existe."), "error")
+        except FileExistsError:
+            flash(_("Ya existe otro fold con ese nombre."), "warning")
+        except OSError:
+            flash(_("No se ha podido renombrar el fold."), "error")
+        else:
+            flash(_("Fold renombrado correctamente."), "success")
+
+        return redirect(url_for("admin_folds.index"))
 
 
 def init_admin(app):

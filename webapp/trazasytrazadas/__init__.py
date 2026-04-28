@@ -73,6 +73,9 @@ def create_app(test_config=None):
         "fold.{fold}"
     )
 
+    # Modelo por defecto.
+    app.config.setdefault("SEG_DEFAULT_ACTIVE_FOLD", "fold.0")
+
     app.config.from_mapping(
         SECRET_KEY="dev",
         MAX_CONTENT_LENGTH=16 * 1024 * 1024,
