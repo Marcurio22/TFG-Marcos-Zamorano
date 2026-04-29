@@ -14,9 +14,10 @@ Versión: 0.1
 
 import os
 from datetime import timedelta
-from flask import Flask, request, session
-from flask_babel import Babel, get_locale
+from flask import Flask, flash, redirect, request, session, url_for
+from flask_babel import Babel, _, get_locale
 from pathlib import Path
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from . import auth, db, traces, trace_worker
 from .admin import init_admin
@@ -78,7 +79,13 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY="dev",
-        MAX_CONTENT_LENGTH=16 * 1024 * 1024,
+        IMAGE_UPLOAD_MAX_CONTENT_LENGTH=16 * 1024 * 1024,
+        MODEL_UPLOAD_MAX_CONTENT_LENGTH=512 * 1024 * 1024,
+        # Flask aplica MAX_CONTENT_LENGTH antes de entrar en la vista.
+        # Debe cubrir el caso más grande: subida de folds desde admin.
+        MAX_CONTENT_LENGTH=512 * 1024 * 1024,
+        MODEL_VALIDATION_IMAGE_SIZE=128,
+        MODEL_VALIDATION_USE_GPU=False,
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
@@ -134,6 +141,17 @@ def create_app(test_config=None):
     app.config.setdefault("BABEL_DEFAULT_TIMEZONE", "Europe/Madrid")
 
     babel.init_app(app, locale_selector=select_locale)
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def _handle_request_entity_too_large(_error):
+        if request.path.startswith("/admin/folds/subir"):
+            flash(
+                _("El archivo de modelo supera el tamaño máximo permitido."),
+                "warning",
+            )
+            return redirect(url_for("admin_folds.index"))
+
+        return _("El archivo supera el tamaño máximo permitido."), 413
 
     @app.context_processor
     def _inject_i18n():

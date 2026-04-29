@@ -17,6 +17,7 @@ import re
 from flask_babel import gettext as _, lazy_gettext as _l
 from flask_login import current_user
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired
 from sqlalchemy import func, select
 from wtforms import (
     HiddenField,
@@ -573,3 +574,36 @@ class AdminFoldRenameForm(FlaskForm):
             raise ValidationError(
                 _("El nombre del fold no puede contener rutas.")
             )
+
+
+class AdminFoldUploadForm(FlaskForm):
+    """Formulario para subir y validar un nuevo fold del sistema."""
+
+    fold_name = StringField(
+        _l("Nombre del fold"),
+        validators=[
+            DataRequired(message=_l("Introduce un nombre para el fold.")),
+            Length(
+                min=6,
+                max=32,
+                message=_l(
+                    "El nombre del fold debe tener entre 6 y 32 caracteres."
+                ),
+            ),
+            Regexp(
+                r"^fold\.[0-9]+$",
+                message=_l("El nombre debe seguir el formato fold.N."),
+            ),
+        ],
+    )
+    model_file = FileField(
+        _l("Archivo del modelo"),
+        validators=[
+            FileRequired(message=_l("Selecciona un archivo de modelo.")),
+        ],
+    )
+    submit = SubmitField(_l("Validar y añadir modelo"))
+
+    def validate_fold_name(self, field) -> None:
+        """Normaliza el nombre de destino del fold."""
+        field.data = (field.data or "").strip()

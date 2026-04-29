@@ -1,10 +1,35 @@
 from __future__ import annotations
+from io import BytesIO
+import json
+import pickle
 from pathlib import Path
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+import torch
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from trazasytrazadas.db import db
 from trazasytrazadas.models import AppSetting, Usuario
+
+
+class _AdminUploadDummyModel(torch.nn.Module):
+    """Modelo mínimo serializable para validar la subida de folds."""
+
+    def forward(self, x):
+        return x.mean(dim=1, keepdim=True)
+
+
+def _serialized_dummy_model() -> bytes:
+    buffer = BytesIO()
+    pickle.dump(_AdminUploadDummyModel(), buffer)
+    return buffer.getvalue()
+
+
+def _serialized_dummy_torchscript_model() -> bytes:
+    buffer = BytesIO()
+    example = torch.rand(1, 3, 32, 32)
+    traced = torch.jit.trace(_AdminUploadDummyModel(), example)
+    torch.jit.save(traced, buffer)
+    return buffer.getvalue()
 
 
 def _disable_csrf(app) -> None:
@@ -1335,3 +1360,251 @@ def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
         setting = db.session.get(AppSetting, "active_fold_name")
         assert setting is not None
         assert setting.value == "fold.7"
+
+
+def test_admin_can_upload_validated_fold(app, client):
+    """El administrador puede subir un fold si pasa la validación real."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_upload_fold",
+        email="admin_upload_fold@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/subir",
+        data={
+            "fold_name": "fold.2",
+            "model_file": (
+                BytesIO(_serialized_dummy_model()),
+                "modelo-validado.pkl",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Modelo añadido y validado correctamente." in html
+    assert "fold.2" in html
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert (models_dir / "fold.2").exists()
+
+
+def test_admin_upload_rejects_invalid_model_file(app, client):
+    """Un archivo que no es modelo no se incorpora al directorio de folds."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_bad_fold",
+        email="admin_bad_fold@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/subir",
+        data={
+            "fold_name": "fold.4",
+            "model_file": (
+                BytesIO(b"%PDF-1.4\nesto no es un modelo"),
+                "falso.pdf",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "El archivo no se ha podido" in response.get_data(
+        as_text=True
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert not (models_dir / "fold.4").exists()
+        assert not list(models_dir.glob("*.upload"))
+        assert not list(models_dir.glob(".*.upload"))
+
+
+def test_admin_upload_rejects_existing_fold_name(app, client):
+    """La subida de folds no sobreescribe modelos ya existentes."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_existing_fold",
+        email="admin_existing_fold@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.5").write_text("modelo original", encoding="utf-8")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/subir",
+        data={
+            "fold_name": "fold.5",
+            "model_file": (
+                BytesIO(_serialized_dummy_model()),
+                "modelo-validado.pkl",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Ya existe otro fold con ese nombre." in response.get_data(
+        as_text=True
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert (models_dir / "fold.5").read_text(
+            encoding="utf-8"
+        ) == "modelo original"
+
+
+def test_admin_can_upload_torchscript_infer_fold(app, client):
+    """La subida admite TorchScript de inferencia completa *_infer.pt."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_upload_torchscript",
+        email="admin_upload_torchscript@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/subir",
+        data={
+            "fold_name": "fold.8",
+            "model_file": (
+                BytesIO(_serialized_dummy_torchscript_model()),
+                "modelo_infer.pt",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Modelo añadido y validado correctamente." in html
+    assert "fold.8" in html
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert (models_dir / "fold.8").exists()
+        metadata_path = models_dir / ".fold.8.metadata.json"
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        assert metadata["loader_kind"] == "torchscript_infer"
+
+
+def test_admin_can_delete_non_active_fold(app, client):
+    """El administrador puede eliminar un fold si no es el activo."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_delete_fold",
+        email="admin_delete_fold@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.0").write_text("activo", encoding="utf-8")
+        (models_dir / "fold.1").write_text("borrar", encoding="utf-8")
+        (models_dir / ".fold.1.metadata.json").write_text(
+            '{"loader_kind": "pickle"}',
+            encoding="utf-8",
+        )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/eliminar",
+        data={"fold_name": "fold.1"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Fold eliminado correctamente." in response.get_data(as_text=True)
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert not (models_dir / "fold.1").exists()
+        assert not (models_dir / ".fold.1.metadata.json").exists()
+        assert (models_dir / "fold.0").exists()
+
+
+def test_admin_cannot_delete_active_fold(app, client):
+    """El administrador no puede dejar sin modelo activo al sistema."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_delete_active_fold",
+        email="admin_delete_active_fold@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.0").write_text("activo", encoding="utf-8")
+        (models_dir / "fold.1").write_text("otro", encoding="utf-8")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/eliminar",
+        data={"fold_name": "fold.0"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "No se puede eliminar el modelo activo." in response.get_data(
+        as_text=True
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert (models_dir / "fold.0").exists()

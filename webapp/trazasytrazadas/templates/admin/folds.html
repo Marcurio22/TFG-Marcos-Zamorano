@@ -32,11 +32,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="badge badge-outline badge-neutral">{{ _("%(count)s folds", count=fold_rows|length) }}</div>
-                </div>
-                <div class="mt-5 text-sm text-base-content/75">
-                    <span class="font-semibold">{{ _("Directorio de modelos:") }}</span>
-                    <span class="break-all">{{ models_dir }}</span>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div class="badge badge-outline badge-neutral">{{ _("%(count)s folds", count=fold_rows|length) }}</div>
+                        <button type="button" class="btn btn-sm btn-primary" data-upload-fold-button>{{ _("Añadir fold") }}</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -46,7 +45,7 @@
                     <div>
                         <h3 class="text-xl sm:text-2xl font-bold">{{ _("Listado de folds") }}</h3>
                         <p class="text-sm text-base-content/70">
-                            {{ _("Consulta los modelos disponibles, activa uno y renómbralos si lo necesitas.") }}
+                            {{ _("Consulta los modelos disponibles, activa uno, renómbralos o añade nuevos folds validados.") }}
                         </p>
                     </div>
                     {% if active_fold_name %}
@@ -100,6 +99,13 @@
                                                         data-current-name="{{ row.name }}">
                                                     {{ _("Renombrar") }}
                                                 </button>
+                                                <button type="button"
+                                                        class="btn btn-xs btn-outline btn-error"
+                                                        data-delete-fold-button
+                                                        data-fold-name="{{ row.name }}"
+                                                        {% if row.is_active %}disabled title="{{ _("No se puede eliminar el modelo activo.") }}"{% endif %}>
+                                                    {{ _("Eliminar") }}
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -125,8 +131,9 @@
                         </div>
                         <h3 class="mt-4 text-lg font-bold">{{ _("No se han encontrado folds") }}</h3>
                         <p class="mt-2 text-sm text-base-content/70">
-                            {{ _("Añade archivos con nombre fold.N al directorio de modelos para que aparezcan aquí.") }}
+                            {{ _("Añade un fold desde esta pantalla para validarlo antes de incorporarlo al sistema.") }}
                         </p>
+                        <button type="button" class="btn btn-primary mt-4" data-upload-fold-button>{{ _("Añadir fold") }}</button>
                     </div>
                 {% endif %}
             </div>
@@ -149,6 +156,32 @@
                     {{ action_form.hidden_tag() }}
                     <input type="hidden" name="fold_name" id="activate-fold-input">
                     <button type="submit" class="btn btn-primary">{{ _("Confirmar") }}</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>{{ _("Cerrar") }}</button>
+        </form>
+    </dialog>
+    <dialog id="delete-fold-modal" class="modal">
+        <div class="modal-box max-w-md border border-error/20 bg-base-100 shadow-2xl">
+            <h3 class="text-lg font-bold text-error">{{ _("Eliminar fold") }}</h3>
+            <p class="mt-3 text-sm text-base-content/75">
+                {{ _("Esta acción eliminará el archivo del modelo y sus metadatos asociados. No se puede deshacer.") }}
+            </p>
+            <p class="mt-2 text-sm font-bold text-base-content">
+                <span id="delete-fold-name"></span>
+            </p>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button type="submit" class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                </form>
+                <form id="delete-fold-form"
+                      method="post"
+                      action="{{ url_for("admin_folds.delete") }}">
+                    {{ action_form.hidden_tag() }}
+                    <input type="hidden" name="fold_name" id="delete-fold-input">
+                    <button type="submit" class="btn btn-error">{{ _("Eliminar") }}</button>
                 </form>
             </div>
         </div>
@@ -190,8 +223,69 @@
             <button>{{ _("Cerrar") }}</button>
         </form>
     </dialog>
+    <dialog id="upload-fold-modal" class="modal">
+        <div class="modal-box max-w-xl border border-primary/20 bg-base-100 shadow-2xl">
+            <h3 class="text-lg font-bold">{{ _("Añadir nuevo fold") }}</h3>
+            <p class="mt-3 text-sm text-base-content/75">
+                {{ _("Selecciona el archivo serializado del modelo y asígnale un nombre con formato fold.N. El sistema lo validará ejecutando una inferencia de prueba antes de guardarlo.") }}
+            </p>
+            <form id="upload-fold-form"
+                  method="post"
+                  enctype="multipart/form-data"
+                  action="{{ url_for("admin_folds.upload") }}"
+                  class="mt-4 space-y-4">
+                {{ upload_form.csrf_token }}
+                <div>
+                    <label class="label" for="{{ upload_form.fold_name.id }}">
+                        <span class="label-text">{{ _("Nombre del fold") }}</span>
+                    </label>
+                    {{ upload_form.fold_name(class="input input-bordered w-full",
+                                        placeholder="fold.2",
+                                        pattern="^fold\.[0-9]+$") }}
+                    <p class="mt-2 text-xs text-base-content/70">
+                        {{ _("Debe ser único y seguir el formato fold.0, fold.1, fold.2...") }}
+                    </p>
+                </div>
+                <div>
+                    <label class="label" for="{{ upload_form.model_file.id }}">
+                        <span class="label-text">{{ _("Archivo del modelo") }}</span>
+                    </label>
+                    {{ upload_form.model_file(class="file-input file-input-bordered w-full") }}
+                    <p class="mt-2 text-xs text-base-content/70">
+                        {{ _("No se guardará si no puede cargarse como modelo de segmentación compatible.") }}
+                    </p>
+                </div>
+                <div class="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning-content">
+                    <p class="font-bold">{{ _("Validación obligatoria") }}</p>
+                    <p class="mt-1">
+                        {{ _("La subida puede tardar porque se deserializa el modelo y se prueba con imágenes RGB sintéticas antes de incorporarlo al directorio de modelos.") }}
+                    </p>
+                </div>
+                <div class="modal-action">
+                    <button type="button"
+                            class="btn btn-ghost"
+                            onclick="document.getElementById('upload-fold-modal').close();">
+                        {{ _("Cancelar") }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">{{ _("Validar y añadir modelo") }}</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>{{ _("Cerrar") }}</button>
+        </form>
+    </dialog>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const uploadDialog = document.getElementById("upload-fold-modal");
+      document.querySelectorAll("[data-upload-fold-button]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (typeof uploadDialog.showModal === "function") {
+            uploadDialog.showModal();
+          }
+        });
+      });
+
       const activateDialog = document.getElementById("activate-fold-modal");
       const activateName = document.getElementById("activate-fold-name");
       const activateInput = document.getElementById("activate-fold-input");
@@ -204,6 +298,21 @@
           if (typeof activateDialog.showModal === "function") {
             activateDialog.showModal();
           }
+        });
+      });
+
+      const deleteDialog = document.getElementById("delete-fold-modal");
+      const deleteName = document.getElementById("delete-fold-name");
+      const deleteInput = document.getElementById("delete-fold-input");
+
+      document.querySelectorAll("[data-delete-fold-button]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const foldName = button.dataset.foldName || "";
+            deleteName.textContent = foldName;
+            deleteInput.value = foldName;
+            if (typeof deleteDialog.showModal === "function") {
+            deleteDialog.showModal();
+            }
         });
       });
 

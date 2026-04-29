@@ -26,10 +26,13 @@ from .db import db
 from .forms import (
     AdminActionForm,
     AdminFoldRenameForm,
+    AdminFoldUploadForm,
     AdminUserEditForm,
     format_phone_number_for_display,
 )
 from .model_store import (
+    add_fold_file,
+    delete_fold_file,
     get_active_fold_name,
     list_fold_files,
     rename_fold_file,
@@ -401,11 +404,11 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
 
         return self.render(
             "admin/folds.html",
-            models_dir=str(current_app.config["SEG_MODELS_DIR"]),
             fold_rows=rows,
             active_fold_name=active_name,
             action_form=AdminActionForm(),
             rename_form=AdminFoldRenameForm(),
+            upload_form=AdminFoldUploadForm(),
         )
 
     @expose("/activar", methods=("POST",))
@@ -451,6 +454,92 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
             flash(_("No se ha podido renombrar el fold."), "error")
         else:
             flash(_("Fold renombrado correctamente."), "success")
+
+        return redirect(url_for("admin_folds.index"))
+
+    @expose("/subir", methods=("POST",))
+    def upload(self):
+        """Sube, valida y registra un nuevo fold del sistema."""
+        try:
+            request.max_content_length = int(
+                current_app.config.get(
+                    "MODEL_UPLOAD_MAX_CONTENT_LENGTH",
+                    512 * 1024 * 1024,
+                )
+            )
+        except (TypeError, ValueError, AttributeError):
+            pass
+
+        form = AdminFoldUploadForm()
+        if not form.validate_on_submit():
+            for field_errors in form.errors.values():
+                for error in field_errors:
+                    flash(error, "warning")
+            return redirect(url_for("admin_folds.index"))
+
+        max_bytes = int(
+            current_app.config.get(
+                "MODEL_UPLOAD_MAX_CONTENT_LENGTH",
+                512 * 1024 * 1024,
+            )
+        )
+        if request.content_length and request.content_length > max_bytes:
+            flash(
+                _("El archivo de modelo supera el tamaño máximo permitido."),
+                "warning",
+            )
+            return redirect(url_for("admin_folds.index"))
+
+        from .segmentation_inference import validate_fold_model_file
+
+        def _validate_uploaded_model(path):
+            return validate_fold_model_file(
+                str(path),
+                use_gpu=bool(
+                    current_app.config.get("MODEL_VALIDATION_USE_GPU", False)
+                ),
+                image_size=int(
+                    current_app.config.get("MODEL_VALIDATION_IMAGE_SIZE", 128)
+                ),
+                source_filename=form.model_file.data.filename,
+            )
+
+        try:
+            add_fold_file(
+                fold_name=form.fold_name.data,
+                file_storage=form.model_file.data,
+                validator=_validate_uploaded_model,
+            )
+        except ValueError as exc:
+            flash(str(exc), "warning")
+        except FileExistsError:
+            flash(_("Ya existe otro fold con ese nombre."), "warning")
+        except OSError:
+            flash(_("No se ha podido guardar el fold."), "error")
+        else:
+            flash(_("Modelo añadido y validado correctamente."), "success")
+
+        return redirect(url_for("admin_folds.index"))
+
+    @expose("/eliminar", methods=("POST",))
+    def delete(self):
+        """Elimina un fold no activo del sistema."""
+        form = AdminActionForm()
+        if not form.validate_on_submit():
+            abort(400)
+
+        fold_name = (request.form.get("fold_name") or "").strip()
+
+        try:
+            delete_fold_file(fold_name)
+        except ValueError as exc:
+            flash(str(exc), "warning")
+        except FileNotFoundError:
+            flash(_("El fold que intentas eliminar no existe."), "error")
+        except OSError:
+            flash(_("No se ha podido eliminar el fold."), "error")
+        else:
+            flash(_("Fold eliminado correctamente."), "success")
 
         return redirect(url_for("admin_folds.index"))
 

@@ -149,6 +149,16 @@ def _handle_upload_file_or_error(file) -> bool:
         _set_error(_("No se ha seleccionado ningún archivo."))
         return False
 
+    max_bytes = current_app.config.get("IMAGE_UPLOAD_MAX_CONTENT_LENGTH")
+    if max_bytes and request.content_length:
+        try:
+            max_bytes = int(max_bytes)
+        except (TypeError, ValueError):
+            max_bytes = 0
+        if max_bytes > 0 and request.content_length > max_bytes:
+            _set_error(_("La imagen supera el tamaño máximo permitido."))
+            return False
+
     if not allowed_file(file.filename):
         _set_error(
             _("Formato de archivo no permitido. Usa .jpg, .jpeg o .png.")
