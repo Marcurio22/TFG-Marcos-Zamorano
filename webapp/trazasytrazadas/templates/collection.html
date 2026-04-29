@@ -92,7 +92,7 @@ Versión: 0.1
                         <thead>
                             <tr>
                                 <th>{{ _("Punto origen · Punto destino") }}</th>
-                                <th class="text-center">{{ _("Preview") }}</th>
+                                <th class="text-center">{{ _("Vista previa") }}</th>
                                 <th class="text-center">{{ _("ZIP") }}</th>
                                 <th class="text-center">{{ _("Estado") }}</th>
                                 <th>{{ _("Acciones") }}</th>
@@ -159,7 +159,7 @@ Versión: 0.1
                                                 class="btn btn-square btn-sm btn-primary"
                                                 data-action="open-zone-preview"
                                                 data-preview-url="{{ url_for('trazas.collection_preview', parcel_id=item.parcela_id) }}"
-                                                data-preview-title="{{ _("Preview de la zona") }} · {{ item.display_name }}">
+                                                data-preview-title="{{ _("Vista previa de la zona") }} · {{ item.display_name }}">
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  viewBox="0 0 24 24"
                                                  fill="none"
@@ -297,7 +297,7 @@ Versión: 0.1
     <dialog id="zone-preview-modal" class="modal">
         <div class="modal-box max-w-4xl">
             <div class="flex items-start justify-between gap-3">
-                <h3 id="zone-preview-title" class="font-bold text-lg">{{ _("Preview de la zona") }}</h3>
+                <h3 id="zone-preview-title" class="font-bold text-lg">{{ _("Vista previa de la zona") }}</h3>
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost"
                             aria-label="{{ _("Cerrar") }}">✕</button>
@@ -305,11 +305,11 @@ Versión: 0.1
             </div>
             <div id="zone-preview-loading" class="py-10 text-center">
                 <span class="loading loading-spinner loading-lg text-primary"></span>
-                <div class="mt-3 text-sm opacity-75">{{ _("Cargando preview...") }}</div>
+                <div class="mt-3 text-sm opacity-75">{{ _("Cargando vista previa...") }}</div>
             </div>
             <div id="zone-preview-error" class="hidden alert alert-error mt-4"></div>
             <img id="zone-preview-image"
-                 alt="{{ _("Preview de la zona") }}"
+                 alt="{{ _("Vista previa de la zona") }}"
                  class="hidden mt-4 w-full rounded-box border border-base-200" />
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -409,8 +409,8 @@ Versión: 0.1
         },
         "pollIntervalMs": 5000,
         "i18n": {
-            "previewTitle": _("Preview de la zona"),
-            "previewError": _("No se ha podido cargar la preview de la zona."),
+            "previewTitle": _("Vista previa de la zona"),
+            "previewError": _("No se ha podido cargar la vista previa de la zona."),
             "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
             "zoneCompleted": _("Trazas completadas"),
             "zoneProcessing": _("Procesando"),

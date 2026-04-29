@@ -113,7 +113,7 @@ def update_zone_name(parcel_id: int, raw_name: str) -> str | None:
     if len(normalized) > COLLECTION_NAME_MAX_LENGTH:
         raise ValueError(
             _(
-                "El nombre de la colección no puede"
+                "El nombre de la colección no puede "
                 "superar %(count)s caracteres.",
                 count=COLLECTION_NAME_MAX_LENGTH,
             )

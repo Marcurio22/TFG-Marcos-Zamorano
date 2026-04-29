@@ -20,7 +20,7 @@ Versión: 0.1
                 type="button"
                 class="btn btn-sm btn-primary shadow-sm">{{ _("Controles") }}</button>
         <div class="tooltip tooltip-bottom visor-tooltip visor-tooltip-help"
-             data-tip="{{ _("Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona automáticamente la mejor ortofoto disponible y aplica fallback si la resolución pedida no existe en la zona.") }}">
+             data-tip="{{ _("Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona automáticamente la mejor ortofoto disponible y aplica un ajuste automático si la resolución pedida no existe en la zona.") }}">
           <button type="button"
                   class="btn btn-sm btn-circle btn-outline bg-white text-base-content border-base-300 shadow-sm">
             ?
@@ -92,7 +92,7 @@ Versión: 0.1
       </div>
       <div class="modal-action grid grid-cols-1 sm:grid-cols-2 gap-2">
         <button id="generate-grid-btn" type="button" class="btn btn-primary w-full">{{ _("Generar cuadrícula") }}</button>
-        <button id="reset-selection-btn" type="button" class="btn btn-outline w-full">{{ _("Reset selección") }}</button>
+        <button id="reset-selection-btn" type="button" class="btn btn-outline w-full">{{ _("Reiniciar selección") }}</button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">
@@ -135,14 +135,14 @@ Versión: 0.1
       "downloadZip": _("Descargar ZIP"),
       "gridGenerationError": _("No se ha podido generar la cuadrícula."),
       "largeGridWarning": _("La cuadrícula contiene muchas teselas y puede implicar una descarga pesada."),
-      "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático."),
+      "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado un ajuste automático."),
       "resolutionWarning": _("La ortofoto seleccionada no alcanza la resolución pedida para esa zona."),
       "statusLoading": _("Calculando cobertura y cuadrícula..."),
       "statusReset": _("Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo."),
       "zipPreparing": _("Preparando ZIP de teselas..."),
       "zipReady": _("Se ha iniciado la descarga del ZIP."),
       "zipError": _("No se ha podido generar el ZIP."),
-      "tooManyPoints": _("Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo."),
+      "tooManyPoints": _("Ya existe una selección activa. Usa «Reiniciar selección» para empezar de nuevo."),
       "emptyList": _("Genera primero la cuadrícula para obtener las teselas descargables."),
       "activePreview": _("Capa mostrada: %(source)s · resolución efectiva %(resolution)s m/px.", source="{source}", resolution="{resolution}"),
       "previewLatest": _("La base visible muestra OpenStreetMap y PNOA de máxima actualidad."),
@@ -154,7 +154,8 @@ Versión: 0.1
       "downloadingTile": _("Descargando %(tile)s...", tile="{tile}"),
       "zoneRegistered": _("La zona se ha registrado en la colección."),
       "restoredZone": _("Zona recuperada desde la colección."),
-      "openCollection": _("Abrir colección")
+      "openCollection": _("Abrir colección"),
+      "close": _("Cerrar")
     },
     "initialZone": initial_zone
   } | tojson }};

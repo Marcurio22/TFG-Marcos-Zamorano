@@ -38,14 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
       downloadZip: "Descargar ZIP",
       gridGenerationError: "No se ha podido generar la cuadrícula.",
       largeGridWarning: "La cuadrícula contiene muchas teselas y puede implicar una descarga pesada.",
-      fallbackWarning: "La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático.",
+      fallbackWarning: "La resolución solicitada no está disponible en la zona. Se ha aplicado un ajuste automático.",
       resolutionWarning: "La ortofoto seleccionada no alcanza la resolución pedida para esa zona.",
       statusLoading: "Calculando cobertura y cuadrícula...",
       statusReset: "Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo.",
       zipPreparing: "Preparando ZIP de teselas...",
       zipReady: "Se ha iniciado la descarga del ZIP.",
       zipError: "No se ha podido generar el ZIP.",
-      tooManyPoints: "Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo.",
+      tooManyPoints: "Ya existe una selección activa. Usa «Reiniciar selección» para empezar de nuevo.",
       emptyList: "Genera primero la cuadrícula para obtener las teselas descargables.",
       activePreview: "Capa mostrada: {source} · resolución efectiva {resolution} m/px.",
       previewLatest: "La base visible muestra OpenStreetMap y PNOA de máxima actualidad.",
@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
       zoneRegistered: "La zona se ha registrado en la colección.",
       restoredZone: "Zona recuperada desde la colección.",
       openCollection: "Abrir colección",
+      close: "Cerrar",
     },
     CFG.i18n || {}
   );
@@ -175,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="text-sm sm:text-base">${message}</span>
       <button type="button"
               class="btn btn-sm btn-ghost ml-auto"
-              aria-label="Cerrar">
+              aria-label="${I18N.close}">
         <svg xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"

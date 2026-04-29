@@ -154,7 +154,7 @@ Versión: 0.1
                   <span class="text-sm sm:text-base">{{ message }}</span>
                   <button type="button"
                           class="btn btn-sm btn-ghost ml-auto"
-                          aria-label="Cerrar"
+                          aria-label="{{ _("Cerrar") }}"
                           onclick="this.closest('.alert').remove();">
                     <svg xmlns="http://www.w3.org/2000/svg"
                          viewBox="0 0 20 20"
@@ -226,14 +226,10 @@ Versión: 0.1
         {% set nav_item_class = "flex w-full items-center gap-3 px-5 py-4 text-base sm:text-lg font-semibold transition-colors" %}
         {% set nav_item_hover_class = "hover:bg-white/10" %}
         {% set nav_item_active_class = "bg-white/15 pointer-events-none" %}
-
         <aside class="w-80 min-h-full bg-primary text-primary-content shadow-xl flex flex-col">
-          <div class="px-5 py-5 font-black tracking-wide text-2xl border-b border-white/20 drop-shadow-sm">
-            {{ _("Menú") }}
-          </div>
-
+          <div class="px-5 py-5 font-black tracking-wide text-2xl border-b border-white/20 drop-shadow-sm">{{ _("Menú") }}</div>
           <div class="flex-1 flex flex-col border-t border-white/10">
-            <a href="{{ url_for('trazas.index') }}"
+            <a href="{{ url_for("trazas.index") }}"
                class="{{ nav_item_class }} {{ nav_item_hover_class }} {% if is_home %}{{ nav_item_active_class }}{% endif %}"
                {% if is_home %}aria-current="page"{% endif %}
                onclick="document.getElementById('app-drawer').checked = false;">
@@ -249,11 +245,10 @@ Versión: 0.1
                 <path d="M5 10v10h14V10" />
                 <path d="M9 20v-6h6v6" />
               </svg>
-              <span>{{ _("Home") }}</span>
+              <span>{{ _("Inicio") }}</span>
             </a>
-
             {% if current_user.is_authenticated %}
-              <a href="{{ url_for('trazas.visor') }}"
+              <a href="{{ url_for("trazas.visor") }}"
                  class="{{ nav_item_class }} {{ nav_item_hover_class }} border-t border-white/10 {% if is_visor %}{{ nav_item_active_class }}{% endif %}"
                  {% if is_visor %}aria-current="page"{% endif %}
                  onclick="document.getElementById('app-drawer').checked = false;">
@@ -271,8 +266,7 @@ Versión: 0.1
                 </svg>
                 <span>{{ _("Visor") }}</span>
               </a>
-
-              <a href="{{ url_for('trazas.collection') }}"
+              <a href="{{ url_for("trazas.collection") }}"
                  class="{{ nav_item_class }} {{ nav_item_hover_class }} border-t border-white/10 {% if is_collection %}{{ nav_item_active_class }}{% endif %}"
                  {% if is_collection %}aria-current="page"{% endif %}
                  onclick="document.getElementById('app-drawer').checked = false;">
@@ -291,15 +285,13 @@ Versión: 0.1
                 </svg>
                 <span>{{ _("Colección de imágenes") }}</span>
               </a>
-
               {% if is_admin_user %}
                 <div class="mx-4 mt-5 rounded-2xl border border-white/15 bg-slate-900/25 shadow-inner">
                   <div class="px-4 py-3 text-center text-sm font-bold text-white/85 uppercase tracking-wide border-b border-white/10">
                     {{ _("Panel del Administrador") }}
                   </div>
-
                   <div class="py-2">
-                    <a href="{{ url_for('admin_usuarios.index_view') }}"
+                    <a href="{{ url_for("admin_usuarios.index_view") }}"
                        class="flex w-full items-center gap-3 px-4 py-3 text-base font-semibold transition-colors hover:bg-white/10 {% if is_admin_users %}bg-white/15 pointer-events-none{% endif %}"
                        {% if is_admin_users %}aria-current="page"{% endif %}
                        onclick="document.getElementById('app-drawer').checked = false;">
@@ -318,8 +310,7 @@ Versión: 0.1
                       </svg>
                       <span>{{ _("Gestión de Usuarios") }}</span>
                     </a>
-
-                    <a href="{{ url_for('admin_folds.index') }}"
+                    <a href="{{ url_for("admin_folds.index") }}"
                        class="flex w-full items-center gap-3 px-4 py-3 text-base font-semibold transition-colors border-t border-white/10 hover:bg-white/10 {% if is_admin_folds %}bg-white/15 pointer-events-none{% endif %}"
                        {% if is_admin_folds %}aria-current="page"{% endif %}
                        onclick="document.getElementById('app-drawer').checked = false;">
@@ -344,10 +335,9 @@ Versión: 0.1
               {% endif %}
             {% endif %}
           </div>
-
           <div class="border-t border-white/15">
             {% if current_user.is_authenticated %}
-              <a href="{{ url_for('trazas.profile') }}"
+              <a href="{{ url_for("trazas.profile") }}"
                  class="flex w-full items-center gap-3 px-5 py-4 text-base sm:text-lg font-semibold hover:bg-white/10 {% if is_profile %}bg-white/15 pointer-events-none{% endif %}"
                  {% if is_profile %}aria-current="page"{% endif %}
                  onclick="document.getElementById('app-drawer').checked = false;">
@@ -360,7 +350,7 @@ Versión: 0.1
                 <span>{{ _("Perfil") }}</span>
               </a>
               <form method="post"
-                    action="{{ url_for('trazas.logout') }}"
+                    action="{{ url_for("trazas.logout") }}"
                     class="border-t border-white/10">
                 <button type="submit"
                         class="w-full flex items-center gap-3 px-5 py-4 text-base sm:text-lg font-bold bg-red-600 hover:bg-red-700 text-white transition-colors">
@@ -380,7 +370,7 @@ Versión: 0.1
                 </button>
               </form>
             {% else %}
-              <a href="{{ url_for('trazas.login') }}"
+              <a href="{{ url_for("trazas.login") }}"
                  class="flex w-full items-center gap-3 px-5 py-4 text-base sm:text-lg font-semibold hover:bg-white/10"
                  onclick="document.getElementById('app-drawer').checked = false;">
                 <svg xmlns="http://www.w3.org/2000/svg"

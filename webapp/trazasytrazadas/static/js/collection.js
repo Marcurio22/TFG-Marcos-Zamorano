@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const CFG = window.COLLECTION_APP || {};
   const I18N = Object.assign(
     {
-      previewTitle: "Preview de la zona",
-      previewError: "No se ha podido cargar la preview de la zona.",
+      previewTitle: "Vista previa de la zona",
+      previewError: "No se ha podido cargar la vista previa de la zona.",
       progressText: "{completed}/{total} teselas completadas",
       zoneCompleted: "Trazas completadas",
       zoneProcessing: "Procesando",

@@ -7,7 +7,7 @@
     <section class="w-full max-w-6xl rounded-[2rem] overflow-hidden shadow-2xl bg-blue-50/40 backdrop-blur-md flex flex-col lg:flex-row border border-white/40">
         <div class="relative w-full lg:w-1/2 min-h-[400px] lg:min-h-[600px] flex items-center justify-center p-6 sm:p-10 text-center">
             <img src="{{ url_for('static', filename='img/monte.jpg') }}"
-                 alt="Paisaje"
+                 alt="{{ _("Paisaje") }}"
                  class="absolute inset-0 w-full h-full object-cover blur-[3px]" />
             <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
             <div class="relative z-10 w-full max-w-lg">

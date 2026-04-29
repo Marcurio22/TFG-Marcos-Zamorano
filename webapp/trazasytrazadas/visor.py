@@ -724,8 +724,8 @@ def _visor_select_source(
                             "code": "fallback_resolution",
                             "message": _(
                                 "La resolución solicitada no está disponible "
-                                "en la zona. Se ha aplicado fallback a "
-                                "%(resolution)s m/px.",
+                                "en la zona. Se ha aplicado un ajuste"
+                                "automático a %(resolution)s m/px.",
                                 resolution=f"{actual_resolution:.2f}",
                             ),
                         }

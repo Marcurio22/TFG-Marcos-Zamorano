@@ -307,7 +307,7 @@ def _build_zone_preview_bytes(detail: dict) -> bytes:
                 loaded_tiles += 1
         except Exception:
             current_app.logger.warning(
-                "No se ha podido cargar la tesela %s para la preview "
+                "No se ha podido cargar la tesela %s para la vista previa "
                 "de la zona %s",
                 photo.get("foto_id"),
                 detail.get("parcela_id"),
@@ -315,7 +315,8 @@ def _build_zone_preview_bytes(detail: dict) -> bytes:
             )
 
     if loaded_tiles == 0:
-        raise RuntimeError(_("No se ha podido cargar la preview de la zona."))
+        raise RuntimeError(
+            _("No se ha podido cargar la vista previa de la zona."))
 
     preview = canvas.copy()
     preview.thumbnail(
@@ -418,14 +419,15 @@ def register_collection_routes(bp) -> None:
             return jsonify({"error": str(exc)}), 502
         except Exception:
             current_app.logger.exception(
-                "No se ha podido construir la preview de la zona %s",
+                "No se ha podido construir la vista previa de la zona %s",
                 parcel_id,
             )
             return (
                 jsonify(
                     {
                         "error": _(
-                            "No se ha podido cargar la preview de la zona."
+                            "No se ha podido cargar la vista previa"
+                            "de la zona."
                         )
                     }
                 ),
@@ -436,7 +438,7 @@ def register_collection_routes(bp) -> None:
             preview_path = save_zone_preview_bytes(parcel_id, image_bytes)
         except OSError:
             current_app.logger.exception(
-                "No se ha podido persistir la preview de la zona %s",
+                "No se ha podido persistir la vista previa de la zona %s",
                 parcel_id,
             )
             return send_file(
