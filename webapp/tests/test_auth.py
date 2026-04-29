@@ -997,6 +997,77 @@ def test_admin_user_management_page_renders_summary_and_rows(app, client):
     assert "Administradores" in html
     assert "Usuarios regulares" in html
     assert "UsuarioPanel" in html
+    assert "Exportar CSV" in html
+    assert "Exportar PDF" in html
+
+
+def test_admin_can_export_users_csv(app, client):
+    """El administrador puede exportar todos los usuarios a CSV."""
+    admin_id = _create_user(
+        app,
+        username="admin_export_csv",
+        email="admin_export_csv@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    managed_hash = generate_password_hash("Password1!")
+    _create_user(
+        app,
+        username="UsuarioCsv",
+        email="csv@example.com",
+        password_hash=managed_hash,
+        phone="+34903389323",
+        role="user",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/usuarios/exportar/csv")
+
+    assert response.status_code == 200
+    assert response.content_type.startswith("text/csv")
+    assert "usuarios.csv" in response.headers["Content-Disposition"]
+
+    csv_text = response.get_data(as_text=True).lstrip("\ufeff")
+    assert "ID,Usuario,Correo electrónico,Teléfono,Rol,Fecha de registro" in (
+        csv_text
+    )
+    assert "UsuarioCsv" in csv_text
+    assert "csv@example.com" in csv_text
+    assert "(+34) 903 38 93 23" in csv_text
+    assert managed_hash not in csv_text
+
+
+def test_admin_can_export_users_pdf(app, client):
+    """El administrador puede exportar todos los usuarios a PDF."""
+    admin_id = _create_user(
+        app,
+        username="admin_export_pdf",
+        email="admin_export_pdf@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    _create_user(
+        app,
+        username="UsuarioPdf",
+        email="pdf@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        phone="+34903389323",
+        role="user",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/usuarios/exportar/pdf")
+
+    assert response.status_code == 200
+    assert response.mimetype == "application/pdf"
+    assert "usuarios.pdf" in response.headers["Content-Disposition"]
+    assert response.data.startswith(b"%PDF")
 
 
 def test_admin_user_detail_hides_password_and_formats_phone(app, client):

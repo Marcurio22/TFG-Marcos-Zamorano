@@ -12,12 +12,29 @@ Versión: 0.1
 
 from __future__ import annotations
 
+import csv
 from datetime import datetime
+from io import BytesIO, StringIO
+from xml.sax.saxutils import escape
 
-from flask import abort, current_app, flash, redirect, request, url_for
+from flask import (
+    Response,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    request,
+    url_for,
+)
 from flask_admin import Admin, AdminIndexView, BaseView, expose
 from flask_babel import gettext as _
 from flask_login import current_user
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import cm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table
+from reportlab.platypus import TableStyle
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -76,6 +93,142 @@ def _parse_positive_int(value, default: int) -> int:
     return parsed if parsed > 0 else default
 
 
+def _user_role_label(role: str) -> str:
+    """Devuelve una etiqueta legible para el rol del usuario."""
+    labels = {
+        "admin": _("Administrador"),
+        "system": _("Sistema"),
+        "user": _("Usuario"),
+    }
+    return labels.get(role, role or "-")
+
+
+def _user_export_rows(users: list[Usuario]) -> list[list[str]]:
+    """Construye las filas comunes para exportación CSV/PDF."""
+    rows = [
+        [
+            _("ID"),
+            _("Usuario"),
+            _("Correo electrónico"),
+            _("Teléfono"),
+            _("Rol"),
+            _("Fecha de registro"),
+        ]
+    ]
+
+    for user in users:
+        rows.append(
+            [
+                str(user.usuario_id),
+                user.nombre_usuario or "-",
+                user.correo_electronico or "-",
+                format_phone_number_for_display(user.telefono),
+                _user_role_label(user.rol),
+                _format_user_joined_at(user.fecha_alta),
+            ]
+        )
+
+    return rows
+
+
+def _pdf_cell_text(value) -> str:
+    """Escapa texto para ReportLab evitando caracteres no soportados."""
+    text = str(value if value is not None else "-")
+    text = text.encode("latin-1", "replace").decode("latin-1")
+    return escape(text)
+
+
+def _build_users_pdf(users: list[Usuario]) -> bytes:
+    """Genera un PDF con el listado completo de usuarios."""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=1 * cm,
+        rightMargin=1 * cm,
+        topMargin=1 * cm,
+        bottomMargin=1 * cm,
+        title=_("Listado de usuarios"),
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = styles["Title"]
+    normal_style = ParagraphStyle(
+        "UserExportNormal",
+        parent=styles["Normal"],
+        fontSize=9,
+        leading=11,
+    )
+    header_style = ParagraphStyle(
+        "UserExportHeader",
+        parent=styles["BodyText"],
+        fontName="Helvetica-Bold",
+        fontSize=7,
+        leading=9,
+        textColor=colors.white,
+    )
+    cell_style = ParagraphStyle(
+        "UserExportCell",
+        parent=styles["BodyText"],
+        fontSize=7,
+        leading=9,
+    )
+
+    generated_at = datetime.now().strftime("%d/%m/%Y, %H:%M")
+    elements = [
+        Paragraph(_pdf_cell_text(_("Listado de usuarios")), title_style),
+        Paragraph(
+            _pdf_cell_text(_("Generado el %(date)s", date=generated_at)),
+            normal_style,
+        ),
+        Spacer(1, 0.35 * cm),
+    ]
+
+    table_data = []
+    for row_index, row in enumerate(_user_export_rows(users)):
+        style = header_style if row_index == 0 else cell_style
+        table_data.append(
+            [Paragraph(_pdf_cell_text(value), style) for value in row]
+        )
+
+    table = Table(
+        table_data,
+        repeatRows=1,
+        colWidths=[
+            1.2 * cm,
+            4.0 * cm,
+            6.1 * cm,
+            3.8 * cm,
+            3.0 * cm,
+            4.2 * cm,
+        ],
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4f46e5")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e5e7eb")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
+                    colors.white,
+                    colors.HexColor("#f8fafc"),
+                ]),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+
+    elements.append(table)
+    doc.build(elements)
+
+    return buffer.getvalue()
+
+
 class _AdminAccessMixin:
     """Mixin de control de acceso para vistas de Flask-Admin."""
 
@@ -102,6 +255,12 @@ class SecureAdminIndexView(_AdminAccessMixin, AdminIndexView):
 
 class UserAdminView(_AdminAccessMixin, BaseView):
     """Vista propia de gestión de usuarios, integrada con la UI de la app."""
+
+    def _users_for_export(self) -> list[Usuario]:
+        """Devuelve todos los usuarios del sistema para exportación."""
+        return db.session.execute(
+            select(Usuario).order_by(Usuario.usuario_id.desc())
+        ).scalars().all()
 
     def _get_user_or_404(self, user_id: int) -> Usuario:
         """Recupera un usuario o devuelve 404 si no existe."""
@@ -231,6 +390,36 @@ class UserAdminView(_AdminAccessMixin, BaseView):
             per_page_options=COLLECTION_PER_PAGE_OPTIONS,
             pagination_items=_pagination_items(page, total_pages),
             action_form=AdminActionForm(),
+        )
+
+    @expose("/exportar/csv", methods=("GET",))
+    def export_csv(self):
+        """Exporta todos los usuarios visibles del sistema a CSV."""
+        output = StringIO()
+        output.write("\ufeff")
+
+        writer = csv.writer(output)
+        writer.writerows(_user_export_rows(self._users_for_export()))
+
+        return Response(
+            output.getvalue(),
+            content_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": "attachment; filename=usuarios.csv"
+            },
+        )
+
+    @expose("/exportar/pdf", methods=("GET",))
+    def export_pdf(self):
+        """Exporta todos los usuarios visibles del sistema a PDF."""
+        pdf_bytes = _build_users_pdf(self._users_for_export())
+
+        return Response(
+            pdf_bytes,
+            mimetype="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=usuarios.pdf"
+            },
         )
 
     @expose("/<int:user_id>")
