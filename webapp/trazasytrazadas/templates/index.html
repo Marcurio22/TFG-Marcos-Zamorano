@@ -48,7 +48,11 @@ Versión: 0.1
                    class="sr-only" />
             <!-- Selector personalizado visible para el input oculto. -->
             <div class="flex w-full">
-              <label for="image-input" class="btn btn-primary rounded-r-none shrink-0">{{ _("Elegir archivo") }}</label>
+              <label for="image-input"
+                     class="btn btn-primary rounded-r-none shrink-0"
+                     title="{{ _("Selecciona una imagen JPG o PNG para analizarla.") }}">
+                {{ _("Elegir archivo") }}
+              </label>
               <div id="selected-file-name"
                    class="input input-bordered input-primary w-full rounded-l-none sm:rounded-r-none flex items-center min-w-0 truncate">
                 {{ _("Ningún archivo seleccionado") }}
@@ -67,7 +71,8 @@ Versión: 0.1
           <!-- Envío del pipeline de cálculo. -->
           <button id="calculate-btn"
                   type="submit"
-                  class="btn btn-primary whitespace-nowrap sm:rounded-l-none mt-2 sm:mt-0">
+                  class="btn btn-primary whitespace-nowrap sm:rounded-l-none mt-2 sm:mt-0"
+                  title="{{ _("Procesa la imagen seleccionada para detectar trazas.") }}">
             <svg xmlns="http://www.w3.org/2000/svg"
                  viewBox="0 0 24 24"
                  fill="none"
@@ -90,7 +95,8 @@ Versión: 0.1
                 type="button"
                 disabled
                 data-download-url="{{ url_for("trazas.download_results") }}"
-                class="btn btn-disabled whitespace-nowrap">
+                class="btn btn-disabled whitespace-nowrap"
+                title="{{ _("Descarga los resultados cuando las trazas estén calculadas.") }}">
           <svg xmlns="http://www.w3.org/2000/svg"
                viewBox="0 0 24 24"
                fill="none"
@@ -105,7 +111,8 @@ Versión: 0.1
           <span class="sm:hidden">{{ _("Descargar") }}</span>
         </button>
         <!-- Checkbox de solo lectura usado como confirmación visual. -->
-        <label class="inline-flex items-center justify-center gap-3 text-[0.9rem]">
+        <label class="inline-flex items-center justify-center gap-3 text-[0.9rem]"
+               title="{{ _("Indica si las trazas están dibujadas sobre la imagen y permite visualizarlas.") }}">
           <span class="uppercase tracking-wide font-semibold">{{ _("DIBUJAR TRAZAS") }}</span>
           <input type="checkbox"
                  id="traces-drawn-checkbox"
@@ -120,7 +127,8 @@ Versión: 0.1
             class="w-full lg:w-auto">
         <button id="delete-btn"
                 type="submit"
-                class="btn btn-outline btn-error w-full lg:w-auto whitespace-nowrap">
+                class="btn btn-outline btn-error w-full lg:w-auto whitespace-nowrap"
+                title="{{ _("Elimina la imagen cargada y reinicia el análisis actual.") }}">
           <svg xmlns="http://www.w3.org/2000/svg"
                viewBox="0 0 24 24"
                fill="none"

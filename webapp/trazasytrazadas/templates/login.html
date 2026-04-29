@@ -74,17 +74,26 @@
                         {% endif %}
                     </div>
                     <div class="pt-4 flex flex-col items-center gap-4">
-                        {{ form.submit(class="btn btn-primary w-full rounded-xl border-none text-lg font-bold shadow-lg transition-transform duration-150 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]") }}
-                        <a href="{{ url_for("trazas.index") }}"
-                           class="btn btn-outline btn-primary w-full rounded-xl text-base font-bold transition-all duration-200 hover:bg-primary hover:text-white hover:border-primary hover:scale-[1.02] active:scale-[0.98]">
-                            {{ _("Continuar como visitante") }}
-                        </a>
+                        <div class="tooltip tooltip-bottom w-full"
+                             data-tip="{{ _("Accede con tu usuario y contraseña.") }}">
+                            {{ form.submit(class="btn btn-primary w-full rounded-xl border-none text-lg font-bold shadow-lg transition-transform duration-150 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]") }}
+                        </div>
+                        <div class="tooltip tooltip-bottom w-full"
+                             data-tip="{{ _("Entra sin cuenta para analizar imágenes sueltas.") }}">
+                            <a href="{{ url_for("trazas.index") }}"
+                               class="btn btn-outline btn-primary w-full rounded-xl text-base font-bold transition-all duration-200 hover:bg-primary hover:text-white hover:border-primary hover:scale-[1.02] active:scale-[0.98]">
+                                {{ _("Continuar como visitante") }}
+                            </a>
+                        </div>
                         <div class="mt-2 text-center">
                             <span class="text-sm text-slate-600 font-medium">{{ _("¿No tiene cuenta?") }}</span>
-                            <a href="{{ url_for("trazas.register") }}"
-                               class="ml-1 text-base font-bold text-primary transition-colors hover:text-primary-focus hover:underline">
-                                {{ _("Registrarse") }}
-                            </a>
+                            <span class="tooltip tooltip-bottom inline-block"
+                                  data-tip="{{ _("Crea una cuenta para guardar zonas y acceder a la colección.") }}">
+                                <a href="{{ url_for("trazas.register") }}"
+                                   class="ml-1 text-base font-bold text-primary transition-colors hover:text-primary-focus hover:underline">
+                                    {{ _("Registrarse") }}
+                                </a>
+                            </span>
                         </div>
                     </div>
                 </form>
