@@ -18,6 +18,7 @@ from __future__ import annotations
 import os
 import sys
 import pickle
+import warnings
 from functools import lru_cache
 from typing import Any, List, Tuple, Dict
 
@@ -362,6 +363,17 @@ def _torch_load_compat(path: str, device: torch.device):
     return torch.load(path, map_location=device, weights_only=False)
 
 
+def _torch_jit_load_compat(path: str, device: torch.device) -> nn.Module:
+    """Carga TorchScript manteniendo compatibilidad con los folds actuales."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r".*torch\.jit\.load.*",
+            category=DeprecationWarning,
+        )
+        return torch.jit.load(path, map_location=device).eval()
+
+
 def _infer_loader_kind_from_filename(filename: str | None) -> str:
     """Clasifica el tipo esperado a partir del nombre de origen."""
     normalized = (filename or "").lower().strip()
@@ -391,7 +403,7 @@ def _load_model_for_inference(
         return _PickleInferWrapper(core).to(device).eval(), "torch_module"
 
     if normalized_kind in {"torchscript_network", "torchscript_infer"}:
-        module = torch.jit.load(model_path, map_location=device).eval()
+        module = _torch_jit_load_compat(model_path, device)
         normalize_input = normalized_kind == "torchscript_network"
         return (
             _InferWrapper(module, normalize_input=normalize_input)
@@ -415,7 +427,7 @@ def _load_model_for_inference(
     errors = []
 
     try:
-        module = torch.jit.load(model_path, map_location=device).eval()
+        module = _torch_jit_load_compat(model_path, device)
     except Exception as exc:
         errors.append(exc)
     else:

@@ -206,7 +206,7 @@
                     {{ rename_form.new_name(id="rename-new-name",
                                         class="input input-bordered w-full",
                                         placeholder="fold.0",
-                                        pattern="^fold\\.[0-9]+$") }}
+                                        pattern="^fold[.][0-9]+$") }}
                     <p class="mt-2 text-xs text-base-content/70">{{ _("Formato permitido: fold.0, fold.1, fold.2...") }}</p>
                 </div>
                 <div class="modal-action">
@@ -241,7 +241,7 @@
                     </label>
                     {{ upload_form.fold_name(class="input input-bordered w-full",
                                         placeholder="fold.2",
-                                        pattern="^fold\.[0-9]+$") }}
+                                        pattern="^fold[.][0-9]+$") }}
                     <p class="mt-2 text-xs text-base-content/70">
                         {{ _("Debe ser único y seguir el formato fold.0, fold.1, fold.2...") }}
                     </p>

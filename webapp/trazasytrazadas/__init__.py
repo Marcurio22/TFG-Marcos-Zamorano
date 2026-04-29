@@ -80,10 +80,10 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY="dev",
         IMAGE_UPLOAD_MAX_CONTENT_LENGTH=16 * 1024 * 1024,
-        MODEL_UPLOAD_MAX_CONTENT_LENGTH=512 * 1024 * 1024,
+        MODEL_UPLOAD_MAX_CONTENT_LENGTH=2 * 1024 * 1024 * 1024,
         # Flask aplica MAX_CONTENT_LENGTH antes de entrar en la vista.
         # Debe cubrir el caso más grande: subida de folds desde admin.
-        MAX_CONTENT_LENGTH=512 * 1024 * 1024,
+        MAX_CONTENT_LENGTH=2 * 1024 * 1024 * 1024,
         MODEL_VALIDATION_IMAGE_SIZE=128,
         MODEL_VALIDATION_USE_GPU=False,
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},

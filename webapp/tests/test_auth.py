@@ -2,6 +2,7 @@ from __future__ import annotations
 from io import BytesIO
 import json
 import pickle
+import warnings
 from pathlib import Path
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 import torch
@@ -25,10 +26,19 @@ def _serialized_dummy_model() -> bytes:
 
 
 def _serialized_dummy_torchscript_model() -> bytes:
+
     buffer = BytesIO()
     example = torch.rand(1, 3, 32, 32)
-    traced = torch.jit.trace(_AdminUploadDummyModel(), example)
-    torch.jit.save(traced, buffer)
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r".*torch\.jit\..*",
+            category=DeprecationWarning,
+        )
+        traced = torch.jit.trace(_AdminUploadDummyModel(), example)
+        torch.jit.save(traced, buffer)
+
     return buffer.getvalue()
 
 
