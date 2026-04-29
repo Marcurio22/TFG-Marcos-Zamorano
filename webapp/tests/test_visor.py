@@ -39,6 +39,7 @@ def test_visor_page_renders(client):
     assert response.status_code == 200
     assert "Visor".encode("utf-8") in response.data
     assert b"window.VISOR_APP" in response.data
+    assert b"map-traces-checkbox" not in response.data
 
 
 def test_visor_grid_plan_returns_tiles(client, monkeypatch):

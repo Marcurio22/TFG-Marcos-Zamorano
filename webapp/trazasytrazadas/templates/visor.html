@@ -33,6 +33,25 @@ Versión: 0.1
             1024 × 640
           </button>
         </div>
+        {% if initial_zone %}
+          <div id="map-traces-panel"
+               class="flex flex-wrap items-center gap-3 rounded-box border border-base-300 bg-white/95 px-3 py-2 text-base-content shadow-sm"
+               data-trace-status="{{ initial_zone.trace_status or 'pending' }}">
+            <label class="inline-flex items-center gap-2 text-sm font-medium">
+              <input id="map-traces-checkbox"
+                     type="checkbox"
+                     class="checkbox checkbox-sm checkbox-primary"
+                     {% if initial_zone.can_draw_traces %}checked{% else %}disabled aria-disabled="true"{% endif %}>
+              <span>{{ _("Dibujar trazas") }}</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs opacity-75">{{ _("Estado de trazas") }}</span>
+              <span id="map-traces-status"
+                    class="inline-flex items-center"
+                    aria-live="polite"></span>
+            </div>
+          </div>
+        {% endif %}
       </div>
       <div class="absolute top-4 right-20 z-[700]">
         <div class="tooltip tooltip-bottom tooltip-left visor-tooltip"
@@ -155,6 +174,15 @@ Versión: 0.1
       "zoneRegistered": _("La zona se ha registrado en la colección."),
       "restoredZone": _("Zona recuperada desde la colección."),
       "openCollection": _("Abrir colección"),
+      "drawMapTraces": _("Dibujar trazas"),
+      "mapTracesLoading": _("Cargando trazas en el mapa..."),
+      "mapTracesReady": _("Trazas dibujadas en el mapa."),
+      "mapTracesError": _("No se han podido dibujar las trazas en el mapa."),
+      "mapTracesUnavailable": _("Las trazas estarán disponibles cuando todas las teselas estén calculadas."),
+      "mapTraceStatusCompleted": _("Trazas calculadas"),
+      "mapTraceStatusProcessing": _("Trazas en proceso"),
+      "mapTraceStatusFailed": _("Hay trazas con error"),
+      "mapTraceStatusPending": _("Trazas pendientes"),
       "close": _("Cerrar")
     },
     "initialZone": initial_zone

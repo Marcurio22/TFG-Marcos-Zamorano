@@ -335,6 +335,33 @@ def _photo_trace_status(photo: dict) -> str:
     return "pending"
 
 
+def _zone_trace_status(photos: list[dict]) -> str:
+    """Devuelve el estado agregado de trazas de una colección."""
+    if not photos:
+        return "pending"
+
+    if all(
+        (photo.get("estado") or "").strip().lower() == "completed"
+        and bool(photo.get("ruta_trazas"))
+        for photo in photos
+    ):
+        return "completed"
+
+    if any(
+        (photo.get("estado") or "").strip().lower() == "failed"
+        for photo in photos
+    ):
+        return "failed"
+
+    if any(
+        (photo.get("estado") or "").strip().lower() == "processing"
+        for photo in photos
+    ):
+        return "processing"
+
+    return "pending"
+
+
 def get_default_user_id() -> int:
     """Devuelve el usuario propietario aplicable a nuevas zonas."""
     if has_request_context():
@@ -709,6 +736,9 @@ def get_zone_plan(parcel_id: int) -> dict | None:
     rows = max((photo["row_index"] for photo in detail["photos"]), default=0)
     cols = max((photo["col_index"] for photo in detail["photos"]), default=0)
 
+    trace_status = _zone_trace_status(detail["photos"])
+    can_draw_traces = trace_status == "completed"
+
     tiles = []
     for photo in detail["photos"]:
         tiles.append(
@@ -716,6 +746,7 @@ def get_zone_plan(parcel_id: int) -> dict | None:
                 "id": photo["tile_id"],
                 "row": photo["row_index"],
                 "col": photo["col_index"],
+                "photo_id": photo["foto_id"],
                 "filename": photo["filename"],
                 "label": _(
                     "Tesela %(row)s-%(col)s",
@@ -726,6 +757,12 @@ def get_zone_plan(parcel_id: int) -> dict | None:
                 "bbox3857": photo["bbox3857"],
                 "width": photo["width"],
                 "height": photo["height"],
+                "status": photo.get("estado") or "pending",
+                "trace_status": photo.get("trace_status") or "pending",
+                "traces_url": url_for(
+                    "trazas.collection_photo_traces",
+                    photo_id=photo["foto_id"],
+                ),
                 "download_url": url_for(
                     "trazas.collection_photo_download",
                     photo_id=photo["foto_id"],
@@ -739,6 +776,8 @@ def get_zone_plan(parcel_id: int) -> dict | None:
         "origin": detail["origin"],
         "destination": detail["destination"],
         "bbox": detail["bbox"],
+        "trace_status": trace_status,
+        "can_draw_traces": can_draw_traces,
         "plan": {
             "source": {
                 "id": detail["source_id"],
@@ -754,6 +793,8 @@ def get_zone_plan(parcel_id: int) -> dict | None:
             "tile_count": len(tiles),
             "rows": rows,
             "cols": cols,
+            "trace_status": trace_status,
+            "can_draw_traces": can_draw_traces,
             "warnings": [],
             "tiles": tiles,
         },

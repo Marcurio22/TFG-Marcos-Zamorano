@@ -14,6 +14,7 @@ import os
 import pytest
 import zipfile
 
+from flask_login import login_user
 from PIL import Image
 from werkzeug.security import generate_password_hash
 
@@ -21,6 +22,7 @@ from trazasytrazadas import collection as collection_module
 from trazasytrazadas import visor as visor_module
 from trazasytrazadas.collection_store import (
     get_zone_detail,
+    get_zone_plan,
     get_zone_preview_abspath,
     materialize_photo_tile,
     refresh_parcel_status,
@@ -221,6 +223,55 @@ def _mark_photo_completed_with_traces(
         refresh_parcel_status(parcel_id)
 
         return int(photo_row["foto_id"]), photo_row["filename"], traces
+
+
+def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
+    """El plan restaurado incluye datos para pintar trazas en el visor."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=1,
+    )
+    second_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=2,
+    )
+
+    with app.test_request_context("/visor"):
+        database = get_db()
+        owner_row = database.execute(
+            """
+            SELECT usuario_id
+            FROM parcela
+            WHERE parcela_id = ?
+            """,
+            (parcel_id,),
+        ).fetchone()
+
+        assert owner_row is not None
+
+        owner = db.session.get(Usuario, int(owner_row["usuario_id"]))
+        assert owner is not None
+
+        login_user(owner)
+        plan = get_zone_plan(parcel_id)
+
+    assert plan is not None
+    assert plan["trace_status"] == "completed"
+    assert plan["can_draw_traces"] is True
+    assert plan["plan"]["trace_status"] == "completed"
+    assert plan["plan"]["can_draw_traces"] is True
+
+    tile = plan["plan"]["tiles"][1]
+    assert tile["photo_id"] == second_photo_id
+    assert tile["trace_status"] == "completed"
+    assert tile["traces_url"].endswith(
+        f"/coleccion/fotos/{second_photo_id}/traces")
 
 
 def test_collection_page_renders_empty_state(client):
