@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
       viewerDrawing: "Dibujando...",
       viewerDrawUnavailable: "Todavía no hay trazas calculadas para esta tesela.",
       viewerDrawError: "No se han podido dibujar las trazas sobre la imagen.",
+      recalculatePhotoTitle: "Vuelve a ejecutar el cálculo de trazas para esta tesela.",
+      recalculatePhotoDisabledTitle: "Disponible cuando la tesela esté pendiente el tiempo suficiente o haya fallado.",
+      downloadPhotoTitle: "Descarga la imagen de esta tesela.",
     },
     CFG.i18n || {}
   );
@@ -259,7 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <form method="post" action="${htmlEscape(options.retryUrl)}" class="inline-flex">
           <input type="hidden" name="redirect_to" value="${htmlEscape(redirectTo)}">
           <button type="submit"
-                  class="btn btn-sm btn-warning${retryDisabledClass}"${retryDisabledAttrs}>
+                  class="btn btn-sm btn-warning${retryDisabledClass}"
+                  title="${htmlEscape(options.canRetry ? I18N.recalculatePhotoTitle : I18N.recalculatePhotoDisabledTitle)}"${retryDisabledAttrs}>
             ${htmlEscape(I18N.recalculateTrace)}
           </button>
         </form>
@@ -268,7 +272,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (options.downloadUrl) {
       parts.push(`
-        <a href="${htmlEscape(options.downloadUrl)}" class="btn btn-sm btn-outline">${htmlEscape(I18N.download)}</a>
+        <a href="${htmlEscape(options.downloadUrl)}"
+          class="btn btn-sm btn-outline"
+          title="${htmlEscape(I18N.downloadPhotoTitle)}">${htmlEscape(I18N.download)}</a>
       `);
     }
 

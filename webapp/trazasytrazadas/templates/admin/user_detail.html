@@ -4,7 +4,8 @@
 {% block content %}
     <section class="space-y-4">
         <a href="{{ url_for("admin_usuarios.index_view") }}"
-           class="link link-primary font-semibold inline-flex items-center gap-2">
+           class="link link-primary font-semibold inline-flex items-center gap-2"
+           title="{{ _("Vuelve al listado de usuarios.") }}">
             <svg xmlns="http://www.w3.org/2000/svg"
                  viewBox="0 0 24 24"
                  fill="none"
@@ -35,7 +36,8 @@
                                     class="btn btn-error w-full"
                                     data-delete-user-button
                                     data-user-name="{{ user.nombre_usuario }}"
-                                    data-delete-url="{{ url_for('admin_usuarios.delete_view', user_id=user.usuario_id) }}">
+                                    data-delete-url="{{ url_for('admin_usuarios.delete_view', user_id=user.usuario_id) }}"
+                                    title="{{ _("Abre la confirmación para eliminar este usuario.") }}">
                                 {{ _("Eliminar usuario") }}
                             </button>
                         {% endif %}
@@ -44,7 +46,8 @@
                         <div class="flex flex-wrap items-center gap-3">
                             <h1 class="text-4xl sm:text-5xl font-black tracking-tight">{{ user.nombre_usuario }}</h1>
                             {% if user.rol == "admin" %}
-                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-red-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-red-600 bg-red-50">
+                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-red-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-red-600 bg-red-50"
+                                      title="{{ _("Usuario con permisos de administración.") }}">
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 24 24"
                                          fill="none"
@@ -59,7 +62,8 @@
                                     <span>{{ _("Administrador") }}</span>
                                 </span>
                             {% elif user.rol == "system" %}
-                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-slate-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-slate-700 bg-slate-100">
+                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-slate-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-slate-700 bg-slate-100"
+                                      title="{{ _("Usuario interno del sistema, protegido frente a cambios manuales.") }}">
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 24 24"
                                          fill="none"
@@ -74,7 +78,8 @@
                                     <span>{{ _("Sistema") }}</span>
                                 </span>
                             {% else %}
-                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-emerald-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-emerald-700 bg-emerald-50">
+                                <span class="inline-flex items-center gap-2 rounded-full border-2 border-emerald-200 px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-emerald-700 bg-emerald-50"
+                                      title="{{ _("Usuario estándar de la aplicación.") }}">
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 24 24"
                                          fill="none"
@@ -139,10 +144,12 @@
                         <div class="flex flex-wrap gap-3">
                             {% if can_edit %}
                                 <a href="{{ url_for('admin_usuarios.edit_view', user_id=user.usuario_id) }}"
-                                   class="btn btn-primary">{{ _("Editar usuario") }}</a>
+                                   class="btn btn-primary"
+                                   title="{{ _("Edita los datos y el rol permitido de este usuario.") }}">{{ _("Editar usuario") }}</a>
                             {% endif %}
                             <a href="{{ url_for("admin_usuarios.index_view") }}"
-                               class="btn btn-outline btn-primary">{{ _("Volver al listado") }}</a>
+                               class="btn btn-outline btn-primary"
+                               title="{{ _("Vuelve a la tabla de usuarios.") }}">{{ _("Volver al listado") }}</a>
                         </div>
                     </div>
                 </div>
@@ -182,16 +189,24 @@
                 </div>
                 <div class="modal-action">
                     <form method="dialog">
-                        <button type="submit" class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                        <button type="submit"
+                                class="btn btn-ghost"
+                                title="{{ _("Cancela la eliminación y cierra la ventana.") }}">
+                            {{ _("Cancelar") }}
+                        </button>
                     </form>
                     <form id="delete-user-form" method="post">
                         {{ action_form.hidden_tag() }}
-                        <button type="submit" class="btn btn-error">{{ _("Eliminar") }}</button>
+                        <button type="submit"
+                                class="btn btn-error"
+                                title="{{ _("Elimina permanentemente el usuario seleccionado.") }}">
+                            {{ _("Eliminar") }}
+                        </button>
                     </form>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>{{ _("Cerrar") }}</button>
+                <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
             </form>
         </dialog>
         <script>

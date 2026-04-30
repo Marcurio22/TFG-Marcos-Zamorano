@@ -34,7 +34,12 @@
                     </div>
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <div class="badge badge-outline badge-neutral">{{ _("%(count)s folds", count=fold_rows|length) }}</div>
-                        <button type="button" class="btn btn-sm btn-primary" data-upload-fold-button>{{ _("Añadir fold") }}</button>
+                        <button type="button"
+                                class="btn btn-sm btn-primary"
+                                data-upload-fold-button
+                                title="{{ _("Abre el formulario para validar y añadir un nuevo fold.") }}">
+                            {{ _("Añadir fold") }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -49,9 +54,15 @@
                         </p>
                     </div>
                     {% if active_fold_name %}
-                        <div class="badge badge-success badge-outline px-3 py-3">{{ _("Activo: %(name)s", name=active_fold_name) }}</div>
+                        <div class="badge badge-success badge-outline px-3 py-3"
+                             title="{{ _("Fold usado actualmente por el sistema para calcular trazas.") }}">
+                            {{ _("Activo: %(name)s", name=active_fold_name) }}
+                        </div>
                     {% else %}
-                        <div class="badge badge-outline badge-warning px-3 py-3">{{ _("Sin modelo activo") }}</div>
+                        <div class="badge badge-outline badge-warning px-3 py-3"
+                             title="{{ _("Todavía no hay ningún fold activo para el cálculo de trazas.") }}">
+                            {{ _("Sin modelo activo") }}
+                        </div>
                     {% endif %}
                 </div>
                 {% if fold_rows %}
@@ -89,21 +100,27 @@
                                                     <button type="button"
                                                             class="btn btn-xs btn-primary"
                                                             data-activate-fold-button
-                                                            data-fold-name="{{ row.name }}">{{ _("Activar") }}</button>
+                                                            data-fold-name="{{ row.name }}"
+                                                            title="{{ _("Activa este fold como modelo principal del sistema.") }}">
+                                                        {{ _("Activar") }}
+                                                    </button>
                                                 {% else %}
-                                                    <span class="badge badge-outline badge-success badge-sm">{{ _("En uso") }}</span>
+                                                    <span class="badge badge-outline badge-success badge-sm"
+                                                          title="{{ _("Este fold es el modelo activo y no puede eliminarse directamente.") }}">{{ _("En uso") }}</span>
                                                 {% endif %}
                                                 <button type="button"
                                                         class="btn btn-xs btn-outline btn-primary"
                                                         data-rename-fold-button
-                                                        data-current-name="{{ row.name }}">
+                                                        data-current-name="{{ row.name }}"
+                                                        title="{{ _("Renombra este fold manteniendo el formato fold.N.") }}">
                                                     {{ _("Renombrar") }}
                                                 </button>
                                                 <button type="button"
                                                         class="btn btn-xs btn-outline btn-error"
                                                         data-delete-fold-button
                                                         data-fold-name="{{ row.name }}"
-                                                        {% if row.is_active %}disabled title="{{ _("No se puede eliminar el modelo activo.") }}"{% endif %}>
+                                                        title="{% if row.is_active %}{{ _("No se puede eliminar el modelo activo.") }}{% else %}{{ _("Abre la confirmación para eliminar este fold.") }}{% endif %}"
+                                                        {% if row.is_active %}disabled{% endif %}>
                                                     {{ _("Eliminar") }}
                                                 </button>
                                             </div>
@@ -133,7 +150,12 @@
                         <p class="mt-2 text-sm text-base-content/70">
                             {{ _("Añade un fold desde esta pantalla para validarlo antes de incorporarlo al sistema.") }}
                         </p>
-                        <button type="button" class="btn btn-primary mt-4" data-upload-fold-button>{{ _("Añadir fold") }}</button>
+                        <button type="button"
+                                class="btn btn-primary mt-4"
+                                data-upload-fold-button
+                                title="{{ _("Abre el formulario para validar y añadir un nuevo fold.") }}">
+                            {{ _("Añadir fold") }}
+                        </button>
                     </div>
                 {% endif %}
             </div>
@@ -148,19 +170,23 @@
             </p>
             <div class="modal-action">
                 <form method="dialog">
-                    <button type="submit" class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                    <button type="submit"
+                            class="btn btn-ghost"
+                            title="{{ _("Cancela la acción y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
                 </form>
                 <form id="activate-fold-form"
                       method="post"
                       action="{{ url_for("admin_folds.activate") }}">
                     {{ action_form.hidden_tag() }}
                     <input type="hidden" name="fold_name" id="activate-fold-input">
-                    <button type="submit" class="btn btn-primary">{{ _("Confirmar") }}</button>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            title="{{ _("Confirma el cambio de modelo activo.") }}">{{ _("Confirmar") }}</button>
                 </form>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>{{ _("Cerrar") }}</button>
+            <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
         </form>
     </dialog>
     <dialog id="delete-fold-modal" class="modal">
@@ -174,19 +200,25 @@
             </p>
             <div class="modal-action">
                 <form method="dialog">
-                    <button type="submit" class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                    <button type="submit"
+                            class="btn btn-ghost"
+                            title="{{ _("Cancela la acción y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
                 </form>
                 <form id="delete-fold-form"
                       method="post"
                       action="{{ url_for("admin_folds.delete") }}">
                     {{ action_form.hidden_tag() }}
                     <input type="hidden" name="fold_name" id="delete-fold-input">
-                    <button type="submit" class="btn btn-error">{{ _("Eliminar") }}</button>
+                    <button type="submit"
+                            class="btn btn-error"
+                            title="{{ _("Elimina definitivamente este fold del sistema.") }}">
+                        {{ _("Eliminar") }}
+                    </button>
                 </form>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>{{ _("Cerrar") }}</button>
+            <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
         </form>
     </dialog>
     <dialog id="rename-fold-modal" class="modal">
@@ -206,21 +238,25 @@
                     {{ rename_form.new_name(id="rename-new-name",
                                         class="input input-bordered w-full",
                                         placeholder="fold.0",
-                                        pattern="^fold[.][0-9]+$") }}
+                                        pattern="^fold[.][0-9]+$",
+                                        title=_("Escribe un nombre técnico con formato fold.N.") ) }}
                     <p class="mt-2 text-xs text-base-content/70">{{ _("Formato permitido: fold.0, fold.1, fold.2...") }}</p>
                 </div>
                 <div class="modal-action">
                     <button type="button"
                             class="btn btn-ghost"
-                            onclick="document.getElementById('rename-fold-modal').close();">
+                            onclick="document.getElementById('rename-fold-modal').close();"
+                            title="{{ _("Cancela el cambio de nombre y cierra la ventana.") }}">
                         {{ _("Cancelar") }}
                     </button>
-                    <button type="submit" class="btn btn-primary">{{ _("Guardar nombre") }}</button>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            title="{{ _("Guarda el nuevo nombre del fold.") }}">{{ _("Guardar nombre") }}</button>
                 </div>
             </form>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>{{ _("Cerrar") }}</button>
+            <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
         </form>
     </dialog>
     <dialog id="upload-fold-modal" class="modal">
@@ -241,7 +277,8 @@
                     </label>
                     {{ upload_form.fold_name(class="input input-bordered w-full",
                                         placeholder="fold.2",
-                                        pattern="^fold[.][0-9]+$") }}
+                                        pattern="^fold[.][0-9]+$",
+                                        title=_("Escribe un nombre técnico único con formato fold.N.") ) }}
                     <p class="mt-2 text-xs text-base-content/70">
                         {{ _("Debe ser único y seguir el formato fold.0, fold.1, fold.2...") }}
                     </p>
@@ -250,7 +287,7 @@
                     <label class="label" for="{{ upload_form.model_file.id }}">
                         <span class="label-text">{{ _("Archivo del modelo") }}</span>
                     </label>
-                    {{ upload_form.model_file(class="file-input file-input-bordered w-full") }}
+                    {{ upload_form.model_file(class="file-input file-input-bordered w-full", title=_("Selecciona el archivo serializado del modelo que se va a validar.") ) }}
                     <p class="mt-2 text-xs text-base-content/70">
                         {{ _("No se guardará si no puede cargarse como modelo de segmentación compatible.") }}
                     </p>
@@ -264,15 +301,20 @@
                 <div class="modal-action">
                     <button type="button"
                             class="btn btn-ghost"
-                            onclick="document.getElementById('upload-fold-modal').close();">
+                            onclick="document.getElementById('upload-fold-modal').close();"
+                            title="{{ _("Cancela la subida del fold y cierra la ventana.") }}">
                         {{ _("Cancelar") }}
                     </button>
-                    <button type="submit" class="btn btn-primary">{{ _("Validar y añadir modelo") }}</button>
+                    <button type="submit"
+                            class="btn btn-primary"
+                            title="{{ _("Valida el archivo y añade el fold si el modelo es compatible.") }}">
+                        {{ _("Validar y añadir modelo") }}
+                    </button>
                 </div>
             </form>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>{{ _("Cerrar") }}</button>
+            <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
         </form>
     </dialog>
     <script>

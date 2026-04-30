@@ -121,6 +121,7 @@
                         </div>
                         <select name="per_page"
                                 class="select select-bordered"
+                                title="{{ _("Elige cuántos usuarios se muestran por página.") }}"
                                 onchange="this.form.submit()">
                             {% for option in per_page_options %}
                                 <option value="{{ option }}"
@@ -139,10 +140,12 @@
                                    name="q"
                                    value="{{ listing.search }}"
                                    placeholder="{{ _("Buscar por usuario, correo, teléfono o rol") }}"
-                                   class="input input-bordered join-item w-full" />
+                                   class="input input-bordered join-item w-full"
+                                   title="{{ _("Filtra usuarios por nombre, correo, teléfono o rol.") }}" />
                             <button type="submit"
                                     class="btn btn-primary join-item"
-                                    aria-label="{{ _("Buscar") }}">
+                                    aria-label="{{ _("Buscar") }}"
+                                    title="{{ _("Aplica el filtro de búsqueda de usuarios.") }}">
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      viewBox="0 0 24 24"
                                      fill="none"
@@ -164,7 +167,8 @@
                         <div class="flex flex-col gap-2 sm:flex-row lg:justify-end">
                             <a href="{{ url_for("admin_usuarios.export_csv") }}"
                                class="btn btn-sm btn-outline btn-success whitespace-nowrap"
-                               aria-label="{{ _("Exportar CSV") }}">
+                               aria-label="{{ _("Exportar CSV") }}"
+                               title="{{ _("Exporta el listado de usuarios en formato CSV.") }}">
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      viewBox="0 0 24 24"
                                      fill="none"
@@ -182,7 +186,8 @@
                             </a>
                             <a href="{{ url_for("admin_usuarios.export_pdf") }}"
                                class="btn btn-sm btn-outline btn-error whitespace-nowrap"
-                               aria-label="{{ _("Exportar PDF") }}">
+                               aria-label="{{ _("Exportar PDF") }}"
+                               title="{{ _("Exporta el listado de usuarios en formato PDF.") }}">
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      viewBox="0 0 24 24"
                                      fill="none"
@@ -242,7 +247,8 @@
                                         </td>
                                         <td class="text-center">
                                             {% if row.user.rol == "admin" %}
-                                                <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-600">
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-600"
+                                                      title="{{ _("Usuario con permisos de administración.") }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                          viewBox="0 0 24 24"
                                                          fill="none"
@@ -257,7 +263,8 @@
                                                     <span>{{ _("Administrador") }}</span>
                                                 </span>
                                             {% elif row.user.rol == "system" %}
-                                                <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700"
+                                                      title="{{ _("Usuario interno del sistema, protegido frente a cambios manuales.") }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                          viewBox="0 0 24 24"
                                                          fill="none"
@@ -272,7 +279,8 @@
                                                     <span>{{ _("Sistema") }}</span>
                                                 </span>
                                             {% else %}
-                                                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700"
+                                                      title="{{ _("Usuario estándar de la aplicación.") }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                          viewBox="0 0 24 24"
                                                          fill="none"
@@ -292,25 +300,31 @@
                                         <td class="py-3">
                                             <div class="flex flex-wrap justify-end gap-1.5">
                                                 <a href="{{ url_for('admin_usuarios.detail_view', user_id=row.user.usuario_id) }}"
-                                                   class="btn btn-xs btn-outline btn-primary">{{ _("Ver") }}</a>
+                                                   class="btn btn-xs btn-outline btn-primary"
+                                                   title="{{ _("Abre el detalle completo de este usuario.") }}">{{ _("Ver") }}</a>
                                                 {% if row.can_edit %}
                                                     <a href="{{ url_for('admin_usuarios.edit_view', user_id=row.user.usuario_id) }}"
-                                                       class="btn btn-xs btn-primary">{{ _("Editar") }}</a>
+                                                       class="btn btn-xs btn-primary"
+                                                       title="{{ _("Edita los datos y el rol permitido de este usuario.") }}">{{ _("Editar") }}</a>
                                                 {% endif %}
                                                 {% if row.can_delete %}
                                                     <button type="button"
                                                             class="btn btn-xs btn-outline btn-error"
                                                             data-delete-user-button
                                                             data-user-name="{{ row.user.nombre_usuario }}"
-                                                            data-delete-url="{{ url_for('admin_usuarios.delete_view', user_id=row.user.usuario_id) }}">
+                                                            data-delete-url="{{ url_for('admin_usuarios.delete_view', user_id=row.user.usuario_id) }}"
+                                                            title="{{ _("Abre la confirmación para eliminar este usuario.") }}">
                                                         {{ _("Eliminar") }}
                                                     </button>
                                                 {% elif row.is_system_user %}
-                                                    <span class="badge badge-outline badge-neutral badge-sm">{{ _("Protegido") }}</span>
+                                                    <span class="badge badge-outline badge-neutral badge-sm"
+                                                          title="{{ _("Este usuario está protegido y no puede eliminarse.") }}">{{ _("Protegido") }}</span>
                                                 {% elif row.is_current_user %}
-                                                    <span class="badge badge-outline badge-info badge-sm">{{ _("Actual") }}</span>
+                                                    <span class="badge badge-outline badge-info badge-sm"
+                                                          title="{{ _("Es la cuenta con la que has iniciado sesión.") }}">{{ _("Actual") }}</span>
                                                 {% elif row.is_admin_user %}
-                                                    <span class="badge badge-outline badge-warning badge-sm">{{ _("Administrador protegido") }}</span>
+                                                    <span class="badge badge-outline badge-warning badge-sm"
+                                                          title="{{ _("Los administradores están protegidos frente al borrado desde esta vista.") }}">{{ _("Administrador protegido") }}</span>
                                                 {% endif %}
                                             </div>
                                         </td>
@@ -328,21 +342,20 @@
                                 {% set prev_page = listing.page - 1 if listing.page > 1 else 1 %}
                                 {% set next_page = listing.page + 1 if listing.page < listing.total_pages else listing.total_pages %}
                                 <a href="{{ url_for('admin_usuarios.index_view', page=prev_page, per_page=listing.per_page, q=listing.search) }}"
-                                   class="join-item btn btn-sm {% if listing.page == 1 %}btn-disabled{% endif %}">«</a>
+                                   class="join-item btn btn-sm {% if listing.page == 1 %}btn-disabled{% endif %}"
+                                   title="{{ _("Página anterior") }}">«</a>
                                 {% for item in pagination_items %}
                                     {% if item is none %}
                                         <button type="button" class="join-item btn btn-sm btn-disabled">…</button>
                                     {% else %}
                                         <a href="{{ url_for('admin_usuarios.index_view', page=item, per_page=listing.per_page, q=listing.search) }}"
-                                           class="join-item btn btn-sm {% if listing.page == item %}btn-primary{% else %}btn-outline{% endif %}">
-                                            {{ item }}
-                                        </a>
+                                           class="join-item btn btn-sm {% if listing.page == item %}btn-primary{% else %}btn-outline{% endif %}"
+                                           title="{{ _("Ir a la página %(page)s", page=item) }}">{{ item }}</a>
                                     {% endif %}
                                 {% endfor %}
                                 <a href="{{ url_for('admin_usuarios.index_view', page=next_page, per_page=listing.per_page, q=listing.search) }}"
-                                   class="join-item btn btn-sm {% if listing.page == listing.total_pages %}btn-disabled{% endif %}">
-                                    »
-                                </a>
+                                   class="join-item btn btn-sm {% if listing.page == listing.total_pages %}btn-disabled{% endif %}"
+                                   title="{{ _("Página siguiente") }}">»</a>
                             </div>
                         </div>
                     {% endif %}
@@ -402,16 +415,22 @@
             </div>
             <div class="modal-action">
                 <form method="dialog">
-                    <button type="submit" class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                    <button type="submit"
+                            class="btn btn-ghost"
+                            title="{{ _("Cancela la eliminación y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
                 </form>
                 <form id="delete-user-form" method="post">
                     {{ action_form.hidden_tag() }}
-                    <button type="submit" class="btn btn-error">{{ _("Eliminar") }}</button>
+                    <button type="submit"
+                            class="btn btn-error"
+                            title="{{ _("Elimina permanentemente el usuario seleccionado.") }}">
+                        {{ _("Eliminar") }}
+                    </button>
                 </form>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>{{ _("Cerrar") }}</button>
+            <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
         </form>
     </dialog>
     <script>

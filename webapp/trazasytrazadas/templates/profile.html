@@ -17,7 +17,8 @@
                     </div>
                     <form action="{{ url_for("trazas.logout") }}" method="post" class="w-full">
                         <button type="submit"
-                                class="btn w-full rounded-sm border-none bg-red-600 text-white hover:bg-red-500">
+                                class="btn w-full rounded-sm border-none bg-red-600 text-white hover:bg-red-500"
+                                title="{{ _("Cierra la sesión actual de forma segura.") }}">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24"
                                  fill="none"
@@ -38,7 +39,8 @@
                     <div class="flex items-center gap-3 flex-wrap">
                         <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-base-content">{{ current_user.nombre_usuario }}</h1>
                         {% if current_user.is_authenticated and current_user.rol == "admin" %}
-                            <span class="inline-flex items-center gap-2 rounded-full border-2 border-primary px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-primary bg-transparent shadow-sm">
+                            <span class="inline-flex items-center gap-2 rounded-full border-2 border-primary px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-primary bg-transparent shadow-sm"
+                                  title="{{ _("Tu cuenta tiene permisos de administración.") }}">
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      viewBox="0 0 24 24"
                                      fill="none"
@@ -55,7 +57,8 @@
                         {% endif %}
                     </div>
                     <div class="space-y-4 text-lg sm:text-xl text-base-content/80">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3"
+                             title="{{ _("Correo electrónico asociado a tu cuenta.") }}">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24"
                                  fill="currentColor"
@@ -64,7 +67,8 @@
                             </svg>
                             <span>{{ current_user.correo_electronico }}</span>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3"
+                             title="{{ _("Teléfono asociado a tu cuenta, si se ha indicado.") }}">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24"
                                  fill="currentColor"
@@ -73,7 +77,8 @@
                             </svg>
                             <span>{{ phone_label }}</span>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3"
+                             title="{{ _("Fecha de creación de tu cuenta.") }}">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24"
                                  fill="none"
@@ -91,7 +96,8 @@
                     <details class="group rounded-xl border border-primary/20 bg-base-100 shadow-sm"
                              {% if open_edit_form %}open{% endif %}>
                         <summary class="list-none">
-                            <div class="btn btn-primary rounded-sm border-none m-4 transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]">
+                            <div class="btn btn-primary rounded-sm border-none m-4 transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                                 title="{{ _("Abre el formulario para modificar tus datos de perfil.") }}">
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      viewBox="0 0 24 24"
                                      fill="none"
@@ -118,7 +124,8 @@
                                     </label>
                                     {{ form.nombre_usuario(class=input_class,
                                                                         placeholder=_("Introduzca aquí su usuario") ,
-                                    autocomplete="username"
+                                    autocomplete="username",
+                                    title=_("Actualiza el nombre de usuario visible en la aplicación.")
                                     ) }}
                                     {% if form.nombre_usuario.errors %}
                                         <p class="mt-2 text-sm text-error">{{ form.nombre_usuario.errors[0] }}</p>
@@ -131,7 +138,8 @@
                                     </label>
                                     {{ form.correo_electronico(class=input_class,
                                                                         placeholder=_("Introduzca aquí su correo") ,
-                                    autocomplete="email"
+                                    autocomplete="email",
+                                    title=_("Actualiza el correo electrónico de acceso y contacto.")
                                     ) }}
                                     {% if form.correo_electronico.errors %}
                                         <p class="mt-2 text-sm text-error">{{ form.correo_electronico.errors[0] }}</p>
@@ -144,7 +152,8 @@
                                     </label>
                                     {{ form.telefono(class=input_class,
                                                                         placeholder=_("Ej: +34 999 99 99 99") ,
-                                    autocomplete="tel"
+                                    autocomplete="tel",
+                                    title=_("Indica un teléfono de contacto opcional.")
                                     ) }}
                                     {% if form.telefono.errors %}
                                         <p class="mt-2 text-sm text-error">{{ form.telefono.errors[0] }}</p>
@@ -153,7 +162,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="md:col-span-2 flex justify-end">
-                                    {{ form.submit(class="btn btn-primary rounded-sm border-none text-base font-semibold transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]") }}
+                                    {{ form.submit(class="btn btn-primary rounded-sm border-none text-base font-semibold transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]", title=_("Guarda los cambios de tu perfil.") ) }}
                                 </div>
                             </form>
                         </div>
@@ -161,11 +170,13 @@
                 </div>
                 <div class="flex flex-col gap-4">
                     <a href="{{ url_for("trazas.visor") }}"
-                       class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]">
+                       class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                       title="{{ _("Abre el visor cartográfico para crear o recuperar zonas.") }}">
                         {{ _("Acceder al visor") }}
                     </a>
                     <a href="{{ url_for("trazas.collection") }}"
-                       class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]">
+                       class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                       title="{{ _("Abre la colección de zonas e imágenes guardadas.") }}">
                         {{ _("Acceder a la colección") }}
                     </a>
                     {% if current_user.is_authenticated and current_user.rol == "admin" %}
@@ -173,11 +184,13 @@
                             <div class="text-sm font-bold uppercase tracking-wide text-primary mb-3">{{ _("Panel del Administrador") }}</div>
                             <div class="flex flex-col gap-3">
                                 <a href="{{ url_for("admin_usuarios.index_view") }}"
-                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold">
+                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold"
+                                   title="{{ _("Gestiona las cuentas registradas en la aplicación.") }}">
                                     {{ _("Gestión de Usuarios") }}
                                 </a>
                                 <a href="{{ url_for("admin_folds.index") }}"
-                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold">
+                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold"
+                                   title="{{ _("Gestiona los folds disponibles y el modelo activo.") }}">
                                     {{ _("Gestión del Modelo") }}
                                 </a>
                             </div>
