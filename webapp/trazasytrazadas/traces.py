@@ -38,6 +38,7 @@ from werkzeug.utils import secure_filename
 from .segmentation_inference import compute_traces_from_segmentation
 from .visor import register_visor_routes
 from .collection import register_collection_routes
+from .auth import register_auth_routes
 from PIL import Image
 
 # Blueprint principal de la aplicación.
@@ -46,6 +47,7 @@ bp = Blueprint("trazas", __name__)
 # Registro de rutas auxiliares del visor.
 register_visor_routes(bp)
 register_collection_routes(bp)
+register_auth_routes(bp)
 
 # Utilidades internas.
 
@@ -146,6 +148,16 @@ def _handle_upload_file_or_error(file) -> bool:
     if not file or not file.filename:
         _set_error(_("No se ha seleccionado ningún archivo."))
         return False
+
+    max_bytes = current_app.config.get("IMAGE_UPLOAD_MAX_CONTENT_LENGTH")
+    if max_bytes and request.content_length:
+        try:
+            max_bytes = int(max_bytes)
+        except (TypeError, ValueError):
+            max_bytes = 0
+        if max_bytes > 0 and request.content_length > max_bytes:
+            _set_error(_("La imagen supera el tamaño máximo permitido."))
+            return False
 
     if not allowed_file(file.filename):
         _set_error(

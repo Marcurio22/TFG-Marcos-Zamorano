@@ -14,6 +14,8 @@ import tempfile
 
 import pytest
 
+from trazasytrazadas.db import db
+
 # Añadir la carpeta raíz de webapp al sys.path antes de importar el paquete.
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
@@ -33,8 +35,7 @@ def app():
     collection_storage = os.path.join(tmpdir.name, "collection")
 
     model_template = (
-        "data.8x(100imgs)_miou_method.unet_tu-mambaout_base_wide_rw_lr"
-        ".9e-05_epochs.60_fold.{fold}"
+        "fold.{fold}"
     )
 
     app = create_app(
@@ -58,7 +59,13 @@ def app():
     )
 
     yield app
-    tmpdir.cleanup()
+
+    try:
+        with app.app_context():
+            db.session.remove()
+            db.engine.dispose()
+    finally:
+        tmpdir.cleanup()
 
 
 @pytest.fixture
@@ -99,3 +106,36 @@ def mock_compute_traces(monkeypatch):
         return result
 
     return _apply
+
+
+@pytest.fixture
+def force_login(app, client):
+    """Autentica un usuario de pruebas en el cliente actual."""
+    from werkzeug.security import generate_password_hash
+    from trazasytrazadas.db import db
+    from trazasytrazadas.models import Usuario
+
+    def _force_login(
+        username: str = "usuario_test",
+        email: str = "usuario_test@example.com",
+        role: str = "user",
+    ) -> int:
+        with app.app_context():
+            user = Usuario(
+                nombre_usuario=username,
+                correo_electronico=email,
+                telefono=None,
+                contrasena=generate_password_hash("Password1!"),
+                rol=role,
+            )
+            db.session.add(user)
+            db.session.commit()
+            user_id = int(user.usuario_id)
+
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user_id)
+            session["_fresh"] = True
+
+        return user_id
+
+    return _force_login

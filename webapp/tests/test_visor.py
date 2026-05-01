@@ -10,9 +10,19 @@ Versión: 0.1
 """
 
 import io
+import pytest
 from PIL import Image
 
 from trazasytrazadas import visor as visor_module
+
+
+@pytest.fixture(autouse=True)
+def _login_required_user(force_login):
+    """Todas las pruebas del visor se ejecutan autenticadas."""
+    force_login(
+        username="usuario_visor",
+        email="usuario_visor@example.com",
+    )
 
 
 def _fake_jpeg_bytes() -> bytes:
@@ -29,6 +39,7 @@ def test_visor_page_renders(client):
     assert response.status_code == 200
     assert "Visor".encode("utf-8") in response.data
     assert b"window.VISOR_APP" in response.data
+    assert b"map-traces-checkbox" not in response.data
 
 
 def test_visor_grid_plan_returns_tiles(client, monkeypatch):
@@ -128,3 +139,80 @@ def test_visor_download_tile_uses_backend_proxy(client, monkeypatch):
     assert response.status_code == 200
     assert response.mimetype == "image/jpeg"
     assert response.data == b"fake-image-bytes"
+
+
+def test_visor_grid_plan_triggers_worker(app, client, monkeypatch):
+    """Crear una zona nueva debe disparar el worker bajo demanda."""
+    source = visor_module._visor_source_by_id("pnoa2023")
+    triggered = []
+
+    monkeypatch.setattr(
+        visor_module,
+        "trigger_trace_worker",
+        lambda app_obj: triggered.append(app_obj) or True,
+    )
+
+    monkeypatch.setattr(
+        visor_module,
+        "_visor_select_source",
+        lambda _bbox, _resolution: (source, 0.25, []),
+    )
+
+    def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
+        return (
+            [
+                {
+                    "id": "r01_c01",
+                    "row": 1,
+                    "col": 1,
+                    "filename": "tile_1.jpg",
+                    "label": "Tesela 1-1",
+                    "bounds": {
+                        "south": 40.0,
+                        "west": -4.0,
+                        "north": 40.1,
+                        "east": -3.9,
+                    },
+                    "bbox3857": {
+                        "xmin": -1.0,
+                        "ymin": -1.0,
+                        "xmax": 1.0,
+                        "ymax": 1.0,
+                    },
+                    "width": 1024,
+                    "height": 640,
+                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                }
+            ],
+            1,
+            1,
+        )
+
+    monkeypatch.setattr(
+        visor_module,
+        "_visor_build_tiles",
+        _fake_tiles,
+    )
+
+    monkeypatch.setattr(
+        visor_module,
+        "_visor_fetch_tile_bytes",
+        lambda _source, _bbox, _width, _height: _fake_jpeg_bytes(),
+    )
+
+    response = client.post(
+        "/visor/grid-plan",
+        json={
+            "bbox": {
+                "south": 40.0,
+                "west": -4.0,
+                "north": 40.1,
+                "east": -3.9,
+            },
+            "resolution": 0.25,
+        },
+    )
+
+    assert response.status_code == 200
+    assert len(triggered) == 1
+    assert triggered[0] is app

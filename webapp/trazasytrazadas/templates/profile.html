@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Perfil") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-5{% endblock %}
+{% block content %}
+    {% set input_class = "input input-bordered w-full rounded-none border-primary/30 bg-white text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" %}
+    <section class="card bg-base-100/85 border border-primary/35 shadow-xl backdrop-blur-sm">
+        <div class="card-body p-5 sm:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_260px] gap-8 items-start">
+                <div class="flex flex-col items-center gap-5">
+                    <div class="w-40 h-40 rounded-full bg-primary text-primary-content grid place-items-center shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="currentColor"
+                             class="w-28 h-28">
+                            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5Z" />
+                        </svg>
+                    </div>
+                    <form action="{{ url_for("trazas.logout") }}" method="post" class="w-full">
+                        <button type="submit"
+                                class="btn w-full rounded-sm border-none bg-red-600 text-white hover:bg-red-500"
+                                title="{{ _("Cierra la sesión actual de forma segura.") }}">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round"
+                                 class="w-5 h-5">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <path d="M16 17l5-5-5-5" />
+                                <path d="M21 12H9" />
+                            </svg>
+                            <span>{{ _("Cerrar sesión") }}</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="space-y-5">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-base-content">{{ current_user.nombre_usuario }}</h1>
+                        {% if current_user.is_authenticated and current_user.rol == "admin" %}
+                            <span class="inline-flex items-center gap-2 rounded-full border-2 border-primary px-3 py-1 text-sm font-extrabold uppercase tracking-wide text-primary bg-transparent shadow-sm"
+                                  title="{{ _("Tu cuenta tiene permisos de administración.") }}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="w-4 h-4">
+                                    <path d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3z" />
+                                    <path d="M9.5 12.5l1.5 1.5 3.5-4" />
+                                </svg>
+                                <span>{{ _("Administrador") }}</span>
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-4 text-lg sm:text-xl text-base-content/80">
+                        <div class="flex items-center gap-3"
+                             title="{{ _("Correo electrónico asociado a tu cuenta.") }}">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="currentColor"
+                                 class="w-7 h-7 text-base-content/70">
+                                <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h14.5A1.75 1.75 0 0 1 21 6.75v10.5A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.8.19 6.84 5.38a.6.6 0 0 0 .72 0l6.84-5.38a.25.25 0 0 0-.15-.44H4.95a.25.25 0 0 0-.15.44Z" />
+                            </svg>
+                            <span>{{ current_user.correo_electronico }}</span>
+                        </div>
+                        <div class="flex items-center gap-3"
+                             title="{{ _("Teléfono asociado a tu cuenta, si se ha indicado.") }}">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="currentColor"
+                                 class="w-7 h-7 text-base-content/70">
+                                <path d="M6.62 10.79a15.91 15.91 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.36 11.36 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.49a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.58 1 1 0 0 1-.24 1.01l-2.2 2.2Z" />
+                            </svg>
+                            <span>{{ phone_label }}</span>
+                        </div>
+                        <div class="flex items-center gap-3"
+                             title="{{ _("Fecha de creación de tu cuenta.") }}">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round"
+                                 class="w-7 h-7 text-base-content/70">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                            </svg>
+                            <span>{{ joined_label }}</span>
+                        </div>
+                    </div>
+                    <details class="group rounded-xl border border-primary/20 bg-base-100 shadow-sm"
+                             {% if open_edit_form %}open{% endif %}>
+                        <summary class="list-none">
+                            <div class="btn btn-primary rounded-sm border-none m-4 transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                                 title="{{ _("Abre el formulario para modificar tus datos de perfil.") }}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="w-5 h-5">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                                </svg>
+                                <span>{{ _("Editar información") }}</span>
+                            </div>
+                        </summary>
+                        <div class="border-t border-primary/15 px-4 pb-5 pt-1 sm:px-6 sm:pb-6">
+                            <form action="{{ url_for("trazas.update_profile") }}"
+                                  method="post"
+                                  class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {{ form.hidden_tag() }}
+                                <div>
+                                    <label for="{{ form.nombre_usuario.id }}"
+                                           class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                        <span>{{ _("Usuario") }}</span>
+                                    </label>
+                                    {{ form.nombre_usuario(class=input_class,
+                                                                        placeholder=_("Introduzca aquí su usuario") ,
+                                    autocomplete="username",
+                                    title=_("Actualiza el nombre de usuario visible en la aplicación.")
+                                    ) }}
+                                    {% if form.nombre_usuario.errors %}
+                                        <p class="mt-2 text-sm text-error">{{ form.nombre_usuario.errors[0] }}</p>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.correo_electronico.id }}"
+                                           class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                        <span>{{ _("Correo electrónico") }}</span>
+                                    </label>
+                                    {{ form.correo_electronico(class=input_class,
+                                                                        placeholder=_("Introduzca aquí su correo") ,
+                                    autocomplete="email",
+                                    title=_("Actualiza el correo electrónico de acceso y contacto.")
+                                    ) }}
+                                    {% if form.correo_electronico.errors %}
+                                        <p class="mt-2 text-sm text-error">{{ form.correo_electronico.errors[0] }}</p>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.telefono.id }}"
+                                           class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                                        <span>{{ _("Teléfono (opcional)") }}</span>
+                                    </label>
+                                    {{ form.telefono(class=input_class,
+                                                                        placeholder=_("Ej: +34 999 99 99 99") ,
+                                    autocomplete="tel",
+                                    title=_("Indica un teléfono de contacto opcional.")
+                                    ) }}
+                                    {% if form.telefono.errors %}
+                                        <p class="mt-2 text-sm text-error">{{ form.telefono.errors[0] }}</p>
+                                    {% else %}
+                                        <p class="mt-2 text-xs text-base-content/70">{{ _("Si no indicas prefijo, se usará +34 por defecto.") }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="md:col-span-2 flex justify-end">
+                                    {{ form.submit(class="btn btn-primary rounded-sm border-none text-base font-semibold transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]", title=_("Guarda los cambios de tu perfil.") ) }}
+                                </div>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <a href="{{ url_for("trazas.visor") }}"
+                       class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                       title="{{ _("Abre el visor cartográfico para crear o recuperar zonas.") }}">
+                        {{ _("Acceder al visor") }}
+                    </a>
+                    <a href="{{ url_for("trazas.collection") }}"
+                       class="btn btn-primary rounded-sm border-none text-lg font-semibold shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                       title="{{ _("Abre la colección de zonas e imágenes guardadas.") }}">
+                        {{ _("Acceder a la colección") }}
+                    </a>
+                    {% if current_user.is_authenticated and current_user.rol == "admin" %}
+                        <div class="rounded-2xl border border-primary/25 bg-base-100/70 shadow-sm p-4">
+                            <div class="text-sm font-bold uppercase tracking-wide text-primary mb-3">{{ _("Panel del Administrador") }}</div>
+                            <div class="flex flex-col gap-3">
+                                <a href="{{ url_for("admin_usuarios.index_view") }}"
+                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold"
+                                   title="{{ _("Gestiona las cuentas registradas en la aplicación.") }}">
+                                    {{ _("Gestión de Usuarios") }}
+                                </a>
+                                <a href="{{ url_for("admin_folds.index") }}"
+                                   class="btn btn-outline btn-primary rounded-sm text-base font-semibold"
+                                   title="{{ _("Gestiona los folds disponibles y el modelo activo.") }}">
+                                    {{ _("Gestión del Modelo") }}
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

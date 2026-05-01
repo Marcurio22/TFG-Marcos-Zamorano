@@ -10,43 +10,58 @@ Versión: 0.1
 -->
 {% extends "base.html" %}
 {% block title %}{{ _("Visor") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
-{% block page_container_class %}w-full max-w-none px-3 sm:px-4 py-3{% endblock %}
+{% block page_container_class %}w-full max-w-none p-0{% endblock %}
 {% block content %}
   <div id="visor-alerts" class="toast toast-top toast-center visor-toast"></div>
   <section class="space-y-4">
-    <div class="card bg-base-100 shadow-sm border border-base-200">
-      <div class="card-body p-0">
-        <div class="relative">
-          <div class="absolute top-4 left-4 z-[700] flex flex-wrap gap-2 items-center">
-            <button id="open-controls-btn"
-                    type="button"
-                    class="btn btn-sm btn-primary shadow-sm">{{ _("Controles") }}</button>
-            <div class="tooltip tooltip-bottom visor-tooltip visor-tooltip-help"
-                 data-tip="{{ _("Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona automáticamente la mejor ortofoto disponible y aplica fallback si la resolución pedida no existe en la zona.") }}">
-              <button type="button"
-                      class="btn btn-sm btn-circle btn-outline bg-white text-base-content border-base-300 shadow-sm">
-                ?
-              </button>
-            </div>
-            <div class="tooltip tooltip-right visor-tooltip"
-                 data-tip="{{ _("Formato fijo por tesela: 1024 × 640 px.") }}">
-              <button type="button"
-                      class="btn btn-sm btn-outline bg-white text-base-content border-base-300 shadow-sm">
-                1024 × 640
-              </button>
+    <div class="relative">
+      <div class="absolute top-4 left-4 z-[700] flex flex-wrap gap-2 items-center">
+        <button id="open-controls-btn"
+                type="button"
+                class="btn btn-sm btn-primary shadow-sm">{{ _("Controles") }}</button>
+        <div class="tooltip tooltip-bottom visor-tooltip visor-tooltip-help"
+             data-tip="{{ _("Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona automáticamente la mejor ortofoto disponible y aplica un ajuste automático si la resolución pedida no existe en la zona.") }}">
+          <button type="button"
+                  class="btn btn-sm btn-circle btn-outline bg-white text-base-content border-base-300 shadow-sm">
+            ?
+          </button>
+        </div>
+        <div class="tooltip tooltip-right visor-tooltip"
+             data-tip="{{ _("Formato fijo por tesela: 1024 × 640 px.") }}">
+          <button type="button"
+                  class="btn btn-sm btn-outline bg-white text-base-content border-base-300 shadow-sm">
+            1024 × 640
+          </button>
+        </div>
+        {% if initial_zone %}
+          <div id="map-traces-panel"
+               class="flex flex-wrap items-center gap-3 rounded-box border border-base-300 bg-white/95 px-3 py-2 text-base-content shadow-sm"
+               data-trace-status="{{ initial_zone.trace_status or 'pending' }}">
+            <label class="inline-flex items-center gap-2 text-sm font-medium">
+              <input id="map-traces-checkbox"
+                     type="checkbox"
+                     class="checkbox checkbox-sm checkbox-primary"
+                     {% if initial_zone.can_draw_traces %}checked{% else %}disabled aria-disabled="true"{% endif %}>
+              <span>{{ _("Dibujar trazas") }}</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs opacity-75">{{ _("Estado de trazas") }}</span>
+              <span id="map-traces-status"
+                    class="inline-flex items-center"
+                    aria-live="polite"></span>
             </div>
           </div>
-          <div class="absolute top-4 right-20 z-[700]">
-            <div class="tooltip tooltip-bottom tooltip-left visor-tooltip"
-                 data-tip="{{ _("Base visible: OpenStreetMap + PNOA de máxima actualidad.") }}">
-              <div class="badge badge-info badge-outline bg-white text-base-content border-base-300 shadow-sm">
-                {{ _("OpenStreetMap + PNOA") }}
-              </div>
-            </div>
+        {% endif %}
+      </div>
+      <div class="absolute top-4 right-20 z-[700]">
+        <div class="tooltip tooltip-bottom tooltip-left visor-tooltip"
+             data-tip="{{ _("Base visible: OpenStreetMap + PNOA de máxima actualidad.") }}">
+          <div class="badge badge-info badge-outline bg-white text-base-content border-base-300 shadow-sm">
+            {{ _("OpenStreetMap + PNOA") }}
           </div>
-          <div id="visor-map" class="w-full"></div>
         </div>
       </div>
+      <div id="visor-map" class="w-full"></div>
     </div>
     <section id="downloads-section">
       <div class="card bg-base-100 shadow-sm border border-base-200">
@@ -96,7 +111,7 @@ Versión: 0.1
       </div>
       <div class="modal-action grid grid-cols-1 sm:grid-cols-2 gap-2">
         <button id="generate-grid-btn" type="button" class="btn btn-primary w-full">{{ _("Generar cuadrícula") }}</button>
-        <button id="reset-selection-btn" type="button" class="btn btn-outline w-full">{{ _("Reset selección") }}</button>
+        <button id="reset-selection-btn" type="button" class="btn btn-outline w-full">{{ _("Reiniciar selección") }}</button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">
@@ -139,14 +154,14 @@ Versión: 0.1
       "downloadZip": _("Descargar ZIP"),
       "gridGenerationError": _("No se ha podido generar la cuadrícula."),
       "largeGridWarning": _("La cuadrícula contiene muchas teselas y puede implicar una descarga pesada."),
-      "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático."),
+      "fallbackWarning": _("La resolución solicitada no está disponible en la zona. Se ha aplicado un ajuste automático."),
       "resolutionWarning": _("La ortofoto seleccionada no alcanza la resolución pedida para esa zona."),
       "statusLoading": _("Calculando cobertura y cuadrícula..."),
       "statusReset": _("Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo."),
       "zipPreparing": _("Preparando ZIP de teselas..."),
       "zipReady": _("Se ha iniciado la descarga del ZIP."),
       "zipError": _("No se ha podido generar el ZIP."),
-      "tooManyPoints": _("Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo."),
+      "tooManyPoints": _("Ya existe una selección activa. Usa «Reiniciar selección» para empezar de nuevo."),
       "emptyList": _("Genera primero la cuadrícula para obtener las teselas descargables."),
       "activePreview": _("Capa mostrada: %(source)s · resolución efectiva %(resolution)s m/px.", source="{source}", resolution="{resolution}"),
       "previewLatest": _("La base visible muestra OpenStreetMap y PNOA de máxima actualidad."),
@@ -158,7 +173,17 @@ Versión: 0.1
       "downloadingTile": _("Descargando %(tile)s...", tile="{tile}"),
       "zoneRegistered": _("La zona se ha registrado en la colección."),
       "restoredZone": _("Zona recuperada desde la colección."),
-      "openCollection": _("Abrir colección")
+      "openCollection": _("Abrir colección"),
+      "drawMapTraces": _("Dibujar trazas"),
+      "mapTracesLoading": _("Cargando trazas en el mapa..."),
+      "mapTracesReady": _("Trazas dibujadas en el mapa."),
+      "mapTracesError": _("No se han podido dibujar las trazas en el mapa."),
+      "mapTracesUnavailable": _("Las trazas estarán disponibles cuando todas las teselas estén calculadas."),
+      "mapTraceStatusCompleted": _("Trazas calculadas"),
+      "mapTraceStatusProcessing": _("Trazas en proceso"),
+      "mapTraceStatusFailed": _("Hay trazas con error"),
+      "mapTraceStatusPending": _("Trazas pendientes"),
+      "close": _("Cerrar")
     },
     "initialZone": initial_zone
   } | tojson }};

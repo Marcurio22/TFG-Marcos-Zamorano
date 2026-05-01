@@ -9,11 +9,12 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS usuario (
     usuario_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_usuario TEXT NOT NULL UNIQUE,
-    contrasena TEXT NOT NULL,
-    correo_electronico TEXT NOT NULL UNIQUE,
-    rol TEXT NOT NULL CHECK (rol IN ('system', 'admin', 'user')),
-    fecha_alta TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
+    contrasena VARCHAR(255) NOT NULL,
+    correo_electronico VARCHAR(50) NOT NULL UNIQUE,
+    telefono VARCHAR(20),
+    rol VARCHAR(20) NOT NULL CHECK (rol IN ('system', 'admin', 'user')),
+    fecha_alta TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS parcela (
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS parcela (
     tile_height INTEGER NOT NULL,
     estado TEXT NOT NULL DEFAULT 'pending'
         CHECK (estado IN ('pending', 'processing', 'completed', 'failed')),
+    nombre_coleccion TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuario (usuario_id)

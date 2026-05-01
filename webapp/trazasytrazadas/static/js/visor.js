@@ -38,14 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
       downloadZip: "Descargar ZIP",
       gridGenerationError: "No se ha podido generar la cuadrícula.",
       largeGridWarning: "La cuadrícula contiene muchas teselas y puede implicar una descarga pesada.",
-      fallbackWarning: "La resolución solicitada no está disponible en la zona. Se ha aplicado fallback automático.",
+      fallbackWarning: "La resolución solicitada no está disponible en la zona. Se ha aplicado un ajuste automático.",
       resolutionWarning: "La ortofoto seleccionada no alcanza la resolución pedida para esa zona.",
       statusLoading: "Calculando cobertura y cuadrícula...",
       statusReset: "Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo.",
       zipPreparing: "Preparando ZIP de teselas...",
       zipReady: "Se ha iniciado la descarga del ZIP.",
       zipError: "No se ha podido generar el ZIP.",
-      tooManyPoints: "Ya existe una selección activa. Usa «Reset selección» para empezar de nuevo.",
+      tooManyPoints: "Ya existe una selección activa. Usa «Reiniciar selección» para empezar de nuevo.",
       emptyList: "Genera primero la cuadrícula para obtener las teselas descargables.",
       activePreview: "Capa mostrada: {source} · resolución efectiva {resolution} m/px.",
       previewLatest: "La base visible muestra OpenStreetMap y PNOA de máxima actualidad.",
@@ -58,6 +58,16 @@ document.addEventListener("DOMContentLoaded", () => {
       zoneRegistered: "La zona se ha registrado en la colección.",
       restoredZone: "Zona recuperada desde la colección.",
       openCollection: "Abrir colección",
+      close: "Cerrar",
+      drawMapTraces: "Dibujar trazas",
+      mapTracesLoading: "Cargando trazas en el mapa...",
+      mapTracesReady: "Trazas dibujadas en el mapa.",
+      mapTracesError: "No se han podido dibujar las trazas en el mapa.",
+      mapTracesUnavailable: "Las trazas estarán disponibles cuando todas las teselas estén calculadas.",
+      mapTraceStatusCompleted: "Trazas calculadas",
+      mapTraceStatusProcessing: "Trazas en proceso",
+      mapTraceStatusFailed: "Hay trazas con error",
+      mapTraceStatusPending: "Trazas pendientes",
     },
     CFG.i18n || {}
   );
@@ -75,6 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const downloadAllBtn = document.getElementById("download-all-btn");
   const downloadListEl = document.getElementById("download-list");
   const downloadsSectionEl = document.getElementById("downloads-section");
+  const mapTracesPanel = document.getElementById("map-traces-panel");
+  const mapTracesCheckbox = document.getElementById("map-traces-checkbox");
+  const mapTracesStatus = document.getElementById("map-traces-status");
 
   const map = L.map(mapEl, {
     center: DEFAULTS.center,
@@ -115,12 +128,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const markersGroup = L.layerGroup().addTo(map);
   const selectionGroup = L.layerGroup().addTo(map);
   const gridGroup = L.layerGroup().addTo(map);
+  const traceOverlayGroup = L.layerGroup().addTo(map);
 
   let selectedPoints = [];
   let selectionBounds = null;
   let selectionRectangle = null;
   let activePreviewLayer = null;
   let currentPlan = null;
+  let drawingMapTraces = false;
+  const traceOverlayCache = new Map();
   const initialZone = CFG.initialZone || null;
 
   function formatTemplate(template, values) {
@@ -175,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="text-sm sm:text-base">${message}</span>
       <button type="button"
               class="btn btn-sm btn-ghost ml-auto"
-              aria-label="Cerrar">
+              aria-label="${I18N.close}">
         <svg xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -203,8 +219,247 @@ document.addEventListener("DOMContentLoaded", () => {
     if (downloadAllBtn) downloadAllBtn.disabled = true;
   }
 
+  function getMapTraceStatusTitle(status) {
+    if (status === "completed") {
+      return I18N.mapTraceStatusCompleted;
+    }
+
+    if (status === "processing") {
+      return I18N.mapTraceStatusProcessing;
+    }
+
+    if (status === "failed") {
+      return I18N.mapTraceStatusFailed;
+    }
+
+    return I18N.mapTraceStatusPending;
+  }
+
+  function renderMapTraceStatusMarkup(status) {
+    if (status === "completed") {
+      return `
+        <span class="inline-flex items-center justify-center text-success">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2.5"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="w-5 h-5">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+        </span>
+      `;
+    }
+
+    if (status === "processing") {
+      return `<span class="loading loading-spinner loading-sm text-primary"></span>`;
+    }
+
+    if (status === "failed") {
+      return `
+        <span class="inline-flex items-center justify-center text-error">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="w-5 h-5">
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+          </svg>
+        </span>
+      `;
+    }
+
+    return `
+      <span class="inline-flex items-center justify-center text-base-content/45">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="w-5 h-5">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M8 12h8"></path>
+        </svg>
+      </span>
+    `;
+  }
+
+  function syncMapTraceStatus(plan) {
+    if (!mapTracesStatus) {
+      return;
+    }
+
+    const status = plan?.trace_status || mapTracesPanel?.dataset.traceStatus || "pending";
+    mapTracesStatus.innerHTML = renderMapTraceStatusMarkup(status);
+    mapTracesStatus.title = getMapTraceStatusTitle(status);
+    mapTracesStatus.dataset.traceStatus = status;
+  }
+
+  function clearMapTraceOverlays({ resetCheckbox = true } = {}) {
+    traceOverlayGroup.clearLayers();
+
+    if (resetCheckbox && mapTracesCheckbox) {
+      mapTracesCheckbox.checked = false;
+    }
+  }
+
+  function updateMapTraceControls(plan) {
+    if (!mapTracesPanel || !mapTracesCheckbox) {
+      return;
+    }
+
+    const canDraw = Boolean(plan?.can_draw_traces);
+
+    if (!canDraw) {
+      clearMapTraceOverlays({ resetCheckbox: true });
+    }
+
+    mapTracesCheckbox.disabled = !canDraw || drawingMapTraces;
+    mapTracesCheckbox.setAttribute(
+      "aria-disabled",
+      canDraw && !drawingMapTraces ? "false" : "true"
+    );
+
+    if (!canDraw) {
+      mapTracesCheckbox.title = I18N.mapTracesUnavailable;
+    } else {
+      mapTracesCheckbox.removeAttribute("title");
+    }
+
+    syncMapTraceStatus(plan);
+  }
+
+  async function fetchTileTraces(tile) {
+    const cacheKey = String(tile.photo_id || tile.id || tile.traces_url || "");
+    if (cacheKey && traceOverlayCache.has(cacheKey)) {
+      return traceOverlayCache.get(cacheKey);
+    }
+
+    if (!tile.traces_url) {
+      throw new Error(I18N.mapTracesError);
+    }
+
+    const tracesUrl = new URL(tile.traces_url, window.location.origin);
+    tracesUrl.searchParams.set("_ts", Date.now().toString());
+
+    const response = await fetch(tracesUrl.toString(), {
+      headers: { Accept: "application/json" },
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(payload.error || I18N.mapTracesError);
+    }
+
+    const traces = {
+      xs: Array.isArray(payload.xs) ? payload.xs : [],
+      ys: Array.isArray(payload.ys) ? payload.ys : [],
+    };
+
+    if (cacheKey) {
+      traceOverlayCache.set(cacheKey, traces);
+    }
+
+    return traces;
+  }
+
+  function buildTileTraceOverlay(tile, traces) {
+    const width = Number(tile.width || currentPlan?.tile_width || 1024);
+    const height = Number(tile.height || currentPlan?.tile_height || 640);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+
+    const xs = Array.isArray(traces.xs) ? traces.xs : [];
+    const ys = Array.isArray(traces.ys) ? traces.ys : [];
+
+    ctx.fillStyle = "#ff0000";
+    for (let index = 0; index < xs.length; index += 1) {
+      const x = Number(xs[index]);
+      const y = Number(ys[index]);
+      if (x >= 0 && x < width && y >= 0 && y < height) {
+        ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+      }
+    }
+
+    const bounds = L.latLngBounds(
+      [tile.bounds.south, tile.bounds.west],
+      [tile.bounds.north, tile.bounds.east]
+    );
+
+    return L.imageOverlay(canvas.toDataURL("image/png"), bounds, {
+      opacity: 1,
+      interactive: false,
+    });
+  }
+
+  async function drawMapTraces({ silent = false } = {}) {
+    if (!currentPlan?.can_draw_traces) {
+      if (mapTracesCheckbox) {
+        mapTracesCheckbox.checked = false;
+      }
+      updateMapTraceControls(currentPlan);
+      if (!silent) {
+        clearAlerts();
+        addAlert("alert-warning", I18N.mapTracesUnavailable);
+      }
+      return false;
+    }
+
+    drawingMapTraces = true;
+    updateMapTraceControls(currentPlan);
+
+    if (!silent) {
+      clearAlerts();
+      addAlert("alert-info", I18N.mapTracesLoading);
+    }
+
+    try {
+      traceOverlayGroup.clearLayers();
+
+      for (const tile of currentPlan.tiles || []) {
+        const traces = await fetchTileTraces(tile);
+        const overlay = buildTileTraceOverlay(tile, traces);
+        if (overlay) {
+          overlay.addTo(traceOverlayGroup);
+        }
+      }
+
+      if (!silent) {
+        clearAlerts();
+        addAlert("alert-success", I18N.mapTracesReady);
+      }
+
+      return true;
+    } catch (error) {
+      clearMapTraceOverlays({ resetCheckbox: true });
+      clearAlerts();
+      addAlert("alert-error", error.message || I18N.mapTracesError);
+      return false;
+    } finally {
+      drawingMapTraces = false;
+      updateMapTraceControls(currentPlan);
+    }
+  }
+
   function resetGridState() {
     gridGroup.clearLayers();
+    traceOverlayGroup.clearLayers();
+    traceOverlayCache.clear();
     previewGroup.clearLayers();
     if (activePreviewLayer) {
       layerControl.removeLayer(activePreviewLayer);
@@ -214,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setSourceSummary(I18N.sourcePending);
     setDownloadsSummary(I18N.downloadsPending);
     setEmptyDownloadsList();
+    updateMapTraceControls(null);
   }
 
   function resetSelection() {
@@ -369,6 +625,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderGrid(plan) {
     gridGroup.clearLayers();
+    traceOverlayGroup.clearLayers();
 
     plan.tiles.forEach((tile) => {
       const bounds = L.latLngBounds(
@@ -384,6 +641,8 @@ document.addEventListener("DOMContentLoaded", () => {
       rect.bindTooltip(tile.label, { sticky: true });
       rect.addTo(gridGroup);
     });
+
+    updateMapTraceControls(plan);
   }
 
   function restoreInitialZone(zone) {
@@ -436,6 +695,12 @@ document.addEventListener("DOMContentLoaded", () => {
     map.fitBounds(selectionBounds.pad(0.15));
     clearAlerts();
     addAlert("alert-info", I18N.restoredZone);
+
+    updateMapTraceControls(currentPlan);
+
+    if (mapTracesCheckbox?.checked && currentPlan?.can_draw_traces) {
+      drawMapTraces({ silent: true });
+    }
   }
 
   async function generateGrid() {
@@ -602,10 +867,20 @@ document.addEventListener("DOMContentLoaded", () => {
   resetSelectionBtn.addEventListener("click", resetSelection);
   downloadAllBtn.addEventListener("click", downloadZip);
 
+  mapTracesCheckbox?.addEventListener("change", async () => {
+    if (mapTracesCheckbox.checked) {
+      await drawMapTraces();
+      return;
+    }
+
+    clearMapTraceOverlays({ resetCheckbox: false });
+  });
+
   setSelectionSummary(I18N.selectionPending);
   setSourceSummary(I18N.previewLatest);
   setDownloadsSummary(I18N.downloadsPending);
   setEmptyDownloadsList();
+  updateMapTraceControls(null);
 
   if (initialZone) {
     restoreInitialZone(initialZone);

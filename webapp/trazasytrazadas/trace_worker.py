@@ -95,19 +95,51 @@ def run_trace_worker(
 
 
 def _background_worker_target(app) -> None:
-    """Bucle del worker automático ejecutado en un thread daemon."""
+    """Procesa la cola actual en un thread daemon lanzado bajo demanda."""
     with app.app_context():
-        current_app.logger.info("Worker automático de trazas iniciado.")
+        current_app.logger.info("Worker bajo demanda de trazas iniciado.")
         try:
             run_trace_worker(
-                once=False,
+                once=True,
                 batch_size=app.config["TRACE_WORKER_BATCH_SIZE"],
                 poll_seconds=app.config["TRACE_WORKER_POLL_SECONDS"],
             )
         except Exception:  # pragma: no cover
             current_app.logger.exception(
-                "El worker automático de trazas se ha detenido por un error."
+                "El worker bajo demanda de trazas se ha detenido por un error."
             )
+
+
+def trigger_trace_worker(app) -> bool:
+    """
+    Lanza un worker daemon si no hay otro ya drenando la cola.
+
+    Devuelve True si se ha arrancado un thread nuevo y False si no era
+    necesario o el arranque automático está desactivado.
+    """
+    if not app.config.get("AUTO_START_TRACE_WORKER", True):
+        return False
+
+    if app.testing:
+        return False
+
+    state = app.extensions.setdefault("trace_worker", {})
+    lock = state.setdefault("lock", threading.Lock())
+
+    with lock:
+        thread = state.get("thread")
+        if thread is not None and thread.is_alive():
+            return False
+
+        thread = threading.Thread(
+            target=_background_worker_target,
+            args=(app,),
+            name="trace-worker",
+            daemon=True,
+        )
+        state["thread"] = thread
+        thread.start()
+        return True
 
 
 def _ensure_background_worker_started(app) -> None:
@@ -183,9 +215,5 @@ def traces_worker_command(
 
 
 def init_app(app) -> None:
-    """Registra el comando CLI y el arranque automático del worker."""
+    """Registra el comando CLI del worker de trazas."""
     app.cli.add_command(traces_worker_command)
-
-    @app.before_request
-    def _auto_start_trace_worker():
-        _ensure_background_worker_started(app)

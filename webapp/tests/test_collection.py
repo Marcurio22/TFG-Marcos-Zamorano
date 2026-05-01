@@ -11,19 +11,38 @@ Versión: 0.1
 import io
 import json
 import os
+import pytest
 import zipfile
 
+from flask_login import login_user
 from PIL import Image
+from werkzeug.security import generate_password_hash
 
 from trazasytrazadas import collection as collection_module
 from trazasytrazadas import visor as visor_module
 from trazasytrazadas.collection_store import (
     get_zone_detail,
+    get_zone_plan,
+    get_zone_preview_abspath,
     materialize_photo_tile,
     refresh_parcel_status,
     get_zone_live_status,
 )
-from trazasytrazadas.db import get_db
+from trazasytrazadas.db import (
+    _reassign_legacy_parcels_to_configured_user,
+    db,
+    get_db,
+)
+from trazasytrazadas.models import Usuario
+
+
+@pytest.fixture(autouse=True)
+def _login_required_user(force_login):
+    """Todas las pruebas de colección se ejecutan autenticadas."""
+    force_login(
+        username="usuario_coleccion",
+        email="usuario_coleccion@example.com",
+    )
 
 
 def _fake_jpeg_bytes() -> bytes:
@@ -130,6 +149,25 @@ def _register_zone(client, monkeypatch):
     return int(payload["parcel_id"])
 
 
+def _create_user(
+    app,
+    *,
+    username: str,
+    email: str,
+) -> int:
+    """Crea un usuario persistido para pruebas de colección."""
+    with app.app_context():
+        user = Usuario(
+            nombre_usuario=username,
+            correo_electronico=email,
+            contrasena=generate_password_hash("Password1!"),
+            rol="user",
+        )
+        db.session.add(user)
+        db.session.commit()
+        return int(user.usuario_id)
+
+
 def _mark_photo_completed_with_traces(
     app,
     parcel_id,
@@ -185,6 +223,55 @@ def _mark_photo_completed_with_traces(
         refresh_parcel_status(parcel_id)
 
         return int(photo_row["foto_id"]), photo_row["filename"], traces
+
+
+def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
+    """El plan restaurado incluye datos para pintar trazas en el visor."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=1,
+    )
+    second_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        row_index=1,
+        col_index=2,
+    )
+
+    with app.test_request_context("/visor"):
+        database = get_db()
+        owner_row = database.execute(
+            """
+            SELECT usuario_id
+            FROM parcela
+            WHERE parcela_id = ?
+            """,
+            (parcel_id,),
+        ).fetchone()
+
+        assert owner_row is not None
+
+        owner = db.session.get(Usuario, int(owner_row["usuario_id"]))
+        assert owner is not None
+
+        login_user(owner)
+        plan = get_zone_plan(parcel_id)
+
+    assert plan is not None
+    assert plan["trace_status"] == "completed"
+    assert plan["can_draw_traces"] is True
+    assert plan["plan"]["trace_status"] == "completed"
+    assert plan["plan"]["can_draw_traces"] is True
+
+    tile = plan["plan"]["tiles"][1]
+    assert tile["photo_id"] == second_photo_id
+    assert tile["trace_status"] == "completed"
+    assert tile["traces_url"].endswith(
+        f"/coleccion/fotos/{second_photo_id}/traces")
 
 
 def test_collection_page_renders_empty_state(client):
@@ -716,3 +803,268 @@ def test_collection_zone_status_disables_bulk_retry_when_completed(
         assert payload is not None
         assert payload["estado"] == "completed"
         assert payload["can_retry_all"] is False
+
+
+def test_collection_preview_persists_file_on_first_request(
+    app, client, monkeypatch
+):
+    """La primera llamada de preview guarda el JPEG persistido en disco."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    response = client.get(f"/coleccion/{parcel_id}/preview")
+    assert response.status_code == 200
+    assert response.mimetype == "image/jpeg"
+
+    with app.app_context():
+        preview_path = get_zone_preview_abspath(parcel_id)
+        assert os.path.exists(preview_path)
+
+        with open(preview_path, "rb") as preview_file:
+            assert preview_file.read(3) == b"\xff\xd8\xff"
+
+
+def test_collection_preview_reuses_persisted_file(
+    app, client, monkeypatch
+):
+    """Una preview ya persistida se reutiliza sin reconstruirse."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    first_response = client.get(f"/coleccion/{parcel_id}/preview")
+    assert first_response.status_code == 200
+
+    def _fail_if_rebuilt(_detail):
+        raise AssertionError("La preview no debería reconstruirse.")
+
+    monkeypatch.setattr(
+        collection_module,
+        "_build_zone_preview_bytes",
+        _fail_if_rebuilt,
+    )
+
+    second_response = client.get(f"/coleccion/{parcel_id}/preview")
+    assert second_response.status_code == 200
+    assert second_response.mimetype == "image/jpeg"
+
+
+def test_collection_photo_retry_triggers_worker(app, client, monkeypatch):
+    """El retry manual de una tesela debe disparar el worker bajo demanda."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        photo_row = database.execute(
+            """
+            SELECT foto_id
+            FROM foto
+            WHERE parcela_id = ?
+            ORDER BY foto_id ASC
+            LIMIT 1
+            """,
+            (parcel_id,),
+        ).fetchone()
+
+        photo_id = int(photo_row["foto_id"])
+
+        database.execute(
+            """
+            UPDATE foto
+            SET
+                estado = 'failed',
+                error_message = 'boom',
+                started_at = CURRENT_TIMESTAMP,
+                finished_at = CURRENT_TIMESTAMP
+            WHERE foto_id = ?
+            """,
+            (photo_id,),
+        )
+        database.commit()
+        refresh_parcel_status(parcel_id)
+
+    triggered = []
+
+    monkeypatch.setattr(
+        collection_module,
+        "trigger_trace_worker",
+        lambda app_obj: triggered.append(app_obj) or True,
+    )
+
+    response = client.post(
+        f"/coleccion/fotos/{photo_id}/retry",
+        data={"redirect_to": f"/coleccion/{parcel_id}/galeria"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert len(triggered) == 1
+    assert triggered[0] is app
+
+
+def test_grid_plan_registers_zone_for_authenticated_user(
+    app,
+    client,
+    monkeypatch,
+):
+    """Una zona nueva se asocia al usuario autenticado."""
+    user_id = _create_user(
+        app,
+        username="Vindi22",
+        email="vindi@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        database = get_db()
+        owner_id = database.execute(
+            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
+            (parcel_id,),
+        ).fetchone()["usuario_id"]
+
+    assert owner_id == user_id
+
+
+def test_anonymous_user_cannot_create_zone_from_visor(client):
+    """El usuario anónimo no puede crear zonas desde el visor."""
+    with client.session_transaction() as session:
+        session.clear()
+
+    response = client.post(
+        "/visor/grid-plan",
+        json={
+            "bbox": {
+                "south": 40.0,
+                "west": -4.0,
+                "north": 40.1,
+                "east": -3.8,
+            },
+            "origin": {"lat": 40.123456, "lng": -3.654321},
+            "destination": {"lat": 40.654321, "lng": -3.123456},
+            "resolution": 0.25,
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_legacy_parcels_are_reassigned_to_configured_user(app):
+    """Las parcelas legacy del usuario técnico se reasignan a Vindi22."""
+    with app.app_context():
+        database = get_db()
+
+        database.execute(
+            """
+            INSERT INTO parcela (
+                usuario_id,
+                tamano_metros,
+                pto_origen_lat,
+                pto_origen_lng,
+                pto_fin_lat,
+                pto_fin_lng,
+                bbox_json,
+                source_id,
+                source_label,
+                requested_resolution,
+                actual_resolution,
+                tile_width,
+                tile_height,
+                estado,
+                nombre_coleccion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                1,
+                100.0,
+                40.0,
+                -4.0,
+                40.1,
+                -3.8,
+                json.dumps(
+                    {
+                        "south": 40.0,
+                        "west": -4.0,
+                        "north": 40.1,
+                        "east": -3.8,
+                    }
+                ),
+                "pnoa2023",
+                "PNOA 2023",
+                0.25,
+                0.25,
+                1024,
+                640,
+                "pending",
+                "Legacy zone",
+            ),
+        )
+        database.commit()
+
+        user_id = _create_user(
+            app,
+            username="Vindi22",
+            email="vindi@example.com",
+        )
+
+        _reassign_legacy_parcels_to_configured_user()
+
+        owner_id = database.execute(
+            """
+            SELECT usuario_id
+            FROM parcela
+            WHERE nombre_coleccion = ?
+            """,
+            ("Legacy zone",),
+        ).fetchone()["usuario_id"]
+
+    assert owner_id == user_id
+
+
+def test_collection_gallery_returns_404_for_foreign_zone(
+    app,
+    client,
+    monkeypatch,
+):
+    """Un usuario no puede abrir la galería de una zona ajena."""
+    owner_id = _create_user(
+        app,
+        username="Vindi22",
+        email="vindi@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(owner_id)
+        session["_fresh"] = True
+
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with client.session_transaction() as session:
+        session.clear()
+
+    other_id = _create_user(
+        app,
+        username="Pepe1234",
+        email="pepe@example.com",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(other_id)
+        session["_fresh"] = True
+
+    response = client.get(f"/coleccion/{parcel_id}/galeria")
+    assert response.status_code == 404
+
+
+def test_anonymous_collection_redirects_to_login(client):
+    """La colección exige autenticación para usuarios anónimos."""
+    with client.session_transaction() as session:
+        session.clear()
+
+    response = client.get("/coleccion", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]

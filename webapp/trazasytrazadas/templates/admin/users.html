@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Gestión de Usuarios") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-5{% endblock %}
+{% block content %}
+    <section class="space-y-6">
+        <div class="rounded-3xl border border-primary/20 bg-base-100/85 shadow-xl backdrop-blur-sm">
+            <div class="p-5 sm:p-8">
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <div class="inline-flex items-center gap-3">
+                            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-6 w-6">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </span>
+                            <div>
+                                <h2 class="text-2xl sm:text-3xl font-black tracking-tight">{{ _("Gestión de Usuarios") }}</h2>
+                                <p class="text-sm sm:text-base text-base-content/70">
+                                    {{ _("Administra, revisa y mantiene las cuentas registradas de la aplicación.") }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <article class="rounded-2xl border border-primary/10 bg-base-100 shadow-sm">
+                        <div class="flex items-center justify-between gap-4 p-5">
+                            <div>
+                                <p class="text-sm font-medium text-base-content/60">{{ _("Total de usuarios") }}</p>
+                                <p class="mt-2 text-3xl font-black text-base-content">{{ summary.total_users }}</p>
+                            </div>
+                            <div class="grid h-16 w-16 place-items-center rounded-2xl bg-blue-100 text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-8 w-8">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="rounded-2xl border border-primary/10 bg-base-100 shadow-sm">
+                        <div class="flex items-center justify-between gap-4 p-5">
+                            <div>
+                                <p class="text-sm font-medium text-base-content/60">{{ _("Administradores") }}</p>
+                                <p class="mt-2 text-3xl font-black text-base-content">{{ summary.total_admins }}</p>
+                            </div>
+                            <div class="grid h-16 w-16 place-items-center rounded-2xl bg-red-100 text-red-500">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-8 w-8">
+                                    <path d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3z" />
+                                    <path d="M9.5 12.5l1.5 1.5 3.5-4" />
+                                </svg>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="rounded-2xl border border-primary/10 bg-base-100 shadow-sm">
+                        <div class="flex items-center justify-between gap-4 p-5">
+                            <div>
+                                <p class="text-sm font-medium text-base-content/60">{{ _("Usuarios regulares") }}</p>
+                                <p class="mt-2 text-3xl font-black text-base-content">{{ summary.total_regular }}</p>
+                            </div>
+                            <div class="grid h-16 w-16 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-8 w-8">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="m16 11 2 2 4-4" />
+                                </svg>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+        <div class="card border border-primary/15 bg-base-100 shadow-xl">
+            <div class="card-body gap-5">
+                <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-bold">{{ _("Listado de usuarios") }}</h3>
+                        <p class="text-sm text-base-content/70">
+                            {{ _("Consulta, edita y administra las cuentas disponibles en el sistema.") }}
+                        </p>
+                    </div>
+                    <div class="badge badge-outline badge-neutral">{{ _("%(count)s registros", count=listing.total) }}</div>
+                </div>
+                <form method="get"
+                      class="grid grid-cols-1 gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-end">
+                    <label class="form-control w-full max-w-xs">
+                        <div class="label pb-1">
+                            <span class="label-text">{{ _("Mostrar") }}</span>
+                        </div>
+                        <select name="per_page"
+                                class="select select-bordered"
+                                title="{{ _("Elige cuántos usuarios se muestran por página.") }}"
+                                onchange="this.form.submit()">
+                            {% for option in per_page_options %}
+                                <option value="{{ option }}"
+                                        {% if listing.per_page == option %}selected{% endif %}>
+                                    {{ option }} {{ _("registros") }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="form-control w-full">
+                        <div class="label pb-1">
+                            <span class="label-text">{{ _("Buscar") }}</span>
+                        </div>
+                        <div class="join w-full">
+                            <input type="search"
+                                   name="q"
+                                   value="{{ listing.search }}"
+                                   placeholder="{{ _("Buscar por usuario, correo, teléfono o rol") }}"
+                                   class="input input-bordered join-item w-full"
+                                   title="{{ _("Filtra usuarios por nombre, correo, teléfono o rol.") }}" />
+                            <button type="submit"
+                                    class="btn btn-primary join-item"
+                                    aria-label="{{ _("Buscar") }}"
+                                    title="{{ _("Aplica el filtro de búsqueda de usuarios.") }}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="w-4 h-4">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.3-4.3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </label>
+                    <div class="form-control w-full lg:w-auto">
+                        <div class="label hidden pb-1 lg:flex">
+                            <span class="label-text opacity-0">{{ _("Exportar") }}</span>
+                        </div>
+                        <div class="flex flex-col gap-2 sm:flex-row lg:justify-end">
+                            <a href="{{ url_for("admin_usuarios.export_csv") }}"
+                               class="btn btn-sm btn-outline btn-success whitespace-nowrap"
+                               aria-label="{{ _("Exportar CSV") }}"
+                               title="{{ _("Exporta el listado de usuarios en formato CSV.") }}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-4 w-4">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <path d="M14 2v6h6" />
+                                    <path d="M8 13h8" />
+                                    <path d="M8 17h5" />
+                                </svg>
+                                <span>{{ _("Exportar CSV") }}</span>
+                            </a>
+                            <a href="{{ url_for("admin_usuarios.export_pdf") }}"
+                               class="btn btn-sm btn-outline btn-error whitespace-nowrap"
+                               aria-label="{{ _("Exportar PDF") }}"
+                               title="{{ _("Exporta el listado de usuarios en formato PDF.") }}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-4 w-4">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <path d="M14 2v6h6" />
+                                    <path d="M8 13h2" />
+                                    <path d="M8 17h8" />
+                                    <path d="M12 13h4" />
+                                </svg>
+                                <span>{{ _("Exportar PDF") }}</span>
+                            </a>
+                        </div>
+                    </div>
+                    <input type="hidden" name="page" value="1" />
+                </form>
+                {% if listing.users %}
+                    <div class="overflow-x-auto rounded-box border border-base-200 bg-base-100 shadow-sm">
+                        <table class="table table-zebra table-pin-rows text-sm">
+                            <thead>
+                                <tr>
+                                    <th class="w-20">{{ _("ID") }}</th>
+                                    <th>{{ _("Usuario") }}</th>
+                                    <th>{{ _("Correo electrónico") }}</th>
+                                    <th>{{ _("Teléfono") }}</th>
+                                    <th class="text-center">{{ _("Rol") }}</th>
+                                    <th>{{ _("Fecha de registro") }}</th>
+                                    <th class="text-right">{{ _("Acciones") }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in listing.users %}
+                                    <tr>
+                                        <td class="font-bold text-base-content/75">#{{ row.user.usuario_id }}</td>
+                                        <td class="py-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary font-bold shadow-sm">
+                                                    {{ row.user.nombre_usuario[:1]|upper }}
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <div class="font-semibold text-base-content leading-tight">{{ row.user.nombre_usuario }}</div>
+                                                    <div class="text-[11px] text-base-content/55 leading-tight">{{ _("Registrado") }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="max-w-[240px] py-3">
+                                            <span class="break-all leading-snug">{{ row.user.correo_electronico }}</span>
+                                        </td>
+                                        <td class="max-w-[170px] py-3">
+                                            <span class="leading-snug {% if row.phone_label == _('No asociado') %}text-base-content/55{% endif %}">
+                                                {{ row.phone_label }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if row.user.rol == "admin" %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-600"
+                                                      title="{{ _("Usuario con permisos de administración.") }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         viewBox="0 0 24 24"
+                                                         fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round"
+                                                         class="h-3.5 w-3.5">
+                                                        <path d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3z" />
+                                                        <path d="M9.5 12.5l1.5 1.5 3.5-4" />
+                                                    </svg>
+                                                    <span>{{ _("Administrador") }}</span>
+                                                </span>
+                                            {% elif row.user.rol == "system" %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700"
+                                                      title="{{ _("Usuario interno del sistema, protegido frente a cambios manuales.") }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         viewBox="0 0 24 24"
+                                                         fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round"
+                                                         class="h-3.5 w-3.5">
+                                                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                                                        <path d="M9 9h6v6H9z" />
+                                                    </svg>
+                                                    <span>{{ _("Sistema") }}</span>
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700"
+                                                      title="{{ _("Usuario estándar de la aplicación.") }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         viewBox="0 0 24 24"
+                                                         fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round"
+                                                         class="h-3.5 w-3.5">
+                                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                                        <circle cx="9" cy="7" r="4" />
+                                                    </svg>
+                                                    <span>{{ _("Usuario") }}</span>
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="whitespace-nowrap py-3 text-sm">{{ row.joined_label }}</td>
+                                        <td class="py-3">
+                                            <div class="flex flex-wrap justify-end gap-1.5">
+                                                <a href="{{ url_for('admin_usuarios.detail_view', user_id=row.user.usuario_id) }}"
+                                                   class="btn btn-xs btn-outline btn-primary"
+                                                   title="{{ _("Abre el detalle completo de este usuario.") }}">{{ _("Ver") }}</a>
+                                                {% if row.can_edit %}
+                                                    <a href="{{ url_for('admin_usuarios.edit_view', user_id=row.user.usuario_id) }}"
+                                                       class="btn btn-xs btn-primary"
+                                                       title="{{ _("Edita los datos y el rol permitido de este usuario.") }}">{{ _("Editar") }}</a>
+                                                {% endif %}
+                                                {% if row.can_delete %}
+                                                    <button type="button"
+                                                            class="btn btn-xs btn-outline btn-error"
+                                                            data-delete-user-button
+                                                            data-user-name="{{ row.user.nombre_usuario }}"
+                                                            data-delete-url="{{ url_for('admin_usuarios.delete_view', user_id=row.user.usuario_id) }}"
+                                                            title="{{ _("Abre la confirmación para eliminar este usuario.") }}">
+                                                        {{ _("Eliminar") }}
+                                                    </button>
+                                                {% elif row.is_system_user %}
+                                                    <span class="badge badge-outline badge-neutral badge-sm"
+                                                          title="{{ _("Este usuario está protegido y no puede eliminarse.") }}">{{ _("Protegido") }}</span>
+                                                {% elif row.is_current_user %}
+                                                    <span class="badge badge-outline badge-info badge-sm"
+                                                          title="{{ _("Es la cuenta con la que has iniciado sesión.") }}">{{ _("Actual") }}</span>
+                                                {% elif row.is_admin_user %}
+                                                    <span class="badge badge-outline badge-warning badge-sm"
+                                                          title="{{ _("Los administradores están protegidos frente al borrado desde esta vista.") }}">{{ _("Administrador protegido") }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if listing.total_pages > 1 %}
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="text-sm text-base-content/70">
+                                {{ _("Página %(page)s de %(total_pages)s", page=listing.page, total_pages=listing.total_pages) }}
+                            </div>
+                            <div class="join">
+                                {% set prev_page = listing.page - 1 if listing.page > 1 else 1 %}
+                                {% set next_page = listing.page + 1 if listing.page < listing.total_pages else listing.total_pages %}
+                                <a href="{{ url_for('admin_usuarios.index_view', page=prev_page, per_page=listing.per_page, q=listing.search) }}"
+                                   class="join-item btn btn-sm {% if listing.page == 1 %}btn-disabled{% endif %}"
+                                   title="{{ _("Página anterior") }}">«</a>
+                                {% for item in pagination_items %}
+                                    {% if item is none %}
+                                        <button type="button" class="join-item btn btn-sm btn-disabled">…</button>
+                                    {% else %}
+                                        <a href="{{ url_for('admin_usuarios.index_view', page=item, per_page=listing.per_page, q=listing.search) }}"
+                                           class="join-item btn btn-sm {% if listing.page == item %}btn-primary{% else %}btn-outline{% endif %}"
+                                           title="{{ _("Ir a la página %(page)s", page=item) }}">{{ item }}</a>
+                                    {% endif %}
+                                {% endfor %}
+                                <a href="{{ url_for('admin_usuarios.index_view', page=next_page, per_page=listing.per_page, q=listing.search) }}"
+                                   class="join-item btn btn-sm {% if listing.page == listing.total_pages %}btn-disabled{% endif %}"
+                                   title="{{ _("Página siguiente") }}">»</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
+                        <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-base-200 text-base-content/70">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round"
+                                 class="h-7 w-7">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                        </div>
+                        <h3 class="mt-4 text-lg font-bold">{{ _("No se han encontrado usuarios") }}</h3>
+                        <p class="mt-2 text-sm text-base-content/70">
+                            {{ _("Prueba a cambiar el texto de búsqueda o el número de registros mostrados.") }}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    <dialog id="delete-user-modal" class="modal">
+        <div class="modal-box max-w-md border border-error/20 bg-base-100 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <div class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-error/10 text-error">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         class="h-6 w-6">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-base-content">{{ _("Eliminar usuario") }}</h3>
+                    <p class="mt-2 text-sm text-base-content/75">
+                        {{ _("Esta acción eliminará permanentemente el usuario seleccionado.") }}
+                    </p>
+                    <p class="mt-3 text-sm font-medium text-base-content">
+                        {{ _("Usuario:") }}
+                        <span id="delete-user-name" class="font-bold"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button type="submit"
+                            class="btn btn-ghost"
+                            title="{{ _("Cancela la eliminación y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
+                </form>
+                <form id="delete-user-form" method="post">
+                    {{ action_form.hidden_tag() }}
+                    <button type="submit"
+                            class="btn btn-error"
+                            title="{{ _("Elimina permanentemente el usuario seleccionado.") }}">
+                        {{ _("Eliminar") }}
+                    </button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
+        </form>
+    </dialog>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const deleteDialog = document.getElementById("delete-user-modal");
+      const deleteForm = document.getElementById("delete-user-form");
+      const deleteUserName = document.getElementById("delete-user-name");
+
+      document.querySelectorAll("[data-delete-user-button]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const deleteUrl = button.dataset.deleteUrl;
+          const userName = button.dataset.userName || "";
+
+          deleteForm.action = deleteUrl;
+          deleteUserName.textContent = userName;
+
+          if (typeof deleteDialog.showModal === "function") {
+            deleteDialog.showModal();
+          }
+        });
+      });
+    });
+    </script>
+{% endblock %}

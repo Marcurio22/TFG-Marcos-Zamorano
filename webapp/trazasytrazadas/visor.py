@@ -17,6 +17,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from .collection_store import get_zone_plan, save_generated_zone
+from .trace_worker import trigger_trace_worker
 
 import numpy as np
 from PIL import Image
@@ -29,6 +30,7 @@ from flask import (
     url_for,
 )
 from flask_babel import gettext as _
+from flask_login import login_required
 
 # Configuración del visor PNOA.
 VISOR_RESOLUTION_STEPS = [0.1, 0.25, 0.5, 1.0, 2.0]
@@ -722,8 +724,8 @@ def _visor_select_source(
                             "code": "fallback_resolution",
                             "message": _(
                                 "La resolución solicitada no está disponible "
-                                "en la zona. Se ha aplicado fallback a "
-                                "%(resolution)s m/px.",
+                                "en la zona. Se ha aplicado un ajuste"
+                                "automático a %(resolution)s m/px.",
                                 resolution=f"{actual_resolution:.2f}",
                             ),
                         }
@@ -874,6 +876,7 @@ def register_visor_routes(bp) -> None:
     """Registra en el blueprint principal las rutas del visor cartográfico."""
 
     @bp.route("/visor", methods=["GET"])
+    @login_required
     def visor():
         """Renderiza la pantalla del visor cartográfico."""
         initial_zone = None
@@ -887,6 +890,7 @@ def register_visor_routes(bp) -> None:
         )
 
     @bp.route("/visor/grid-plan", methods=["POST"])
+    @login_required
     def visor_grid_plan():
         """Devuelve la planificación de teselas para el visor cartográfico."""
         payload = request.get_json(silent=True) or {}
@@ -979,6 +983,8 @@ def register_visor_routes(bp) -> None:
                     tiles=tiles,
                     status="pending",
                 )
+                if saved_zone_id is not None:
+                    trigger_trace_worker(current_app._get_current_object())
             except Exception:
                 current_app.logger.exception(
                     "No se ha podido persistir la zona generada en SQLite"
@@ -1035,6 +1041,7 @@ def register_visor_routes(bp) -> None:
             )
 
     @bp.route("/visor/download/tile", methods=["GET"])
+    @login_required
     def visor_download_tile():
         """Descarga una tesela individual del visor mediante proxy backend."""
         try:
@@ -1064,6 +1071,7 @@ def register_visor_routes(bp) -> None:
         )
 
     @bp.route("/visor/download/zip", methods=["POST"])
+    @login_required
     def visor_download_zip():
         """Genera un ZIP con las teselas del visor usando el backend."""
         payload = request.get_json(silent=True) or {}

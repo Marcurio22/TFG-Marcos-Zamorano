@@ -16,16 +16,19 @@ Versión: 0.1
         <div class="breadcrumbs text-sm">
             <ul>
                 <li>
-                    <a href="{{ url_for("trazas.collection") }}">{{ _("Colección de imágenes") }}</a>
+                    <a href="{{ url_for("trazas.collection") }}"
+                       title="{{ _("Vuelve al listado de zonas guardadas.") }}">{{ _("Colección de imágenes") }}</a>
                 </li>
                 <li>{{ _("Galería") }}</li>
             </ul>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             <a href="{{ url_for('trazas.visor', parcel_id=zone.parcela_id) }}"
-               class="btn btn-sm btn-primary">{{ _("Ver en el mapa") }}</a>
+               class="btn btn-sm btn-primary"
+               title="{{ _("Recupera esta zona en el visor cartográfico.") }}">{{ _("Ver en el mapa") }}</a>
             <a href="{{ url_for('trazas.collection_download_zip', parcel_id=zone.parcela_id) }}"
-               class="btn btn-sm btn-outline">{{ _("Descargar ZIP") }}</a>
+               class="btn btn-sm btn-outline"
+               title="{{ _("Descarga todas las teselas de esta zona en un archivo ZIP.") }}">{{ _("Descargar ZIP") }}</a>
         </div>
     </section>
     <section class="card bg-base-100 border border-base-200 shadow-sm mb-4"
@@ -53,13 +56,17 @@ Versión: 0.1
                     </form>
                     <span data-zone-status-badge>
                         {% if zone.estado == 'completed' %}
-                            <span class="badge badge-success badge-outline">{{ _("Trazas completadas") }}</span>
+                            <span class="badge badge-success badge-outline"
+                                  title="{{ _("Todas las teselas tienen trazas calculadas.") }}">{{ _("Trazas completadas") }}</span>
                         {% elif zone.estado == 'processing' %}
-                            <span class="badge badge-info badge-outline">{{ _("Procesando") }}</span>
+                            <span class="badge badge-info badge-outline"
+                                  title="{{ _("Hay teselas en proceso de cálculo.") }}">{{ _("Procesando") }}</span>
                         {% elif zone.estado == 'failed' %}
-                            <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                            <span class="badge badge-error badge-outline"
+                                  title="{{ _("Hay teselas con error de cálculo.") }}">{{ _("Error") }}</span>
                         {% else %}
-                            <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                            <span class="badge badge-neutral badge-outline"
+                                  title="{{ _("La zona está pendiente de procesamiento.") }}">{{ _("En espera") }}</span>
                         {% endif %}
                     </span>
                 </div>
@@ -73,7 +80,8 @@ Versión: 0.1
                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=zone.parcela_id) }}"
                             data-zone-name="{{ zone.nombre_coleccion or '' }}"
                             data-zone-display-name="{{ zone.display_name }}"
-                            data-redirect-to="{{ request.full_path }}">
+                            data-redirect-to="{{ request.full_path }}"
+                            title="{{ _("Renombra esta colección.") }}">
                         {{ "%.6f"|format(zone.origin.lat) }}, {{ "%.6f"|format(zone.origin.lng) }}
                     </button>
                 </div>
@@ -85,7 +93,8 @@ Versión: 0.1
                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=zone.parcela_id) }}"
                             data-zone-name="{{ zone.nombre_coleccion or '' }}"
                             data-zone-display-name="{{ zone.display_name }}"
-                            data-redirect-to="{{ request.full_path }}">
+                            data-redirect-to="{{ request.full_path }}"
+                            title="{{ _("Renombra esta colección.") }}">
                         {{ "%.6f"|format(zone.destination.lat) }}, {{ "%.6f"|format(zone.destination.lng) }}
                     </button>
                 </div>
@@ -122,7 +131,8 @@ Versión: 0.1
                     <button type="button"
                             class="block w-full text-left"
                             data-action="open-photo-viewer"
-                            aria-label="{{ _("Abrir tesela en grande") }}">
+                            aria-label="{{ _("Abrir tesela en grande") }}"
+                            title="{{ _("Abre esta tesela en una vista ampliada.") }}">
                         <figure class="bg-base-200/40 h-56 sm:h-60 flex items-center justify-center overflow-hidden">
                             <img src="{{ url_for('trazas.collection_photo_image', photo_id=photo.foto_id) }}"
                                  alt="{{ _("Tesela") }} {{ photo.row_index }}-{{ photo.col_index }}"
@@ -217,12 +227,14 @@ Versión: 0.1
                                 <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
                                 <button type="submit"
                                         class="btn btn-sm btn-warning {% if not photo.can_retry %}btn-disabled{% endif %}"
+                                        title="{% if photo.can_retry %}{{ _("Vuelve a ejecutar el cálculo de trazas para esta tesela.") }}{% else %}{{ _("Disponible cuando la tesela esté pendiente el tiempo suficiente o haya fallado.") }}{% endif %}"
                                         {% if not photo.can_retry %}disabled aria-disabled="true"{% endif %}>
                                     {{ _("Recalcular trazas") }}
                                 </button>
                             </form>
                             <a href="{{ url_for('trazas.collection_photo_download', photo_id=photo.foto_id) }}"
-                               class="btn btn-sm btn-outline">{{ _("Descargar") }}</a>
+                               class="btn btn-sm btn-outline"
+                               title="{{ _("Descarga la imagen de esta tesela.") }}">{{ _("Descargar") }}</a>
                         </div>
                     </div>
                 </article>
@@ -242,7 +254,8 @@ Versión: 0.1
                 </div>
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost"
-                            aria-label="{{ _("Cerrar") }}">✕</button>
+                            aria-label="{{ _("Cerrar") }}"
+                            title="{{ _("Cerrar") }}">✕</button>
                 </form>
             </div>
             <div class="px-4 py-4 sm:px-6 space-y-4">
@@ -282,32 +295,36 @@ Versión: 0.1
                                    value="{{ request.full_path }}">
                             <button id="photo-viewer-retry-button"
                                     type="submit"
-                                    class="btn btn-md btn-warning min-w-[11rem] justify-center">
+                                    class="btn btn-md btn-warning min-w-[11rem] justify-center"
+                                    title="{{ _("Vuelve a ejecutar el cálculo de trazas para esta tesela.") }}">
                                 {{ _("Recalcular trazas") }}
                             </button>
                         </form>
-                        <button id="photo-viewer-draw-button"
-                                type="button"
-                                class="btn btn-md btn-primary min-w-[10rem] justify-center">
-                            {{ _("Dibujar trazas") }}
-                        </button>
+                        <label class="inline-flex min-w-[14rem] items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-2"
+                               title="{{ _("Muestra u oculta las trazas calculadas sobre la tesela.") }}">
+                            <span class="text-sm font-medium">{{ _("Dibujar trazas") }}</span>
+                            <input id="photo-viewer-draw-toggle"
+                                   type="checkbox"
+                                   class="checkbox checkbox-primary"
+                                   disabled
+                                   aria-disabled="true">
+                        </label>
                         <a id="photo-viewer-download-link"
                            href="#"
-                           class="btn btn-md btn-outline min-w-[9rem] justify-center">{{ _("Descargar") }}</a>
+                           class="btn btn-md btn-outline min-w-[9rem] justify-center"
+                           title="{{ _("Descarga la imagen de esta tesela.") }}">{{ _("Descargar") }}</a>
                     </div>
                     <div class="flex items-center gap-2 lg:justify-self-end">
-                        <span class="text-sm opacity-75">{{ _("Overlay") }}</span>
-                        <span id="photo-viewer-draw-status"
+                        <span class="text-sm opacity-75">{{ _("Estado de trazas") }}</span>
+                        <span id="photo-viewer-trace-status"
                               class="inline-flex items-center"
-                              aria-live="polite">
-                            <span class="badge badge-neutral badge-outline">{{ _("Sin dibujar") }}</span>
-                        </span>
+                              aria-live="polite"></span>
                     </div>
                 </div>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button aria-label="{{ _("Cerrar") }}"></button>
+            <button aria-label="{{ _("Cerrar") }}" title="{{ _("Cerrar") }}"></button>
         </form>
     </dialog>
     <dialog id="zone-rename-modal" class="modal">
@@ -319,7 +336,8 @@ Versión: 0.1
                 </div>
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost"
-                            aria-label="{{ _("Cerrar") }}">✕</button>
+                            aria-label="{{ _("Cerrar") }}"
+                            title="{{ _("Cerrar") }}">✕</button>
                 </form>
             </div>
             <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
@@ -336,18 +354,23 @@ Versión: 0.1
                            type="text"
                            maxlength="120"
                            class="input input-bordered w-full"
-                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}" />
+                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}"
+                           title="{{ _("Escribe un nombre personalizado para identificar mejor esta colección.") }}" />
                 </label>
             </form>
             <div class="modal-action">
-                <button type="submit" form="zone-rename-form" class="btn btn-primary">{{ _("Guardar") }}</button>
+                <button type="submit"
+                        form="zone-rename-form"
+                        class="btn btn-primary"
+                        title="{{ _("Guarda el nuevo nombre de la colección.") }}">{{ _("Guardar") }}</button>
                 <form method="dialog">
-                    <button class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                    <button class="btn btn-ghost"
+                            title="{{ _("Cancela los cambios y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
                 </form>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button aria-label="{{ _("Cerrar") }}"></button>
+            <button aria-label="{{ _("Cerrar") }}" title="{{ _("Cerrar") }}"></button>
         </form>
     </dialog>
     <script>
@@ -375,8 +398,11 @@ Versión: 0.1
                 "viewerDrawUnavailable": _("Todavía no hay trazas calculadas para esta tesela."),
                 "viewerDrawError": _("No se han podido dibujar las trazas sobre la imagen."),
                 "retryZoneReady": _("Recalcular solo las teselas pendientes o con error."),
-"retryZoneDisabledCompleted": _("Todas las teselas ya tienen las trazas calculadas."),
-"retryZoneDisabledWait": _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error.")
+                "retryZoneDisabledCompleted": _("Todas las teselas ya tienen las trazas calculadas."),
+                "retryZoneDisabledWait": _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error."),
+                "recalculatePhotoTitle": _("Vuelve a ejecutar el cálculo de trazas para esta tesela."),
+                "recalculatePhotoDisabledTitle": _("Disponible cuando la tesela esté pendiente el tiempo suficiente o haya fallado."),
+                "downloadPhotoTitle": _("Descarga la imagen de esta tesela.")
             }
         } | tojson }};
     </script>

@@ -1,26 +1,40 @@
 """
 ===============================================================================
-Utilidades de acceso e inicialización de SQLite para la aplicación.
+Integración de Flask-SQLAlchemy y compatibilidad temporal con SQLite legacy.
 
-Este módulo centraliza la apertura/cierre de conexiones, la creación del
-esquema y una migración ligera aditiva para compatibilidad con versiones
-anteriores del esquema.
+Este módulo pasa a centralizar:
+- la instancia db = SQLAlchemy(),
+- la inicialización del esquema,
+- una capa de compatibilidad temporal con sqlite3 para el código aún no
+  migrado,
+- y las migraciones aditivas mínimas para bases de datos existentes.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
 ===============================================================================
 """
 
+from __future__ import annotations
+
 import sqlite3
 
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
+
+db = SQLAlchemy()
 
 
 def get_db() -> sqlite3.Connection:
-    """Devuelve la conexión SQLite asociada al contexto actual de Flask."""
-    if "db" not in g:
+    """
+    Devuelve una conexión sqlite3 legacy asociada al contexto actual.
+
+    Se mantiene temporalmente para no romper el código que aún usa acceso
+    manual mientras migramos gradualmente a Flask-SQLAlchemy.
+    """
+    if "legacy_db" not in g:
         database_path = current_app.config["DATABASE"]
         connection = sqlite3.connect(
             database_path,
@@ -28,33 +42,37 @@ def get_db() -> sqlite3.Connection:
         )
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
-        g.db = connection
+        g.legacy_db = connection
 
-    return g.db
+    return g.legacy_db
 
 
 def close_db(_error=None) -> None:
-    """Cierra la conexión SQLite si existe en el contexto actual."""
-    connection = g.pop("db", None)
+    """Cierra la conexión sqlite3 legacy si existe en el contexto actual."""
+    connection = g.pop("legacy_db", None)
     if connection is not None:
         connection.close()
 
 
 def _table_columns(database: sqlite3.Connection, table_name: str) -> set[str]:
-    """Devuelve el conjunto de columnas actuales de una tabla."""
+    """Devuelve el conjunto de columnas actuales de una tabla SQLite."""
     rows = database.execute(f"PRAGMA table_info({table_name})").fetchall()
     return {row["name"] for row in rows}
 
 
-def _migrate_collection_schema() -> None:
+def _migrate_legacy_schema(database: sqlite3.Connection) -> None:
     """
-    Aplica migraciones aditivas mínimas para fotos procesables en background.
+    Aplica migraciones aditivas mínimas para
+        compatibilidad con BBDD existentes.
 
-    Se usa porque CREATE TABLE IF NOT EXISTS no modifica tablas ya existentes.
+    De momento centraliza aquí la deuda actual:
+    - columnas de estado de foto
+    - nombre_coleccion en parcela
     """
-    database = get_db()
     photo_columns = _table_columns(database, "foto")
-    statements = []
+    parcel_columns = _table_columns(database, "parcela")
+    user_columns = _table_columns(database, "usuario")
+    statements: list[str] = []
 
     if "estado" not in photo_columns:
         statements.append(
@@ -78,6 +96,14 @@ def _migrate_collection_schema() -> None:
             "ALTER TABLE foto ADD COLUMN attempt_count "
             "INTEGER NOT NULL DEFAULT 0"
         )
+    if "nombre_coleccion" not in parcel_columns:
+        statements.append(
+            "ALTER TABLE parcela ADD COLUMN nombre_coleccion TEXT"
+        )
+    if "telefono" not in user_columns:
+        statements.append(
+            "ALTER TABLE usuario ADD COLUMN telefono TEXT"
+        )
 
     for statement in statements:
         database.execute(statement)
@@ -96,13 +122,117 @@ def _migrate_collection_schema() -> None:
     database.commit()
 
 
+def _ensure_system_user() -> None:
+    """
+    Garantiza que exista el usuario técnico por defecto.
+    """
+    db.session.execute(
+        text(
+            """
+            INSERT OR IGNORE INTO usuario (
+                usuario_id,
+                nombre_usuario,
+                contrasena,
+                correo_electronico,
+                rol
+            )
+            VALUES (
+                1,
+                'system',
+                'disabled',
+                'system@local.invalid',
+                'system'
+            )
+            """
+        )
+    )
+    db.session.commit()
+
+
+def _reassign_legacy_parcels_to_configured_user() -> None:
+    """Reasigna parcelas heredadas del usuario técnico a un usuario real."""
+    target_username = " ".join(
+        (current_app.config.get("LEGACY_PARCEL_OWNER_USERNAME") or "").split()
+    ).strip()
+
+    if not target_username:
+        return
+
+    target_user_id = db.session.execute(
+        text(
+            """
+            SELECT usuario_id
+            FROM usuario
+            WHERE lower(nombre_usuario) = lower(:username)
+            LIMIT 1
+            """
+        ),
+        {"username": target_username},
+    ).scalar_one_or_none()
+
+    if target_user_id is None or int(target_user_id) == 1:
+        return
+
+    non_system_parcel_count = db.session.execute(
+        text(
+            """
+            SELECT COUNT(*)
+            FROM parcela
+            WHERE usuario_id != :system_user_id
+            """
+        ),
+        {"system_user_id": 1},
+    ).scalar_one()
+
+    if int(non_system_parcel_count or 0) > 0:
+        return
+
+    system_parcel_count = db.session.execute(
+        text(
+            """
+            SELECT COUNT(*)
+            FROM parcela
+            WHERE usuario_id = :system_user_id
+            """
+        ),
+        {"system_user_id": 1},
+    ).scalar_one()
+
+    if int(system_parcel_count or 0) == 0:
+        return
+
+    db.session.execute(
+        text(
+            """
+            UPDATE parcela
+            SET usuario_id = :target_user_id
+            WHERE usuario_id = :system_user_id
+            """
+        ),
+        {
+            "target_user_id": int(target_user_id),
+            "system_user_id": 1,
+        },
+    )
+    db.session.commit()
+
+
 def init_db() -> None:
-    """Crea el esquema SQLite y aplica migraciones aditivas."""
-    database = get_db()
+    """Inicializa la base de datos."""
+    legacy_db = get_db()
+
     with current_app.open_resource("schema.sql") as schema_file:
-        database.executescript(schema_file.read().decode("utf-8"))
-    database.commit()
-    _migrate_collection_schema()
+        legacy_db.executescript(schema_file.read().decode("utf-8"))
+    legacy_db.commit()
+
+    _migrate_legacy_schema(legacy_db)
+
+    # Import local para registrar los modelos antes de create_all().
+    from . import models  # noqa: F401
+
+    db.create_all()
+    _ensure_system_user()
+    _reassign_legacy_parcels_to_configured_user()
 
 
 @click.command("init-db")
@@ -114,6 +244,7 @@ def init_db_command() -> None:
 
 
 def init_app(app) -> None:
-    """Integra SQLite con la aplicación Flask."""
+    """Integra SQLite legacy y Flask-SQLAlchemy con la aplicación Flask."""
+    db.init_app(app)
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

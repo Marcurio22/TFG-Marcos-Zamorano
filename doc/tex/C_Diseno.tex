@@ -248,6 +248,115 @@ Al acceder a la galería, se presenta un listado de las imágenes asociadas a la
 
 Por último, la Figura~\ref{fig:mockupweb10} muestra la vista de detalle de una imagen individual. En esta pantalla se habilita la consulta de la imagen a mayor resolución y la inspección de sus características, incorporando además acciones explícitas sobre el procesado. En particular, se incluye un botón para dibujar las trazas, únicamente cuando estas hayan sido calculadas previamente, y un botón para recalcularlas en caso de fallo o inconsistencia durante la ejecución automática.
 
+\subsubsection{Registro}
+En este tercer \textit{mockup} se aborda la incorporación de la lógica de usuarios en la aplicación, introduciendo un flujo de autenticación con registro e inicio de sesión, una gestión básica del perfil y un conjunto de vistas restringidas a usuarios con rol de administrador. Esta ampliación permite habilitar funcionalidades que requieren persistencia y control de permisos, manteniendo a su vez un modo de uso público con capacidades limitadas.
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=1
+	]{../assets/mockup/Mockup_web_usuarios.pdf}
+	\caption[Mockup de la web: registro]{Mockup de la web: registro.}
+	\label{fig:mockupweb11}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb11} presenta la pantalla de registro, concebida como punto de entrada para la creación de una cuenta. La interfaz organiza el formulario en dos columnas para separar datos de identificación y contacto, como usuario, correo electrónico y un campo teléfono opcional, de los campos de credenciales, como contraseña y repetición de la misma, reduciendo errores de introducción.
+
+Tras completar los campos, el usuario confirma la operación mediante el botón \textit{Registrarse}, y se incluye un enlace alternativo para acceder directamente a la pantalla de inicio de sesión cuando ya se dispone de una cuenta.
+
+\subsection{Inicio de Sesión}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=2
+	]{../assets/mockup/Mockup_web_usuarios.pdf}
+	\caption[Mockup de la web: log in]{Mockup de la web: log in.}
+	\label{fig:mockupweb12}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb12} muestra la pantalla de inicio de sesión, destinada a autenticar al usuario y habilitar las funcionalidades asociadas a su rol. La interfaz se divide en dos secciones: a la izquierda se presenta una descripción breve del propósito de la aplicación y una diferenciación entre el modo de uso sin autenticación, orientado al procesamiento de imágenes individuales, y el modo autenticado, que habilita herramientas cartográficas y gestión persistente de colecciones.
+
+A la derecha se dispone el formulario de acceso, compuesto por los campos de usuario y contraseña y el botón \textit{Iniciar Sesión}, junto con un enlace directo a la pantalla de registro para usuarios que todavía no dispongan de cuenta.
+
+\subsection{Menú de usuarios}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=3
+	]{../assets/mockup/Mockup_web_usuarios.pdf}
+	\caption[Mockup de la web: Menú de usuarios]{Mockup de la web: Menú de usuarios.}
+	\label{fig:mockupweb13}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb13} muestra el menú de navegación una vez el usuario ha iniciado sesión. Su estructura es análoga a la del menú introducido en el \textit{mockup} de la parte geoespacial, manteniendo las entradas principales de la aplicación, como \textit{Home}, \textit{Visor} y \textit{Colección de imágenes}. No obstante, en esta versión se incorporan las nuevas pantallas asociadas a la gestión de usuarios, incluyendo el acceso al perfil y la opción de cierre de sesión.
+
+Adicionalmente, se añade un \textit{panel del administrador} que agrupa funcionalidades de mantenimiento internas, como la gestión de usuarios y la gestión del modelo, el cual únicamente se muestra cuando el rol autenticado corresponde a administrador, de modo que el menú se adaptará dinámicamente a los permisos disponibles.
+
+\subsection{Gestión de usuarios}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=4
+	]{../assets/mockup/Mockup_web_usuarios.pdf}
+	\caption[Mockup de la web: Gestión de usuarios]{Mockup de la web: Gestión de usuarios.}
+	\label{fig:mockupweb14}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb14} muestra la pantalla de \textit{Gestión de usuarios}, accesible exclusivamente para el rol de administrador. Esta vista centraliza la supervisión y administración de cuentas registradas, presentando un resumen superior con métricas agregadas, como el número total de usuarios, la cantidad de administradores y el número de usuarios regulares, y una tabla principal con los registros disponibles.
+
+En dicha tabla se incluyen campos identificativos y de contacto, junto con el rol asignado y la fecha de registro, incorporando además mecanismos habituales de explotación de listados, como búsqueda, paginación y exportación de resultados. Finalmente, se contempla una acción de eliminación por usuario, destinada a operaciones de mantenimiento y control del sistema, manteniendo la coherencia con el modelo de permisos, de modo que solo el administrador pueda ejecutar modificaciones sobre el conjunto global de cuentas.
+
+\subsection{Gestión de \textit{folds}}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=5
+	]{../assets/mockup/Mockup_web_usuarios.pdf}
+	\caption[Mockup de la web: Gestión de folds]{Mockup de la web: Gestión de folds.}
+	\label{fig:mockupweb15}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb15} muestra la pantalla de \textit{Gestión de folds}, concebida como una funcionalidad exclusiva del rol de administrador para supervisar y ajustar el modelo de inferencia empleado por el sistema. En esta vista se incluye un selector que lista los distintos \textit{folds} disponibles e indica explícitamente cuál se encuentra activo, permitiendo seleccionar un \textit{fold} alternativo para su comparación.
+
+A continuación, se habilita un área de carga de imagen destinada a pruebas controladas, de modo que la misma entrada pueda procesarse con el \textit{fold} activo y con el \textit{fold} seleccionado, mostrando ambos resultados en paralelo para facilitar una inspección cualitativa de diferencias de segmentación. Finalmente, se incorpora un botón para establecer el \textit{fold} seleccionado como predeterminado, actualizando la configuración del sistema de forma persistente para futuras ejecuciones.
+
+\subsection{Gestión de cuenta}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 450 0 0,
+	clip,
+	page=6
+	]{../assets/mockup/Mockup_web_usuarios.pdf}
+	\caption[Mockup de la web: Gestión de cuenta]{Mockup de la web: Gestión de cuenta.}
+	\label{fig:mockupweb16}
+\end{figure}
+
+La Figura~\ref{fig:mockupweb16} muestra la pantalla de \textit{Gestión de cuenta}, destinada a centralizar la información básica del usuario autenticado y a ofrecer accesos directos a las funcionalidades principales asociadas a su sesión. En esta vista se presentan los datos de perfil, incluyendo nombre de usuario, correo electrónico, teléfono y fecha de registro, junto con una acción para \textit{Editar información}, orientada a la actualización de los campos permitidos.
+
+Asimismo, se incorporan accesos rápidos al visor y a la colección de imágenes, con el objetivo de reducir fricción en la navegación y facilitar el retorno a los módulos de trabajo. Finalmente, se incluye la opción de \textit{Cerrar sesión}, que invalida la sesión activa y devuelve la aplicación al modo de acceso no autenticado.
+
 \section{Diseño procedimental}
 
 

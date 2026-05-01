@@ -27,8 +27,8 @@ html {
 
 /* Ajustes del visor cartográfico. */
 #visor-map {
-  min-height: 68vh;
-  height: clamp(38rem, 78vh, 68rem);
+  height: calc(100dvh - 4.5rem);
+  min-height: calc(100dvh - 4.5rem);
 }
 
 .leaflet-container {

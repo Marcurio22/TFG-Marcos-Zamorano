@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Editar usuario") }} · {{ user.nombre_usuario }}{% endblock %}
+{% block page_container_class %}max-w-5xl mx-auto px-3 sm:px-4 py-5{% endblock %}
+{% block content %}
+    {% set input_class = "input input-bordered w-full rounded-xl border-primary/20 bg-base-100 text-base-content focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15" %}
+    {% set select_class = "select select-bordered w-full rounded-xl border-primary/20 bg-base-100 text-base-content focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15" %}
+    <section class="space-y-4">
+        <a href="{{ url_for('admin_usuarios.detail_view', user_id=user.usuario_id) }}"
+           class="link link-primary font-semibold inline-flex items-center gap-2"
+           title="{{ _("Vuelve al detalle del usuario sin guardar cambios.") }}">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 class="w-4 h-4">
+                <path d="M15 18l-6-6 6-6" />
+                <path d="M21 12H9" />
+            </svg>
+            {{ _("Volver al detalle del usuario") }}
+        </a>
+        <div class="card border border-primary/15 bg-base-100 shadow-xl">
+            <div class="card-body p-5 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-2xl sm:text-3xl font-black tracking-tight">{{ _("Editar usuario") }}</h2>
+                    <p class="text-sm text-base-content/70">
+                        {{ _("Actualiza la información visible y el rol de acceso del usuario seleccionado.") }}
+                    </p>
+                </div>
+                {% if user.rol == "admin" %}
+                    <div class="alert alert-warning mb-5">
+                        <span>{{ _("El rol de un administrador está protegido y no puede cambiarse desde esta vista.") }}</span>
+                    </div>
+                {% elif user.rol == "system" %}
+                    <div class="alert alert-info mb-5">
+                        <span>{{ _("El usuario del sistema está protegido y no puede editarse desde esta vista.") }}</span>
+                    </div>
+                {% endif %}
+                <form method="post" class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    {{ form.hidden_tag() }}
+                    <div>
+                        <label for="{{ form.nombre_usuario.id }}"
+                               class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                            <span>{{ _("Usuario") }}</span>
+                        </label>
+                        {{ form.nombre_usuario(class=input_class, autocomplete="username", title=_("Actualiza el nombre de usuario visible en la aplicación.") ) }}
+                        {% if form.nombre_usuario.errors %}
+                            <p class="mt-2 text-sm text-error">{{ form.nombre_usuario.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.correo_electronico.id }}"
+                               class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                            <span>{{ _("Correo electrónico") }}</span>
+                        </label>
+                        {{ form.correo_electronico(class=input_class, autocomplete="email", title=_("Actualiza el correo electrónico de acceso y contacto.") ) }}
+                        {% if form.correo_electronico.errors %}
+                            <p class="mt-2 text-sm text-error">{{ form.correo_electronico.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.telefono.id }}"
+                               class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                            <span>{{ _("Teléfono (opcional)") }}</span>
+                        </label>
+                        {{ form.telefono(class=input_class, placeholder=_("Ej: +34 999 99 99 99") , autocomplete="tel", title=_("Indica un teléfono de contacto opcional.")) }}
+                        {% if form.telefono.errors %}
+                            <p class="mt-2 text-sm text-error">{{ form.telefono.errors[0] }}</p>
+                        {% else %}
+                            <p class="mt-2 text-xs text-base-content/70">{{ _("Si no indicas prefijo, se usará +34 por defecto.") }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.rol.id }}"
+                               class="mb-2 flex items-center gap-2 text-base font-medium text-base-content">
+                            <span>{{ _("Rol") }}</span>
+                        </label>
+                        {% if user.rol == "admin" %}
+                            <input type="hidden" name="rol" value="admin">
+                            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+                                 title="{{ _("El rol de administrador está protegido y no puede modificarse aquí.") }}">
+                                {{ _("Administrador (protegido)") }}
+                            </div>
+                        {% else %}
+                            {{ form.rol(class=select_class, title=_("Selecciona el rol de acceso de este usuario.") ) }}
+                        {% endif %}
+                        {% if form.rol.errors %}<p class="mt-2 text-sm text-error">{{ form.rol.errors[0] }}</p>{% endif %}
+                    </div>
+                    <div class="md:col-span-2 flex flex-wrap justify-end gap-3 pt-2">
+                        <a href="{{ url_for('admin_usuarios.detail_view', user_id=user.usuario_id) }}"
+                           class="btn btn-outline btn-primary"
+                           title="{{ _("Descarta los cambios y vuelve al detalle del usuario.") }}">{{ _("Cancelar") }}</a>
+                        {{ form.submit(class="btn btn-primary", title=_("Guarda los cambios del usuario.") ) }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock %}

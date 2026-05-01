@@ -1,0 +1,103 @@
+{% extends "auth_base.html" %}
+{% block title %}{{ _("Inicio de sesión") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
+{% block content %}
+    {# Estilo de los inputs modernizado: bordes curvos, fondo semi-translúcido y transiciones suaves #}
+    {% set input_class = "input input-bordered w-full rounded-xl border-primary/20 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm" %}
+    {# Contenedor Principal: Bordes muy curvos (rounded-[2rem]), sombra amplia, fondo azul muy pálido y layout dividido #}
+    <section class="w-full max-w-6xl rounded-[2rem] overflow-hidden shadow-2xl bg-blue-50/40 backdrop-blur-md flex flex-col lg:flex-row border border-white/40">
+        <div class="relative w-full lg:w-1/2 min-h-[400px] lg:min-h-[600px] flex items-center justify-center p-6 sm:p-10 text-center">
+            <img src="{{ url_for('static', filename='img/monte.jpg') }}"
+                 alt="{{ _("Paisaje") }}"
+                 class="absolute inset-0 w-full h-full object-cover blur-[3px]" />
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
+            <div class="relative z-10 w-full max-w-lg">
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase leading-tight text-white drop-shadow-md mb-8">
+                    {{ _("¡BIENVENIDO!") }}
+                </h1>
+                <div class="mt-6 space-y-5 text-sm sm:text-base text-white/95 font-medium drop-shadow-sm text-center">
+                    <p>{{ _("Aquí podrás analizar imágenes para detectar y visualizar trazas asociadas a la presión herbívora.") }}</p>
+                    <p>
+                        {{ _("Sin iniciar sesión, puedes trabajar con imágenes sueltas: cargarlas, calcular sus trazas y dibujarlas sobre la propia imagen.") }}
+                    </p>
+                    <p>
+                        {{ _("Si accedes con tu cuenta, además dispondrás de herramientas cartográficas y de gestión: seleccionar zonas en el visor, generar y descargar teselas, guardar zonas en tu colección y consultarlas más tarde.") }}
+                    </p>
+                    <p class="font-bold text-white pt-4 border-t border-white/20 mt-6">
+                        {{ _("Para iniciar sesión, introduce tu nombre de usuario y tu contraseña.") }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="w-full lg:w-1/2 px-8 py-10 sm:px-12 sm:py-14 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+            <div class="w-full max-w-md mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-primary">{{ _("Inicio de sesión") }}</h2>
+                </div>
+                <form method="post" class="space-y-6">
+                    {{ form.hidden_tag() }}
+                    <div>
+                        <label for="{{ form.nombre_usuario.id }}"
+                               class="mb-2 flex items-center gap-2 text-base font-semibold text-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="currentColor"
+                                 class="w-5 h-5 opacity-80">
+                                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5Z" />
+                            </svg>
+                            <span>{{ _("Usuario") }}</span>
+                        </label>
+                        {{ form.nombre_usuario(class=input_class,
+                                                placeholder=_("Introduzca aquí su usuario") ,
+                        autocomplete="username"
+                        ) }}
+                        {% if form.nombre_usuario.errors %}
+                            <p class="mt-2 text-sm font-medium text-error">{{ form.nombre_usuario.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.contrasena.id }}"
+                               class="mb-2 flex items-center gap-2 text-base font-semibold text-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24"
+                                 fill="currentColor"
+                                 class="w-5 h-5 opacity-80">
+                                <path fill-rule="evenodd" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm3 8V7a3 3 0 1 0-6 0v3h6Z" clip-rule="evenodd" />
+                            </svg>
+                            <span>{{ _("Contraseña") }}</span>
+                        </label>
+                        {{ form.contrasena(class=input_class,
+                                                placeholder=_("Introduzca aquí su contraseña") ,
+                        autocomplete="current-password"
+                        ) }}
+                        {% if form.contrasena.errors %}
+                            <p class="mt-2 text-sm font-medium text-error">{{ form.contrasena.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="pt-4 flex flex-col items-center gap-4">
+                        <div class="tooltip tooltip-bottom w-full"
+                             data-tip="{{ _("Accede con tu usuario y contraseña.") }}">
+                            {{ form.submit(class="btn btn-primary w-full rounded-xl border-none text-lg font-bold shadow-lg transition-transform duration-150 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]") }}
+                        </div>
+                        <div class="tooltip tooltip-bottom w-full"
+                             data-tip="{{ _("Entra sin cuenta para analizar imágenes sueltas.") }}">
+                            <a href="{{ url_for("trazas.index") }}"
+                               class="btn btn-outline btn-primary w-full rounded-xl text-base font-bold transition-all duration-200 hover:bg-primary hover:text-white hover:border-primary hover:scale-[1.02] active:scale-[0.98]">
+                                {{ _("Continuar como visitante") }}
+                            </a>
+                        </div>
+                        <div class="mt-2 text-center">
+                            <span class="text-sm text-slate-600 font-medium">{{ _("¿No tiene cuenta?") }}</span>
+                            <span class="tooltip tooltip-bottom inline-block"
+                                  data-tip="{{ _("Crea una cuenta para guardar zonas y acceder a la colección.") }}">
+                                <a href="{{ url_for("trazas.register") }}"
+                                   class="ml-1 text-base font-bold text-primary transition-colors hover:text-primary-focus hover:underline">
+                                    {{ _("Registrarse") }}
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock %}

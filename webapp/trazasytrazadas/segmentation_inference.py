@@ -18,8 +18,9 @@ from __future__ import annotations
 import os
 import sys
 import pickle
+import warnings
 from functools import lru_cache
-from typing import List, Tuple, Dict
+from typing import Any, List, Tuple, Dict
 
 import numpy as np
 from PIL import Image
@@ -28,8 +29,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from .model_store import (
+    get_active_fold_name,
+    parse_fold_index_from_name,
+    read_fold_metadata,
+)
 
-# Preprocesado de entrada.
 
 def _pad_to_multiple_of_32(
     img_t: torch.Tensor,
@@ -231,41 +236,113 @@ def _pickle_load_safe(path: str):
         return _SafeUnpickler(f).load()
 
 
+def _looks_like_state_dict(obj: Any) -> bool:
+    """Detecta diccionarios de pesos puros sin arquitectura ejecutable."""
+    if not isinstance(obj, dict) or not obj:
+        return False
+
+    tensor_values = 0
+    checked_values = 0
+    for value in obj.values():
+        if isinstance(value, torch.Tensor):
+            tensor_values += 1
+            checked_values += 1
+        elif isinstance(value, dict):
+            checked_values += 1
+            if _looks_like_state_dict(value):
+                tensor_values += 1
+        else:
+            checked_values += 1
+
+        if checked_values >= 20:
+            break
+
+    return checked_values > 0 and tensor_values == checked_values
+
+
 def _extract_core_module(obj) -> nn.Module:
     """
-    Extrae el nn.Module utilizable para inferencia desde el objeto
-    deserializado.
+    Extrae el nn.Module utilizable para inferencia desde el objeto cargado.
     """
     if isinstance(obj, nn.Module):
         return obj
+
     if hasattr(obj, "model") and isinstance(obj.model, nn.Module):
         return obj.model
+
+    if isinstance(obj, dict):
+        for key in ("model", "module", "net", "network"):
+            candidate = obj.get(key)
+            if isinstance(candidate, nn.Module):
+                return candidate
+
+        for key in ("state_dict", "model_state_dict", "weights"):
+            candidate = obj.get(key)
+            if _looks_like_state_dict(candidate):
+                raise ValueError(
+                    "El archivo contiene pesos puros state_dict, pero no "
+                    "incluye la arquitectura ejecutable. Convierte ese "
+                    "archivo a un modelo de inferencia *_infer.pt o sube "
+                    "un TorchScript completo."
+                )
+
+        if _looks_like_state_dict(obj):
+            raise ValueError(
+                "El archivo contiene pesos puros state_dict, pero no "
+                "incluye la arquitectura ejecutable. Convierte ese archivo "
+                "a un modelo de inferencia *_infer.pt o sube un TorchScript "
+                "completo."
+            )
+
     raise TypeError(
-        f"No se pudo extraer nn.Module del objeto pickle: {type(obj)}"
+        f"No se pudo extraer nn.Module del objeto cargado: {type(obj)}"
     )
 
 
-class _PickleInferWrapper(nn.Module):
-    """
-    Envuelve el modelo cargado para unificar la normalización y la salida.
+def _extract_tensor_output(output: Any) -> torch.Tensor:
+    """Obtiene el tensor de máscara desde salidas comunes de modelos."""
+    if isinstance(output, torch.Tensor):
+        return output
 
-    - Si el modelo ya incorpora mean y std, no se normaliza fuera.
-    - Si no los incorpora, se aplica normalización ImageNet.
-    - Si la salida parece estar en logits, se convierte a probabilidades
-      mediante sigmoid.
+    if isinstance(output, (list, tuple)):
+        for item in output:
+            if isinstance(item, torch.Tensor):
+                return item
+
+    if isinstance(output, dict):
+        for key in ("mask", "masks", "out", "logits", "prediction", "pred"):
+            item = output.get(key)
+            if isinstance(item, torch.Tensor):
+                return item
+        for item in output.values():
+            if isinstance(item, torch.Tensor):
+                return item
+
+    raise TypeError("El modelo no devuelve un tensor de PyTorch.")
+
+
+class _InferWrapper(nn.Module):
+    """
+    Envuelve un modelo cargado para unificar entrada y salida.
+
+    - Los pickles heredados y TorchScript de red pueden usar normalización
+      ImageNet externa.
+    - Los modelos *_infer.pt deben traer su propio preprocesado y se ejecutan
+      con el tensor RGB en [0, 1].
+    - Si la salida parece estar en logits, se convierte a probabilidades.
     """
 
-    def __init__(self, core: nn.Module):
+    def __init__(self, core: nn.Module, *, normalize_input: bool):
         super().__init__()
         self.core = core
-        self.has_internal_norm = hasattr(core, "mean") and hasattr(core, "std")
+        self.normalize_input = normalize_input
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not self.has_internal_norm:
+        if self.normalize_input:
             x = _normalize_imagenet(x)
-        y = self.core(x)
 
-        # Si la salida queda fuera de [0, 1], se interpreta como logits.
+        y = _extract_tensor_output(self.core(x))
+
         y_min = float(y.min().detach().cpu())
         y_max = float(y.max().detach().cpu())
         if y_min < 0.0 or y_max > 1.0:
@@ -273,7 +350,124 @@ class _PickleInferWrapper(nn.Module):
         return y
 
 
+class _PickleInferWrapper(_InferWrapper):
+    """Wrapper compatible con el nombre histórico usado en tests."""
+
+    def __init__(self, core: nn.Module):
+        has_internal_norm = hasattr(core, "mean") and hasattr(core, "std")
+        super().__init__(core, normalize_input=not has_internal_norm)
+
+
+def _torch_load_compat(path: str, device: torch.device):
+    """Carga artefactos de torch explicando que es una acción de admin."""
+    return torch.load(path, map_location=device, weights_only=False)
+
+
+def _torch_jit_load_compat(path: str, device: torch.device) -> nn.Module:
+    """Carga TorchScript manteniendo compatibilidad con los folds actuales."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r".*torch\.jit\.load.*",
+            category=DeprecationWarning,
+        )
+        return torch.jit.load(path, map_location=device).eval()
+
+
+def _infer_loader_kind_from_filename(filename: str | None) -> str:
+    """Clasifica el tipo esperado a partir del nombre de origen."""
+    normalized = (filename or "").lower().strip()
+    if normalized.endswith("_state_dict.pth"):
+        return "state_dict"
+    if normalized.endswith("_infer.pt"):
+        return "torchscript_infer"
+    if normalized.endswith(".pt"):
+        return "torchscript_network"
+    return "auto"
+
+
+def _load_model_for_inference(
+    model_path: str,
+    *,
+    device: torch.device,
+    loader_kind: str = "auto",
+) -> tuple[nn.Module, str]:
+    """Carga un fold pickle/torch y devuelve un
+        modelo listo para inferencia."""
+    normalized_kind = (loader_kind or "auto").strip()
+
+    if normalized_kind == "state_dict":
+        obj = _torch_load_compat(model_path, device)
+        core = _extract_core_module(obj)
+        _patch_unet_interpolation_mode(core, default="nearest")
+        return _PickleInferWrapper(core).to(device).eval(), "torch_module"
+
+    if normalized_kind in {"torchscript_network", "torchscript_infer"}:
+        module = _torch_jit_load_compat(model_path, device)
+        normalize_input = normalized_kind == "torchscript_network"
+        return (
+            _InferWrapper(module, normalize_input=normalize_input)
+            .to(device)
+            .eval(),
+            normalized_kind,
+        )
+
+    if normalized_kind == "torch_module":
+        obj = _torch_load_compat(model_path, device)
+        core = _extract_core_module(obj)
+        _patch_unet_interpolation_mode(core, default="nearest")
+        return _PickleInferWrapper(core).to(device).eval(), normalized_kind
+
+    if normalized_kind == "pickle":
+        obj = _pickle_load_safe(model_path)
+        core = _extract_core_module(obj)
+        _patch_unet_interpolation_mode(core, default="nearest")
+        return _PickleInferWrapper(core).to(device).eval(), normalized_kind
+
+    errors = []
+
+    try:
+        module = _torch_jit_load_compat(model_path, device)
+    except Exception as exc:
+        errors.append(exc)
+    else:
+        return (
+            _InferWrapper(module, normalize_input=False).to(device).eval(),
+            "torchscript_infer",
+        )
+
+    try:
+        obj = _torch_load_compat(model_path, device)
+        core = _extract_core_module(obj)
+    except ValueError:
+        raise
+    except Exception as exc:
+        errors.append(exc)
+    else:
+        _patch_unet_interpolation_mode(core, default="nearest")
+        return _PickleInferWrapper(core).to(device).eval(), "torch_module"
+
+    try:
+        obj = _pickle_load_safe(model_path)
+        core = _extract_core_module(obj)
+    except ValueError:
+        raise
+    except Exception as exc:
+        errors.append(exc)
+    else:
+        _patch_unet_interpolation_mode(core, default="nearest")
+        return _PickleInferWrapper(core).to(device).eval(), "pickle"
+
+    error = ValueError(
+        "El archivo no se ha podido cargar como pickle, TorchScript ni "
+        "módulo PyTorch compatible."
+    )
+    if errors:
+        raise error from errors[-1]
+    raise error
+
 # Carga cacheada del modelo serializado.
+
 
 @lru_cache(maxsize=8)
 def load_fold_pickle_models(
@@ -301,17 +495,19 @@ def load_fold_pickle_models(
     p = os.path.join(models_dir, model_template.format(fold=fold))
     if not os.path.exists(p):
         raise FileNotFoundError(
-            f"No se encontró el modelo PICKLE del fold {fold}: {p}"
+            f"No se encontró el modelo del fold {fold}: {p}"
         )
 
-    obj = _pickle_load_safe(p)
-    core = _extract_core_module(obj)
-    _patch_unet_interpolation_mode(core, default="nearest")
+    fold_name = model_template.format(fold=fold)
+    metadata = read_fold_metadata(fold_name, models_dir=models_dir)
+    loader_kind = metadata.get("loader_kind", "auto")
 
-    m = _PickleInferWrapper(core).to(device).eval()
-    models = [m]
-
-    return models, device
+    model, _resolved_loader_kind = _load_model_for_inference(
+        p,
+        device=device,
+        loader_kind=loader_kind,
+    )
+    return [model], device
 
 
 # Predicción de máscara binaria.
@@ -336,10 +532,24 @@ def predict_mask_ensemble(
 
     img_t, _, _ = _pad_to_multiple_of_32(img_t)
 
+    active_fold_name = get_active_fold_name(
+        models_dir=models_dir,
+        default_name="fold.0",
+    )
+
+    if active_fold_name is None:
+        active_fold_name = "fold.0"
+
+    active_fold_id = parse_fold_index_from_name(active_fold_name)
+    if active_fold_id is None:
+        raise ValueError(
+            f"El fold activo '{active_fold_name}' no sigue el formato fold.N."
+        )
+
     models, device = load_fold_pickle_models(
         models_dir=models_dir,
         model_template=model_template,
-        fold_id=0,  # Implementación actual: carga el fold 0.
+        fold_id=active_fold_id,
         use_gpu=use_gpu,
     )
 
@@ -378,6 +588,140 @@ def mask_to_traces_points(mask: np.ndarray) -> Dict[str, List[int]]:
     if xs.size == 0:
         return {"xs": [], "ys": []}
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}
+
+
+def _make_validation_tensor(size: int, inverted: bool = False) -> torch.Tensor:
+    """Crea una imagen RGB sintética y determinista para validar modelos."""
+    coords = torch.linspace(0.0, 1.0, steps=size)
+    yy, xx = torch.meshgrid(coords, coords, indexing="ij")
+    grid = torch.arange(size)
+    checker = (
+        ((grid[:, None] // 8 + grid[None, :] // 8) % 2)
+        .to(dtype=torch.float32)
+    )
+    img = torch.stack((xx, yy, checker), dim=0).unsqueeze(0)
+    if inverted:
+        img = 1.0 - img
+    return img
+
+
+def _coerce_validation_output(
+    output: torch.Tensor,
+    *,
+    target_hw: tuple[int, int],
+) -> torch.Tensor:
+    """Normaliza la salida de validación al contrato [1, 1, H, W]."""
+    if not isinstance(output, torch.Tensor):
+        raise TypeError("El modelo no devuelve un tensor de PyTorch.")
+
+    if output.ndim == 3:
+        output = output.unsqueeze(1)
+
+    if output.ndim != 4:
+        raise ValueError(
+            "El modelo debe devolver un tensor con forma [B, 1, H, W]."
+        )
+
+    if output.shape[0] != 1 or output.shape[1] != 1:
+        raise ValueError(
+            "El sistema espera una segmentación binaria con un único canal."
+        )
+
+    if not torch.isfinite(output).all():
+        raise ValueError("La salida del modelo contiene valores no finitos.")
+
+    if output.shape[-2:] != target_hw:
+        output = F.interpolate(
+            output,
+            size=target_hw,
+            mode="bilinear",
+            align_corners=False,
+        )
+
+    if not torch.isfinite(output).all():
+        raise ValueError(
+            "La salida interpolada del modelo contiene valores no finitos."
+        )
+
+    return output
+
+
+def validate_fold_model_file(
+    model_path: str,
+    *,
+    use_gpu: bool = False,
+    image_size: int = 128,
+    source_filename: str | None = None,
+) -> dict:
+    """
+    Valida que un archivo serializado sea compatible con el pipeline actual.
+
+    La comprobación carga el modelo con el loader correspondiente, ejecuta
+    inferencia sobre imágenes RGB sintéticas y verifica que la salida sea una
+    máscara binaria utilizable por mask_to_traces_points().
+    """
+    if not os.path.isfile(model_path):
+        raise FileNotFoundError("El archivo de modelo no existe.")
+
+    size = max(32, int(image_size or 128))
+    if size % 32 != 0:
+        size = int(np.ceil(size / 32) * 32)
+
+    device = torch.device(
+        "cuda" if (use_gpu and torch.cuda.is_available()) else "cpu"
+    )
+    loader_kind = _infer_loader_kind_from_filename(source_filename)
+
+    try:
+        _inject_symbols_into_main()
+        _patch_smp_compat()
+
+        model, resolved_loader_kind = _load_model_for_inference(
+            model_path,
+            device=device,
+            loader_kind=loader_kind,
+        )
+        tensors = [
+            _make_validation_tensor(size, inverted=False).to(device),
+            _make_validation_tensor(size, inverted=True).to(device),
+        ]
+
+        outputs = []
+        with torch.inference_mode():
+            for tensor in tensors:
+                output = model(tensor)
+                output = _coerce_validation_output(
+                    output,
+                    target_hw=(size, size),
+                )
+                outputs.append(output.detach().cpu())
+
+        mask = (outputs[0] > 0.5).to(torch.uint8)
+        mask_np = mask.squeeze(0).squeeze(0).numpy()
+        traces = mask_to_traces_points(mask_np)
+
+        if not isinstance(traces.get("xs"), list):
+            raise ValueError("La máscara generada no es convertible a trazas.")
+        if not isinstance(traces.get("ys"), list):
+            raise ValueError("La máscara generada no es convertible a trazas.")
+
+        output_std = float(outputs[0].std().item())
+        response_delta = float((outputs[0] - outputs[1]).abs().mean().item())
+
+        return {
+            "device": str(device),
+            "image_size": size,
+            "loader_kind": resolved_loader_kind,
+            "positive_pixels": int(mask_np.sum()),
+            "output_std": output_std,
+            "response_delta": response_delta,
+        }
+    except (FileNotFoundError, ValueError):
+        raise
+    except Exception as exc:
+        raise ValueError(
+            "El archivo no se ha podido validar como modelo de segmentación."
+        ) from exc
 
 
 def compute_traces_from_segmentation(

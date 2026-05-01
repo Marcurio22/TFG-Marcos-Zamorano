@@ -14,7 +14,8 @@ Versión: 0.1
 {% block content %}
     <section class="mb-4">
         <a href="{{ url_for("trazas.visor") }}"
-           class="link link-primary font-semibold inline-flex items-center gap-2">
+           class="link link-primary font-semibold inline-flex items-center gap-2"
+           title="{{ _("Vuelve al visor cartográfico para crear nuevas zonas.") }}">
             <svg xmlns="http://www.w3.org/2000/svg"
                  viewBox="0 0 24 24"
                  fill="none"
@@ -48,6 +49,7 @@ Versión: 0.1
                     </div>
                     <select name="per_page"
                             class="select select-bordered"
+                            title="{{ _("Elige cuántas zonas se muestran por página.") }}"
                             data-collection-per-page>
                         {% for option in per_page_options %}
                             <option value="{{ option }}"
@@ -66,10 +68,12 @@ Versión: 0.1
                                name="q"
                                value="{{ listing.search }}"
                                placeholder="{{ _("Buscar por coordenadas, fecha o fuente") }}"
-                               class="input input-bordered join-item w-full" />
+                               class="input input-bordered join-item w-full"
+                               title="{{ _("Filtra la colección por coordenadas, fecha, nombre o fuente.") }}" />
                         <button type="submit"
                                 class="btn btn-primary join-item"
-                                aria-label="{{ _("Buscar") }}">
+                                aria-label="{{ _("Buscar") }}"
+                                title="{{ _("Aplica el filtro de búsqueda.") }}">
                             <svg xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24"
                                  fill="none"
@@ -92,7 +96,7 @@ Versión: 0.1
                         <thead>
                             <tr>
                                 <th>{{ _("Punto origen · Punto destino") }}</th>
-                                <th class="text-center">{{ _("Preview") }}</th>
+                                <th class="text-center">{{ _("Vista previa") }}</th>
                                 <th class="text-center">{{ _("ZIP") }}</th>
                                 <th class="text-center">{{ _("Estado") }}</th>
                                 <th>{{ _("Acciones") }}</th>
@@ -119,7 +123,8 @@ Versión: 0.1
                                                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
                                                             data-zone-name="{{ item.nombre_coleccion }}"
                                                             data-zone-display-name="{{ item.display_name }}"
-                                                            data-redirect-to="{{ current_query }}">
+                                                            data-redirect-to="{{ current_query }}"
+                                                            title="{{ _("Renombra esta colección.") }}">
                                                         {{ item.display_name }}
                                                     </button>
                                                 {% endif %}
@@ -130,7 +135,8 @@ Versión: 0.1
                                                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
                                                             data-zone-name="{{ item.nombre_coleccion or '' }}"
                                                             data-zone-display-name="{{ item.display_name }}"
-                                                            data-redirect-to="{{ current_query }}">
+                                                            data-redirect-to="{{ current_query }}"
+                                                            title="{{ _("Renombra esta colección.") }}">
                                                         {{ "%.6f"|format(item.origin.lat) }}, {{ "%.6f"|format(item.origin.lng) }}
                                                     </button>
                                                 </div>
@@ -141,7 +147,8 @@ Versión: 0.1
                                                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
                                                             data-zone-name="{{ item.nombre_coleccion or '' }}"
                                                             data-zone-display-name="{{ item.display_name }}"
-                                                            data-redirect-to="{{ current_query }}">
+                                                            data-redirect-to="{{ current_query }}"
+                                                            title="{{ _("Renombra esta colección.") }}">
                                                         {{ "%.6f"|format(item.destination.lat) }}, {{ "%.6f"|format(item.destination.lng) }}
                                                     </button>
                                                 </div>
@@ -159,7 +166,9 @@ Versión: 0.1
                                                 class="btn btn-square btn-sm btn-primary"
                                                 data-action="open-zone-preview"
                                                 data-preview-url="{{ url_for('trazas.collection_preview', parcel_id=item.parcela_id) }}"
-                                                data-preview-title="{{ _("Preview de la zona") }} · {{ item.display_name }}">
+                                                data-preview-title="{{ _("Vista previa de la zona") }} · {{ item.display_name }}"
+                                                aria-label="{{ _("Ver vista previa de la zona") }}"
+                                                title="{{ _("Muestra una vista previa de la zona seleccionada.") }}">
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  viewBox="0 0 24 24"
                                                  fill="none"
@@ -176,7 +185,8 @@ Versión: 0.1
                                     <td class="text-center align-middle">
                                         <a href="{{ url_for('trazas.collection_download_zip', parcel_id=item.parcela_id) }}"
                                            class="btn btn-square btn-sm btn-primary"
-                                           aria-label="{{ _("Descargar ZIP") }}">
+                                           aria-label="{{ _("Descargar ZIP") }}"
+                                           title="{{ _("Descarga todas las teselas de esta zona en un archivo ZIP.") }}">
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  viewBox="0 0 24 24"
                                                  fill="none"
@@ -211,18 +221,22 @@ Versión: 0.1
                                                 <span class="loading loading-spinner loading-md text-primary"
                                                       title="{{ _("Procesando") }}"></span>
                                             {% elif item.estado == 'failed' %}
-                                                <span class="badge badge-error badge-outline">{{ _("Error") }}</span>
+                                                <span class="badge badge-error badge-outline"
+                                                      title="{{ _("Hay teselas con error de cálculo.") }}">{{ _("Error") }}</span>
                                             {% else %}
-                                                <span class="badge badge-neutral badge-outline">{{ _("En espera") }}</span>
+                                                <span class="badge badge-neutral badge-outline"
+                                                      title="{{ _("La zona está pendiente de procesamiento.") }}">{{ _("En espera") }}</span>
                                             {% endif %}
                                         </div>
                                     </td>
                                     <td class="align-middle min-w-56">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <a href="{{ url_for('trazas.collection_gallery', parcel_id=item.parcela_id) }}"
-                                               class="btn btn-sm btn-primary">{{ _("Ver galería") }}</a>
+                                               class="btn btn-sm btn-primary"
+                                               title="{{ _("Abre la galería de teselas de esta zona.") }}">{{ _("Ver galería") }}</a>
                                             <a href="{{ url_for('trazas.visor', parcel_id=item.parcela_id) }}"
-                                               class="btn btn-sm btn-primary">{{ _("Ver en el mapa") }}</a>
+                                               class="btn btn-sm btn-primary"
+                                               title="{{ _("Recupera esta zona en el visor cartográfico.") }}">{{ _("Ver en el mapa") }}</a>
                                             <form method="post"
                                                   action="{{ url_for('trazas.collection_delete', parcel_id=item.parcela_id) }}"
                                                   class="inline-flex"
@@ -234,7 +248,8 @@ Versión: 0.1
                                                         data-zone-id="{{ item.parcela_id }}"
                                                         data-zone-origin="{{ '%.6f'|format(item.origin.lat) }}, {{ '%.6f'|format(item.origin.lng) }}"
                                                         data-zone-destination="{{ '%.6f'|format(item.destination.lat) }}, {{ '%.6f'|format(item.destination.lng) }}"
-                                                        aria-label="{{ _("Eliminar") }}">
+                                                        aria-label="{{ _("Eliminar") }}"
+                                                        title="{{ _("Abre la confirmación para eliminar esta zona.") }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                          viewBox="0 0 24 24"
                                                          fill="none"
@@ -266,7 +281,8 @@ Versión: 0.1
                         {% set prev_page = listing.page - 1 if listing.page > 1 else 1 %}
                         {% set next_page = listing.page + 1 if listing.page < listing.total_pages else listing.total_pages %}
                         <a href="{{ url_for('trazas.collection', page=prev_page, per_page=listing.per_page, q=listing.search) }}"
-                           class="join-item btn btn-sm {% if listing.page == 1 %}btn-disabled{% endif %}">«</a>
+                           class="join-item btn btn-sm {% if listing.page == 1 %}btn-disabled{% endif %}"
+                           title="{{ _("Página anterior") }}">«</a>
                         {% for item in pagination_items %}
                             {% if item is none %}
                                 <button type="button" class="join-item btn btn-sm btn-disabled">…</button>
@@ -276,7 +292,8 @@ Versión: 0.1
                             {% endif %}
                         {% endfor %}
                         <a href="{{ url_for('trazas.collection', page=next_page, per_page=listing.per_page, q=listing.search) }}"
-                           class="join-item btn btn-sm {% if listing.page == listing.total_pages %}btn-disabled{% endif %}">»</a>
+                           class="join-item btn btn-sm {% if listing.page == listing.total_pages %}btn-disabled{% endif %}"
+                           title="{{ _("Página siguiente") }}">»</a>
                     </div>
                 </div>
             {% else %}
@@ -287,7 +304,9 @@ Versión: 0.1
                             <p class="text-sm opacity-75">
                                 {{ _("Genera una cuadrícula desde el visor y se añadirá automáticamente a esta colección persistente.") }}
                             </p>
-                            <a href="{{ url_for("trazas.visor") }}" class="btn btn-primary">{{ _("Ir al visor") }}</a>
+                            <a href="{{ url_for("trazas.visor") }}"
+                               class="btn btn-primary"
+                               title="{{ _("Abre el visor para generar una nueva zona.") }}">{{ _("Ir al visor") }}</a>
                         </div>
                     </div>
                 </div>
@@ -297,23 +316,24 @@ Versión: 0.1
     <dialog id="zone-preview-modal" class="modal">
         <div class="modal-box max-w-4xl">
             <div class="flex items-start justify-between gap-3">
-                <h3 id="zone-preview-title" class="font-bold text-lg">{{ _("Preview de la zona") }}</h3>
+                <h3 id="zone-preview-title" class="font-bold text-lg">{{ _("Vista previa de la zona") }}</h3>
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost"
-                            aria-label="{{ _("Cerrar") }}">✕</button>
+                            aria-label="{{ _("Cerrar") }}"
+                            title="{{ _("Cerrar") }}">✕</button>
                 </form>
             </div>
             <div id="zone-preview-loading" class="py-10 text-center">
                 <span class="loading loading-spinner loading-lg text-primary"></span>
-                <div class="mt-3 text-sm opacity-75">{{ _("Cargando preview...") }}</div>
+                <div class="mt-3 text-sm opacity-75">{{ _("Cargando vista previa...") }}</div>
             </div>
             <div id="zone-preview-error" class="hidden alert alert-error mt-4"></div>
             <img id="zone-preview-image"
-                 alt="{{ _("Preview de la zona") }}"
+                 alt="{{ _("Vista previa de la zona") }}"
                  class="hidden mt-4 w-full rounded-box border border-base-200" />
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button aria-label="{{ _("Cerrar") }}"></button>
+            <button aria-label="{{ _("Cerrar") }}" title="{{ _("Cerrar") }}"></button>
         </form>
     </dialog>
     <dialog id="zone-rename-modal" class="modal">
@@ -325,7 +345,8 @@ Versión: 0.1
                 </div>
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost"
-                            aria-label="{{ _("Cerrar") }}">✕</button>
+                            aria-label="{{ _("Cerrar") }}"
+                            title="{{ _("Cerrar") }}">✕</button>
                 </form>
             </div>
             <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
@@ -342,18 +363,23 @@ Versión: 0.1
                            type="text"
                            maxlength="120"
                            class="input input-bordered w-full"
-                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}" />
+                           placeholder="{{ _("Escribe un nombre o deja vacío para usar el nombre por defecto") }}"
+                           title="{{ _("Escribe un nombre personalizado para identificar mejor esta colección.") }}" />
                 </label>
             </form>
             <div class="modal-action">
-                <button type="submit" form="zone-rename-form" class="btn btn-primary">{{ _("Guardar") }}</button>
+                <button type="submit"
+                        form="zone-rename-form"
+                        class="btn btn-primary"
+                        title="{{ _("Guarda el nuevo nombre de la colección.") }}">{{ _("Guardar") }}</button>
                 <form method="dialog">
-                    <button class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                    <button class="btn btn-ghost"
+                            title="{{ _("Cancela los cambios y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
                 </form>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button aria-label="{{ _("Cerrar") }}"></button>
+            <button aria-label="{{ _("Cerrar") }}" title="{{ _("Cerrar") }}"></button>
         </form>
     </dialog>
     <dialog id="zone-delete-modal" class="modal">
@@ -393,13 +419,19 @@ Versión: 0.1
             </div>
             <div class="modal-action">
                 <form method="dialog">
-                    <button class="btn btn-ghost">{{ _("Cancelar") }}</button>
+                    <button class="btn btn-ghost"
+                            title="{{ _("Cancela los cambios y cierra la ventana.") }}">{{ _("Cancelar") }}</button>
                 </form>
-                <button type="button" id="confirm-delete-button" class="btn btn-error">{{ _("Eliminar") }}</button>
+                <button type="button"
+                        id="confirm-delete-button"
+                        class="btn btn-error"
+                        title="{{ _("Elimina definitivamente esta zona y sus teselas.") }}">
+                    {{ _("Eliminar") }}
+                </button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button aria-label="{{ _("Cerrar") }}"></button>
+            <button aria-label="{{ _("Cerrar") }}" title="{{ _("Cerrar") }}"></button>
         </form>
     </dialog>
     <script>
@@ -409,8 +441,8 @@ Versión: 0.1
         },
         "pollIntervalMs": 5000,
         "i18n": {
-            "previewTitle": _("Preview de la zona"),
-            "previewError": _("No se ha podido cargar la preview de la zona."),
+            "previewTitle": _("Vista previa de la zona"),
+            "previewError": _("No se ha podido cargar la vista previa de la zona."),
             "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
             "zoneCompleted": _("Trazas completadas"),
             "zoneProcessing": _("Procesando"),
@@ -419,7 +451,22 @@ Versión: 0.1
             "photoCompleted": _("Trazas calculadas"),
             "photoProcessing": _("Calculando trazas"),
             "photoPending": _("Trazas no calculadas"),
-            "photoFailed": _("Error de cálculo")
+            "photoFailed": _("Error de cálculo"),
+            "retryTrace": _("Reintentar"),
+            "recalculateTrace": _("Recalcular trazas"),
+            "download": _("Descargar"),
+            "viewerImagePreview": _("Vista ampliada de la tesela seleccionada."),
+            "viewerDrawn": _("Trazas dibujadas"),
+            "viewerNotDrawn": _("Sin dibujar"),
+            "viewerDrawing": _("Dibujando..."),
+            "viewerDrawUnavailable": _("Todavía no hay trazas calculadas para esta tesela."),
+            "viewerDrawError": _("No se han podido dibujar las trazas sobre la imagen."),
+            "retryZoneReady": _("Recalcular solo las teselas pendientes o con error."),
+            "retryZoneDisabledCompleted": _("Todas las teselas ya tienen las trazas calculadas."),
+            "retryZoneDisabledWait": _("Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error."),
+            "recalculatePhotoTitle": _("Vuelve a ejecutar el cálculo de trazas para esta tesela."),
+            "recalculatePhotoDisabledTitle": _("Disponible cuando la tesela esté pendiente el tiempo suficiente o haya fallado."),
+            "downloadPhotoTitle": _("Descarga la imagen de esta tesela.")
         }
         } | tojson }};
     </script>
