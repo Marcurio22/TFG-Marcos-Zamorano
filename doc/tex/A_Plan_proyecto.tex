@@ -501,6 +501,50 @@ Finalmente, desarrollé la capa de permisos, restringiendo el acceso a determina
 
 Como se aprecia en la Figura~\ref{fig:brsprint15}, el \textit{burndown} presenta un comportamiento atípico. Por un lado, el descenso inicial es muy limitado, coherente con la baja disponibilidad de los primeros días y con el hecho de que varias tareas eran estructurales y no se podían cerrar de forma aislada. Por otro, se observa un reajuste a mitad del periodo: en ese punto se amplió el \textit{sprint} una semana adicional y se replanificó la línea ideal, lo que explica el cambio de pendiente en el tramo central. A partir de ahí, el cierre de tareas se concentra al final, cuando ya quedaron consolidadas las dependencias internas y el \textit{sprint} termina con una caída pronunciada hasta completarse el día 22 de abril.
 
+\subsection{Sprint 16 - Cierre de la aplicación}
+El \textit{Sprint 16} se desarrolló del 23 al 30 de abril, con una duración de una semana. Para este \textit{sprint} estimé una dedicación total de 22,5~horas, aunque finalmente invertí aproximadamente 25~horas. El foco principal de esta iteración fue consolidar la funcionalidad de usuarios y administración introducida en el \textit{sprint} anterior, mejorar la usabilidad de la interfaz y reforzar la gestión de modelos desde el panel de administrador, poniendo así fin a la funcionalidad principal de la aplicación.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Arreglar la página de gestión de usuarios.
+	\item Arreglar el desplegable del menú y su comportamiento.
+	\item Cambiar el nombre de los \textit{folds} y ajustar la lógica de búsqueda.
+	\item Mejorar la gestión de \textit{folds} desde administración:
+	\begin{itemize}
+		\item Permitir que el administrador renombre \textit{folds}.
+		\item Cargar nuevos \textit{folds} y eliminar los existentes.
+		\item Validar nuevos modelos por \textit{fold}.
+	\end{itemize}
+	\item Añadir \textit{tooltips} en las funciones del \textit{home}.
+	\item Añadir \textit{tooltips} en la colección y la galería.
+	\item Añadir lógica de pintado de trazas en el visor.
+	\item Formatear la página de \textit{log in}.
+	\item Formatear la página de registro.
+	\item Permitir la descarga de informes de usuarios en formato CSV y PDF.
+	\item Realizar las traducciones de todas las pantallas.
+\end{itemize}
+
+En primer lugar, trabajé en corregir y estabilizar la parte de administración. Ajusté la página de gestión de usuarios, revisando tanto el comportamiento como la presentación, y arreglé el desplegable del menú, ya que en algunos flujos no se mostraban de forma consistente. A partir de ahí, me centré en la gestión del modelo, ya que era una de las piezas críticas del panel de administración: cambié el criterio de nombres y la lógica de búsqueda para que fuese más clara, permití que el administrador renombrase \textit{folds}, añadí la funcionalidad de carga y eliminación de nuevos \textit{folds}, todo ello con un nuevo proceso de validación por detrás.
+
+En paralelo, realicé mejoras de usabilidad en la interfaz. Añadí \textit{tooltips} en todas las pantalla que faltaban de emplear estos servicios, con el objetivo de guiar al usuario y reducir ambigüedades en acciones frecuentes. Además, implementé la lógica de pintado de trazas directamente en el visor, para así finalizar el flujo del sistema.
+
+También dediqué parte del \textit{sprint} a mejorar la apariencia de las pantallas de autenticación, formateando tanto la página de \textit{log in} como la de registro para que siguiesen el mismo estilo visual del resto de la aplicación. Como cierre de funcionalidad en el área de administración, añadí la posibilidad de descargar información de usuarios en formato CSV y PDF, facilitando la exportación de datos desde el panel.
+
+Por último, completé la traducción de todas las pantallas, integrando los textos en el flujo de internacionalización para que la aplicación quedase consistente en los cinco disponibles.
+
+Cabe señalar que, en los últimos días del \textit{sprint}, se incorporaron dos tareas adicionales: exportación CSV/PDF y traducción completa de pantallas. Como consecuencia, tuve que prescindir de una tarea inicialmente prevista: cargar usuarios automáticamente al lanzar Flask, que quedó fuera del alcance de esta iteración para priorizar los cambios añadidos.
+
+También, recalcar que, tras finalizar este sprint, lancé la segunda release de la aplicación, la 0.8, esto debido a que ya había logrado un buen flujo del sistema.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint16}
+	\caption[Burndown Report del Sprint 16]{Burndown Report del Sprint 16.}
+	\label{fig:brsprint16}
+\end{figure}
+
+Como muestra la Figura~\ref{fig:brsprint16}, el \textit{burndown} refleja un descenso progresivo y estable durante la semana, con una ligera pérdida de alineación respecto a la línea ideal en el tramo final. Esto se debe a la incorporación de tareas en los últimos días, lo que incrementó la carga restante cuando el \textit{sprint} ya estaba avanzado. Aun así, el cierre se completó el 30 de abril, consolidando el bloque final de la aplicación.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
