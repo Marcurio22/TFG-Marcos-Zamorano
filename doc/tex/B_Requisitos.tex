@@ -19,6 +19,67 @@ Dado que el núcleo del proyecto es la aplicación web y su \textit{pipeline} de
 
 \section{Catálogo de requisitos}
 
+Este catálogo establece los requisitos del sistema en dos categorías complementarias. Por un lado están los requisitos funcionales, que describen qué servicios y operaciones debe ofrecer la aplicación a cada tipo de actor. Por otro lado, los requisitos no funcionales, que recogen restricciones de calidad, seguridad y operatividad condicionando así cómo se implementan dichas funcionalidades.
+
+\subsection{Requisitos funcionales}
+
+\begin{itemize}
+	\item \textbf{RF-01 Procesamiento de imagen:} la aplicación debe permitir ejecutar el flujo completo de análisis sobre una ortoimagen, desde su selección hasta la obtención y representación del resultado.
+	\begin{itemize}
+		\item \textbf{RF-01.1 Insertar imagen:} el usuario debe poder seleccionar una imagen y previsualizarla en el cliente.
+		\item \textbf{RF-01.2 Ejecutar detección y segmentación:} el sistema debe enviar la imagen al servidor cuando proceda, ejecutar la inferencia con el modelo configurado y generar la salida asociada.
+		\item \textbf{RF-01.3 Visualizar resultado:} el cliente debe poder representar las trazas superpuestas sobre la imagen original, permitiendo su visualización.
+		\item \textbf{RF-01.4 Borrar imagen:} el usuario debe poder reiniciar el flujo eliminando la imagen activa y los resultados asociados, devolviendo la aplicación a un estado inicial consistente.
+	\end{itemize}
+	
+	\item \textbf{RF-02 Exportación de resultados:} el sistema debe permitir la descarga del resultado generado en un formato reutilizable, asociado a la imagen analizada.
+	
+	\item \textbf{RF-03 Gestión de cuentas:} la aplicación debe incorporar un sistema de usuarios que habilite funcionalidades adicionales bajo sesión autenticada.
+	\begin{itemize}
+		\item \textbf{RF-03.1 Registro:} el usuario anónimo debe poder crear una cuenta proporcionando los datos requeridos.
+		\item \textbf{RF-03.2 Inicio de sesión:} el usuario debe poder autenticarse mediante credenciales válidas para acceder a funcionalidades restringidas.
+		\item \textbf{RF-03.3 Cierre de sesión:} el usuario autenticado debe poder finalizar su sesión de forma explícita.
+		\item \textbf{RF-03.4 Administración de perfil:} el usuario autenticado debe poder consultar y actualizar la información básica de su perfil dentro de los límites establecidos por el sistema.
+	\end{itemize}
+	
+	\item \textbf{RF-04 Integración GIS:} la aplicación debe ofrecer un módulo cartográfico para trabajar sobre una zona geográfica seleccionada por el usuario autenticado.
+	\begin{itemize}
+		\item \textbf{RF-04.1 Acceso al módulo GIS:} el usuario autenticado debe poder acceder al visor y a las funcionalidades cartográficas disponibles.
+		\item \textbf{RF-04.2 Recorte de zona de interés:} el sistema debe permitir definir una zona de trabajo mediante una geometría válida, utilizada como delimitación operativa.
+		\item \textbf{RF-04.3 Visualización de trazas en la zona:} el sistema debe permitir representar las trazas asociadas a la zona seleccionada, una vez calculadas, manteniendo consistencia con la georreferenciación del visor.
+	\end{itemize}
+	
+	\item \textbf{RF-05 Administración:} la aplicación debe incorporar un rol administrador con capacidades de gestión y configuración interna.
+	\begin{itemize}
+		\item \textbf{RF-05.1 Administrar modelos:} el administrador debe poder gestionar la configuración del modelo de detección y segmentación, incluyendo la selección del modelo activo y la opción de añadir o eliminar más modelos operativos, tras ser validados por el sistema.
+		\item \textbf{RF-05.2 Gestionar usuarios:} el administrador debe poder consultar el listado de usuarios y ejecutar operaciones de gestión sobre sus cuentas conforme a las políticas del sistema.
+	\end{itemize}
+\end{itemize}
+
+\subsection{Requisitos no funcionales}
+
+\begin{itemize}
+	\item \textbf{RNF-01 Usabilidad y consistencia de interfaz:} la aplicación debe ofrecer un flujo de uso claro, con retroalimentación explícita ante operaciones de cálculo, descarga y error, manteniendo coherencia visual entre pantallas.
+	
+	\item \textbf{RNF-02 Accesibilidad y compatibilidad:} la interfaz debe ser accesible desde navegador web y funcionar de forma consistente en navegadores modernos, evitando dependencias de tecnologías no soportadas.
+	
+	\item \textbf{RNF-03 Seguridad de autenticación y autorización:} las funcionalidades restringidas deben requerir sesión autenticada, y el acceso a operaciones de administración debe estar limitado al rol administrador, evitando exposición de información sensible en pantallas o exportaciones.
+	
+	\item \textbf{RNF-04 Aislamiento y privacidad de datos:} los recursos persistidos, como zonas, imágenes y resultados, deben quedar asociados al usuario propietario, de modo que no sean accesibles por terceros sin permisos.
+	
+	\item \textbf{RNF-05 Robustez y tratamiento de errores:} el sistema debe validar entradas, rechazar archivos inválidos, controlar tamaños máximos de subida y manejar fallos durante la inferencia o la consulta de fuentes externas, informando al usuario y manteniendo el estado consistente.
+	
+	\item \textbf{RNF-06 Integridad y trazabilidad de persistencia:} la base de datos y el sistema de ficheros deben permanecer coherentes, garantizando correspondencia entre entradas y resultados, de modo que la aplicación pueda recuperar y representar correctamente el estado de cada operación.
+	
+	\item \textbf{RNF-07 Rendimiento:} la visualización de trazas debe ser eficiente y evitar cargas innecesarias, y la inferencia debe ejecutarse de forma que el usuario reciba feedback de progreso y se minimicen bloqueos perceptibles.
+	
+	\item \textbf{RNF-08 Mantenibilidad, extensibilidad y testabilidad:} el sistema debe permitir evoluciones incrementales sin reescrituras globales, manteniendo contratos estables entre cliente y servidor, y disponiendo de pruebas que reduzcan el riesgo de regresión en funcionalidades críticas.
+	
+	\item \textbf{RNF-09 Internacionalización:} los textos visibles deben poder presentarse en más de un idioma mediante una estrategia centralizada de traducciones, manteniendo consistencia en plantillas y recursos del cliente.
+	
+	\item \textbf{RNF-10 Cumplimiento legal y licencias de datos:} la aplicación debe basar la adquisición y uso de datos geoespaciales en fuentes y términos de reutilización compatibles con el análisis automatizado, evitando dependencias de contenidos con restricciones incompatibles con el objetivo del proyecto.
+\end{itemize}
+
 \section{Especificación de requisitos}
 
 En esta sección se presenta la especificación funcional de la aplicación mediante casos de uso, describiendo de forma estructurada las interacciones que el usuario puede realizar a través de la interfaz. Dado que la aplicación se consume desde el cliente web, el diagrama sintetiza las funcionalidades visibles para cada tipo de actor, mientras que el \textit{backend} se considera un soporte imprescindible para ejecutar la inferencia, gestionar el estado de las imágenes y servir los resultados, sin modelarse explícitamente como actor independiente.
@@ -53,6 +114,7 @@ Concretamente, el Usuario Anónimo puede:
 	\item Cargar una imagen para su análisis.
 	\item Ejecutar el proceso de detección y segmentación de trazas.
 	\item Visualizar el resultado obtenido.
+	\item Descargar los resultados obtenidos tras el proceso de detección y segmentación.
 	\item Borrar la imagen cargada y reiniciar el flujo de procesamiento.
 	\item Registrarse en el sistema.
 \end{itemize}
@@ -68,8 +130,7 @@ Además de las acciones disponibles para el Usuario Anónimo, el Usuario Registr
 \begin{itemize}
 	\item Iniciar y cerrar sesión en el sistema.
 	\item Administrar su perfil de usuario.
-	\item Descargar los resultados obtenidos tras el proceso de detección y segmentación.
-	\item Acceder al módulo de integración GIS mediante Google Earth Engine.
+	\item Acceder al módulo de integración GIS mediante el visor.
 	\item Definir una zona de interés y visualizar trazas dentro de dicha zona.
 \end{itemize}
 
@@ -82,6 +143,7 @@ Este actor hereda todas las capacidades del Usuario Registrado y dispone de perm
 
 Las funciones exclusivas del Administrador incluyen:
 \begin{itemize}
+	\item Administrar y modificar los usuarios registrados en el sistema.
 	\item Administrar los modelos de detección utilizados por el sistema.
 	\item Seleccionar el modelo activo que se empleará en el proceso de detección y segmentación.
 \end{itemize}
@@ -257,7 +319,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		\multicolumn{2}{l}{\textbf{CU-04 Descargar resultado}} \\
 		\midrule
 		Actores &
-		Usuario registrado, Administrador \\
+		Usuario anónimo, Usuario registrado, Administrador \\
 		
 		Descripción &
 		Permite descargar el resultado de la detección y segmentación para su uso externo. \\
@@ -284,8 +346,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		Excepciones &
 		\parbox[t]{11cm}{
 			E1) No existe resultado disponible $\rightarrow$ se informa y se cancela la descarga.\\
-			E2) Usuario no autorizado o no autenticado $\rightarrow$ se deniega el acceso.\\
-			E3) Error generando el recurso descargable $\rightarrow$ se notifica y se permite reintentar.
+			E2) Error generando el recurso descargable $\rightarrow$ se notifica y se permite reintentar.
 		} \\
 		
 		Relaciones &
@@ -352,13 +413,13 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 	\renewcommand{\arraystretch}{1.3}
 	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
 		\toprule
-		\multicolumn{2}{l}{\textbf{CU-06 Acceder a Google Earth Engine}} \\
+		\multicolumn{2}{l}{\textbf{CU-06 Acceder al visor cartográfico}} \\
 		\midrule
 		Actores &
 		Usuario registrado, Administrador \\
 		
 		Descripción &
-		Permite acceder al módulo de integración con Google Earth Engine para trabajar sobre una zona geográfica. \\
+		Permite acceder al módulo de integración con \textit{leaflet}, \textit{OSM} y \textit{PNOA}  para trabajar sobre una zona geográfica. \\
 		
 		Precondición &
 		El usuario ha iniciado sesión. \\
@@ -371,7 +432,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 				\setlength{\parskip}{0pt}
 				\setlength{\parsep}{0pt}
 				\item El usuario accede al módulo GIS.
-				\item El sistema establece conexión con Google Earth Engine.
+				\item El sistema establece conexión con OSM y PNOA.
 				\item Se habilitan las funcionalidades de recorte y visualización.
 			\end{enumerate}
 		} \\
@@ -381,7 +442,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		
 		Excepciones &
 		\parbox[t]{11cm}{
-			E1) Error de autenticación o de autorización con el servicio $\rightarrow$ se deniega el acceso y se informa al usuario.\\
+			E1) Error de autenticación o de autorización con los servicios $\rightarrow$ se deniega el acceso y se informa al usuario.\\
 			E2) Servicio no disponible o error de red $\rightarrow$ se notifica indisponibilidad temporal.\\
 			E3) Configuración incompleta $\rightarrow$ se informa y se bloquea el acceso al módulo.
 		} \\
@@ -411,7 +472,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		Permite definir una zona geográfica de interés mediante un recorte sobre el visor. \\
 		
 		Precondición &
-		Acceso al módulo GEE (CU-06). \\
+		Acceso al visor (CU-06). \\
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
@@ -690,7 +751,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		Administrador \\
 		
 		Descripción &
-		Permite gestionar la configuración del modelo de detección y segmentación utilizada por el sistema. \\
+		Permite al administrador gestionar los modelos de detección y segmentación disponibles en el sistema, incluyendo la consulta de folds existentes, la selección del modelo activo, la incorporación validada de nuevos modelos, el renombrado y la eliminación controlada de modelos no activos. \\
 		
 		Precondición &
 		Sesión iniciada como administrador. \\
@@ -702,21 +763,27 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 				\setlength{\itemsep}{0pt}
 				\setlength{\parskip}{0pt}
 				\setlength{\parsep}{0pt}
-				\item El administrador accede al módulo de administración.
-				\item El sistema muestra las opciones disponibles de configuración de modelos.
-				\item El administrador selecciona el modelo activo.
-				\item El sistema guarda la configuración.
+				\item El administrador accede al módulo de gestión de modelos.
+				\item El sistema muestra el listado de modelos disponibles, indicando cuál se encuentra activo.
+				\item El administrador selecciona la operación que desea realizar: activar, renombrar, añadir o eliminar un modelo.
+				\item Si se añade un nuevo modelo, el administrador introduce un nombre válido y selecciona el archivo correspondiente.
+				\item El sistema valida la operación solicitada y, en caso de subida, comprueba que el archivo corresponde a un modelo compatible con el pipeline de inferencia.
+				\item Si la validación es correcta, el sistema persiste los cambios y actualiza el listado de modelos.
 			\end{enumerate}
 		} \\
 		
 		Postcondición &
-		Configuración de modelo actualizada. \\
+		Listado y/o configuración de modelos actualizado, manteniendo un único modelo activo válido para el sistema. \\
 		
 		Excepciones &
 		\parbox[t]{11cm}{
 			E1) Selección inválida $\rightarrow$ se rechaza el cambio y se informa.\\
 			E2) Modelo o pesos no disponibles $\rightarrow$ se notifica y se mantiene la configuración previa.\\
-			E3) Error guardando la configuración $\rightarrow$ se informa y no se aplican cambios.
+			E3) Error guardando la configuración $\rightarrow$ se informa y no se aplican cambios.\\
+			E4) El archivo subido no corresponde a un modelo compatible $\rightarrow$ se rechaza la incorporación y no se modifica el listado de modelos.\\
+			E5) El nombre asignado al modelo ya existe $\rightarrow$ se informa al administrador y se cancela la operación.\\
+			E6) El administrador intenta eliminar el modelo activo $\rightarrow$ se rechaza la operación y se solicita activar previamente otro modelo.\\
+			E7) Error durante la validación técnica del modelo $\rightarrow$ se elimina el archivo temporal y se mantiene la configuración previa.
 		} \\
 		
 		Importancia &
@@ -738,7 +805,7 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		Administrador \\
 		
 		Descripción &
-		Permite al administrador realizar tareas de administración sobre las cuentas de usuario del sistema, incluyendo consulta del listado, modificación de atributos básicos y gestión del estado de las cuentas. \\
+		Permite al administrador realizar tareas de administración sobre las cuentas de usuario del sistema, incluyendo la consulta y búsqueda del listado, la visualización de detalles, la modificación de datos básicos y rol, la eliminación controlada de usuarios y la exportación del listado en formatos CSV y PDF. \\
 		
 		Precondición &
 		El actor ha iniciado sesión y dispone de permisos de administrador. \\
@@ -751,23 +818,26 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 				\setlength{\parskip}{0pt}
 				\setlength{\parsep}{0pt}
 				\item El administrador accede a la sección de gestión de usuarios.
-				\item El sistema muestra el listado de usuarios registrados y su información básica.
-				\item El administrador selecciona un usuario sobre el que operar.
-				\item El administrador ejecuta una operación de gestión.
-				\item El sistema valida los cambios y los persiste.
-				\item El sistema confirma la operación y actualiza el listado.
+				\item El sistema muestra el listado de usuarios registrados, junto con herramientas de búsqueda y exportación.
+				\item El administrador puede filtrar el listado, consultar el detalle de un usuario, editar sus datos, eliminarlo si está permitido o exportar la información disponible.
+				\item En operaciones de modificación o eliminación, el sistema valida los permisos y los datos introducidos.
+				\item El sistema persiste los cambios cuando proceda o genera el archivo de exportación solicitado.
+				\item El sistema confirma la operación y actualiza el listado cuando corresponde.
 			\end{enumerate}
 		} \\
 		
 		Postcondición &
-		Información y/o estado del usuario actualizado según la operación realizada. \\
+		Información de usuario actualizada, usuario eliminado cuando proceda, o listado exportado en el formato solicitado, manteniendo la integridad de las cuentas protegidas. \\
 		
 		Excepciones &
 		\parbox[t]{11cm}{
 			E1) Usuario objetivo inexistente o no accesible $\rightarrow$ se informa al administrador y se cancela la operación.\\
 			E2) Operación no permitida $\rightarrow$ se rechaza el cambio y se notifica.\\
 			E3) Datos inválidos en la modificación $\rightarrow$ se rechazan cambios y se solicita corrección.\\
-			E4) Error interno de persistencia o comunicación con la base de datos $\rightarrow$ se notifica el error y no se aplican cambios.
+			E4) Error interno de persistencia o comunicación con la base de datos $\rightarrow$ se notifica el error y no se aplican cambios.\\
+			E5) El administrador intenta eliminar una cuenta protegida o su propia cuenta $\rightarrow$ se rechaza la operación y se informa.\\
+			E6) Error generando el archivo CSV o PDF $\rightarrow$ se notifica el fallo y no se descarga el recurso.\\
+			E7) Parámetros de búsqueda inválidos $\rightarrow$ el sistema aplica valores por defecto o informa del problema.
 		} \\
 		
 		Importancia &
