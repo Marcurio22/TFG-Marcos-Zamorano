@@ -89,6 +89,8 @@ def create_app(test_config=None):
         ALLOWED_EXTENSIONS={"png", "jpg", "jpeg"},
         UPLOAD_FOLDER=os.path.join(app.instance_path, "uploads"),
         OUTPUT_FOLDER=os.path.join(app.instance_path, "outputs"),
+        PROFILE_IMAGE_FOLDER=os.path.join(app.instance_path, "profile_images"),
+        PROFILE_IMAGE_MAX_BYTES=4 * 1024 * 1024,
         DATABASE=os.path.join(app.instance_path, "trazasytrazadas.sqlite"),
         LEGACY_PARCEL_OWNER_USERNAME="Vindi22",
 
@@ -163,6 +165,7 @@ def create_app(test_config=None):
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["PROFILE_IMAGE_FOLDER"], exist_ok=True)
     os.makedirs(app.config["SEG_MODELS_DIR"], exist_ok=True)
 
     # Integración de extensiones.

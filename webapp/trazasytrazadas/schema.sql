@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     contrasena VARCHAR(255) NOT NULL,
     correo_electronico VARCHAR(50) NOT NULL UNIQUE,
     telefono VARCHAR(20),
+    ruta_imagen_perfil TEXT,
     rol VARCHAR(20) NOT NULL CHECK (rol IN ('system', 'admin', 'user')),
     fecha_alta TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

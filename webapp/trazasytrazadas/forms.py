@@ -527,6 +527,24 @@ class AdminUserEditForm(FlaskForm):
             raise ValidationError(_("Selecciona un rol válido."))
 
 
+class ProfileImageForm(FlaskForm):
+    """Formulario de subida de imagen de perfil."""
+
+    profile_image = FileField(
+        _l("Imagen de perfil"),
+        validators=[
+            FileRequired(message=_l("Selecciona una imagen de perfil.")),
+        ],
+    )
+    submit = SubmitField(_l("Revisar imagen"))
+
+
+class ProfileImageConfirmForm(FlaskForm):
+    """Formulario CSRF para confirmar o cancelar imagen de perfil."""
+
+    submit = SubmitField(_l("Guardar imagen"))
+
+
 class AdminActionForm(FlaskForm):
     """Formulario vacío para acciones protegidas por CSRF en admin."""
 

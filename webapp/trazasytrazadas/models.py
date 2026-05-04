@@ -39,6 +39,7 @@ class Usuario(UserMixin, db.Model):
     contrasena = db.Column(db.String(255), nullable=False)
     correo_electronico = db.Column(db.String(50), nullable=False, unique=True)
     telefono = db.Column(db.String(20), nullable=True)
+    ruta_imagen_perfil = db.Column(db.Text, nullable=True)
     rol = db.Column(db.String(20), nullable=False)
     fecha_alta = db.Column(
         db.DateTime,

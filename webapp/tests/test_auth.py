@@ -4,6 +4,7 @@ import json
 import pickle
 import warnings
 from pathlib import Path
+from PIL import Image
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 import torch
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -17,6 +18,14 @@ class _AdminUploadDummyModel(torch.nn.Module):
 
     def forward(self, x):
         return x.mean(dim=1, keepdim=True)
+
+
+def _profile_image_bytes() -> BytesIO:
+    """Construye una imagen PNG mínima para pruebas de perfil."""
+    buffer = BytesIO()
+    Image.new("RGB", (32, 32), color=(79, 70, 229)).save(buffer, format="PNG")
+    buffer.seek(0)
+    return buffer
 
 
 def _serialized_dummy_model() -> bytes:
@@ -606,6 +615,103 @@ def test_profile_page_renders_current_user_data(app, client):
     assert joined_label in html
     assert "Acceder al visor" in html
     assert "Acceder a la colección" in html
+
+
+def test_profile_image_preview_shows_confirmation(app, client):
+    """Subir una imagen válida muestra la pantalla de confirmación."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="AvatarUser",
+        email="avatar@example.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/imagen/previsualizar",
+        data={"profile_image": (_profile_image_bytes(), "avatar.png")},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Confirmar imagen de perfil" in html
+    assert "Guardar imagen" in html
+
+
+def test_profile_image_confirm_persists_avatar(app, client):
+    """Confirmar una imagen actualiza usuario y guarda el archivo local."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="AvatarUser",
+        email="avatar@example.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    preview_response = client.post(
+        "/perfil/imagen/previsualizar",
+        data={"profile_image": (_profile_image_bytes(), "avatar.png")},
+        content_type="multipart/form-data",
+    )
+    assert preview_response.status_code == 200
+
+    response = client.post(
+        "/perfil/imagen/confirmar",
+        data={},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Imagen de perfil actualizada correctamente." in response.get_data(
+        as_text=True
+    )
+
+    with app.app_context():
+        user = db.session.get(Usuario, user_id)
+        assert user.ruta_imagen_perfil == f"users/{user_id}/avatar.png"
+        image_path = Path(
+            app.config["PROFILE_IMAGE_FOLDER"]) / user.ruta_imagen_perfil
+        assert image_path.exists()
+
+    image_response = client.get(f"/perfil/imagenes/users/{user_id}/avatar.png")
+    assert image_response.status_code == 200
+    assert image_response.mimetype == "image/png"
+
+
+def test_profile_image_preview_rejects_invalid_extension(app, client):
+    """La imagen de perfil solo admite extensiones de imagen soportadas."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="AvatarUser",
+        email="avatar@example.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/perfil/imagen/previsualizar",
+        data={"profile_image": (BytesIO(b"no-image"), "avatar.txt")},
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "La imagen de perfil debe ser JPG o PNG." in response.get_data(
+        as_text=True
+    )
 
 
 def test_profile_update_persists_changes(app, client):

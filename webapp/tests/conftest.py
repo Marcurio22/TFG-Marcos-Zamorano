@@ -33,6 +33,7 @@ def app():
     models = os.path.join(tmpdir.name, "models")
     database = os.path.join(tmpdir.name, "trazasytrazadas.sqlite")
     collection_storage = os.path.join(tmpdir.name, "collection")
+    profile_images = os.path.join(tmpdir.name, "profile_images")
 
     model_template = (
         "fold.{fold}"
@@ -47,6 +48,8 @@ def app():
             "SEG_MODELS_DIR": models,
             "DATABASE": database,
             "COLLECTION_STORAGE_ROOT": collection_storage,
+            "PROFILE_IMAGE_FOLDER": profile_images,
+            "PROFILE_IMAGE_MAX_BYTES": 4 * 1024 * 1024,
             "TRACE_WORKER_POLL_SECONDS": 0.01,
             "TRACE_WORKER_BATCH_SIZE": 1,
             "TRACE_WORKER_STALE_SECONDS": 60,

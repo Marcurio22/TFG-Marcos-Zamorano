@@ -68,6 +68,7 @@ def _migrate_legacy_schema(database: sqlite3.Connection) -> None:
     De momento centraliza aquí la deuda actual:
     - columnas de estado de foto
     - nombre_coleccion en parcela
+    - ruta_imagen_perfil en usuario
     """
     photo_columns = _table_columns(database, "foto")
     parcel_columns = _table_columns(database, "parcela")
@@ -103,6 +104,10 @@ def _migrate_legacy_schema(database: sqlite3.Connection) -> None:
     if "telefono" not in user_columns:
         statements.append(
             "ALTER TABLE usuario ADD COLUMN telefono TEXT"
+        )
+    if "ruta_imagen_perfil" not in user_columns:
+        statements.append(
+            "ALTER TABLE usuario ADD COLUMN ruta_imagen_perfil TEXT"
         )
 
     for statement in statements:
