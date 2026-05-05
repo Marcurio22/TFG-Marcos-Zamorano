@@ -550,23 +550,23 @@ class AdminActionForm(FlaskForm):
 
 
 class AdminFoldRenameForm(FlaskForm):
-    """Formulario para renombrar un fold del sistema."""
+    """Formulario para renombrar un modelo del sistema."""
 
     current_name = HiddenField(
         _l("Nombre actual"),
         validators=[
-            DataRequired(message=_l("Falta el nombre actual del fold.")),
+            DataRequired(message=_l("Falta el nombre actual del modelo.")),
         ],
     )
     new_name = StringField(
         _l("Nuevo nombre"),
         validators=[
-            DataRequired(message=_l("Introduce un nombre para el fold.")),
+            DataRequired(message=_l("Introduce un nombre para el modelo.")),
             Length(
                 min=1,
                 max=100,
                 message=_l(
-                    "El nombre del fold debe tener entre 1 y 100 caracteres."
+                    "El nombre del modelo debe tener entre 1 y 100 caracteres."
                 ),
             ),
             Regexp(
@@ -581,31 +581,31 @@ class AdminFoldRenameForm(FlaskForm):
     submit = SubmitField(_l("Guardar nombre"))
 
     def validate_new_name(self, field) -> None:
-        """Normaliza y valida el nuevo nombre del fold."""
+        """Normaliza y valida el nuevo nombre del modelo."""
         value = (field.data or "").strip()
         field.data = value
 
         if value in {".", ".."}:
-            raise ValidationError(_("Introduce un nombre de fold válido."))
+            raise ValidationError(_("Introduce un nombre de modelo válido."))
 
         if "/" in value or "\\" in value:
             raise ValidationError(
-                _("El nombre del fold no puede contener rutas.")
+                _("El nombre del modelo no puede contener rutas.")
             )
 
 
 class AdminFoldUploadForm(FlaskForm):
-    """Formulario para subir y validar un nuevo fold del sistema."""
+    """Formulario para subir y validar un nuevo modelo del sistema."""
 
     fold_name = StringField(
-        _l("Nombre del fold"),
+        _l("Nombre técnico del modelo"),
         validators=[
-            DataRequired(message=_l("Introduce un nombre para el fold.")),
+            DataRequired(message=_l("Introduce un nombre para el modelo.")),
             Length(
                 min=6,
                 max=32,
                 message=_l(
-                    "El nombre del fold debe tener entre 6 y 32 caracteres."
+                    "El nombre del modelo debe tener entre 6 y 32 caracteres."
                 ),
             ),
             Regexp(
@@ -623,5 +623,5 @@ class AdminFoldUploadForm(FlaskForm):
     submit = SubmitField(_l("Validar y añadir modelo"))
 
     def validate_fold_name(self, field) -> None:
-        """Normaliza el nombre de destino del fold."""
+        """Normaliza el nombre de destino del modelo."""
         field.data = (field.data or "").strip()

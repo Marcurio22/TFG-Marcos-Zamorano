@@ -18,7 +18,13 @@ Versión: 0.1
       <div class="absolute top-4 left-4 z-[700] flex flex-wrap gap-2 items-center">
         <button id="open-controls-btn"
                 type="button"
-                class="btn btn-sm btn-primary shadow-sm">{{ _("Controles") }}</button>
+                class="btn btn-sm btn-primary shadow-sm"
+                title="{{ _("Abre las opciones para generar la cuadrícula de teselas.") }}">{{ _("Generar") }}</button>
+        <div>
+          <button type="button"
+                  class="btn btn-sm btn-outline bg-white text-base-content border-base-300 shadow-sm"
+                  title="{{ _("Formato fijo por tesela: 1024 × 640 px.") }}">1024 × 640</button>
+        </div>
         <div class="tooltip tooltip-bottom visor-tooltip visor-tooltip-help"
              data-tip="{{ _("Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona automáticamente la mejor ortofoto disponible y aplica un ajuste automático si la resolución pedida no existe en la zona.") }}">
           <button type="button"
@@ -26,18 +32,12 @@ Versión: 0.1
             ?
           </button>
         </div>
-        <div class="tooltip tooltip-right visor-tooltip"
-             data-tip="{{ _("Formato fijo por tesela: 1024 × 640 px.") }}">
-          <button type="button"
-                  class="btn btn-sm btn-outline bg-white text-base-content border-base-300 shadow-sm">
-            1024 × 640
-          </button>
-        </div>
         {% if initial_zone %}
           <div id="map-traces-panel"
                class="flex flex-wrap items-center gap-3 rounded-box border border-base-300 bg-white/95 px-3 py-2 text-base-content shadow-sm"
                data-trace-status="{{ initial_zone.trace_status or 'pending' }}">
-            <label class="inline-flex items-center gap-2 text-sm font-medium">
+            <label class="inline-flex items-center gap-2 text-sm font-medium"
+                   title="{{ _("Muestra u oculta las trazas calculadas sobre el mapa.") }}">
               <input id="map-traces-checkbox"
                      type="checkbox"
                      class="checkbox checkbox-sm checkbox-primary"
@@ -70,10 +70,12 @@ Versión: 0.1
             <h3 class="card-title text-lg">{{ _("Lista de descargas") }}</h3>
             <div class="flex items-center gap-2">
               <a href="{{ url_for("trazas.collection") }}"
-                 class="btn btn-sm btn-primary">{{ _("Abrir colección") }}</a>
+                 class="btn btn-sm btn-primary"
+                 title="{{ _("Abre la colección de zonas guardadas.") }}">{{ _("Abrir colección") }}</a>
               <button id="download-all-btn"
                       type="button"
                       class="btn btn-sm btn-outline"
+                      title="{{ _("Descarga todas las teselas generadas en un archivo ZIP.") }}"
                       disabled>{{ _("Descargar ZIP") }}</button>
             </div>
           </div>
@@ -88,9 +90,10 @@ Versión: 0.1
     <div class="modal-box max-w-lg">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3"
-                aria-label="{{ _("Cerrar") }}">✕</button>
+                aria-label="{{ _("Cerrar") }}"
+                title="{{ _("Cerrar") }}">✕</button>
       </form>
-      <h3 class="font-bold text-lg">{{ _("Controles del visor") }}</h3>
+      <h3 class="font-bold text-lg">{{ _("Generar cuadrícula") }}</h3>
       <p class="text-sm opacity-75 mt-1 mb-4">
         {{ _("Selecciona la resolución objetivo y ejecuta las acciones sobre la zona marcada en el mapa.") }}
       </p>
@@ -98,7 +101,9 @@ Versión: 0.1
         <div class="label pb-1">
           <span class="label-text font-semibold">{{ _("Resolución objetivo") }}</span>
         </div>
-        <select id="resolution-select" class="select select-bordered w-full">
+        <select id="resolution-select"
+                class="select select-bordered w-full"
+                title="{{ _("Selecciona la resolución objetivo para generar las teselas.") }}">
           <option value="0.1">0.10 m/px</option>
           <option value="0.25" selected>0.25 m/px</option>
           <option value="0.5">0.50 m/px</option>
@@ -110,12 +115,22 @@ Versión: 0.1
         {{ _("Las teselas mantienen un formato fijo 1024 × 640 px para parecerse a las imágenes de entrenamiento.") }}
       </div>
       <div class="modal-action grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <button id="generate-grid-btn" type="button" class="btn btn-primary w-full">{{ _("Generar cuadrícula") }}</button>
-        <button id="reset-selection-btn" type="button" class="btn btn-outline w-full">{{ _("Reiniciar selección") }}</button>
+        <button id="generate-grid-btn"
+                type="button"
+                class="btn btn-primary w-full"
+                title="{{ _("Genera la cuadrícula de teselas para el área seleccionada.") }}">
+          {{ _("Generar cuadrícula") }}
+        </button>
+        <button id="reset-selection-btn"
+                type="button"
+                class="btn btn-outline w-full"
+                title="{{ _("Borra la selección actual para elegir una nueva área.") }}">
+          {{ _("Reiniciar selección") }}
+        </button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">
-      <button>{{ _("Cerrar") }}</button>
+      <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
     </form>
   </dialog>
   <link rel="stylesheet"

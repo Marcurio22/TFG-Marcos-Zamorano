@@ -575,7 +575,7 @@ class UserAdminView(_AdminAccessMixin, BaseView):
 
 
 class FoldsAdminView(_AdminAccessMixin, BaseView):
-    """Gestión de folds/modelos del sistema."""
+    """Gestión de modelos del sistema."""
 
     @expose("/", methods=("GET",))
     def index(self):
@@ -611,9 +611,9 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
         try:
             set_active_fold_name(fold_name)
         except ValueError:
-            flash(_("El fold seleccionado no es válido."), "error")
+            flash(_("El modelo seleccionado no es válido."), "error")
         except FileNotFoundError:
-            flash(_("El fold seleccionado no existe."), "error")
+            flash(_("El modelo seleccionado no existe."), "error")
         else:
             flash(_("Modelo activo actualizado correctamente."), "success")
 
@@ -636,19 +636,19 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
         except ValueError as exc:
             flash(str(exc), "warning")
         except FileNotFoundError:
-            flash(_("El fold que intentas renombrar no existe."), "error")
+            flash(_("El modelo que intentas renombrar no existe."), "error")
         except FileExistsError:
-            flash(_("Ya existe otro fold con ese nombre."), "warning")
+            flash(_("Ya existe otro modelo con ese nombre."), "warning")
         except OSError:
-            flash(_("No se ha podido renombrar el fold."), "error")
+            flash(_("No se ha podido renombrar el modelo."), "error")
         else:
-            flash(_("Fold renombrado correctamente."), "success")
+            flash(_("Modelo renombrado correctamente."), "success")
 
         return redirect(url_for("admin_folds.index"))
 
     @expose("/subir", methods=("POST",))
     def upload(self):
-        """Sube, valida y registra un nuevo fold del sistema."""
+        """Sube, valida y registra un nuevo modelo del sistema."""
         try:
             request.max_content_length = int(
                 current_app.config.get(
@@ -702,9 +702,9 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
         except ValueError as exc:
             flash(str(exc), "warning")
         except FileExistsError:
-            flash(_("Ya existe otro fold con ese nombre."), "warning")
+            flash(_("Ya existe otro modelo con ese nombre."), "warning")
         except OSError:
-            flash(_("No se ha podido guardar el fold."), "error")
+            flash(_("No se ha podido guardar el modelo."), "error")
         else:
             flash(_("Modelo añadido y validado correctamente."), "success")
 
@@ -712,7 +712,7 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
 
     @expose("/eliminar", methods=("POST",))
     def delete(self):
-        """Elimina un fold no activo del sistema."""
+        """Elimina un modelo no activo del sistema."""
         form = AdminActionForm()
         if not form.validate_on_submit():
             abort(400)
@@ -724,11 +724,11 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
         except ValueError as exc:
             flash(str(exc), "warning")
         except FileNotFoundError:
-            flash(_("El fold que intentas eliminar no existe."), "error")
+            flash(_("El modelo que intentas eliminar no existe."), "error")
         except OSError:
-            flash(_("No se ha podido eliminar el fold."), "error")
+            flash(_("No se ha podido eliminar el modelo."), "error")
         else:
-            flash(_("Fold eliminado correctamente."), "success")
+            flash(_("Modelo eliminado correctamente."), "success")
 
         return redirect(url_for("admin_folds.index"))
 

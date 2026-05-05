@@ -1537,7 +1537,7 @@ def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Fold renombrado correctamente." in html
+    assert "Modelo renombrado correctamente." in html
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
@@ -1664,7 +1664,7 @@ def test_admin_upload_rejects_existing_fold_name(app, client):
     )
 
     assert response.status_code == 200
-    assert "Ya existe otro fold con ese nombre." in response.get_data(
+    assert "Ya existe otro modelo con ese nombre." in response.get_data(
         as_text=True
     )
 
@@ -1750,7 +1750,7 @@ def test_admin_can_delete_non_active_fold(app, client):
     )
 
     assert response.status_code == 200
-    assert "Fold eliminado correctamente." in response.get_data(as_text=True)
+    assert "Modelo eliminado correctamente." in response.get_data(as_text=True)
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])

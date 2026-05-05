@@ -103,7 +103,7 @@ def write_fold_metadata(
     """Persiste metadatos opcionales de un fold en un sidecar JSON."""
     normalized_name = (fold_name or "").strip()
     if not is_valid_fold_name(normalized_name):
-        raise ValueError("El nombre del fold debe seguir el formato fold.N.")
+        raise ValueError("El nombre del modelo debe seguir el formato fold.N.")
 
     metadata_path = _metadata_path_for_fold_name(normalized_name, models_dir)
     metadata_path.write_text(
@@ -194,14 +194,14 @@ def set_active_fold_name(
     normalized_name = (fold_name or "").strip()
 
     if not is_valid_fold_name(normalized_name):
-        raise ValueError("El fold seleccionado no sigue el formato fold.N.")
+        raise ValueError("El modelo seleccionado no sigue el formato fold.N.")
 
     available_names = {
         fold["name"] for fold in list_fold_files(models_dir=models_dir)
     }
     if normalized_name not in available_names:
         raise FileNotFoundError(
-            "El fold seleccionado no existe en el directorio de modelos."
+            "El modelo seleccionado no existe en el directorio de modelos."
         )
 
     setting = db.session.get(AppSetting, _ACTIVE_FOLD_KEY)
@@ -224,7 +224,7 @@ def rename_fold_file(
     new_name = (new_name or "").strip()
 
     if not is_valid_fold_name(current_name):
-        raise ValueError("El fold actual no es válido.")
+        raise ValueError("El modelo actual no es válido.")
 
     if not is_valid_fold_name(new_name):
         raise ValueError("El nuevo nombre debe seguir el formato fold.N.")
@@ -237,10 +237,10 @@ def rename_fold_file(
     new_path = resolved_models_dir / new_name
 
     if not current_path.exists():
-        raise FileNotFoundError("El fold actual no existe.")
+        raise FileNotFoundError("El modelo actual no existe.")
 
     if new_path.exists():
-        raise FileExistsError("Ya existe otro fold con ese nombre.")
+        raise FileExistsError("Ya existe otro modelo con ese nombre.")
 
     active_before = get_active_fold_name(models_dir=resolved_models_dir)
     current_metadata_path = _metadata_path_for_fold_path(current_path)
@@ -276,7 +276,7 @@ def add_fold_file(
     normalized_name = (fold_name or "").strip()
 
     if not is_valid_fold_name(normalized_name):
-        raise ValueError("El nombre del fold debe seguir el formato fold.N.")
+        raise ValueError("El nombre del modelo debe seguir el formato fold.N.")
 
     if file_storage is None:
         raise ValueError("Selecciona un archivo de modelo.")
@@ -286,7 +286,7 @@ def add_fold_file(
 
     final_path = resolved_models_dir / normalized_name
     if final_path.exists():
-        raise FileExistsError("Ya existe otro fold con ese nombre.")
+        raise FileExistsError("Ya existe otro modelo con ese nombre.")
 
     temp_path = (
         resolved_models_dir

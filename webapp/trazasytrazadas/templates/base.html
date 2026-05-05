@@ -44,6 +44,13 @@ Versión: 0.1
     <!-- Drawer (DaisyUI) -->
     <div class="drawer">
       <input id="app-drawer" type="checkbox" class="drawer-toggle" />
+      {% set FLAG_FILES = {
+        "es": "img/flags/es.svg",
+        "en": "img/flags/gb.svg",
+        "fr": "img/flags/fr.svg",
+        "it": "img/flags/it.svg",
+        "de": "img/flags/de.svg"
+      } %}
       <!-- Contenido principal -->
       <div class="drawer-content min-h-screen flex flex-col relative z-10">
         <!-- Cabecera principal y selector de idioma. -->
@@ -73,66 +80,6 @@ Versión: 0.1
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm text-center">
                   {{ _("Trazas de Herbívoros") }}
                 </h1>
-              </div>
-              <!-- Selector de idioma a la derecha -->
-              <div class="absolute right-0 top-1/2 -translate-y-1/2">
-                {% set FLAG_FILES = {
-                  "es": "img/flags/es.svg",
-                  "en": "img/flags/gb.svg",
-                  "fr": "img/flags/fr.svg",
-                  "it": "img/flags/it.svg",
-                  "de": "img/flags/de.svg"
-                } %}
-                <div class="dropdown dropdown-end z-50">
-                  <label tabindex="0"
-                         class="btn btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10">
-                    <span class="inline-flex items-center gap-2">
-                      <span class="w-6 h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
-                        <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg') ) }}"
-                             alt="{{ LANGUAGES.get(current_lang, _('Idioma') ) }}"
-                             width="24"
-                             height="24"
-                             class="w-full h-full object-cover" />
-                      </span>
-                      <span class="hidden sm:inline">{{ LANGUAGES.get(current_lang, _('Idioma') ) }}</span>
-                      <svg xmlns="http://www.w3.org/2000/svg"
-                           viewBox="0 0 20 20"
-                           fill="currentColor"
-                           class="w-4 h-4 opacity-90">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
-                      </svg>
-                    </span>
-                  </label>
-                  <ul tabindex="0"
-                      class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
-                    <li class="menu-title">
-                      <span>{{ _("Idioma") }}</span>
-                    </li>
-                    {% for code, name in LANGUAGES.items() %}
-                      <li>
-                        <a href="{{ url_for('trazas.index', lang=code) }}"
-                           class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
-                          <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
-                            <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg') ) }}"
-                                 alt="{{ name }}"
-                                 width="28"
-                                 height="28"
-                                 class="w-full h-full object-cover" />
-                          </span>
-                          <span class="flex-1">{{ name }}</span>
-                          {% if code == current_lang %}
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 20 20"
-                                 fill="currentColor"
-                                 class="w-4 h-4 opacity-70">
-                              <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z" clip-rule="evenodd" />
-                            </svg>
-                          {% endif %}
-                        </a>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
               </div>
             </div>
           </div>
@@ -227,7 +174,60 @@ Versión: 0.1
         {% set nav_item_hover_class = "hover:bg-white/10" %}
         {% set nav_item_active_class = "bg-white/15 pointer-events-none" %}
         <aside class="w-80 min-h-full bg-primary text-primary-content shadow-xl flex flex-col">
-          <div class="px-5 py-5 font-black tracking-wide text-2xl border-b border-white/20 drop-shadow-sm">{{ _("Menú") }}</div>
+          <div class="flex items-center justify-between gap-3 px-5 py-5 border-b border-white/20">
+            <div class="font-black tracking-wide text-2xl drop-shadow-sm">{{ _("Menú") }}</div>
+            <div class="dropdown dropdown-end z-50">
+              <label tabindex="0"
+                     class="btn btn-xs sm:btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10"
+                     title="{{ _("Cambiar idioma") }}">
+                <span class="inline-flex items-center gap-2">
+                  <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
+                    <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg') ) }}"
+                         alt="{{ LANGUAGES.get(current_lang, _("Idioma") ) }}"
+                         width="24"
+                         height="24"
+                         class="w-full h-full object-cover" />
+                  </span>
+                  <span class="hidden sm:inline max-w-[5rem] truncate">{{ LANGUAGES.get(current_lang, _("Idioma") ) }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       viewBox="0 0 20 20"
+                       fill="currentColor"
+                       class="w-4 h-4 opacity-90">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </span>
+              </label>
+              <ul tabindex="0"
+                  class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
+                <li class="menu-title">
+                  <span>{{ _("Idioma") }}</span>
+                </li>
+                {% for code, name in LANGUAGES.items() %}
+                  <li>
+                    <a href="{{ url_for('trazas.index', lang=code) }}"
+                       class="flex items-center gap-3 {% if code == current_lang %}active{% endif %}">
+                      <span class="w-7 h-7 rounded-full bg-base-200 overflow-hidden">
+                        <img src="{{ url_for('static', filename=FLAG_FILES.get(code, 'img/flags/es.svg') ) }}"
+                             alt="{{ name }}"
+                             width="28"
+                             height="28"
+                             class="w-full h-full object-cover" />
+                      </span>
+                      <span class="flex-1">{{ name }}</span>
+                      {% if code == current_lang %}
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 20 20"
+                             fill="currentColor"
+                             class="w-4 h-4 opacity-70">
+                          <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.55a1 1 0 0 1-1.423-.004l-3.5-3.55a1 1 0 1 1 1.424-1.406l2.79 2.832 6.788-6.836a1 1 0 0 1 1.415 0Z" clip-rule="evenodd" />
+                        </svg>
+                      {% endif %}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
           <div class="flex-1 flex flex-col border-t border-white/10">
             <a href="{{ url_for("trazas.index") }}"
                class="{{ nav_item_class }} {{ nav_item_hover_class }} {% if is_home %}{{ nav_item_active_class }}{% endif %}"
