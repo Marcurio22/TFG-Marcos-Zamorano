@@ -1,8 +1,104 @@
 \capitulo{4}{Técnicas y herramientas}
 
-Este capítulo tiene como finalidad describir, de manera ordenada y argumentada, las técnicas metodológicas y las herramientas empleadas a lo largo del desarrollo del proyecto. Dado que un Trabajo Fin de Grado no persigue agotar todas las alternativas existentes, el objetivo de este apartado es destacar las decisiones más relevantes que han condicionado la implementación, exponiendo los criterios seguidos para seleccionar tecnologías, bibliotecas y recursos, justificando dichas elecciones en términos de mantenibilidad, productividad, rendimiento, reproducibilidad y viabilidad de uso.
+Este capítulo tiene como finalidad describir, de manera ordenada y argumentada, las técnicas metodológicas y las herramientas empleadas a lo largo del desarrollo del proyecto.
 
-Para ello, se presentan comparativas entre opciones representativas que podrían haber sido utilizadas en el sistema, señalando sus ventajas e inconvenientes en el contexto concreto del proyecto. En particular, se analizan decisiones relacionadas con el \textit{frontend}, la adquisición y explotación de datos geoespaciales y el soporte de persistencia y depuración durante el desarrollo, de modo que el lector disponga de una visión clara del razonamiento técnico que sustenta la solución final.
+\section{Técnicas metodológicas}
+
+A lo largo del desarrollo se han aplicado técnicas orientadas a organizar el trabajo, mantener consistencia en el código y facilitar la evolución incremental del prototipo. En concreto, se ha adoptado una metodología de planificación inspirada en \textit{Scrum}, se han seguido convenciones de estilo para mejorar la legibilidad y mantenibilidad del código, y se ha aplicado un enfoque sistemático de construcción de interfaz mediante un sistema de utilidades, con el fin de asegurar coherencia visual sin introducir deuda técnica innecesaria.
+
+\subsection{Planificación iterativa basada en Scrum}
+
+La planificación se ha estructurado en iteraciones, denominadas \textit{sprints}, con el objetivo de descomponer el alcance del proyecto en tareas abordables y reducir el riesgo de bloqueo en fases finales. Para cada iteración se han definido objetivos concretos, priorizados en función del valor aportado al sistema y de sus dependencias técnicas, manteniendo una visión continua del trabajo pendiente mediante un \textit{backlog}. Este enfoque ha permitido combinar desarrollo funcional y redacción de memoria de forma coordinada, incorporando revisiones periódicas del avance y ajustes razonables cuando se detectaban desajustes entre estimación y esfuerzo real.
+
+\subsection{Convenciones de estilo y guía PEP8}
+
+Para asegurar consistencia y facilitar la revisión del código, se han seguido convenciones de estilo alineadas con PEP8 en los módulos Python del proyecto. Esta decisión contribuye a que el código sea más homogéneo, reduce fricción al introducir nuevas funcionalidades y mejora la mantenibilidad del repositorio, especialmente en zonas críticas como la gestión de rutas, la persistencia de resultados y la integración del \textit{pipeline} de inferencia. Además, favorece la detección temprana de errores comunes y simplifica la colaboración y supervisión del proyecto por parte de terceros.
+
+\subsection{Diseño de interfaz con Tailwind CSS y DaisyUI}
+
+El diseño de la interfaz se ha abordado mediante un enfoque basado en utilidades con \textit{Tailwind CSS}, complementado con \textit{DaisyUI} como capa de componentes. Este planteamiento permite construir vistas consistentes a partir de clases de bajo nivel, manteniendo un control fino sobre espaciados, tipografía y jerarquía visual, y evitando el coste de sobrescrituras frecuentes asociado a estilos rígidos. En la práctica, el uso de un sistema de utilidades favorece la escalabilidad del \textit{frontend}, ya que la coherencia visual emerge de patrones reutilizables y de una configuración centralizada, lo que resulta especialmente útil en una aplicación con pantallas heterogéneas, como procesamiento de imágenes, visor cartográfico y paneles de administración.
+
+\subsection{Internacionalización e independencia del idioma}
+
+El sistema se ha diseñado con capacidad de internacionalización, desacoplando los textos visibles del idioma concreto mediante el uso de catálogos de traducción. Esta técnica permite que la aplicación sea neutral desde el punto de vista lingüístico, evitando duplicidad de código y facilitando añadir nuevos idiomas sin modificar la lógica principal. En el caso del contenido dinámico generado en cliente, se sigue una estrategia consistente para que los textos sigan siendo localizables y no queden incrustados de manera rígida en el \textit{frontend}.
+
+\subsection{Gestión de dependencias, reproducibilidad y calidad}
+
+Para garantizar reproducibilidad, el entorno de ejecución se define mediante un fichero de dependencias versionadas y un entorno aislado de Python. Esta decisión reduce problemas derivados de incompatibilidades entre versiones, facilita replicar el entorno de desarrollo y estabiliza el despliegue. En paralelo, se siguen criterios de estilo y organización del código, manteniendo convenciones consistentes y promoviendo cambios incrementales. Finalmente, el proyecto incorpora una estrategia de pruebas automatizadas que permite detectar regresiones en funcionalidades críticas, especialmente en aquellas que integran inferencia, persistencia y comunicación cliente--servidor.
+
+\section{Herramientas y tecnologías empleadas}
+
+En esta sección se describen las herramientas principales utilizadas para implementar el sistema, agrupadas según su función dentro del \textit{stack}. La finalidad no es enumerar exhaustivamente cada dependencia, sino destacar aquellas que han sido determinantes para construir la aplicación, mantener un desarrollo sostenible y asegurar reproducibilidad.
+
+\subsection{Entorno de ejecución y dependencias}
+
+\begin{itemize}
+	\item \textbf{Python:} lenguaje base del proyecto.
+	\item \textbf{\texttt{pip} y \texttt{requirements.txt}:} instalación y fijación de dependencias para reproducir el entorno.
+	\item \textbf{Entorno virtual y \textit{conda}:} mecanismos de aislamiento del entorno, empleados para evitar colisiones de dependencias y estabilizar la ejecución.
+\end{itemize}
+
+\subsection{Backend y capa web}
+
+\begin{itemize}
+	\item \textbf{Flask:} \textit{microframework} utilizado para implementar el servidor, rutas y lógica de aplicación.
+	\item \textbf{Jinja2:} motor de plantillas para renderizado del HTML en servidor.
+	\item \textbf{Werkzeug:} utilidades WSGI y soporte de infraestructura del ecosistema Flask.
+	\item \textbf{Flask-Login:} gestión de autenticación, sesión y permisos por rol.
+	\item \textbf{Flask-WTF y WTForms:} formularios y validación robusta de entradas.
+	\item \textbf{Flask-Babel y Babel:} internacionalización y localización de la interfaz.
+	\item \textbf{Flask-Admin:} soporte para vistas y operaciones de administración.
+\end{itemize}
+
+\subsection{Persistencia y acceso a datos}
+
+\begin{itemize}
+	\item \textbf{SQLite:} base de datos embebida utilizada para persistencia durante el desarrollo.
+	\item \textbf{SQLAlchemy y Flask-SQLAlchemy:} capa ORM para desacoplar el acceso a datos y facilitar mantenibilidad.
+\end{itemize}
+
+\subsection{Inferencia, modelos y procesamiento de imagen}
+
+\begin{itemize}
+	\item \textbf{PyTorch:} marco principal para ejecutar el modelo de segmentación en inferencia.
+	\item \textbf{\texttt{pickle}:} mecanismo de deserialización para modelos heredados.
+	\item \textbf{\texttt{segmentation-models-pytorch}:} soporte para arquitecturas y componentes de segmentación.
+	\item \textbf{\texttt{timm}:} catálogo de \textit{backbones} y modelos preentrenados empleados como codificadores.
+	\item \textbf{\texttt{safetensors}:} formato seguro y eficiente para el almacenamiento y carga de pesos de modelos cuando procede.
+	\item \textbf{Jupyter Notebook:} entorno utilizado para explorar el \textit{pipeline} original, replicar inferencias y validar resultados antes de integrarlos en la aplicación.
+	\item \textbf{NumPy y Pillow:} utilidades para manipulación de arrays y lectura o conversión de imágenes.
+\end{itemize}
+
+\subsection{Frontend, estilos y experiencia de usuario}
+
+\begin{itemize}
+	\item \textbf{HTML5, CSS y JavaScript:} tecnologías base del \textit{frontend}.
+	\item \textbf{Tailwind CSS:} \textit{framework} de utilidades empleado para el diseño y la composición visual.
+	\item \textbf{DaisyUI:} extensión basada en componentes sobre Tailwind, utilizada para acelerar la construcción de elementos recurrentes manteniendo coherencia.
+\end{itemize}
+
+\subsection{Cartografía y datos geoespaciales}
+
+\begin{itemize}
+	\item \textbf{Leaflet:} biblioteca de mapas en cliente utilizada para el visor interactivo.
+	\item \textbf{OpenStreetMap:} mapa base de referencia para navegación e interacción.
+	\item \textbf{PNOA mediante servicios WMS:} fuente de ortofotografía de alta resolución utilizada para visualización y obtención de recortes.
+\end{itemize}
+
+\subsection{Pruebas, diagramación y documentación}
+
+\begin{itemize}
+	\item \textbf{pytest:} \textit{framework} de pruebas automatizadas para reducir regresiones.
+	\item \textbf{Git y GitHub:} control de versiones y gestión del repositorio.
+	\item \textbf{Visual Studio Code:} editor principal de desarrollo.
+	\item \textbf{Diagrams.net (Draw.io):} herramienta empleada para la elaboración de diagramas de arquitectura y flujo.
+	\item \textbf{\LaTeX{}, \TeX{}Studio y MiK\TeX{} Console:} herramientas utilizadas para redactar, compilar y gestionar la memoria y sus dependencias tipográficas.
+\end{itemize}
+
+\subsection{Gestión del proyecto}
+\begin{itemize}
+	\item \textbf{Zube.io:} herramienta utilizada para gestionar el \textit{backlog} y organizar las tareas por \textit{sprints}, facilitando el seguimiento del avance y la priorización del trabajo.
+\end{itemize}
 
 \subsection{Comparativa entre Bootstrap y Tailwind CSS}
 

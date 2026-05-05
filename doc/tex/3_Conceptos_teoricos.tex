@@ -316,14 +316,14 @@ Adicionalmente, la evaluación puede formularse en términos de la matriz de con
 
 En esta segmentación binaria, la clase positiva corresponde a píxeles pertenecientes a la traza de herbivoría, mientras que la clase negativa representa el suelo sin traza, que he denominado como fondo.
 
-En la comparación realizada entre rutas de inferencia, las métricas de solapamiento se calculan entre las máscaras generadas por \texttt{pickle} y por \textit{PyTorch/TorchScript}, sin emplear anotación externa~\cite{paszke2019pytorch}.
+En la comparación realizada entre rutas de inferencia, las métricas de solapamiento se calculan entre la máscara obtenida al cargar el modelo mediante \texttt{pickle} y la adquirida al ejecutar la versión exportada a \textit{TorchScript}, sin emplear anotación externa~\cite{paszke2019pytorch}.
 
 \subsubsection{Intersección sobre la Unión (IoU)}
 La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU) mide el solapamiento relativo entre dos máscaras binarias. En esta comparativa se define como:
 \begin{equation}
 	\mathrm{IoU} = \frac{|M_{\text{pickle}} \cap M_{\text{torch}}|}{|M_{\text{pickle}} \cup M_{\text{torch}}|}
 \end{equation}
-donde \(M_{\text{pickle}}\) es la máscara generada por el modelo cargado con \texttt{pickle} y \(M_{\text{torch}}\) la máscara generada por la ruta \textit{PyTorch/TorchScript}. Un valor cercano a uno indica una equivalencia espacial alta, mientras que valores menores reflejan discrepancias localizadas~\cite{minaee2022segmentationSurvey,Dimitrovski2024,TahaHanbury2015}.
+donde \(M_{\text{pickle}}\) es la máscara obtenida por la ruta de inferencia que carga el modelo mediante \texttt{pickle} y \(M_{\text{torch}}\) la máscara generada por la ruta \textit{PyTorch/TorchScript}. Un valor cercano a uno indica una equivalencia espacial alta, mientras que valores menores reflejan discrepancias localizadas~\cite{minaee2022segmentationSurvey,Dimitrovski2024,TahaHanbury2015}.
 
 Desde un punto de vista geométrico, esta comparación puede interpretarse como el solapamiento entre ambas máscaras, tal y como se ilustra en la Figura~\ref{fig:iou-venn}.
 
@@ -340,7 +340,7 @@ Desde un punto de vista geométrico, esta comparación puede interpretarse como 
 			\node at (0.7,0) {$\cap$};
 		\end{scope}
 	\end{tikzpicture}
-	\caption{Interpretación geométrica de IoU como solapamiento entre las máscaras generadas por \texttt{pickle} y por \textit{PyTorch/TorchScript}.}
+	\caption{Interpretación geométrica de IoU como solapamiento entre la máscara obtenida mediante la ruta de carga con \texttt{pickle} y la máscara obtenida mediante la ruta \textit{TorchScript}.}
 	\label{fig:iou-venn}
 \end{figure}
 
