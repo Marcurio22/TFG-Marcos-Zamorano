@@ -31,9 +31,8 @@ from trazasytrazadas.collection_store import (
 from trazasytrazadas.db import (
     _reassign_legacy_parcels_to_configured_user,
     db,
-    get_db,
 )
-from trazasytrazadas.models import Usuario
+from trazasytrazadas.models import Foto, Parcela, Usuario
 
 
 @pytest.fixture(autouse=True)
@@ -181,21 +180,17 @@ def _mark_photo_completed_with_traces(
         traces = {"xs": [1, 2, 3], "ys": [4, 5, 6]}
 
     with app.app_context():
-        database = get_db()
-        photo_row = database.execute(
-            """
-            SELECT foto_id, filename
-            FROM foto
-            WHERE parcela_id = ?
-              AND row_index = ?
-              AND col_index = ?
-            """,
-            (parcel_id, row_index, col_index),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto).where(
+                Foto.parcela_id == parcel_id,
+                Foto.row_index == row_index,
+                Foto.col_index == col_index,
+            )
+        ).scalar_one_or_none()
 
-        assert photo_row is not None
+        assert photo is not None
 
-        filename_root, _extension = os.path.splitext(photo_row["filename"])
+        filename_root, _extension = os.path.splitext(photo.filename)
         relative_path = (
             f"parcelas/{parcel_id}/traces/{filename_root}_traces.json"
         )
@@ -208,21 +203,13 @@ def _mark_photo_completed_with_traces(
         with open(absolute_path, "w", encoding="utf-8") as traces_file:
             json.dump(traces, traces_file, ensure_ascii=False, indent=2)
 
-        database.execute(
-            """
-            UPDATE foto
-            SET
-                estado = 'completed',
-                trazas = 1,
-                ruta_trazas = ?
-            WHERE foto_id = ?
-            """,
-            (relative_path, photo_row["foto_id"]),
-        )
-        database.commit()
+        photo.estado = "completed"
+        photo.trazas = 1
+        photo.ruta_trazas = relative_path
+        db.session.commit()
         refresh_parcel_status(parcel_id)
 
-        return int(photo_row["foto_id"]), photo_row["filename"], traces
+        return int(photo.foto_id), photo.filename, traces
 
 
 def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
@@ -243,19 +230,10 @@ def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
     )
 
     with app.test_request_context("/visor"):
-        database = get_db()
-        owner_row = database.execute(
-            """
-            SELECT usuario_id
-            FROM parcela
-            WHERE parcela_id = ?
-            """,
-            (parcel_id,),
-        ).fetchone()
+        parcel = db.session.get(Parcela, parcel_id)
+        assert parcel is not None
 
-        assert owner_row is not None
-
-        owner = db.session.get(Usuario, int(owner_row["usuario_id"]))
+        owner = db.session.get(Usuario, int(parcel.usuario_id))
         assert owner is not None
 
         login_user(owner)
@@ -287,14 +265,14 @@ def test_grid_plan_registers_zone_in_sqlite(app, client, monkeypatch):
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        parcel_count = database.execute(
-            "SELECT COUNT(*) AS total FROM parcela"
-        ).fetchone()["total"]
-        photo_count = database.execute(
-            "SELECT COUNT(*) AS total FROM foto WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()["total"]
+        parcel_count = db.session.execute(
+            db.select(db.func.count(Parcela.parcela_id))
+        ).scalar_one()
+        photo_count = db.session.execute(
+            db.select(db.func.count(Foto.foto_id)).where(
+                Foto.parcela_id == parcel_id
+            )
+        ).scalar_one()
 
     assert parcel_count == 1
     assert photo_count == 2
@@ -348,15 +326,16 @@ def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):
         "utf-8") in response.data
 
     with app.app_context():
-        database = get_db()
-        parcel_count = database.execute(
-            "SELECT COUNT(*) AS total FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()["total"]
-        photo_count = database.execute(
-            "SELECT COUNT(*) AS total FROM foto WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()["total"]
+        parcel_count = db.session.execute(
+            db.select(db.func.count(Parcela.parcela_id)).where(
+                Parcela.parcela_id == parcel_id
+            )
+        ).scalar_one()
+        photo_count = db.session.execute(
+            db.select(db.func.count(Foto.foto_id)).where(
+                Foto.parcela_id == parcel_id
+            )
+        ).scalar_one()
 
     assert parcel_count == 0
     assert photo_count == 0
@@ -423,28 +402,24 @@ def test_collection_zone_status_endpoint_returns_photo_states(
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        database.execute(
-            """
-            UPDATE foto
-            SET estado = 'processing'
-            WHERE parcela_id = ?
-              AND row_index = 1
-              AND col_index = 1
-            """,
-            (parcel_id,),
-        )
-        database.execute(
-            """
-            UPDATE foto
-            SET estado = 'completed', trazas = 1
-            WHERE parcela_id = ?
-              AND row_index = 1
-              AND col_index = 2
-            """,
-            (parcel_id,),
-        )
-        database.commit()
+        processing_photo = db.session.execute(
+            db.select(Foto).where(
+                Foto.parcela_id == parcel_id,
+                Foto.row_index == 1,
+                Foto.col_index == 1,
+            )
+        ).scalar_one()
+        completed_photo = db.session.execute(
+            db.select(Foto).where(
+                Foto.parcela_id == parcel_id,
+                Foto.row_index == 1,
+                Foto.col_index == 2,
+            )
+        ).scalar_one()
+        processing_photo.estado = "processing"
+        completed_photo.estado = "completed"
+        completed_photo.trazas = 1
+        db.session.commit()
         refresh_parcel_status(parcel_id)
 
     response = client.get(f"/coleccion/{parcel_id}/status")
@@ -466,33 +441,19 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        photo_row = database.execute(
-            """
-            SELECT foto_id
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY foto_id ASC
-            LIMIT 1
-            """,
-            (parcel_id,),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.foto_id.asc())
+            .limit(1)
+        ).scalar_one()
 
-        photo_id = int(photo_row["foto_id"])
-
-        database.execute(
-            """
-            UPDATE foto
-            SET
-                estado = 'failed',
-                error_message = 'boom',
-                started_at = CURRENT_TIMESTAMP,
-                finished_at = CURRENT_TIMESTAMP
-            WHERE foto_id = ?
-            """,
-            (photo_id,),
-        )
-        database.commit()
+        photo_id = int(photo.foto_id)
+        photo.estado = "failed"
+        photo.error_message = "boom"
+        photo.started_at = "2026-01-01 00:00:00"
+        photo.finished_at = "2026-01-01 00:00:00"
+        db.session.commit()
         refresh_parcel_status(parcel_id)
 
     response = client.post(
@@ -507,21 +468,13 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     ) in response.data
 
     with app.app_context():
-        database = get_db()
-        row = database.execute(
-            """
-            SELECT estado, error_message, started_at, finished_at, ruta_trazas
-            FROM foto
-            WHERE foto_id = ?
-            """,
-            (photo_id,),
-        ).fetchone()
+        photo = db.session.get(Foto, photo_id)
 
-        assert row["estado"] == "pending"
-        assert row["error_message"] is None
-        assert row["started_at"] is None
-        assert row["finished_at"] is None
-        assert row["ruta_trazas"] is None
+        assert photo.estado == "pending"
+        assert photo.error_message is None
+        assert photo.started_at is None
+        assert photo.finished_at is None
+        assert photo.ruta_trazas is None
 
 
 def test_collection_zone_rename_updates_db_and_gallery_title(
@@ -674,26 +627,21 @@ def test_collection_zone_retry_pending_only_skips_completed(
     assert response.status_code == 200
 
     with app.app_context():
-        database = get_db()
-        rows = database.execute(
-            """
-            SELECT foto_id, estado, error_message, ruta_trazas
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY row_index ASC, col_index ASC
-            """,
-            (parcel_id,),
-        ).fetchall()
+        rows = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.row_index.asc(), Foto.col_index.asc())
+        ).scalars().all()
 
         assert len(rows) == 2
 
-        assert rows[0]["foto_id"] == completed_photo_id
-        assert rows[0]["estado"] == "completed"
-        assert rows[0]["ruta_trazas"] is not None
+        assert rows[0].foto_id == completed_photo_id
+        assert rows[0].estado == "completed"
+        assert rows[0].ruta_trazas is not None
 
-        assert rows[1]["estado"] == "pending"
-        assert rows[1]["error_message"] is None
-        assert rows[1]["ruta_trazas"] is None
+        assert rows[1].estado == "pending"
+        assert rows[1].error_message is None
+        assert rows[1].ruta_trazas is None
 
 
 def test_collection_zone_retry_failed_only_skips_completed(
@@ -719,20 +667,12 @@ def test_collection_zone_retry_failed_only_skips_completed(
     )
 
     with app.app_context():
-        database = get_db()
-        database.execute(
-            """
-            UPDATE foto
-            SET
-                estado = 'failed',
-                error_message = 'boom',
-                started_at = CURRENT_TIMESTAMP,
-                finished_at = CURRENT_TIMESTAMP
-            WHERE foto_id = ?
-            """,
-            (failed_photo_id,),
-        )
-        database.commit()
+        failed_photo = db.session.get(Foto, failed_photo_id)
+        failed_photo.estado = "failed"
+        failed_photo.error_message = "boom"
+        failed_photo.started_at = "2026-01-01 00:00:00"
+        failed_photo.finished_at = "2026-01-01 00:00:00"
+        db.session.commit()
         refresh_parcel_status(parcel_id)
 
         failed_filename_root, _extension = os.path.splitext(failed_filename)
@@ -753,30 +693,24 @@ def test_collection_zone_retry_failed_only_skips_completed(
     assert response.status_code == 200
 
     with app.app_context():
-        database = get_db()
-        rows = database.execute(
-            """
-            SELECT foto_id, estado, error_message, started_at,
-                finished_at, ruta_trazas
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY row_index ASC, col_index ASC
-            """,
-            (parcel_id,),
-        ).fetchall()
+        rows = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.row_index.asc(), Foto.col_index.asc())
+        ).scalars().all()
 
         assert len(rows) == 2
 
-        assert rows[0]["foto_id"] == completed_photo_id
-        assert rows[0]["estado"] == "completed"
-        assert rows[0]["ruta_trazas"] is not None
+        assert rows[0].foto_id == completed_photo_id
+        assert rows[0].estado == "completed"
+        assert rows[0].ruta_trazas is not None
 
-        assert rows[1]["foto_id"] == failed_photo_id
-        assert rows[1]["estado"] == "pending"
-        assert rows[1]["error_message"] is None
-        assert rows[1]["started_at"] is None
-        assert rows[1]["finished_at"] is None
-        assert rows[1]["ruta_trazas"] is None
+        assert rows[1].foto_id == failed_photo_id
+        assert rows[1].estado == "pending"
+        assert rows[1].error_message is None
+        assert rows[1].started_at is None
+        assert rows[1].finished_at is None
+        assert rows[1].ruta_trazas is None
 
         failed_filename_root, _extension = os.path.splitext(failed_filename)
         failed_trace_path = os.path.join(
@@ -851,33 +785,19 @@ def test_collection_photo_retry_triggers_worker(app, client, monkeypatch):
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        photo_row = database.execute(
-            """
-            SELECT foto_id
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY foto_id ASC
-            LIMIT 1
-            """,
-            (parcel_id,),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.foto_id.asc())
+            .limit(1)
+        ).scalar_one()
 
-        photo_id = int(photo_row["foto_id"])
-
-        database.execute(
-            """
-            UPDATE foto
-            SET
-                estado = 'failed',
-                error_message = 'boom',
-                started_at = CURRENT_TIMESTAMP,
-                finished_at = CURRENT_TIMESTAMP
-            WHERE foto_id = ?
-            """,
-            (photo_id,),
-        )
-        database.commit()
+        photo_id = int(photo.foto_id)
+        photo.estado = "failed"
+        photo.error_message = "boom"
+        photo.started_at = "2026-01-01 00:00:00"
+        photo.finished_at = "2026-01-01 00:00:00"
+        db.session.commit()
         refresh_parcel_status(parcel_id)
 
     triggered = []
@@ -918,11 +838,9 @@ def test_grid_plan_registers_zone_for_authenticated_user(
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        owner_id = database.execute(
-            "SELECT usuario_id FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()["usuario_id"]
+        parcel = db.session.get(Parcela, parcel_id)
+        assert parcel is not None
+        owner_id = parcel.usuario_id
 
     assert owner_id == user_id
 
@@ -955,54 +873,32 @@ def test_anonymous_user_cannot_create_zone_from_visor(client):
 def test_legacy_parcels_are_reassigned_to_configured_user(app):
     """Las parcelas legacy del usuario técnico se reasignan a Vindi22."""
     with app.app_context():
-        database = get_db()
-
-        database.execute(
-            """
-            INSERT INTO parcela (
-                usuario_id,
-                tamano_metros,
-                pto_origen_lat,
-                pto_origen_lng,
-                pto_fin_lat,
-                pto_fin_lng,
-                bbox_json,
-                source_id,
-                source_label,
-                requested_resolution,
-                actual_resolution,
-                tile_width,
-                tile_height,
-                estado,
-                nombre_coleccion
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                1,
-                100.0,
-                40.0,
-                -4.0,
-                40.1,
-                -3.8,
-                json.dumps(
-                    {
-                        "south": 40.0,
-                        "west": -4.0,
-                        "north": 40.1,
-                        "east": -3.8,
-                    }
-                ),
-                "pnoa2023",
-                "PNOA 2023",
-                0.25,
-                0.25,
-                1024,
-                640,
-                "pending",
-                "Legacy zone",
+        legacy_parcel = Parcela(
+            usuario_id=1,
+            tamano_metros=100.0,
+            pto_origen_lat=40.0,
+            pto_origen_lng=-4.0,
+            pto_fin_lat=40.1,
+            pto_fin_lng=-3.8,
+            bbox_json=json.dumps(
+                {
+                    "south": 40.0,
+                    "west": -4.0,
+                    "north": 40.1,
+                    "east": -3.8,
+                }
             ),
+            source_id="pnoa2023",
+            source_label="PNOA 2023",
+            requested_resolution=0.25,
+            actual_resolution=0.25,
+            tile_width=1024,
+            tile_height=640,
+            estado="pending",
+            nombre_coleccion="Legacy zone",
         )
-        database.commit()
+        db.session.add(legacy_parcel)
+        db.session.commit()
 
         user_id = _create_user(
             app,
@@ -1012,14 +908,10 @@ def test_legacy_parcels_are_reassigned_to_configured_user(app):
 
         _reassign_legacy_parcels_to_configured_user()
 
-        owner_id = database.execute(
-            """
-            SELECT usuario_id
-            FROM parcela
-            WHERE nombre_coleccion = ?
-            """,
-            ("Legacy zone",),
-        ).fetchone()["usuario_id"]
+        parcel = db.session.execute(
+            db.select(Parcela).filter_by(nombre_coleccion="Legacy zone")
+        ).scalar_one()
+        owner_id = parcel.usuario_id
 
     assert owner_id == user_id
 

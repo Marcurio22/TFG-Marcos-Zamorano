@@ -21,7 +21,8 @@ from trazasytrazadas.collection_store import (
     get_storage_abspath,
     refresh_parcel_status
 )
-from trazasytrazadas.db import get_db
+from trazasytrazadas.db import db
+from trazasytrazadas.models import Foto, Parcela
 
 
 @pytest.fixture(autouse=True)
@@ -139,21 +140,16 @@ def test_grid_plan_registers_pending_tiles_without_local_download(
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        row = database.execute(
-            """
-            SELECT ruta_foto, estado, trazas
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY foto_id ASC
-            LIMIT 1
-            """,
-            (parcel_id,),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.foto_id.asc())
+            .limit(1)
+        ).scalar_one()
 
-        assert row["estado"] == "pending"
-        assert row["trazas"] == 0
-        assert row["ruta_foto"].startswith("/visor/download/tile")
+        assert photo.estado == "pending"
+        assert photo.trazas == 0
+        assert photo.ruta_foto.startswith("/visor/download/tile")
 
 
 def test_traces_worker_processes_pending_photos(app, client, monkeypatch):
@@ -172,30 +168,22 @@ def test_traces_worker_processes_pending_photos(app, client, monkeypatch):
     assert result.exit_code == 0
 
     with app.app_context():
-        database = get_db()
-        photo_row = database.execute(
-            """
-            SELECT trazas, estado, ruta_foto, ruta_trazas
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY foto_id ASC
-            LIMIT 1
-            """,
-            (parcel_id,),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.foto_id.asc())
+            .limit(1)
+        ).scalar_one()
 
-        parcel_row = database.execute(
-            "SELECT estado FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()
+        parcel = db.session.get(Parcela, parcel_id)
 
-        trace_absolute_path = get_storage_abspath(photo_row["ruta_trazas"])
-        assert photo_row["trazas"] == 1
-        assert photo_row["estado"] == "completed"
+        trace_absolute_path = get_storage_abspath(photo.ruta_trazas)
+        assert photo.trazas == 1
+        assert photo.estado == "completed"
         assert trace_absolute_path is not None
         assert os.path.exists(trace_absolute_path)
-        assert parcel_row["estado"] == "completed"
-        image_absolute_path = get_storage_abspath(photo_row["ruta_foto"])
+        assert parcel.estado == "completed"
+        image_absolute_path = get_storage_abspath(photo.ruta_foto)
         assert image_absolute_path is not None
         assert os.path.exists(image_absolute_path)
 
@@ -219,27 +207,19 @@ def test_traces_worker_marks_failed_photos(app, client, monkeypatch):
     assert result.exit_code == 0
 
     with app.app_context():
-        database = get_db()
-        photo_row = database.execute(
-            """
-            SELECT estado, error_message, trazas
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY foto_id ASC
-            LIMIT 1
-            """,
-            (parcel_id,),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.foto_id.asc())
+            .limit(1)
+        ).scalar_one()
 
-        parcel_row = database.execute(
-            "SELECT estado FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
-        ).fetchone()
+        parcel = db.session.get(Parcela, parcel_id)
 
-        assert photo_row["estado"] == "failed"
-        assert "segmentation failed" in (photo_row["error_message"] or "")
-        assert photo_row["trazas"] == 0
-        assert parcel_row["estado"] == "failed"
+        assert photo.estado == "failed"
+        assert "segmentation failed" in (photo.error_message or "")
+        assert photo.trazas == 0
+        assert parcel.estado == "failed"
 
 
 def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
@@ -247,33 +227,19 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     parcel_id = _register_zone(client, monkeypatch)
 
     with app.app_context():
-        database = get_db()
-        photo_row = database.execute(
-            """
-            SELECT foto_id
-            FROM foto
-            WHERE parcela_id = ?
-            ORDER BY foto_id ASC
-            LIMIT 1
-            """,
-            (parcel_id,),
-        ).fetchone()
+        photo = db.session.execute(
+            db.select(Foto)
+            .where(Foto.parcela_id == parcel_id)
+            .order_by(Foto.foto_id.asc())
+            .limit(1)
+        ).scalar_one()
 
-        photo_id = int(photo_row["foto_id"])
-
-        database.execute(
-            """
-            UPDATE foto
-            SET
-                estado = 'failed',
-                error_message = 'boom',
-                started_at = CURRENT_TIMESTAMP,
-                finished_at = CURRENT_TIMESTAMP
-            WHERE foto_id = ?
-            """,
-            (photo_id,),
-        )
-        database.commit()
+        photo_id = int(photo.foto_id)
+        photo.estado = "failed"
+        photo.error_message = "boom"
+        photo.started_at = "2026-01-01 00:00:00"
+        photo.finished_at = "2026-01-01 00:00:00"
+        db.session.commit()
         refresh_parcel_status(parcel_id)
 
     response = client.post(
@@ -288,21 +254,13 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     ) in response.data
 
     with app.app_context():
-        database = get_db()
-        row = database.execute(
-            """
-            SELECT estado, error_message, started_at, finished_at, ruta_trazas
-            FROM foto
-            WHERE foto_id = ?
-            """,
-            (photo_id,),
-        ).fetchone()
+        photo = db.session.get(Foto, photo_id)
 
-        assert row["estado"] == "pending"
-        assert row["error_message"] is None
-        assert row["started_at"] is None
-        assert row["finished_at"] is None
-        assert row["ruta_trazas"] is None
+        assert photo.estado == "pending"
+        assert photo.error_message is None
+        assert photo.started_at is None
+        assert photo.finished_at is None
+        assert photo.ruta_trazas is None
 
 
 def test_trigger_trace_worker_does_not_start_when_app_is_testing(

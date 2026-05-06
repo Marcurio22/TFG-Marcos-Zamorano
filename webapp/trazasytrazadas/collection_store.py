@@ -1,9 +1,10 @@
 """
 ===============================================================================
-Acceso a datos para la colección de imágenes basada en SQLite.
+Acceso a datos para la colección de imágenes mediante SQLAlchemy.
 
-Este módulo encapsula la persistencia de parcelas y fotos para que
-las rutas de Flask y el visor reutilicen una única capa de acceso a datos.
+Este módulo encapsula la persistencia de parcelas y fotos para que las rutas de
+Flask, el visor y el worker reutilicen una única capa de acceso a datos. Todas
+las operaciones de lectura y escritura pasan por los modelos SQLAlchemy.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -14,17 +15,19 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timedelta, timezone
 from math import ceil
 import shutil
 from urllib.parse import urlparse
-from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from flask import current_app, has_request_context, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
+from sqlalchemy import String, cast, func, or_, select
 
-from .db import get_db
+from .db import db
+from .models import Foto, Parcela
 
 DEFAULT_SYSTEM_USER_ID = 1
 ALLOWED_ZONE_STATUSES = {"pending", "processing", "completed", "failed"}
@@ -35,9 +38,9 @@ class ZoneDeleteError(RuntimeError):
     """Error controlado al eliminar una zona de la colección."""
 
 
-def _row_to_dict(row) -> dict:
-    """Convierte una fila sqlite3.Row en un diccionario estándar."""
-    return dict(row) if row is not None else {}
+def _now_db_string() -> str:
+    """Devuelve un timestamp compatible con los valores SQLite existentes."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _json_loads(value, default):
@@ -94,6 +97,73 @@ def _zone_display_name_from_row(row: dict) -> str:
     )
 
 
+def _parcel_to_dict(parcel: Parcela) -> dict:
+    """Convierte una instancia Parcela en el contrato dict existente."""
+    return {
+        "parcela_id": parcel.parcela_id,
+        "nombre_coleccion": parcel.nombre_coleccion,
+        "usuario_id": parcel.usuario_id,
+        "tamano_metros": parcel.tamano_metros,
+        "pto_origen_lat": parcel.pto_origen_lat,
+        "pto_origen_lng": parcel.pto_origen_lng,
+        "pto_fin_lat": parcel.pto_fin_lat,
+        "pto_fin_lng": parcel.pto_fin_lng,
+        "fecha": parcel.fecha,
+        "bbox_json": parcel.bbox_json,
+        "source_id": parcel.source_id,
+        "source_label": parcel.source_label,
+        "requested_resolution": parcel.requested_resolution,
+        "actual_resolution": parcel.actual_resolution,
+        "tile_width": parcel.tile_width,
+        "tile_height": parcel.tile_height,
+        "estado": parcel.estado,
+        "created_at": parcel.created_at,
+        "updated_at": parcel.updated_at,
+    }
+
+
+def _photo_to_dict(photo: Foto) -> dict:
+    """Convierte una instancia Foto en el contrato dict existente."""
+    return {
+        "foto_id": photo.foto_id,
+        "parcela_id": photo.parcela_id,
+        "fecha_foto": photo.fecha_foto,
+        "resolucion_valor": photo.resolucion_valor,
+        "resolucion_unidad": photo.resolucion_unidad,
+        "longitud": photo.longitud,
+        "latitud": photo.latitud,
+        "ruta_foto": photo.ruta_foto,
+        "ruta_trazas": photo.ruta_trazas,
+        "trazas": photo.trazas,
+        "estado": photo.estado,
+        "error_message": photo.error_message,
+        "started_at": photo.started_at,
+        "finished_at": photo.finished_at,
+        "attempt_count": photo.attempt_count,
+        "tile_id": photo.tile_id,
+        "row_index": photo.row_index,
+        "col_index": photo.col_index,
+        "filename": photo.filename,
+        "width": photo.width,
+        "height": photo.height,
+        "bbox3857_json": photo.bbox3857_json,
+        "bounds_json": photo.bounds_json,
+        "source_id": photo.source_id,
+        "created_at": photo.created_at,
+    }
+
+
+def _photo_contract_from_model(photo: Foto) -> dict:
+    """Devuelve una foto con JSONs deserializados y campos calculados."""
+    item = _photo_to_dict(photo)
+    item["bbox3857"] = _json_loads(item.pop("bbox3857_json", "{}"), {})
+    item["bounds"] = _json_loads(item.pop("bounds_json", "{}"), {})
+    item["trace_status"] = _photo_trace_status(item)
+    item["is_stale"] = _photo_is_stale(item)
+    item["can_retry"] = _photo_can_retry(item)
+    return item
+
+
 def photo_retry_is_enabled(photo: dict) -> bool:
     """Indica si el recálculo manual ya está habilitado para una tesela."""
     created_at = _parse_db_timestamp(photo.get("created_at"))
@@ -119,37 +189,15 @@ def update_zone_name(parcel_id: int, raw_name: str) -> str | None:
             )
         )
 
-    database = get_db()
-    cursor = database.execute(
-        """
-        UPDATE parcela
-        SET
-            nombre_coleccion = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE parcela_id = ?
-        """,
-        (normalized or None, parcel_id),
-    )
-    database.commit()
-
-    if cursor.rowcount == 0:
+    parcel = db.session.get(Parcela, parcel_id)
+    if parcel is None:
         return None
 
-    row = database.execute(
-        """
-        SELECT
-            nombre_coleccion,
-            pto_origen_lat,
-            pto_origen_lng,
-            pto_fin_lat,
-            pto_fin_lng
-        FROM parcela
-        WHERE parcela_id = ?
-        """,
-        (parcel_id,),
-    ).fetchone()
+    parcel.nombre_coleccion = normalized or None
+    parcel.updated_at = _now_db_string()
+    db.session.commit()
 
-    return _zone_display_name_from_row(_row_to_dict(row))
+    return _zone_display_name_from_row(_parcel_to_dict(parcel))
 
 
 def _parse_db_timestamp(value: str | None) -> datetime | None:
@@ -174,8 +222,7 @@ def _stale_cutoff_string() -> str:
 
 
 def _photo_is_stale(photo: dict) -> bool:
-    """Indica si una foto en processing lleva
-        demasiado tiempo sin completarse."""
+    """Indica si una foto en processing lleva demasiado tiempo sin completarse."""
     if (photo.get("estado") or "").strip().lower() != "processing":
         return False
 
@@ -237,16 +284,14 @@ def get_storage_abspath(relative_path: str | None) -> str | None:
 
 
 def _relative_storage_path(absolute_path: str) -> str:
-    """Convierte una ruta absoluta de colección a una
-        ruta relativa persistible."""
+    """Convierte una ruta absoluta de colección a una ruta relativa."""
     root = os.path.abspath(get_collection_storage_root())
     return os.path.relpath(absolute_path, root).replace(os.sep, "/")
 
 
 def _parcel_root_dir(parcel_id: int) -> str:
     """Devuelve la carpeta raíz física de una parcela."""
-    return os.path.join(get_collection_storage_root(),
-                        "parcelas", str(parcel_id))
+    return os.path.join(get_collection_storage_root(), "parcelas", str(parcel_id))
 
 
 def _parcel_tiles_dir(parcel_id: int) -> str:
@@ -308,7 +353,8 @@ def _stage_parcel_dir_for_delete(
     """
     Mueve temporalmente la carpeta física de una parcela antes de borrarla.
 
-    Esto permite restaurarla si el borrado en SQLite falla antes del commit.
+    Esto permite restaurarla si el borrado en base de datos falla antes del
+    commit.
     """
     parcel_root = _parcel_root_dir(parcel_id)
     if not os.path.isdir(parcel_root):
@@ -326,8 +372,8 @@ def _photo_trace_status(photo: dict) -> str:
     """
     Deriva el estado visual de trazas para una foto.
 
-    Se apoya en el campo persistido estado para que la galería refleje
-    pending / processing / completed sin lógica duplicada en frontend.
+    Se apoya en el campo persistido estado para que la galería refleje pending,
+    processing o completed sin lógica duplicada en frontend.
     """
     status = (photo.get("estado") or "pending").strip().lower()
     if status in {"completed", "processing"}:
@@ -397,8 +443,8 @@ def save_generated_zone(
     """
     Persiste una nueva zona generada por el visor y todas sus teselas.
 
-    En esta versión solo guarda metadata en SQLite. La descarga física de las
-    teselas se difiere al worker de trazas para no bloquear la petición web.
+    En esta versión solo guarda metadata. La descarga física de las teselas se
+    difiere al worker de trazas para no bloquear la petición web.
     """
     if status not in ALLOWED_ZONE_STATUSES:
         raise ValueError("Estado de zona no soportado.")
@@ -409,188 +455,133 @@ def save_generated_zone(
     height_m = max(0.0, ymax - ymin)
     area_m2 = width_m * height_m
 
-    database = get_db()
-    cursor = database.cursor()
-
-    cursor.execute(
-        """
-        INSERT INTO parcela (
-            usuario_id,
-            tamano_metros,
-            pto_origen_lat,
-            pto_origen_lng,
-            pto_fin_lat,
-            pto_fin_lng,
-            bbox_json,
-            source_id,
-            source_label,
-            requested_resolution,
-            actual_resolution,
-            tile_width,
-            tile_height,
-            estado
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            get_default_user_id(),
-            area_m2,
-            float(origin_point["lat"]),
-            float(origin_point["lng"]),
-            float(destination_point["lat"]),
-            float(destination_point["lng"]),
-            json.dumps(
-                {
-                    "south": south,
-                    "west": west,
-                    "north": north,
-                    "east": east,
-                },
-                ensure_ascii=False,
-            ),
-            source["id"],
-            source["label"],
-            float(requested_resolution),
-            float(actual_resolution),
-            int(tile_width),
-            int(tile_height),
-            status,
+    parcel = Parcela(
+        usuario_id=get_default_user_id(),
+        tamano_metros=area_m2,
+        pto_origen_lat=float(origin_point["lat"]),
+        pto_origen_lng=float(origin_point["lng"]),
+        pto_fin_lat=float(destination_point["lat"]),
+        pto_fin_lng=float(destination_point["lng"]),
+        bbox_json=json.dumps(
+            {
+                "south": south,
+                "west": west,
+                "north": north,
+                "east": east,
+            },
+            ensure_ascii=False,
         ),
+        source_id=source["id"],
+        source_label=source["label"],
+        requested_resolution=float(requested_resolution),
+        actual_resolution=float(actual_resolution),
+        tile_width=int(tile_width),
+        tile_height=int(tile_height),
+        estado=status,
     )
-    parcel_id = int(cursor.lastrowid)
+    db.session.add(parcel)
+    db.session.flush()
 
+    today_label = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for tile in tiles:
         bounds = tile.get("bounds", {})
         bbox_tile = tile.get("bbox3857", {})
         center_lat, center_lng = _center_from_bounds(bounds)
-
-        cursor.execute(
-            """
-            INSERT INTO foto (
-                parcela_id,
-                fecha_foto,
-                resolucion_valor,
-                resolucion_unidad,
-                longitud,
-                latitud,
-                ruta_foto,
-                ruta_trazas,
-                trazas,
-                estado,
-                error_message,
-                started_at,
-                finished_at,
-                attempt_count,
-                tile_id,
-                row_index,
-                col_index,
-                filename,
-                width,
-                height,
-                bbox3857_json,
-                bounds_json,
-                source_id
-            ) VALUES (
-                ?, DATE('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?, ?
+        db.session.add(
+            Foto(
+                parcela_id=int(parcel.parcela_id),
+                fecha_foto=today_label,
+                resolucion_valor=float(actual_resolution),
+                resolucion_unidad="m/px",
+                longitud=center_lng,
+                latitud=center_lat,
+                ruta_foto=_route_path_only(tile.get("download_url", "")),
+                ruta_trazas=None,
+                trazas=0,
+                estado="pending",
+                error_message=None,
+                started_at=None,
+                finished_at=None,
+                attempt_count=0,
+                tile_id=tile["id"],
+                row_index=int(tile["row"]),
+                col_index=int(tile["col"]),
+                filename=tile["filename"],
+                width=int(tile["width"]),
+                height=int(tile["height"]),
+                bbox3857_json=json.dumps(bbox_tile, ensure_ascii=False),
+                bounds_json=json.dumps(bounds, ensure_ascii=False),
+                source_id=source["id"],
             )
-            """,
-            (
-                parcel_id,
-                float(actual_resolution),
-                "m/px",
-                center_lng,
-                center_lat,
-                _route_path_only(tile.get("download_url", "")),
-                None,
-                0,
-                "pending",
-                None,
-                None,
-                None,
-                0,
-                tile["id"],
-                int(tile["row"]),
-                int(tile["col"]),
-                tile["filename"],
-                int(tile["width"]),
-                int(tile["height"]),
-                json.dumps(bbox_tile, ensure_ascii=False),
-                json.dumps(bounds, ensure_ascii=False),
-                source["id"],
-            ),
         )
 
-    database.commit()
-    return parcel_id
+    db.session.commit()
+    return int(parcel.parcela_id)
 
 
 def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
     """Devuelve un listado paginado de parcelas de la colección."""
-    database = get_db()
     owner_id = _current_collection_owner_id()
     page = max(1, int(page))
     per_page = max(1, min(int(per_page), 100))
     offset = (page - 1) * per_page
     search = (search or "").strip()
-    like = f"%{search}%"
 
-    where_clause = """
-        WHERE p.usuario_id = ?
-          AND (
-            ? = ''
-            OR COALESCE(p.nombre_coleccion, '') LIKE ?
-            OR p.source_label LIKE ?
-            OR p.fecha LIKE ?
-            OR CAST(p.pto_origen_lat AS TEXT) LIKE ?
-            OR CAST(p.pto_origen_lng AS TEXT) LIKE ?
-            OR CAST(p.pto_fin_lat AS TEXT) LIKE ?
-            OR CAST(p.pto_fin_lng AS TEXT) LIKE ?
+    if owner_id is None:
+        return {
+            "zones": [],
+            "page": page,
+            "per_page": per_page,
+            "total": 0,
+            "total_pages": 1,
+            "search": search,
+        }
+
+    filters = [Parcela.usuario_id == owner_id]
+    if search:
+        like = f"%{search.lower()}%"
+        filters.append(
+            or_(
+                func.lower(func.coalesce(Parcela.nombre_coleccion, "")).like(
+                    like
+                ),
+                func.lower(Parcela.source_label).like(like),
+                func.lower(Parcela.fecha).like(like),
+                func.lower(cast(Parcela.pto_origen_lat, String)).like(like),
+                func.lower(cast(Parcela.pto_origen_lng, String)).like(like),
+                func.lower(cast(Parcela.pto_fin_lat, String)).like(like),
+                func.lower(cast(Parcela.pto_fin_lng, String)).like(like),
+            )
         )
-    """
-    params = (owner_id, search, like, like, like, like, like, like, like)
 
-    total = database.execute(
-        f"SELECT COUNT(*) AS total FROM parcela p {where_clause}",
-        params,
-    ).fetchone()["total"]
+    total = int(
+        db.session.execute(
+            select(func.count(Parcela.parcela_id)).where(*filters)
+        ).scalar_one()
+    )
 
-    rows = database.execute(
-        f"""
-        SELECT
-            p.parcela_id,
-            p.nombre_coleccion,
-            p.pto_origen_lat,
-            p.pto_origen_lng,
-            p.pto_fin_lat,
-            p.pto_fin_lng,
-            p.fecha,
-            p.estado,
-            p.source_label,
-            p.source_id,
-            p.actual_resolution,
-            p.requested_resolution,
-            p.tile_width,
-            p.tile_height,
-            p.created_at,
-            COUNT(f.foto_id) AS tile_count,
-            SUM(CASE WHEN f.estado = 'completed' THEN 1 ELSE 0 END)
-                AS completed_tiles,
-            MIN(f.foto_id) AS preview_foto_id
-        FROM parcela p
-        LEFT JOIN foto f ON f.parcela_id = p.parcela_id
-        {where_clause}
-        GROUP BY p.parcela_id
-        ORDER BY p.parcela_id DESC
-        LIMIT ? OFFSET ?
-        """,
-        params + (per_page, offset),
-    ).fetchall()
+    parcels = db.session.execute(
+        select(Parcela)
+        .where(*filters)
+        .order_by(Parcela.parcela_id.desc())
+        .offset(offset)
+        .limit(per_page)
+    ).scalars().all()
 
     zones = []
-    for row in rows:
-        item = _row_to_dict(row)
-        item["tile_count"] = int(item.get("tile_count") or 0)
-        item["completed_tiles"] = int(item.get("completed_tiles") or 0)
+    for parcel in parcels:
+        photos = db.session.execute(
+            select(Foto).where(Foto.parcela_id == parcel.parcela_id)
+        ).scalars().all()
+        item = _parcel_to_dict(parcel)
+        item["tile_count"] = len(photos)
+        item["completed_tiles"] = sum(
+            1 for photo in photos if photo.estado == "completed"
+        )
+        item["preview_foto_id"] = min(
+            (photo.foto_id for photo in photos),
+            default=None,
+        )
         item["origin"] = {
             "lat": float(item["pto_origen_lat"]),
             "lng": float(item["pto_origen_lng"]),
@@ -615,48 +606,16 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
 
 def get_zone_detail(parcel_id: int) -> dict | None:
     """Recupera una parcela y todas sus fotos asociadas."""
-    database = get_db()
+    stmt = select(Parcela).where(Parcela.parcela_id == parcel_id)
     owner_id = _current_collection_owner_id()
-
-    owner_clause = ""
-    params: list[int] = [parcel_id]
-
     if owner_id is not None:
-        owner_clause = " AND usuario_id = ?"
-        params.append(owner_id)
+        stmt = stmt.where(Parcela.usuario_id == owner_id)
 
-    parcel_row = database.execute(
-        f"""
-        SELECT
-            parcela_id,
-            nombre_coleccion,
-            usuario_id,
-            tamano_metros,
-            pto_origen_lat,
-            pto_origen_lng,
-            pto_fin_lat,
-            pto_fin_lng,
-            fecha,
-            bbox_json,
-            source_id,
-            source_label,
-            requested_resolution,
-            actual_resolution,
-            tile_width,
-            tile_height,
-            estado,
-            created_at,
-            updated_at
-        FROM parcela
-        WHERE parcela_id = ?{owner_clause}
-        """,
-        tuple(params),
-    ).fetchone()
-
-    if parcel_row is None:
+    parcel_model = db.session.execute(stmt).scalar_one_or_none()
+    if parcel_model is None:
         return None
 
-    parcel = _row_to_dict(parcel_row)
+    parcel = _parcel_to_dict(parcel_model)
     parcel["bbox"] = _json_loads(parcel.pop("bbox_json", "{}"), {})
     parcel["origin"] = {
         "lat": float(parcel["pto_origen_lat"]),
@@ -668,51 +627,13 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     }
     parcel["display_name"] = _zone_display_name_from_row(parcel)
 
-    photo_rows = database.execute(
-        """
-        SELECT
-            foto_id,
-            parcela_id,
-            fecha_foto,
-            resolucion_valor,
-            resolucion_unidad,
-            longitud,
-            latitud,
-            ruta_foto,
-            ruta_trazas,
-            trazas,
-            estado,
-            error_message,
-            started_at,
-            finished_at,
-            attempt_count,
-            tile_id,
-            row_index,
-            col_index,
-            filename,
-            width,
-            height,
-            bbox3857_json,
-            bounds_json,
-            source_id,
-            created_at
-        FROM foto
-        WHERE parcela_id = ?
-        ORDER BY row_index ASC, col_index ASC, foto_id ASC
-        """,
-        (parcel_id,),
-    ).fetchall()
+    photo_models = db.session.execute(
+        select(Foto)
+        .where(Foto.parcela_id == parcel_id)
+        .order_by(Foto.row_index.asc(), Foto.col_index.asc(), Foto.foto_id.asc())
+    ).scalars().all()
 
-    photos = []
-    for row in photo_rows:
-        photo = _row_to_dict(row)
-        photo["bbox3857"] = _json_loads(photo.pop("bbox3857_json", "{}"), {})
-        photo["bounds"] = _json_loads(photo.pop("bounds_json", "{}"), {})
-        photo["trace_status"] = _photo_trace_status(photo)
-        photo["is_stale"] = _photo_is_stale(photo)
-        photo["can_retry"] = _photo_can_retry(photo)
-        photos.append(photo)
-
+    photos = [_photo_contract_from_model(photo) for photo in photo_models]
     parcel["tile_count"] = len(photos)
     parcel["preview_photo_id"] = photos[0]["foto_id"] if photos else None
     parcel["photos"] = photos
@@ -807,56 +728,22 @@ def get_photo(
     enforce_current_user: bool = True,
 ) -> dict | None:
     """Recupera una foto concreta de la colección."""
-    database = get_db()
-    params: list[int] = [photo_id]
-    owner_clause = ""
+    stmt = select(Foto).where(Foto.foto_id == photo_id)
 
     if enforce_current_user:
-        owner_clause = " AND p.usuario_id = ?"
-        params.append(_current_collection_owner_id())
+        owner_id = _current_collection_owner_id()
+        if owner_id is None:
+            return None
+        stmt = stmt.join(Parcela).where(Parcela.usuario_id == owner_id)
 
-    row = database.execute(
-        f"""
-        SELECT
-            f.foto_id,
-            f.parcela_id,
-            f.fecha_foto,
-            f.resolucion_valor,
-            f.resolucion_unidad,
-            f.longitud,
-            f.latitud,
-            f.ruta_foto,
-            f.ruta_trazas,
-            f.trazas,
-            f.estado,
-            f.error_message,
-            f.started_at,
-            f.finished_at,
-            f.attempt_count,
-            f.tile_id,
-            f.row_index,
-            f.col_index,
-            f.filename,
-            f.width,
-            f.height,
-            f.bbox3857_json,
-            f.bounds_json,
-            f.source_id,
-            f.created_at
-        FROM foto f
-        JOIN parcela p ON p.parcela_id = f.parcela_id
-        WHERE f.foto_id = ? {owner_clause}
-        """,
-        tuple(params),
-    ).fetchone()
-
-    if row is None:
+    photo_model = db.session.execute(stmt).scalar_one_or_none()
+    if photo_model is None:
         return None
 
-    photo = _row_to_dict(row)
-    photo["bbox3857"] = _json_loads(photo.pop("bbox3857_json", "{}"), {})
-    photo["bounds"] = _json_loads(photo.pop("bounds_json", "{}"), {})
-    return photo
+    item = _photo_to_dict(photo_model)
+    item["bbox3857"] = _json_loads(item.pop("bbox3857_json", "{}"), {})
+    item["bounds"] = _json_loads(item.pop("bounds_json", "{}"), {})
+    return item
 
 
 def delete_zone(parcel_id: int) -> bool:
@@ -864,39 +751,32 @@ def delete_zone(parcel_id: int) -> bool:
     Elimina una parcela, sus fotos asociadas y su almacenamiento físico.
 
     La carpeta de la parcela se mueve primero a una zona temporal. Si el
-    borrado en SQLite falla, se intenta restaurar. Si el commit tiene éxito,
-    la carpeta temporal se purga definitivamente.
+    borrado en base de datos falla, se intenta restaurar. Si el commit tiene
+    éxito, la carpeta temporal se purga definitivamente.
     """
-    database = get_db()
     owner_id = _current_collection_owner_id()
+    if owner_id is None:
+        return False
 
-    row = database.execute(
-        """
-        SELECT parcela_id
-        FROM parcela
-        WHERE parcela_id = ?
-          AND usuario_id = ?
-        """,
-        (parcel_id, owner_id),
-    ).fetchone()
+    parcel = db.session.execute(
+        select(Parcela).where(
+            Parcela.parcela_id == parcel_id,
+            Parcela.usuario_id == owner_id,
+        )
+    ).scalar_one_or_none()
 
-    if row is None:
+    if parcel is None:
         return False
 
     parcel_root = None
     staged_path = None
-    cursor = None
 
     try:
         parcel_root, staged_path = _stage_parcel_dir_for_delete(parcel_id)
-
-        cursor = database.execute(
-            "DELETE FROM parcela WHERE parcela_id = ?",
-            (parcel_id,),
-        )
-        database.commit()
+        db.session.delete(parcel)
+        db.session.commit()
     except Exception as exc:
-        database.rollback()
+        db.session.rollback()
 
         if parcel_root and staged_path and os.path.exists(staged_path):
             try:
@@ -924,12 +804,11 @@ def delete_zone(parcel_id: int) -> bool:
                 parcel_id,
             )
 
-    return bool(cursor and cursor.rowcount > 0)
+    return True
 
 
 def save_photo_traces_result(photo: dict, traces: dict) -> str:
-    """Guarda el resultado JSON de trazas de una foto
-        y devuelve su ruta relativa."""
+    """Guarda el resultado JSON de trazas de una foto y devuelve su ruta."""
     os.makedirs(_parcel_traces_dir(photo["parcela_id"]), exist_ok=True)
     filename_root, _ext = os.path.splitext(photo["filename"])
     traces_filename = f"{filename_root}_traces.json"
@@ -948,9 +827,9 @@ def materialize_photo_tile(photo: dict) -> str:
     """
     Garantiza que la tesela de una foto exista físicamente en disco.
 
-    Si ya existe localmente, devuelve su ruta absoluta.
-    Si no existe, la descarga desde la fuente cartográfica, la guarda en
-    instance/collection y actualiza ruta_foto en SQLite.
+    Si ya existe localmente, devuelve su ruta absoluta. Si no existe, la
+    descarga desde la fuente cartográfica, la guarda en instance/collection y
+    actualiza ruta_foto mediante SQLAlchemy.
     """
     local_path = get_storage_abspath(photo.get("ruta_foto"))
     if local_path and os.path.exists(local_path):
@@ -988,16 +867,10 @@ def materialize_photo_tile(photo: dict) -> str:
 
     relative_path = _relative_storage_path(absolute_path)
 
-    database = get_db()
-    database.execute(
-        """
-        UPDATE foto
-        SET ruta_foto = ?
-        WHERE foto_id = ?
-        """,
-        (relative_path, photo["foto_id"]),
-    )
-    database.commit()
+    photo_model = db.session.get(Foto, photo["foto_id"])
+    if photo_model is not None:
+        photo_model.ruta_foto = relative_path
+        db.session.commit()
 
     photo["ruta_foto"] = relative_path
     return absolute_path
@@ -1010,139 +883,98 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
     Así se recuperan automáticamente teselas que se hubieran quedado colgadas
     tras un reinicio, corte del proceso o inferencia interrumpida.
     """
-    database = get_db()
     limit = max(1, int(limit))
     stale_cutoff = _stale_cutoff_string()
 
-    database.execute("BEGIN IMMEDIATE")
-    id_rows = database.execute(
-        """
-        SELECT foto_id
-        FROM foto
-        WHERE estado = 'pending'
-           OR (
-               estado = 'processing'
-               AND started_at IS NOT NULL
-               AND started_at <= ?
-           )
-        ORDER BY
-            CASE WHEN estado = 'processing' THEN 0 ELSE 1 END,
-            foto_id ASC
-        LIMIT ?
-        """,
-        (stale_cutoff, limit),
-    ).fetchall()
+    photos = db.session.execute(
+        select(Foto)
+        .where(
+            or_(
+                Foto.estado == "pending",
+                (Foto.estado == "processing")
+                & (Foto.started_at.is_not(None))
+                & (Foto.started_at <= stale_cutoff),
+            )
+        )
+        .order_by(
+            (Foto.estado == "processing").desc(),
+            Foto.foto_id.asc(),
+        )
+        .limit(limit)
+    ).scalars().all()
 
-    photo_ids = [row["foto_id"] for row in id_rows]
-    if not photo_ids:
-        database.commit()
+    if not photos:
         return []
 
-    placeholders = ",".join("?" for _ in photo_ids)
-    database.execute(
-        f"""
-        UPDATE foto
-        SET
-            estado = 'processing',
-            started_at = CURRENT_TIMESTAMP,
-            finished_at = NULL,
-            error_message = NULL,
-            attempt_count = COALESCE(attempt_count, 0) + 1
-        WHERE foto_id IN ({placeholders})
-        """,
-        photo_ids,
-    )
-    database.commit()
-
-    photos = [
-        get_photo(photo_id, enforce_current_user=False)
-        for photo_id in photo_ids
-    ]
+    now_label = _now_db_string()
+    parcel_ids = set()
+    photo_ids = []
     for photo in photos:
-        if photo is not None:
-            refresh_parcel_status(photo["parcela_id"])
+        photo.estado = "processing"
+        photo.started_at = now_label
+        photo.finished_at = None
+        photo.error_message = None
+        photo.attempt_count = int(photo.attempt_count or 0) + 1
+        parcel_ids.add(int(photo.parcela_id))
+        photo_ids.append(int(photo.foto_id))
 
-    return [photo for photo in photos if photo is not None]
+    db.session.commit()
+
+    for parcel_id in parcel_ids:
+        refresh_parcel_status(parcel_id)
+
+    return [
+        photo for photo_id in photo_ids
+        if (photo := get_photo(photo_id, enforce_current_user=False)) is not None
+    ]
 
 
 def mark_photo_completed(photo_id: int, trace_relative_path: str) -> None:
     """Marca una foto como completada y actualiza el estado de su parcela."""
-    database = get_db()
-    row = database.execute(
-        "SELECT parcela_id FROM foto WHERE foto_id = ?",
-        (photo_id,),
-    ).fetchone()
-    if row is None:
+    photo = db.session.get(Foto, photo_id)
+    if photo is None:
         return
 
-    database.execute(
-        """
-        UPDATE foto
-        SET
-            trazas = 1,
-            estado = 'completed',
-            ruta_trazas = ?,
-            error_message = NULL,
-            finished_at = CURRENT_TIMESTAMP
-        WHERE foto_id = ?
-        """,
-        (trace_relative_path, photo_id),
-    )
-    database.commit()
-    refresh_parcel_status(row["parcela_id"])
+    parcel_id = int(photo.parcela_id)
+    photo.trazas = 1
+    photo.estado = "completed"
+    photo.ruta_trazas = trace_relative_path
+    photo.error_message = None
+    photo.finished_at = _now_db_string()
+    db.session.commit()
+    refresh_parcel_status(parcel_id)
 
 
 def mark_photo_failed(photo_id: int, message: str) -> None:
     """Marca una foto como fallida y actualiza el estado de su parcela."""
-    database = get_db()
-    row = database.execute(
-        "SELECT parcela_id FROM foto WHERE foto_id = ?",
-        (photo_id,),
-    ).fetchone()
-    if row is None:
+    photo = db.session.get(Foto, photo_id)
+    if photo is None:
         return
 
-    database.execute(
-        """
-        UPDATE foto
-        SET
-            trazas = 0,
-            estado = 'failed',
-            error_message = ?,
-            finished_at = CURRENT_TIMESTAMP
-        WHERE foto_id = ?
-        """,
-        (message[:1000], photo_id),
-    )
-    database.commit()
-    refresh_parcel_status(row["parcela_id"])
+    parcel_id = int(photo.parcela_id)
+    photo.trazas = 0
+    photo.estado = "failed"
+    photo.error_message = message[:1000]
+    photo.finished_at = _now_db_string()
+    db.session.commit()
+    refresh_parcel_status(parcel_id)
 
 
 def refresh_parcel_status(parcel_id: int) -> str:
     """Recalcula el estado agregado de una parcela a partir de sus fotos."""
-    database = get_db()
-    summary = database.execute(
-        """
-        SELECT
-            COUNT(*) AS total,
-            SUM(CASE WHEN estado = 'pending' THEN 1 ELSE 0 END)
-                AS pending_count,
-            SUM(CASE WHEN estado = 'processing' THEN 1 ELSE 0 END)
-                AS processing_count,
-            SUM(CASE WHEN estado = 'completed' THEN 1 ELSE 0 END)
-                AS completed_count,
-            SUM(CASE WHEN estado = 'failed' THEN 1 ELSE 0 END) AS failed_count
-        FROM foto
-        WHERE parcela_id = ?
-        """,
-        (parcel_id,),
-    ).fetchone()
+    parcel = db.session.get(Parcela, parcel_id)
+    if parcel is None:
+        return "pending"
 
-    total = int(summary["total"] or 0)
-    pending_count = int(summary["pending_count"] or 0)
-    processing_count = int(summary["processing_count"] or 0)
-    completed_count = int(summary["completed_count"] or 0)
-    failed_count = int(summary["failed_count"] or 0)
+    statuses = db.session.execute(
+        select(Foto.estado).where(Foto.parcela_id == parcel_id)
+    ).scalars().all()
+
+    total = len(statuses)
+    pending_count = statuses.count("pending")
+    processing_count = statuses.count("processing")
+    completed_count = statuses.count("completed")
+    failed_count = statuses.count("failed")
 
     if total == 0 or pending_count == total:
         status = "pending"
@@ -1161,72 +993,33 @@ def refresh_parcel_status(parcel_id: int) -> str:
     else:
         status = "processing"
 
-    database.execute(
-        """
-        UPDATE parcela
-        SET
-            estado = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE parcela_id = ?
-        """,
-        (status, parcel_id),
-    )
-    database.commit()
+    parcel.estado = status
+    parcel.updated_at = _now_db_string()
+    db.session.commit()
     return status
 
 
 def get_zone_status_summary(parcel_id: int) -> dict | None:
     """Devuelve un resumen de estado de una parcela."""
-    database = get_db()
+    stmt = select(Parcela).where(Parcela.parcela_id == parcel_id)
     owner_id = _current_collection_owner_id()
-
-    owner_clause = ""
-    params: list[int] = [parcel_id]
-
     if owner_id is not None:
-        owner_clause = " AND p.usuario_id = ?"
-        params.append(owner_id)
+        stmt = stmt.where(Parcela.usuario_id == owner_id)
 
-    row = database.execute(
-        f"""
-        SELECT
-            p.parcela_id,
-            p.estado,
-            p.nombre_coleccion,
-            p.pto_origen_lat,
-            p.pto_origen_lng,
-            p.pto_fin_lat,
-            p.pto_fin_lng,
-            COUNT(f.foto_id) AS tile_count,
-            SUM(CASE WHEN f.estado = 'pending' THEN 1 ELSE 0 END)
-                AS pending_tiles,
-            SUM(CASE WHEN f.estado = 'processing' THEN 1 ELSE 0 END)
-                AS processing_tiles,
-            SUM(CASE WHEN f.estado = 'completed' THEN 1 ELSE 0 END)
-                AS completed_tiles,
-            SUM(CASE WHEN f.estado = 'failed' THEN 1 ELSE 0 END)
-                AS failed_tiles
-        FROM parcela p
-        LEFT JOIN foto f ON f.parcela_id = p.parcela_id
-        WHERE p.parcela_id = ?{owner_clause}
-        GROUP BY p.parcela_id
-        """,
-        tuple(params),
-    ).fetchone()
-
-    if row is None:
+    parcel = db.session.execute(stmt).scalar_one_or_none()
+    if parcel is None:
         return None
 
-    summary = _row_to_dict(row)
-    for key in (
-        "tile_count",
-        "pending_tiles",
-        "processing_tiles",
-        "completed_tiles",
-        "failed_tiles",
-    ):
-        summary[key] = int(summary.get(key) or 0)
+    photos = db.session.execute(
+        select(Foto.estado).where(Foto.parcela_id == parcel_id)
+    ).scalars().all()
 
+    summary = _parcel_to_dict(parcel)
+    summary["tile_count"] = len(photos)
+    summary["pending_tiles"] = photos.count("pending")
+    summary["processing_tiles"] = photos.count("processing")
+    summary["completed_tiles"] = photos.count("completed")
+    summary["failed_tiles"] = photos.count("failed")
     summary["display_name"] = _zone_display_name_from_row(summary)
     return summary
 
@@ -1252,25 +1045,15 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
     if summary is None:
         return None
 
-    database = get_db()
-    photo_rows = database.execute(
-        """
-        SELECT
-            foto_id,
-            estado,
-            trazas,
-            started_at,
-            created_at
-        FROM foto
-        WHERE parcela_id = ?
-        ORDER BY row_index ASC, col_index ASC, foto_id ASC
-        """,
-        (parcel_id,),
-    ).fetchall()
+    photo_models = db.session.execute(
+        select(Foto)
+        .where(Foto.parcela_id == parcel_id)
+        .order_by(Foto.row_index.asc(), Foto.col_index.asc(), Foto.foto_id.asc())
+    ).scalars().all()
 
     photos = []
-    for row in photo_rows:
-        photo = _row_to_dict(row)
+    for photo_model in photo_models:
+        photo = _photo_to_dict(photo_model)
         photo["trace_status"] = _photo_trace_status(photo)
         photo["is_stale"] = _photo_is_stale(photo)
         photo["can_retry"] = _photo_can_retry(photo)
@@ -1312,24 +1095,19 @@ def retry_zone_pending_and_failed(parcel_id: int) -> int:
                 pass
 
     photo_ids = [int(photo["foto_id"]) for photo in target_photos]
-    placeholders = ",".join("?" for _ in photo_ids)
+    photo_models = db.session.execute(
+        select(Foto).where(Foto.foto_id.in_(photo_ids))
+    ).scalars().all()
 
-    database = get_db()
-    database.execute(
-        f"""
-        UPDATE foto
-        SET
-            trazas = 0,
-            estado = 'pending',
-            ruta_trazas = NULL,
-            error_message = NULL,
-            started_at = NULL,
-            finished_at = NULL
-        WHERE foto_id IN ({placeholders})
-        """,
-        photo_ids,
-    )
-    database.commit()
+    for photo in photo_models:
+        photo.trazas = 0
+        photo.estado = "pending"
+        photo.ruta_trazas = None
+        photo.error_message = None
+        photo.started_at = None
+        photo.finished_at = None
+
+    db.session.commit()
     refresh_parcel_status(parcel_id)
     return len(photo_ids)
 
@@ -1340,40 +1118,24 @@ def retry_photo(photo_id: int) -> bool:
 
     Se permite especialmente para fotos failed o processing stale.
     """
-    database = get_db()
-    row = database.execute(
-        """
-        SELECT foto_id, parcela_id, estado, ruta_trazas
-        FROM foto
-        WHERE foto_id = ?
-        """,
-        (photo_id,),
-    ).fetchone()
-
-    if row is None:
+    photo = db.session.get(Foto, photo_id)
+    if photo is None:
         return False
 
-    trace_absolute_path = get_storage_abspath(row["ruta_trazas"])
+    parcel_id = int(photo.parcela_id)
+    trace_absolute_path = get_storage_abspath(photo.ruta_trazas)
     if trace_absolute_path and os.path.exists(trace_absolute_path):
         try:
             os.remove(trace_absolute_path)
         except OSError:
             pass
 
-    database.execute(
-        """
-        UPDATE foto
-        SET
-            trazas = 0,
-            estado = 'pending',
-            ruta_trazas = NULL,
-            error_message = NULL,
-            started_at = NULL,
-            finished_at = NULL
-        WHERE foto_id = ?
-        """,
-        (photo_id,),
-    )
-    database.commit()
-    refresh_parcel_status(row["parcela_id"])
+    photo.trazas = 0
+    photo.estado = "pending"
+    photo.ruta_trazas = None
+    photo.error_message = None
+    photo.started_at = None
+    photo.finished_at = None
+    db.session.commit()
+    refresh_parcel_status(parcel_id)
     return True

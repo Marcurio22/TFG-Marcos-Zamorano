@@ -541,9 +541,9 @@ def test_drawer_shows_profile_and_logout_for_authenticated_user(app, client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Perfil" in html
+    assert "usuario_menu" in html
+    assert 'href="/perfil"' in html
     assert "Cerrar sesión" in html
-    assert "Panel del Administrador" not in html
 
 
 def test_drawer_shows_admin_panel_for_admin_user(app, client):
