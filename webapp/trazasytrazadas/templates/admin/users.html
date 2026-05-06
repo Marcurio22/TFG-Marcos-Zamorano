@@ -228,9 +228,16 @@
                                         <td class="font-bold text-base-content/75">#{{ row.user.usuario_id }}</td>
                                         <td class="py-3">
                                             <div class="flex items-center gap-2">
-                                                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary font-bold shadow-sm">
-                                                    {{ row.user.nombre_usuario[:1]|upper }}
-                                                </div>
+                                                {% if row.user.ruta_imagen_perfil %}
+                                                    <img src="{{ url_for('trazas.profile_image_file', filename=row.user.ruta_imagen_perfil) }}"
+                                                         alt="{{ _('Imagen de perfil de %(username)s', username=row.user.nombre_usuario) }}"
+                                                         class="h-9 w-9 shrink-0 rounded-full object-cover shadow-sm ring-1 ring-primary/10"
+                                                         loading="lazy">
+                                                {% else %}
+                                                    <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary font-bold shadow-sm">
+                                                        {{ row.user.nombre_usuario[:1]|upper }}
+                                                    </div>
+                                                {% endif %}
                                                 <div class="min-w-0">
                                                     <div class="font-semibold text-base-content leading-tight">{{ row.user.nombre_usuario }}</div>
                                                     <div class="text-[11px] text-base-content/55 leading-tight">{{ _("Registrado") }}</div>
