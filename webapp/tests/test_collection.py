@@ -880,14 +880,6 @@ def test_legacy_parcels_are_reassigned_to_configured_user(app):
             pto_origen_lng=-4.0,
             pto_fin_lat=40.1,
             pto_fin_lng=-3.8,
-            bbox_json=json.dumps(
-                {
-                    "south": 40.0,
-                    "west": -4.0,
-                    "north": 40.1,
-                    "east": -3.8,
-                }
-            ),
             source_id="pnoa2023",
             source_label="PNOA 2023",
             requested_resolution=0.25,

@@ -51,7 +51,7 @@ from .model_store import (
     add_fold_file,
     delete_fold_file,
     get_active_fold_name,
-    list_fold_files,
+    list_model_rows,
     rename_fold_file,
     set_active_fold_name,
 )
@@ -579,17 +579,8 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
 
     @expose("/", methods=("GET",))
     def index(self):
-        folds = list_fold_files()
+        rows = list_model_rows()
         active_name = get_active_fold_name()
-
-        rows = [
-            {
-                "name": fold["name"],
-                "index": fold["index"],
-                "is_active": fold["name"] == active_name,
-            }
-            for fold in folds
-        ]
 
         return self.render(
             "admin/folds.html",

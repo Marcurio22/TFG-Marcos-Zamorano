@@ -16,12 +16,53 @@ from flask_login import UserMixin
 from .db import db
 
 
-class AppSetting(db.Model):
-    """Configuración simple persistida de la aplicación."""
-    __tablename__ = "app_setting"
+class Modelo(db.Model):
+    """Modelo de segmentación disponible en el sistema."""
 
-    key = db.Column(db.Text, primary_key=True)
-    value = db.Column(db.Text, nullable=False)
+    __tablename__ = "modelo"
+    __table_args__ = (
+        db.CheckConstraint(
+            "estado IN ('activo', 'no_activo')",
+            name="ck_modelo_estado",
+        ),
+        db.CheckConstraint(
+            "validacion IN ('pendiente', 'validado')",
+            name="ck_modelo_validacion",
+        ),
+        db.UniqueConstraint(
+            "nombre_modelo",
+            name="uq_modelo_nombre_modelo",
+        ),
+    )
+
+    modelo_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nombre_modelo = db.Column(db.String(100), nullable=False)
+    estado = db.Column(
+        db.String(20),
+        nullable=False,
+        server_default=db.text("'no_activo'"),
+    )
+    validacion = db.Column(
+        db.String(20),
+        nullable=False,
+        server_default=db.text("'pendiente'"),
+    )
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+
+    fotos = db.relationship(
+        "Foto",
+        back_populates="modelo",
+        lazy="select",
+    )
 
 
 class Usuario(UserMixin, db.Model):
@@ -89,7 +130,6 @@ class Parcela(db.Model):
         nullable=False,
         server_default=db.text("(DATE('now'))"),
     )
-    bbox_json = db.Column(db.Text, nullable=False)
     source_id = db.Column(db.Text, nullable=False)
     source_label = db.Column(db.Text, nullable=False)
     requested_resolution = db.Column(db.Float, nullable=False)
@@ -157,6 +197,11 @@ class Foto(db.Model):
         db.ForeignKey("parcela.parcela_id", ondelete="CASCADE"),
         nullable=False,
     )
+    modelo_id = db.Column(
+        db.Integer,
+        db.ForeignKey("modelo.modelo_id"),
+        nullable=True,
+    )
     fecha_foto = db.Column(db.Text, nullable=False)
     resolucion_valor = db.Column(db.Float, nullable=False)
     resolucion_unidad = db.Column(db.Text, nullable=False)
@@ -190,7 +235,6 @@ class Foto(db.Model):
     height = db.Column(db.Integer, nullable=False)
     bbox3857_json = db.Column(db.Text, nullable=False)
     bounds_json = db.Column(db.Text, nullable=False)
-    source_id = db.Column(db.Text, nullable=False)
     created_at = db.Column(
         db.Text,
         nullable=False,
@@ -199,6 +243,11 @@ class Foto(db.Model):
 
     parcela = db.relationship(
         "Parcela",
+        back_populates="fotos",
+        lazy="select",
+    )
+    modelo = db.relationship(
+        "Modelo",
         back_populates="fotos",
         lazy="select",
     )

@@ -104,6 +104,10 @@ def init_db() -> None:
     _ensure_system_user()
     _reassign_legacy_parcels_to_configured_user()
 
+    from .model_store import sync_models_from_files
+
+    sync_models_from_files()
+
 
 @click.command("init-db")
 @with_appcontext

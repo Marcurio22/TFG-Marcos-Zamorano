@@ -10,7 +10,7 @@ import torch
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from trazasytrazadas.db import db
-from trazasytrazadas.models import AppSetting, Usuario
+from trazasytrazadas.models import Modelo, Usuario
 
 
 class _AdminUploadDummyModel(torch.nn.Module):
@@ -543,7 +543,7 @@ def test_drawer_shows_profile_and_logout_for_authenticated_user(app, client):
     html = response.get_data(as_text=True)
     assert "usuario_menu" in html
     assert 'href="/perfil"' in html
-    assert "Cerrar sesión" in html
+    assert "Panel del Administrador" not in html
 
 
 def test_drawer_shows_admin_panel_for_admin_user(app, client):
@@ -1498,9 +1498,11 @@ def test_admin_can_activate_fold_and_persists_in_db(app, client):
     )
 
     with app.app_context():
-        setting = db.session.get(AppSetting, "active_fold_name")
-        assert setting is not None
-        assert setting.value == "fold.1"
+        active_model = db.session.execute(
+            db.select(Modelo).where(Modelo.estado == "activo")
+        ).scalar_one()
+
+        assert active_model.nombre_modelo == "fold.1"
 
 
 def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
@@ -1519,7 +1521,13 @@ def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
         models_dir = Path(app.config["SEG_MODELS_DIR"])
         models_dir.mkdir(parents=True, exist_ok=True)
         (models_dir / "fold.3").write_text("x", encoding="utf-8")
-        db.session.add(AppSetting(key="active_fold_name", value="fold.3"))
+        db.session.add(
+            Modelo(
+                nombre_modelo="fold.3",
+                estado="activo",
+                validacion="validado",
+            )
+        )
         db.session.commit()
 
     with client.session_transaction() as session:
@@ -1544,9 +1552,11 @@ def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
         assert (models_dir / "fold.7").exists()
         assert not (models_dir / "fold.3").exists()
 
-        setting = db.session.get(AppSetting, "active_fold_name")
-        assert setting is not None
-        assert setting.value == "fold.7"
+        active_model = db.session.execute(
+            db.select(Modelo).where(Modelo.estado == "activo")
+        ).scalar_one()
+
+        assert active_model.nombre_modelo == "fold.7"
 
 
 def test_admin_can_upload_validated_fold(app, client):

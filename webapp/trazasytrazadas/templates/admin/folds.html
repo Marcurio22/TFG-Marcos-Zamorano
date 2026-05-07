@@ -73,6 +73,7 @@
                                     <th class="w-24">{{ _("Modelo") }}</th>
                                     <th>{{ _("Nombre") }}</th>
                                     <th class="w-44">{{ _("Estado") }}</th>
+                                    <th class="w-44">{{ _("Validación") }}</th>
                                     <th class="text-right">{{ _("Acciones") }}</th>
                                 </tr>
                             </thead>
@@ -95,8 +96,21 @@
                                             {% endif %}
                                         </td>
                                         <td>
+                                            {% if row.validacion == "validado" %}
+                                                <div class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                                                    <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                                                    <span>{{ _("Validado") }}</span>
+                                                </div>
+                                            {% else %}
+                                                <div class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">
+                                                    <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+                                                    <span>{{ _("Pendiente") }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
                                             <div class="flex flex-wrap justify-end gap-2">
-                                                {% if not row.is_active %}
+                                                {% if not row.is_active and row.validacion == "validado" and row.file_exists %}
                                                     <button type="button"
                                                             class="btn btn-xs btn-primary"
                                                             data-activate-fold-button
@@ -104,9 +118,15 @@
                                                             title="{{ _("Activa este modelo como principal del sistema.") }}">
                                                         {{ _("Activar") }}
                                                     </button>
-                                                {% else %}
+                                                {% elif row.is_active %}
                                                     <span class="badge badge-outline badge-success badge-sm"
                                                           title="{{ _("Este modelo está activo y no puede eliminarse directamente.") }}">{{ _("En uso") }}</span>
+                                                {% elif not row.file_exists %}
+                                                    <span class="badge badge-outline badge-error badge-sm"
+                                                          title="{{ _("El archivo físico del modelo no existe en la carpeta de modelos.") }}">{{ _("Sin fichero") }}</span>
+                                                {% else %}
+                                                    <span class="badge badge-outline badge-warning badge-sm"
+                                                          title="{{ _("Este modelo todavía no está validado y no puede activarse.") }}">{{ _("Pendiente") }}</span>
                                                 {% endif %}
                                                 <button type="button"
                                                         class="btn btn-xs btn-outline btn-primary"

@@ -27,6 +27,7 @@ from flask_login import current_user
 from sqlalchemy import String, cast, func, or_, select
 
 from .db import db
+from .model_store import get_active_model
 from .models import Foto, Parcela
 
 DEFAULT_SYSTEM_USER_ID = 1
@@ -109,7 +110,6 @@ def _parcel_to_dict(parcel: Parcela) -> dict:
         "pto_fin_lat": parcel.pto_fin_lat,
         "pto_fin_lng": parcel.pto_fin_lng,
         "fecha": parcel.fecha,
-        "bbox_json": parcel.bbox_json,
         "source_id": parcel.source_id,
         "source_label": parcel.source_label,
         "requested_resolution": parcel.requested_resolution,
@@ -127,6 +127,12 @@ def _photo_to_dict(photo: Foto) -> dict:
     return {
         "foto_id": photo.foto_id,
         "parcela_id": photo.parcela_id,
+        "modelo_id": photo.modelo_id,
+        "modelo_nombre": (
+            photo.modelo.nombre_modelo
+            if photo.modelo is not None
+            else None
+        ),
         "fecha_foto": photo.fecha_foto,
         "resolucion_valor": photo.resolucion_valor,
         "resolucion_unidad": photo.resolucion_unidad,
@@ -148,7 +154,7 @@ def _photo_to_dict(photo: Foto) -> dict:
         "height": photo.height,
         "bbox3857_json": photo.bbox3857_json,
         "bounds_json": photo.bounds_json,
-        "source_id": photo.source_id,
+        "source_id": photo.parcela.source_id if photo.parcela is not None else None,
         "created_at": photo.created_at,
     }
 
@@ -462,15 +468,6 @@ def save_generated_zone(
         pto_origen_lng=float(origin_point["lng"]),
         pto_fin_lat=float(destination_point["lat"]),
         pto_fin_lng=float(destination_point["lng"]),
-        bbox_json=json.dumps(
-            {
-                "south": south,
-                "west": west,
-                "north": north,
-                "east": east,
-            },
-            ensure_ascii=False,
-        ),
         source_id=source["id"],
         source_label=source["label"],
         requested_resolution=float(requested_resolution),
@@ -490,6 +487,7 @@ def save_generated_zone(
         db.session.add(
             Foto(
                 parcela_id=int(parcel.parcela_id),
+                modelo_id=None,
                 fecha_foto=today_label,
                 resolucion_valor=float(actual_resolution),
                 resolucion_unidad="m/px",
@@ -511,7 +509,6 @@ def save_generated_zone(
                 height=int(tile["height"]),
                 bbox3857_json=json.dumps(bbox_tile, ensure_ascii=False),
                 bounds_json=json.dumps(bounds, ensure_ascii=False),
-                source_id=source["id"],
             )
         )
 
@@ -616,7 +613,12 @@ def get_zone_detail(parcel_id: int) -> dict | None:
         return None
 
     parcel = _parcel_to_dict(parcel_model)
-    parcel["bbox"] = _json_loads(parcel.pop("bbox_json", "{}"), {})
+    parcel["bbox"] = {
+        "south": float(parcel["pto_origen_lat"]),
+        "west": float(parcel["pto_origen_lng"]),
+        "north": float(parcel["pto_fin_lat"]),
+        "east": float(parcel["pto_fin_lng"]),
+    }
     parcel["origin"] = {
         "lat": float(parcel["pto_origen_lat"]),
         "lng": float(parcel["pto_origen_lng"]),
@@ -935,7 +937,11 @@ def mark_photo_completed(photo_id: int, trace_relative_path: str) -> None:
     if photo is None:
         return
 
+    active_model = get_active_model()
+
     parcel_id = int(photo.parcela_id)
+    if active_model is not None:
+        photo.modelo_id = int(active_model.modelo_id)
     photo.trazas = 1
     photo.estado = "completed"
     photo.ruta_trazas = trace_relative_path
@@ -952,6 +958,7 @@ def mark_photo_failed(photo_id: int, message: str) -> None:
         return
 
     parcel_id = int(photo.parcela_id)
+    photo.modelo_id = None
     photo.trazas = 0
     photo.estado = "failed"
     photo.error_message = message[:1000]
@@ -1100,6 +1107,7 @@ def retry_zone_pending_and_failed(parcel_id: int) -> int:
     ).scalars().all()
 
     for photo in photo_models:
+        photo.modelo_id = None
         photo.trazas = 0
         photo.estado = "pending"
         photo.ruta_trazas = None
@@ -1130,6 +1138,7 @@ def retry_photo(photo_id: int) -> bool:
         except OSError:
             pass
 
+    photo.modelo_id = None
     photo.trazas = 0
     photo.estado = "pending"
     photo.ruta_trazas = None
