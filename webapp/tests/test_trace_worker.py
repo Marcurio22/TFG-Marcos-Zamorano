@@ -217,7 +217,7 @@ def test_traces_worker_marks_failed_photos(app, client, monkeypatch):
         parcel = db.session.get(Parcela, parcel_id)
 
         assert photo.estado == "failed"
-        assert "segmentation failed" in (photo.error_message or "")
+        assert "segmentation failed" in (photo.mensaje_error or "")
         assert photo.trazas == 0
         assert parcel.estado == "failed"
 
@@ -236,9 +236,9 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
 
         photo_id = int(photo.foto_id)
         photo.estado = "failed"
-        photo.error_message = "boom"
-        photo.started_at = "2026-01-01 00:00:00"
-        photo.finished_at = "2026-01-01 00:00:00"
+        photo.mensaje_error = "boom"
+        photo.iniciado_en = "2026-01-01 00:00:00"
+        photo.finalizado_en = "2026-01-01 00:00:00"
         db.session.commit()
         refresh_parcel_status(parcel_id)
 
@@ -257,9 +257,9 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
         photo = db.session.get(Foto, photo_id)
 
         assert photo.estado == "pending"
-        assert photo.error_message is None
-        assert photo.started_at is None
-        assert photo.finished_at is None
+        assert photo.mensaje_error is None
+        assert photo.iniciado_en is None
+        assert photo.finalizado_en is None
         assert photo.ruta_trazas is None
 
 

@@ -2,9 +2,9 @@
 ===============================================================================
 Modelos SQLAlchemy de la aplicación.
 
-Define los modelos reales de la BBDD sin cambiar todavía
-el código de acceso manual existente. Sirven como base para migrar después
-collection_store.py a Flask-SQLAlchemy.
+Define los modelos reales de la BBDD gestionados mediante SQLAlchemy.
+Los nombres de columnas se mantienen en español y las trazas quedan
+embebidas en la tabla de fotos.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -47,12 +47,12 @@ class Modelo(db.Model):
         nullable=False,
         server_default=db.text("'pendiente'"),
     )
-    created_at = db.Column(
+    creado_en = db.Column(
         db.DateTime,
         nullable=False,
         server_default=db.func.current_timestamp(),
     )
-    updated_at = db.Column(
+    actualizado_en = db.Column(
         db.DateTime,
         nullable=False,
         server_default=db.func.current_timestamp(),
@@ -110,7 +110,7 @@ class Parcela(db.Model):
         db.Index(
             "idx_parcela_usuario_fecha",
             "usuario_id",
-            "created_at",
+            "creado_en",
         ),
     )
 
@@ -121,33 +121,28 @@ class Parcela(db.Model):
         nullable=False,
     )
     tamano_metros = db.Column(db.Float, nullable=False)
-    pto_origen_lat = db.Column(db.Float, nullable=False)
-    pto_origen_lng = db.Column(db.Float, nullable=False)
-    pto_fin_lat = db.Column(db.Float, nullable=False)
-    pto_fin_lng = db.Column(db.Float, nullable=False)
-    fecha = db.Column(
-        db.Text,
-        nullable=False,
-        server_default=db.text("(DATE('now'))"),
-    )
-    source_id = db.Column(db.Text, nullable=False)
-    source_label = db.Column(db.Text, nullable=False)
-    requested_resolution = db.Column(db.Float, nullable=False)
-    actual_resolution = db.Column(db.Float, nullable=False)
-    tile_width = db.Column(db.Integer, nullable=False)
-    tile_height = db.Column(db.Integer, nullable=False)
+    pto_origen_latitud = db.Column(db.Float, nullable=False)
+    pto_origen_longitud = db.Column(db.Float, nullable=False)
+    pto_fin_latitud = db.Column(db.Float, nullable=False)
+    pto_fin_longitud = db.Column(db.Float, nullable=False)
+    fuente_id = db.Column(db.Text, nullable=False)
+    fuente_nombre = db.Column(db.Text, nullable=False)
+    resolucion_solicitada = db.Column(db.Float, nullable=False)
+    resolucion_real = db.Column(db.Float, nullable=False)
+    ancho_tesela = db.Column(db.Integer, nullable=False)
+    alto_tesela = db.Column(db.Integer, nullable=False)
     estado = db.Column(
         db.Text,
         nullable=False,
         server_default=db.text("'pending'"),
     )
     nombre_coleccion = db.Column(db.Text, nullable=True)
-    created_at = db.Column(
+    creado_en = db.Column(
         db.Text,
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP"),
     )
-    updated_at = db.Column(
+    actualizado_en = db.Column(
         db.Text,
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP"),
@@ -180,14 +175,14 @@ class Foto(db.Model):
         ),
         db.UniqueConstraint(
             "parcela_id",
-            "tile_id",
-            name="uq_foto_parcela_tile_id",
+            "tesela_id",
+            name="uq_foto_parcela_tesela_id",
         ),
         db.Index(
             "idx_foto_parcela",
             "parcela_id",
-            "row_index",
-            "col_index",
+            "indice_fila",
+            "indice_columna",
         ),
     )
 
@@ -219,23 +214,23 @@ class Foto(db.Model):
         nullable=False,
         server_default=db.text("'pending'"),
     )
-    error_message = db.Column(db.Text, nullable=True)
-    started_at = db.Column(db.Text, nullable=True)
-    finished_at = db.Column(db.Text, nullable=True)
-    attempt_count = db.Column(
+    mensaje_error = db.Column(db.Text, nullable=True)
+    iniciado_en = db.Column(db.Text, nullable=True)
+    finalizado_en = db.Column(db.Text, nullable=True)
+    numero_intentos = db.Column(
         db.Integer,
         nullable=False,
         server_default=db.text("0"),
     )
-    tile_id = db.Column(db.Text, nullable=False)
-    row_index = db.Column(db.Integer, nullable=False)
-    col_index = db.Column(db.Integer, nullable=False)
-    filename = db.Column(db.Text, nullable=False)
-    width = db.Column(db.Integer, nullable=False)
-    height = db.Column(db.Integer, nullable=False)
-    bbox3857_json = db.Column(db.Text, nullable=False)
-    bounds_json = db.Column(db.Text, nullable=False)
-    created_at = db.Column(
+    tesela_id = db.Column(db.Text, nullable=False)
+    indice_fila = db.Column(db.Integer, nullable=False)
+    indice_columna = db.Column(db.Integer, nullable=False)
+    nombre_archivo = db.Column(db.Text, nullable=False)
+    ancho = db.Column(db.Integer, nullable=False)
+    alto = db.Column(db.Integer, nullable=False)
+    limites_3857_json = db.Column(db.Text, nullable=False)
+    limites_json = db.Column(db.Text, nullable=False)
+    creado_en = db.Column(
         db.Text,
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP"),

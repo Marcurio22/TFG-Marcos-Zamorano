@@ -44,6 +44,15 @@ def _now_db_string() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _date_from_db_timestamp(value: str | None) -> str:
+    """Extrae la fecha visible desde un timestamp persistido."""
+    if not value:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    normalized = value.strip().replace("T", " ")
+    return normalized[:10]
+
+
 def _json_loads(value, default):
     """Deserializa un JSON persistido devolviendo un valor por defecto."""
     if not value:
@@ -105,20 +114,20 @@ def _parcel_to_dict(parcel: Parcela) -> dict:
         "nombre_coleccion": parcel.nombre_coleccion,
         "usuario_id": parcel.usuario_id,
         "tamano_metros": parcel.tamano_metros,
-        "pto_origen_lat": parcel.pto_origen_lat,
-        "pto_origen_lng": parcel.pto_origen_lng,
-        "pto_fin_lat": parcel.pto_fin_lat,
-        "pto_fin_lng": parcel.pto_fin_lng,
-        "fecha": parcel.fecha,
-        "source_id": parcel.source_id,
-        "source_label": parcel.source_label,
-        "requested_resolution": parcel.requested_resolution,
-        "actual_resolution": parcel.actual_resolution,
-        "tile_width": parcel.tile_width,
-        "tile_height": parcel.tile_height,
+        "pto_origen_lat": parcel.pto_origen_latitud,
+        "pto_origen_lng": parcel.pto_origen_longitud,
+        "pto_fin_lat": parcel.pto_fin_latitud,
+        "pto_fin_lng": parcel.pto_fin_longitud,
+        "fecha": _date_from_db_timestamp(parcel.creado_en),
+        "source_id": parcel.fuente_id,
+        "source_label": parcel.fuente_nombre,
+        "requested_resolution": parcel.resolucion_solicitada,
+        "actual_resolution": parcel.resolucion_real,
+        "tile_width": parcel.ancho_tesela,
+        "tile_height": parcel.alto_tesela,
         "estado": parcel.estado,
-        "created_at": parcel.created_at,
-        "updated_at": parcel.updated_at,
+        "created_at": parcel.creado_en,
+        "updated_at": parcel.actualizado_en,
     }
 
 
@@ -142,20 +151,20 @@ def _photo_to_dict(photo: Foto) -> dict:
         "ruta_trazas": photo.ruta_trazas,
         "trazas": photo.trazas,
         "estado": photo.estado,
-        "error_message": photo.error_message,
-        "started_at": photo.started_at,
-        "finished_at": photo.finished_at,
-        "attempt_count": photo.attempt_count,
-        "tile_id": photo.tile_id,
-        "row_index": photo.row_index,
-        "col_index": photo.col_index,
-        "filename": photo.filename,
-        "width": photo.width,
-        "height": photo.height,
-        "bbox3857_json": photo.bbox3857_json,
-        "bounds_json": photo.bounds_json,
-        "source_id": photo.parcela.source_id if photo.parcela is not None else None,
-        "created_at": photo.created_at,
+        "error_message": photo.mensaje_error,
+        "started_at": photo.iniciado_en,
+        "finished_at": photo.finalizado_en,
+        "attempt_count": photo.numero_intentos,
+        "tile_id": photo.tesela_id,
+        "row_index": photo.indice_fila,
+        "col_index": photo.indice_columna,
+        "filename": photo.nombre_archivo,
+        "width": photo.ancho,
+        "height": photo.alto,
+        "bbox3857_json": photo.limites_3857_json,
+        "bounds_json": photo.limites_json,
+        "source_id": photo.parcela.fuente_id if photo.parcela is not None else None,
+        "created_at": photo.creado_en,
     }
 
 
@@ -172,14 +181,14 @@ def _photo_contract_from_model(photo: Foto) -> dict:
 
 def photo_retry_is_enabled(photo: dict) -> bool:
     """Indica si el recálculo manual ya está habilitado para una tesela."""
-    created_at = _parse_db_timestamp(photo.get("created_at"))
-    if created_at is None:
+    creado_en = _parse_db_timestamp(photo.get("created_at"))
+    if creado_en is None:
         return True
 
     seconds = int(
         current_app.config.get("COLLECTION_PHOTO_RETRY_ENABLE_SECONDS", 120)
     )
-    age = datetime.now(timezone.utc) - created_at
+    age = datetime.now(timezone.utc) - creado_en
     return age >= timedelta(seconds=max(0, seconds))
 
 
@@ -200,7 +209,7 @@ def update_zone_name(parcel_id: int, raw_name: str) -> str | None:
         return None
 
     parcel.nombre_coleccion = normalized or None
-    parcel.updated_at = _now_db_string()
+    parcel.actualizado_en = _now_db_string()
     db.session.commit()
 
     return _zone_display_name_from_row(_parcel_to_dict(parcel))
@@ -232,12 +241,12 @@ def _photo_is_stale(photo: dict) -> bool:
     if (photo.get("estado") or "").strip().lower() != "processing":
         return False
 
-    started_at = _parse_db_timestamp(photo.get("started_at"))
-    if started_at is None:
+    iniciado_en = _parse_db_timestamp(photo.get("started_at"))
+    if iniciado_en is None:
         return False
 
     seconds = int(current_app.config.get("TRACE_WORKER_STALE_SECONDS", 600))
-    age = datetime.now(timezone.utc) - started_at
+    age = datetime.now(timezone.utc) - iniciado_en
     return age >= timedelta(seconds=max(1, seconds))
 
 
@@ -457,23 +466,23 @@ def save_generated_zone(
 
     south, west, north, east = bbox4326
     xmin, ymin, xmax, ymax = bbox3857
-    width_m = max(0.0, xmax - xmin)
-    height_m = max(0.0, ymax - ymin)
-    area_m2 = width_m * height_m
+    ancho_m = max(0.0, xmax - xmin)
+    alto_m = max(0.0, ymax - ymin)
+    area_m2 = ancho_m * alto_m
 
     parcel = Parcela(
         usuario_id=get_default_user_id(),
         tamano_metros=area_m2,
-        pto_origen_lat=float(origin_point["lat"]),
-        pto_origen_lng=float(origin_point["lng"]),
-        pto_fin_lat=float(destination_point["lat"]),
-        pto_fin_lng=float(destination_point["lng"]),
-        source_id=source["id"],
-        source_label=source["label"],
-        requested_resolution=float(requested_resolution),
-        actual_resolution=float(actual_resolution),
-        tile_width=int(tile_width),
-        tile_height=int(tile_height),
+        pto_origen_latitud=float(origin_point["lat"]),
+        pto_origen_longitud=float(origin_point["lng"]),
+        pto_fin_latitud=float(destination_point["lat"]),
+        pto_fin_longitud=float(destination_point["lng"]),
+        fuente_id=source["id"],
+        fuente_nombre=source["label"],
+        resolucion_solicitada=float(requested_resolution),
+        resolucion_real=float(actual_resolution),
+        ancho_tesela=int(tile_width),
+        alto_tesela=int(tile_height),
         estado=status,
     )
     db.session.add(parcel)
@@ -497,18 +506,18 @@ def save_generated_zone(
                 ruta_trazas=None,
                 trazas=0,
                 estado="pending",
-                error_message=None,
-                started_at=None,
-                finished_at=None,
-                attempt_count=0,
-                tile_id=tile["id"],
-                row_index=int(tile["row"]),
-                col_index=int(tile["col"]),
-                filename=tile["filename"],
-                width=int(tile["width"]),
-                height=int(tile["height"]),
-                bbox3857_json=json.dumps(bbox_tile, ensure_ascii=False),
-                bounds_json=json.dumps(bounds, ensure_ascii=False),
+                mensaje_error=None,
+                iniciado_en=None,
+                finalizado_en=None,
+                numero_intentos=0,
+                tesela_id=tile["id"],
+                indice_fila=int(tile["row"]),
+                indice_columna=int(tile["col"]),
+                nombre_archivo=tile["filename"],
+                ancho=int(tile["width"]),
+                alto=int(tile["height"]),
+                limites_3857_json=json.dumps(bbox_tile, ensure_ascii=False),
+                limites_json=json.dumps(bounds, ensure_ascii=False),
             )
         )
 
@@ -542,12 +551,14 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
                 func.lower(func.coalesce(Parcela.nombre_coleccion, "")).like(
                     like
                 ),
-                func.lower(Parcela.source_label).like(like),
-                func.lower(Parcela.fecha).like(like),
-                func.lower(cast(Parcela.pto_origen_lat, String)).like(like),
-                func.lower(cast(Parcela.pto_origen_lng, String)).like(like),
-                func.lower(cast(Parcela.pto_fin_lat, String)).like(like),
-                func.lower(cast(Parcela.pto_fin_lng, String)).like(like),
+                func.lower(Parcela.fuente_nombre).like(like),
+                func.lower(Parcela.creado_en).like(like),
+                func.lower(
+                    cast(Parcela.pto_origen_latitud, String)).like(like),
+                func.lower(
+                    cast(Parcela.pto_origen_longitud, String)).like(like),
+                func.lower(cast(Parcela.pto_fin_latitud, String)).like(like),
+                func.lower(cast(Parcela.pto_fin_longitud, String)).like(like),
             )
         )
 
@@ -632,7 +643,7 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     photo_models = db.session.execute(
         select(Foto)
         .where(Foto.parcela_id == parcel_id)
-        .order_by(Foto.row_index.asc(), Foto.col_index.asc(), Foto.foto_id.asc())
+        .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc(), Foto.foto_id.asc())
     ).scalars().all()
 
     photos = [_photo_contract_from_model(photo) for photo in photo_models]
@@ -812,11 +823,11 @@ def delete_zone(parcel_id: int) -> bool:
 def save_photo_traces_result(photo: dict, traces: dict) -> str:
     """Guarda el resultado JSON de trazas de una foto y devuelve su ruta."""
     os.makedirs(_parcel_traces_dir(photo["parcela_id"]), exist_ok=True)
-    filename_root, _ext = os.path.splitext(photo["filename"])
-    traces_filename = f"{filename_root}_traces.json"
+    nombre_archivo_root, _ext = os.path.splitext(photo["filename"])
+    traces_nombre_archivo = f"{nombre_archivo_root}_traces.json"
     traces_absolute_path = os.path.join(
         _parcel_traces_dir(photo["parcela_id"]),
-        traces_filename,
+        traces_nombre_archivo,
     )
 
     with open(traces_absolute_path, "w", encoding="utf-8") as traces_file:
@@ -894,8 +905,8 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
             or_(
                 Foto.estado == "pending",
                 (Foto.estado == "processing")
-                & (Foto.started_at.is_not(None))
-                & (Foto.started_at <= stale_cutoff),
+                & (Foto.iniciado_en.is_not(None))
+                & (Foto.iniciado_en <= stale_cutoff),
             )
         )
         .order_by(
@@ -913,10 +924,10 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
     photo_ids = []
     for photo in photos:
         photo.estado = "processing"
-        photo.started_at = now_label
-        photo.finished_at = None
-        photo.error_message = None
-        photo.attempt_count = int(photo.attempt_count or 0) + 1
+        photo.iniciado_en = now_label
+        photo.finalizado_en = None
+        photo.mensaje_error = None
+        photo.numero_intentos = int(photo.numero_intentos or 0) + 1
         parcel_ids.add(int(photo.parcela_id))
         photo_ids.append(int(photo.foto_id))
 
@@ -945,8 +956,8 @@ def mark_photo_completed(photo_id: int, trace_relative_path: str) -> None:
     photo.trazas = 1
     photo.estado = "completed"
     photo.ruta_trazas = trace_relative_path
-    photo.error_message = None
-    photo.finished_at = _now_db_string()
+    photo.mensaje_error = None
+    photo.finalizado_en = _now_db_string()
     db.session.commit()
     refresh_parcel_status(parcel_id)
 
@@ -961,8 +972,8 @@ def mark_photo_failed(photo_id: int, message: str) -> None:
     photo.modelo_id = None
     photo.trazas = 0
     photo.estado = "failed"
-    photo.error_message = message[:1000]
-    photo.finished_at = _now_db_string()
+    photo.mensaje_error = message[:1000]
+    photo.finalizado_en = _now_db_string()
     db.session.commit()
     refresh_parcel_status(parcel_id)
 
@@ -1001,7 +1012,7 @@ def refresh_parcel_status(parcel_id: int) -> str:
         status = "processing"
 
     parcel.estado = status
-    parcel.updated_at = _now_db_string()
+    parcel.actualizado_en = _now_db_string()
     db.session.commit()
     return status
 
@@ -1055,7 +1066,7 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
     photo_models = db.session.execute(
         select(Foto)
         .where(Foto.parcela_id == parcel_id)
-        .order_by(Foto.row_index.asc(), Foto.col_index.asc(), Foto.foto_id.asc())
+        .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc(), Foto.foto_id.asc())
     ).scalars().all()
 
     photos = []
@@ -1111,9 +1122,9 @@ def retry_zone_pending_and_failed(parcel_id: int) -> int:
         photo.trazas = 0
         photo.estado = "pending"
         photo.ruta_trazas = None
-        photo.error_message = None
-        photo.started_at = None
-        photo.finished_at = None
+        photo.mensaje_error = None
+        photo.iniciado_en = None
+        photo.finalizado_en = None
 
     db.session.commit()
     refresh_parcel_status(parcel_id)
@@ -1142,9 +1153,9 @@ def retry_photo(photo_id: int) -> bool:
     photo.trazas = 0
     photo.estado = "pending"
     photo.ruta_trazas = None
-    photo.error_message = None
-    photo.started_at = None
-    photo.finished_at = None
+    photo.mensaje_error = None
+    photo.iniciado_en = None
+    photo.finalizado_en = None
     db.session.commit()
     refresh_parcel_status(parcel_id)
     return True

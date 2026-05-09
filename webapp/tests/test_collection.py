@@ -96,7 +96,7 @@ def _register_zone(client, monkeypatch):
                     },
                     "width": 1024,
                     "height": 640,
-                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                    "download_url": "/visor/download/tile?fuente_id=pnoa2023",
                 },
                 {
                     "id": "r01_c02",
@@ -118,7 +118,7 @@ def _register_zone(client, monkeypatch):
                     },
                     "width": 1024,
                     "height": 640,
-                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                    "download_url": "/visor/download/tile?fuente_id=pnoa2023",
                 },
             ],
             1,
@@ -171,8 +171,8 @@ def _mark_photo_completed_with_traces(
     app,
     parcel_id,
     *,
-    row_index=1,
-    col_index=1,
+    indice_fila=1,
+    indice_columna=1,
     traces=None,
 ):
     """Asocia un JSON de trazas persistido a una tesela concreta."""
@@ -183,14 +183,14 @@ def _mark_photo_completed_with_traces(
         photo = db.session.execute(
             db.select(Foto).where(
                 Foto.parcela_id == parcel_id,
-                Foto.row_index == row_index,
-                Foto.col_index == col_index,
+                Foto.indice_fila == indice_fila,
+                Foto.indice_columna == indice_columna,
             )
         ).scalar_one_or_none()
 
         assert photo is not None
 
-        filename_root, _extension = os.path.splitext(photo.filename)
+        filename_root, _extension = os.path.splitext(photo.nombre_archivo)
         relative_path = (
             f"parcelas/{parcel_id}/traces/{filename_root}_traces.json"
         )
@@ -209,7 +209,7 @@ def _mark_photo_completed_with_traces(
         db.session.commit()
         refresh_parcel_status(parcel_id)
 
-        return int(photo.foto_id), photo.filename, traces
+        return int(photo.foto_id), photo.nombre_archivo, traces
 
 
 def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
@@ -219,14 +219,14 @@ def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
     _mark_photo_completed_with_traces(
         app,
         parcel_id,
-        row_index=1,
-        col_index=1,
+        indice_fila=1,
+        indice_columna=1,
     )
     second_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
         app,
         parcel_id,
-        row_index=1,
-        col_index=2,
+        indice_fila=1,
+        indice_columna=2,
     )
 
     with app.test_request_context("/visor"):
@@ -405,15 +405,15 @@ def test_collection_zone_status_endpoint_returns_photo_states(
         processing_photo = db.session.execute(
             db.select(Foto).where(
                 Foto.parcela_id == parcel_id,
-                Foto.row_index == 1,
-                Foto.col_index == 1,
+                Foto.indice_fila == 1,
+                Foto.indice_columna == 1,
             )
         ).scalar_one()
         completed_photo = db.session.execute(
             db.select(Foto).where(
                 Foto.parcela_id == parcel_id,
-                Foto.row_index == 1,
-                Foto.col_index == 2,
+                Foto.indice_fila == 1,
+                Foto.indice_columna == 2,
             )
         ).scalar_one()
         processing_photo.estado = "processing"
@@ -450,9 +450,9 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
 
         photo_id = int(photo.foto_id)
         photo.estado = "failed"
-        photo.error_message = "boom"
-        photo.started_at = "2026-01-01 00:00:00"
-        photo.finished_at = "2026-01-01 00:00:00"
+        photo.mensaje_error = "boom"
+        photo.iniciado_en = "2026-01-01 00:00:00"
+        photo.finalizado_en = "2026-01-01 00:00:00"
         db.session.commit()
         refresh_parcel_status(parcel_id)
 
@@ -471,9 +471,9 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
         photo = db.session.get(Foto, photo_id)
 
         assert photo.estado == "pending"
-        assert photo.error_message is None
-        assert photo.started_at is None
-        assert photo.finished_at is None
+        assert photo.mensaje_error is None
+        assert photo.iniciado_en is None
+        assert photo.finalizado_en is None
         assert photo.ruta_trazas is None
 
 
@@ -557,8 +557,8 @@ def test_collection_download_zip_includes_traces_artifacts(
     photo_id, filename, traces = _mark_photo_completed_with_traces(
         app,
         parcel_id,
-        row_index=1,
-        col_index=2,
+        indice_fila=1,
+        indice_columna=2,
     )
 
     response = client.get(f"/coleccion/{parcel_id}/download-zip")
@@ -615,8 +615,8 @@ def test_collection_zone_retry_pending_only_skips_completed(
     completed_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
         app,
         parcel_id,
-        row_index=1,
-        col_index=1,
+        indice_fila=1,
+        indice_columna=1,
     )
 
     response = client.post(
@@ -630,7 +630,7 @@ def test_collection_zone_retry_pending_only_skips_completed(
         rows = db.session.execute(
             db.select(Foto)
             .where(Foto.parcela_id == parcel_id)
-            .order_by(Foto.row_index.asc(), Foto.col_index.asc())
+            .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc())
         ).scalars().all()
 
         assert len(rows) == 2
@@ -640,7 +640,7 @@ def test_collection_zone_retry_pending_only_skips_completed(
         assert rows[0].ruta_trazas is not None
 
         assert rows[1].estado == "pending"
-        assert rows[1].error_message is None
+        assert rows[1].mensaje_error is None
         assert rows[1].ruta_trazas is None
 
 
@@ -653,15 +653,15 @@ def test_collection_zone_retry_failed_only_skips_completed(
     completed_photo_id, _filename, _traces = _mark_photo_completed_with_traces(
         app,
         parcel_id,
-        row_index=1,
-        col_index=1,
+        indice_fila=1,
+        indice_columna=1,
     )
     failed_photo_id, failed_filename, failed_traces = (
         _mark_photo_completed_with_traces(
             app,
             parcel_id,
-            row_index=1,
-            col_index=2,
+            indice_fila=1,
+            indice_columna=2,
             traces={"xs": [7, 8], "ys": [9, 10]},
         )
     )
@@ -669,9 +669,9 @@ def test_collection_zone_retry_failed_only_skips_completed(
     with app.app_context():
         failed_photo = db.session.get(Foto, failed_photo_id)
         failed_photo.estado = "failed"
-        failed_photo.error_message = "boom"
-        failed_photo.started_at = "2026-01-01 00:00:00"
-        failed_photo.finished_at = "2026-01-01 00:00:00"
+        failed_photo.mensaje_error = "boom"
+        failed_photo.iniciado_en = "2026-01-01 00:00:00"
+        failed_photo.finalizado_en = "2026-01-01 00:00:00"
         db.session.commit()
         refresh_parcel_status(parcel_id)
 
@@ -696,7 +696,7 @@ def test_collection_zone_retry_failed_only_skips_completed(
         rows = db.session.execute(
             db.select(Foto)
             .where(Foto.parcela_id == parcel_id)
-            .order_by(Foto.row_index.asc(), Foto.col_index.asc())
+            .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc())
         ).scalars().all()
 
         assert len(rows) == 2
@@ -707,9 +707,9 @@ def test_collection_zone_retry_failed_only_skips_completed(
 
         assert rows[1].foto_id == failed_photo_id
         assert rows[1].estado == "pending"
-        assert rows[1].error_message is None
-        assert rows[1].started_at is None
-        assert rows[1].finished_at is None
+        assert rows[1].mensaje_error is None
+        assert rows[1].iniciado_en is None
+        assert rows[1].finalizado_en is None
         assert rows[1].ruta_trazas is None
 
         failed_filename_root, _extension = os.path.splitext(failed_filename)
@@ -729,8 +729,10 @@ def test_collection_zone_status_disables_bulk_retry_when_completed(
     """La galería no habilita el botón si toda la zona está completada."""
     parcel_id = _register_zone(client, monkeypatch)
 
-    _mark_photo_completed_with_traces(app, parcel_id, row_index=1, col_index=1)
-    _mark_photo_completed_with_traces(app, parcel_id, row_index=1, col_index=2)
+    _mark_photo_completed_with_traces(
+        app, parcel_id, indice_fila=1, indice_columna=1)
+    _mark_photo_completed_with_traces(
+        app, parcel_id, indice_fila=1, indice_columna=2)
 
     with app.app_context():
         payload = get_zone_live_status(parcel_id)
@@ -794,9 +796,9 @@ def test_collection_photo_retry_triggers_worker(app, client, monkeypatch):
 
         photo_id = int(photo.foto_id)
         photo.estado = "failed"
-        photo.error_message = "boom"
-        photo.started_at = "2026-01-01 00:00:00"
-        photo.finished_at = "2026-01-01 00:00:00"
+        photo.mensaje_error = "boom"
+        photo.iniciado_en = "2026-01-01 00:00:00"
+        photo.finalizado_en = "2026-01-01 00:00:00"
         db.session.commit()
         refresh_parcel_status(parcel_id)
 
@@ -876,16 +878,16 @@ def test_legacy_parcels_are_reassigned_to_configured_user(app):
         legacy_parcel = Parcela(
             usuario_id=1,
             tamano_metros=100.0,
-            pto_origen_lat=40.0,
-            pto_origen_lng=-4.0,
-            pto_fin_lat=40.1,
-            pto_fin_lng=-3.8,
-            source_id="pnoa2023",
-            source_label="PNOA 2023",
-            requested_resolution=0.25,
-            actual_resolution=0.25,
-            tile_width=1024,
-            tile_height=640,
+            pto_origen_latitud=40.0,
+            pto_origen_longitud=-4.0,
+            pto_fin_latitud=40.1,
+            pto_fin_longitud=-3.8,
+            fuente_id="pnoa2023",
+            fuente_nombre="PNOA 2023",
+            resolucion_solicitada=0.25,
+            resolucion_real=0.25,
+            ancho_tesela=1024,
+            alto_tesela=640,
             estado="pending",
             nombre_coleccion="Legacy zone",
         )
