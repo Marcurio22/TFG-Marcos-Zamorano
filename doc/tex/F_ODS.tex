@@ -1,9 +1,29 @@
 \apendice{Anexo de sostenibilización curricular}
 
 \section{Introducción}
-Este anexo incluirá una reflexión personal del alumnado sobre los aspectos de la sostenibilidad que se abordan en el trabajo.
-Se pueden incluir tantas subsecciones como sean necesarias con la intención de explicar las competencias de sostenibilidad adquiridas durante el alumnado y aplicadas al Trabajo de Fin de Grado.
 
-Más información en el documento de la CRUE \url{https://www.crue.org/wp-content/uploads/2020/02/Directrices_Sosteniblidad_Crue2012.pdf}.
+Este apartado recoge una reflexión personal sobre los aspectos de sostenibilidad trabajados durante el desarrollo del TFG. Aunque el proyecto se ha construido desde una perspectiva técnica, basada en una aplicación web, modelos de segmentación semántica, visor cartográfico y gestión de resultados, su finalidad está relacionada con la observación del medio natural y con la interpretación de patrones asociados a la presión de herbivoría. Por ello, la sostenibilidad no aparece como un bloque añadido al final, sino como una dimensión transversal que influye en la forma de entender el problema.
 
-Este anexo tendrá una extensión comprendida entre 600 y 800 palabras.
+La CRUE, en sus directrices para la introducción de la sostenibilidad en el currículum universitario, plantea la necesidad de formar profesionales capaces de tomar decisiones incorporando criterios ambientales, sociales y éticos~\cite{crue2012sostenibilidad}. Desde mi punto de vista, este TFG encaja con esa idea porque intenta trasladar un proceso de análisis ambiental, inicialmente más cercano a un entorno de investigación, a una aplicación que pueda ser utilizada y estudiada.
+
+\section{Relación del proyecto con la sostenibilidad}
+
+El proyecto se vincula principalmente con la sostenibilidad ambiental, ya que trabaja sobre imágenes aéreas y zonas cartográficas para detectar trazas de herbivoría. Estas trazas pueden servir como indicios visuales de actividad animal intensa y, por tanto, como apoyo para analizar dinámicas espaciales en el territorio. En este sentido, el trabajo se relaciona con el ODS 15, relativo a la vida de ecosistemas terrestres, al proponer una herramienta que puede contribuir a observar mejor determinados patrones del medio natural.
+
+No obstante, he intentado no plantear la aplicación como una solución definitiva al problema ecológico. El sistema detecta píxeles compatibles con sendas mediante visión por computador, pero la interpretación ambiental final requiere contexto, conocimiento experto y prudencia. La aplicación aporta información visual y estructurada, pero debe entenderse como una herramienta de apoyo para el análisis, no como un sustituto del criterio técnico o científico.
+
+\section{Competencias de sostenibilidad trabajadas}
+
+Durante el desarrollo he trabajado especialmente la competencia de contextualización crítica del conocimiento. No bastaba con integrar un modelo de \textit{deep learning} y representar su salida en pantalla; era necesario comprender qué significaba esa salida, qué límites tenía y qué implicaciones podía tener utilizarla sobre imágenes reales del territorio. Esto me obligó a conectar conceptos de visión por computador, ingeniería web, cartografía y conservación, evitando una visión puramente tecnológica del proyecto.
+
+También he trabajado la competencia relacionada con la participación. Al desarrollar una interfaz web con carga de imágenes, visor cartográfico, colección, galería y descargas, el sistema transforma un pipeline complejo en una herramienta más accesible.
+
+\section{Decisiones de ingeniería aplicadas}
+
+La sostenibilidad también se ha reflejado en decisiones de ingeniería. El visor permite seleccionar una zona concreta en lugar de trabajar siempre con imágenes completas o descargas masivas. Después, el sistema divide el área en teselas, lo que permite organizar el procesamiento en unidades manejables y limitar el cálculo a la zona que realmente interesa. Además, el uso de un \textit{worker} para procesar colecciones separa la interacción del usuario de las tareas pesadas de inferencia, evitando bloquear la aplicación y facilitando su control.
+
+Aun así, el proyecto también me ha hecho ser consciente del coste computacional de los modelos de aprendizaje profundo. Ejecutar inferencia sobre muchas imágenes no es gratis desde el punto de vista de recursos, por lo que una aplicación de este tipo debe controlar qué se procesa, cuándo se procesa y cómo se almacenan los resultados. En este caso, la modularización del backend, la persistencia estructurada de colecciones, la validación de modelos antes de activarlos y la separación entre imagen original, JSON de trazas y visualización superpuesta ayudan a mejorar la mantenibilidad, la trazabilidad y la reproducibilidad.
+
+\section{Conclusión}
+
+En conjunto, este TFG me ha permitido entender la sostenibilidad como un criterio de ingeniería y no únicamente como una cuestión ambiental. Diseñar software sostenible implica pensar en el impacto del problema que se aborda, pero también en la claridad del sistema, en su consumo de recursos, en su capacidad de ser mantenido y en la transparencia con la que muestra sus resultados. La aplicación desarrollada no resuelve por sí sola la gestión de la presión de herbivoría, pero sí aporta un soporte técnico para observar, visualizar y revisar información territorial de forma más accesible. Para mí, ese ha sido el principal aprendizaje: una solución informática tiene más valor cuando se integra con responsabilidad dentro de un contexto real y reconoce tanto sus posibilidades como sus limitaciones.
