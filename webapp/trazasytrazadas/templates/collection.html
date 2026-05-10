@@ -90,7 +90,7 @@ Versión: 0.1
                 </label>
                 <input type="hidden" name="page" value="1" />
             </form>
-            {% if listing["zones"] %}
+            {% if listing["zonas"] %}
                 <div class="overflow-x-auto border border-base-200 rounded-box">
                     <table class="table table-zebra table-pin-rows">
                         <thead>
@@ -103,7 +103,7 @@ Versión: 0.1
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in listing["zones"] %}
+                            {% for item in listing["zonas"] %}
                                 <tr data-zone-row data-zone-id="{{ item.parcela_id }}">
                                     <td class="align-top min-w-72">
                                         <div class="flex items-start gap-3">
@@ -122,10 +122,10 @@ Versión: 0.1
                                                             data-action="open-zone-rename"
                                                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
                                                             data-zone-name="{{ item.nombre_coleccion }}"
-                                                            data-zone-display-name="{{ item.display_name }}"
+                                                            data-zone-display-name="{{ item.nombre_visible }}"
                                                             data-redirect-to="{{ current_query }}"
                                                             title="{{ _("Renombra esta colección.") }}">
-                                                        {{ item.display_name }}
+                                                        {{ item.nombre_visible }}
                                                     </button>
                                                 {% endif %}
                                                 <div>
@@ -134,10 +134,10 @@ Versión: 0.1
                                                             data-action="open-zone-rename"
                                                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
                                                             data-zone-name="{{ item.nombre_coleccion or '' }}"
-                                                            data-zone-display-name="{{ item.display_name }}"
+                                                            data-zone-display-name="{{ item.nombre_visible }}"
                                                             data-redirect-to="{{ current_query }}"
                                                             title="{{ _("Renombra esta colección.") }}">
-                                                        {{ "%.6f"|format(item.origin.lat) }}, {{ "%.6f"|format(item.origin.lng) }}
+                                                        {{ "%.6f"|format(item.origen.lat) }}, {{ "%.6f"|format(item.origen.lng) }}
                                                     </button>
                                                 </div>
                                                 <div class="text-sm opacity-75">
@@ -146,17 +146,17 @@ Versión: 0.1
                                                             data-action="open-zone-rename"
                                                             data-rename-url="{{ url_for('trazas.collection_rename', parcel_id=item.parcela_id) }}"
                                                             data-zone-name="{{ item.nombre_coleccion or '' }}"
-                                                            data-zone-display-name="{{ item.display_name }}"
+                                                            data-zone-display-name="{{ item.nombre_visible }}"
                                                             data-redirect-to="{{ current_query }}"
                                                             title="{{ _("Renombra esta colección.") }}">
-                                                        {{ "%.6f"|format(item.destination.lat) }}, {{ "%.6f"|format(item.destination.lng) }}
+                                                        {{ "%.6f"|format(item.destino.lat) }}, {{ "%.6f"|format(item.destino.lng) }}
                                                     </button>
                                                 </div>
                                                 <div class="text-xs opacity-65">
-                                                    {{ item.fecha }} · {{ item.source_label }} · {{ item.tile_count }} {{ _("teselas") }}
+                                                    {{ item.fecha }} · {{ item.fuente_nombre }} · {{ item.total_teselas }} {{ _("teselas") }}
                                                 </div>
                                                 <div class="text-xs opacity-65" data-zone-progress>
-                                                    {{ _("%(completed)s/%(total)s teselas completadas", completed=item.completed_tiles, total=item.tile_count) }}
+                                                    {{ _("%(completed)s/%(total)s teselas completadas", completed=item.teselas_completadas, total=item.total_teselas) }}
                                                 </div>
                                             </div>
                                         </div>
@@ -166,7 +166,7 @@ Versión: 0.1
                                                 class="btn btn-square btn-sm btn-primary"
                                                 data-action="open-zone-preview"
                                                 data-preview-url="{{ url_for('trazas.collection_preview', parcel_id=item.parcela_id) }}"
-                                                data-preview-title="{{ _("Vista previa de la zona") }} · {{ item.display_name }}"
+                                                data-preview-title="{{ _("Vista previa de la zona") }} · {{ item.nombre_visible }}"
                                                 aria-label="{{ _("Ver vista previa de la zona") }}"
                                                 title="{{ _("Muestra una vista previa de la zona seleccionada.") }}">
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -246,8 +246,8 @@ Versión: 0.1
                                                         class="btn btn-square btn-sm btn-error"
                                                         data-action="open-delete-modal"
                                                         data-zone-id="{{ item.parcela_id }}"
-                                                        data-zone-origin="{{ '%.6f'|format(item.origin.lat) }}, {{ '%.6f'|format(item.origin.lng) }}"
-                                                        data-zone-destination="{{ '%.6f'|format(item.destination.lat) }}, {{ '%.6f'|format(item.destination.lng) }}"
+                                                        data-zone-origin="{{ '%.6f'|format(item.origen.lat) }}, {{ '%.6f'|format(item.origen.lng) }}"
+                                                        data-zone-destination="{{ '%.6f'|format(item.destino.lat) }}, {{ '%.6f'|format(item.destino.lng) }}"
                                                         aria-label="{{ _("Eliminar") }}"
                                                         title="{{ _("Abre la confirmación para eliminar esta zona.") }}">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -275,7 +275,7 @@ Versión: 0.1
                 </div>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div class="text-sm opacity-75">
-                        {{ _("Mostrando %(count)s de %(total)s zonas.", count=listing["zones"]|length, total=listing.total) }}
+                        {{ _("Mostrando %(count)s de %(total)s zonas.", count=listing["zonas"]|length, total=listing.total) }}
                     </div>
                     <div class="join self-start md:self-auto">
                         {% set prev_page = listing.page - 1 if listing.page > 1 else 1 %}

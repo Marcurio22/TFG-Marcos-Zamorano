@@ -92,7 +92,6 @@ def create_app(test_config=None):
         PROFILE_IMAGE_FOLDER=os.path.join(app.instance_path, "profile_images"),
         PROFILE_IMAGE_MAX_BYTES=4 * 1024 * 1024,
         DATABASE=os.path.join(app.instance_path, "trazasytrazadas.sqlite"),
-        LEGACY_PARCEL_OWNER_USERNAME="Vindi22",
 
         # ----- Configuración de almacenamiento y trazas en segundo plano -----
         COLLECTION_STORAGE_ROOT=os.path.join(app.instance_path, "collection"),

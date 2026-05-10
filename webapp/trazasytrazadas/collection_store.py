@@ -63,10 +63,43 @@ def _json_loads(value, default):
         return default
 
 
+def _bounds_to_spanish(bounds: dict) -> dict:
+    """Normaliza límites geográficos al contrato público en español."""
+    if not bounds:
+        return {}
+    return {
+        "sur": bounds.get("sur", bounds.get("south")),
+        "oeste": bounds.get("oeste", bounds.get("west")),
+        "norte": bounds.get("norte", bounds.get("north")),
+        "este": bounds.get("este", bounds.get("east")),
+    }
+
+
+def _bounds_to_legacy(bounds: dict) -> dict:
+    """Normaliza límites geográficos al formato usado por Leaflet/WMS."""
+    if not bounds:
+        return {}
+    return {
+        "south": bounds.get("south", bounds.get("sur")),
+        "west": bounds.get("west", bounds.get("oeste")),
+        "north": bounds.get("north", bounds.get("norte")),
+        "east": bounds.get("east", bounds.get("este")),
+    }
+
+
+def _tile_value(tile: dict, spanish_key: str, legacy_key: str, default=None):
+    """Lee una clave de tesela aceptando contrato español o legado."""
+    if spanish_key in tile:
+        return tile[spanish_key]
+    return tile.get(legacy_key, default)
+
+
 def _center_from_bounds(bounds: dict) -> tuple[float, float]:
     """Calcula el centro geográfico aproximado de una tesela."""
-    lat = (float(bounds["south"]) + float(bounds["north"])) / 2
-    lng = (float(bounds["west"]) + float(bounds["east"])) / 2
+    lat = (float(_bounds_to_legacy(bounds)[
+           "south"]) + float(_bounds_to_legacy(bounds)["north"])) / 2
+    lng = (float(_bounds_to_legacy(bounds)[
+           "west"]) + float(_bounds_to_legacy(bounds)["east"])) / 2
     return lat, lng
 
 
@@ -100,39 +133,39 @@ def _zone_display_name_from_row(row: dict) -> str:
         return explicit_name
 
     return _zone_default_name(
-        float(row["pto_origen_lat"]),
-        float(row["pto_origen_lng"]),
-        float(row["pto_fin_lat"]),
-        float(row["pto_fin_lng"]),
+        float(row["pto_origen_latitud"]),
+        float(row["pto_origen_longitud"]),
+        float(row["pto_fin_latitud"]),
+        float(row["pto_fin_longitud"]),
     )
 
 
 def _parcel_to_dict(parcel: Parcela) -> dict:
-    """Convierte una instancia Parcela en el contrato dict existente."""
+    """Convierte una instancia Parcela en el contrato público en español."""
     return {
         "parcela_id": parcel.parcela_id,
         "nombre_coleccion": parcel.nombre_coleccion,
         "usuario_id": parcel.usuario_id,
         "tamano_metros": parcel.tamano_metros,
-        "pto_origen_lat": parcel.pto_origen_latitud,
-        "pto_origen_lng": parcel.pto_origen_longitud,
-        "pto_fin_lat": parcel.pto_fin_latitud,
-        "pto_fin_lng": parcel.pto_fin_longitud,
+        "pto_origen_latitud": parcel.pto_origen_latitud,
+        "pto_origen_longitud": parcel.pto_origen_longitud,
+        "pto_fin_latitud": parcel.pto_fin_latitud,
+        "pto_fin_longitud": parcel.pto_fin_longitud,
         "fecha": _date_from_db_timestamp(parcel.creado_en),
-        "source_id": parcel.fuente_id,
-        "source_label": parcel.fuente_nombre,
-        "requested_resolution": parcel.resolucion_solicitada,
-        "actual_resolution": parcel.resolucion_real,
-        "tile_width": parcel.ancho_tesela,
-        "tile_height": parcel.alto_tesela,
+        "fuente_id": parcel.fuente_id,
+        "fuente_nombre": parcel.fuente_nombre,
+        "resolucion_solicitada": parcel.resolucion_solicitada,
+        "resolucion_real": parcel.resolucion_real,
+        "ancho_tesela": parcel.ancho_tesela,
+        "alto_tesela": parcel.alto_tesela,
         "estado": parcel.estado,
-        "created_at": parcel.creado_en,
-        "updated_at": parcel.actualizado_en,
+        "creado_en": parcel.creado_en,
+        "actualizado_en": parcel.actualizado_en,
     }
 
 
 def _photo_to_dict(photo: Foto) -> dict:
-    """Convierte una instancia Foto en el contrato dict existente."""
+    """Convierte una instancia Foto en el contrato público en español."""
     return {
         "foto_id": photo.foto_id,
         "parcela_id": photo.parcela_id,
@@ -151,37 +184,42 @@ def _photo_to_dict(photo: Foto) -> dict:
         "ruta_trazas": photo.ruta_trazas,
         "trazas": photo.trazas,
         "estado": photo.estado,
-        "error_message": photo.mensaje_error,
-        "started_at": photo.iniciado_en,
-        "finished_at": photo.finalizado_en,
-        "attempt_count": photo.numero_intentos,
-        "tile_id": photo.tesela_id,
-        "row_index": photo.indice_fila,
-        "col_index": photo.indice_columna,
-        "filename": photo.nombre_archivo,
-        "width": photo.ancho,
-        "height": photo.alto,
-        "bbox3857_json": photo.limites_3857_json,
-        "bounds_json": photo.limites_json,
-        "source_id": photo.parcela.fuente_id if photo.parcela is not None else None,
-        "created_at": photo.creado_en,
+        "mensaje_error": photo.mensaje_error,
+        "iniciado_en": photo.iniciado_en,
+        "finalizado_en": photo.finalizado_en,
+        "numero_intentos": photo.numero_intentos,
+        "tesela_id": photo.tesela_id,
+        "indice_fila": photo.indice_fila,
+        "indice_columna": photo.indice_columna,
+        "nombre_archivo": photo.nombre_archivo,
+        "ancho": photo.ancho,
+        "alto": photo.alto,
+        "limites_3857_json": photo.limites_3857_json,
+        "limites_json": photo.limites_json,
+        "fuente_id": photo.parcela.fuente_id if photo.parcela is not None else None,
+        "fuente_nombre": (
+            photo.parcela.fuente_nombre if photo.parcela is not None else None
+        ),
+        "creado_en": photo.creado_en,
     }
 
 
 def _photo_contract_from_model(photo: Foto) -> dict:
     """Devuelve una foto con JSONs deserializados y campos calculados."""
     item = _photo_to_dict(photo)
-    item["bbox3857"] = _json_loads(item.pop("bbox3857_json", "{}"), {})
-    item["bounds"] = _json_loads(item.pop("bounds_json", "{}"), {})
-    item["trace_status"] = _photo_trace_status(item)
-    item["is_stale"] = _photo_is_stale(item)
-    item["can_retry"] = _photo_can_retry(item)
+    item["limites_3857"] = _json_loads(item.pop("limites_3857_json", "{}"), {})
+    item["limites"] = _bounds_to_spanish(
+        _json_loads(item.pop("limites_json", "{}"), {})
+    )
+    item["estado_trazas"] = _photo_trace_status(item)
+    item["esta_atascada"] = _photo_is_stale(item)
+    item["puede_reintentar"] = _photo_can_retry(item)
     return item
 
 
 def photo_retry_is_enabled(photo: dict) -> bool:
     """Indica si el recálculo manual ya está habilitado para una tesela."""
-    creado_en = _parse_db_timestamp(photo.get("created_at"))
+    creado_en = _parse_db_timestamp(photo.get("creado_en"))
     if creado_en is None:
         return True
 
@@ -241,7 +279,7 @@ def _photo_is_stale(photo: dict) -> bool:
     if (photo.get("estado") or "").strip().lower() != "processing":
         return False
 
-    iniciado_en = _parse_db_timestamp(photo.get("started_at"))
+    iniciado_en = _parse_db_timestamp(photo.get("iniciado_en"))
     if iniciado_en is None:
         return False
 
@@ -490,8 +528,8 @@ def save_generated_zone(
 
     today_label = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for tile in tiles:
-        bounds = tile.get("bounds", {})
-        bbox_tile = tile.get("bbox3857", {})
+        bounds = _bounds_to_spanish(_tile_value(tile, "limites", "bounds", {}))
+        bbox_tile = _tile_value(tile, "limites_3857", "bbox3857", {})
         center_lat, center_lng = _center_from_bounds(bounds)
         db.session.add(
             Foto(
@@ -502,7 +540,8 @@ def save_generated_zone(
                 resolucion_unidad="m/px",
                 longitud=center_lng,
                 latitud=center_lat,
-                ruta_foto=_route_path_only(tile.get("download_url", "")),
+                ruta_foto=_route_path_only(_tile_value(
+                    tile, "url_descarga", "download_url", "")),
                 ruta_trazas=None,
                 trazas=0,
                 estado="pending",
@@ -511,11 +550,11 @@ def save_generated_zone(
                 finalizado_en=None,
                 numero_intentos=0,
                 tesela_id=tile["id"],
-                indice_fila=int(tile["row"]),
-                indice_columna=int(tile["col"]),
-                nombre_archivo=tile["filename"],
-                ancho=int(tile["width"]),
-                alto=int(tile["height"]),
+                indice_fila=int(int(_tile_value(tile, "fila", "row"))),
+                indice_columna=int(int(_tile_value(tile, "columna", "col"))),
+                nombre_archivo=_tile_value(tile, "nombre_archivo", "filename"),
+                ancho=int(_tile_value(tile, "ancho", "width")),
+                alto=int(_tile_value(tile, "alto", "height")),
                 limites_3857_json=json.dumps(bbox_tile, ensure_ascii=False),
                 limites_json=json.dumps(bounds, ensure_ascii=False),
             )
@@ -535,7 +574,7 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
 
     if owner_id is None:
         return {
-            "zones": [],
+            "zonas": [],
             "page": page,
             "per_page": per_page,
             "total": 0,
@@ -576,34 +615,34 @@ def list_zones(*, page: int = 1, per_page: int = 10, search: str = "") -> dict:
         .limit(per_page)
     ).scalars().all()
 
-    zones = []
+    zonas = []
     for parcel in parcels:
         photos = db.session.execute(
             select(Foto).where(Foto.parcela_id == parcel.parcela_id)
         ).scalars().all()
         item = _parcel_to_dict(parcel)
-        item["tile_count"] = len(photos)
-        item["completed_tiles"] = sum(
+        item["total_teselas"] = len(photos)
+        item["teselas_completadas"] = sum(
             1 for photo in photos if photo.estado == "completed"
         )
-        item["preview_foto_id"] = min(
+        item["foto_preview_id"] = min(
             (photo.foto_id for photo in photos),
             default=None,
         )
-        item["origin"] = {
-            "lat": float(item["pto_origen_lat"]),
-            "lng": float(item["pto_origen_lng"]),
+        item["origen"] = {
+            "lat": float(item["pto_origen_latitud"]),
+            "lng": float(item["pto_origen_longitud"]),
         }
-        item["destination"] = {
-            "lat": float(item["pto_fin_lat"]),
-            "lng": float(item["pto_fin_lng"]),
+        item["destino"] = {
+            "lat": float(item["pto_fin_latitud"]),
+            "lng": float(item["pto_fin_longitud"]),
         }
-        item["display_name"] = _zone_display_name_from_row(item)
-        zones.append(item)
+        item["nombre_visible"] = _zone_display_name_from_row(item)
+        zonas.append(item)
 
     total_pages = max(1, ceil(total / per_page)) if total else 1
     return {
-        "zones": zones,
+        "zonas": zonas,
         "page": page,
         "per_page": per_page,
         "total": total,
@@ -624,21 +663,21 @@ def get_zone_detail(parcel_id: int) -> dict | None:
         return None
 
     parcel = _parcel_to_dict(parcel_model)
-    parcel["bbox"] = {
-        "south": float(parcel["pto_origen_lat"]),
-        "west": float(parcel["pto_origen_lng"]),
-        "north": float(parcel["pto_fin_lat"]),
-        "east": float(parcel["pto_fin_lng"]),
+    parcel["limites"] = {
+        "sur": float(parcel["pto_origen_latitud"]),
+        "oeste": float(parcel["pto_origen_longitud"]),
+        "norte": float(parcel["pto_fin_latitud"]),
+        "este": float(parcel["pto_fin_longitud"]),
     }
-    parcel["origin"] = {
-        "lat": float(parcel["pto_origen_lat"]),
-        "lng": float(parcel["pto_origen_lng"]),
+    parcel["origen"] = {
+        "lat": float(parcel["pto_origen_latitud"]),
+        "lng": float(parcel["pto_origen_longitud"]),
     }
-    parcel["destination"] = {
-        "lat": float(parcel["pto_fin_lat"]),
-        "lng": float(parcel["pto_fin_lng"]),
+    parcel["destino"] = {
+        "lat": float(parcel["pto_fin_latitud"]),
+        "lng": float(parcel["pto_fin_longitud"]),
     }
-    parcel["display_name"] = _zone_display_name_from_row(parcel)
+    parcel["nombre_visible"] = _zone_display_name_from_row(parcel)
 
     photo_models = db.session.execute(
         select(Foto)
@@ -647,13 +686,13 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     ).scalars().all()
 
     photos = [_photo_contract_from_model(photo) for photo in photo_models]
-    parcel["tile_count"] = len(photos)
-    parcel["preview_photo_id"] = photos[0]["foto_id"] if photos else None
-    parcel["photos"] = photos
-    parcel["completed_tiles"] = sum(
+    parcel["total_teselas"] = len(photos)
+    parcel["foto_preview_id"] = photos[0]["foto_id"] if photos else None
+    parcel["fotos"] = photos
+    parcel["teselas_completadas"] = sum(
         1 for photo in photos if photo.get("estado") == "completed"
     )
-    parcel["can_retry_all"] = zone_retry_is_enabled(photos)
+    parcel["puede_reintentar_todo"] = zone_retry_is_enabled(photos)
     return parcel
 
 
@@ -665,39 +704,40 @@ def get_zone_plan(parcel_id: int) -> dict | None:
 
     from .visor import _visor_source_by_id
 
-    source = _visor_source_by_id(detail["source_id"])
+    source = _visor_source_by_id(detail["fuente_id"])
     preview = source.get("preview") if source else None
-    rows = max((photo["row_index"] for photo in detail["photos"]), default=0)
-    cols = max((photo["col_index"] for photo in detail["photos"]), default=0)
+    rows = max((photo["indice_fila"] for photo in detail["fotos"]), default=0)
+    cols = max((photo["indice_columna"]
+               for photo in detail["fotos"]), default=0)
 
-    trace_status = _zone_trace_status(detail["photos"])
+    trace_status = _zone_trace_status(detail["fotos"])
     can_draw_traces = trace_status == "completed"
 
     tiles = []
-    for photo in detail["photos"]:
+    for photo in detail["fotos"]:
         tiles.append(
             {
-                "id": photo["tile_id"],
-                "row": photo["row_index"],
-                "col": photo["col_index"],
-                "photo_id": photo["foto_id"],
-                "filename": photo["filename"],
-                "label": _(
+                "id": photo["tesela_id"],
+                "fila": photo["indice_fila"],
+                "columna": photo["indice_columna"],
+                "foto_id": photo["foto_id"],
+                "nombre_archivo": photo["nombre_archivo"],
+                "nombre": _(
                     "Tesela %(row)s-%(col)s",
-                    row=photo["row_index"],
-                    col=photo["col_index"],
+                    row=photo["indice_fila"],
+                    col=photo["indice_columna"],
                 ),
-                "bounds": photo["bounds"],
-                "bbox3857": photo["bbox3857"],
-                "width": photo["width"],
-                "height": photo["height"],
-                "status": photo.get("estado") or "pending",
-                "trace_status": photo.get("trace_status") or "pending",
-                "traces_url": url_for(
+                "limites": photo["limites"],
+                "limites_3857": photo["limites_3857"],
+                "ancho": photo["ancho"],
+                "alto": photo["alto"],
+                "estado": photo.get("estado") or "pending",
+                "estado_trazas": photo.get("estado_trazas") or "pending",
+                "url_trazas": url_for(
                     "trazas.collection_photo_traces",
                     photo_id=photo["foto_id"],
                 ),
-                "download_url": url_for(
+                "url_descarga": url_for(
                     "trazas.collection_photo_download",
                     photo_id=photo["foto_id"],
                 ),
@@ -705,32 +745,32 @@ def get_zone_plan(parcel_id: int) -> dict | None:
         )
 
     return {
-        "parcel_id": detail["parcela_id"],
-        "display_name": detail["display_name"],
-        "origin": detail["origin"],
-        "destination": detail["destination"],
-        "bbox": detail["bbox"],
-        "trace_status": trace_status,
-        "can_draw_traces": can_draw_traces,
+        "parcela_id": detail["parcela_id"],
+        "nombre_visible": detail["nombre_visible"],
+        "origen": detail["origen"],
+        "destino": detail["destino"],
+        "limites": detail["limites"],
+        "estado_trazas": trace_status,
+        "puede_dibujar_trazas": can_draw_traces,
         "plan": {
-            "source": {
-                "id": detail["source_id"],
-                "label": detail["source_label"],
-                "service": source["service"] if source else "WMS",
-                "layer": source["layer"] if source else "",
+            "fuente": {
+                "id": detail["fuente_id"],
+                "nombre": detail["fuente_nombre"],
+                "servicio": source["service"] if source else "WMS",
+                "capa": source["layer"] if source else "",
             },
-            "preview": preview,
-            "requested_resolution": float(detail["requested_resolution"]),
-            "actual_resolution": float(detail["actual_resolution"]),
-            "tile_width": int(detail["tile_width"]),
-            "tile_height": int(detail["tile_height"]),
-            "tile_count": len(tiles),
-            "rows": rows,
-            "cols": cols,
-            "trace_status": trace_status,
-            "can_draw_traces": can_draw_traces,
-            "warnings": [],
-            "tiles": tiles,
+            "previsualizacion": preview,
+            "resolucion_solicitada": float(detail["resolucion_solicitada"]),
+            "resolucion_real": float(detail["resolucion_real"]),
+            "ancho_tesela": int(detail["ancho_tesela"]),
+            "alto_tesela": int(detail["alto_tesela"]),
+            "total_teselas": len(tiles),
+            "filas": rows,
+            "columnas": cols,
+            "estado_trazas": trace_status,
+            "puede_dibujar_trazas": can_draw_traces,
+            "avisos": [],
+            "teselas": tiles,
         },
     }
 
@@ -754,8 +794,9 @@ def get_photo(
         return None
 
     item = _photo_to_dict(photo_model)
-    item["bbox3857"] = _json_loads(item.pop("bbox3857_json", "{}"), {})
-    item["bounds"] = _json_loads(item.pop("bounds_json", "{}"), {})
+    item["limites_3857"] = _json_loads(item.pop("limites_3857_json", "{}"), {})
+    item["limites"] = _bounds_to_spanish(
+        _json_loads(item.pop("limites_json", "{}"), {}))
     return item
 
 
@@ -823,7 +864,7 @@ def delete_zone(parcel_id: int) -> bool:
 def save_photo_traces_result(photo: dict, traces: dict) -> str:
     """Guarda el resultado JSON de trazas de una foto y devuelve su ruta."""
     os.makedirs(_parcel_traces_dir(photo["parcela_id"]), exist_ok=True)
-    nombre_archivo_root, _ext = os.path.splitext(photo["filename"])
+    nombre_archivo_root, _ext = os.path.splitext(photo["nombre_archivo"])
     traces_nombre_archivo = f"{nombre_archivo_root}_traces.json"
     traces_absolute_path = os.path.join(
         _parcel_traces_dir(photo["parcela_id"]),
@@ -850,11 +891,11 @@ def materialize_photo_tile(photo: dict) -> str:
 
     from .visor import _visor_fetch_tile_bytes, _visor_source_by_id
 
-    source = _visor_source_by_id(photo["source_id"])
+    source = _visor_source_by_id(photo["fuente_id"])
     if source is None:
         raise RuntimeError(_("La fuente de la tesela ya no está disponible."))
 
-    bbox = photo["bbox3857"]
+    bbox = photo["limites_3857"]
     bbox3857 = (
         float(bbox["xmin"]),
         float(bbox["ymin"]),
@@ -865,14 +906,14 @@ def materialize_photo_tile(photo: dict) -> str:
     tile_bytes = _visor_fetch_tile_bytes(
         source,
         bbox3857,
-        int(photo["width"]),
-        int(photo["height"]),
+        int(photo["ancho"]),
+        int(photo["alto"]),
     )
 
     os.makedirs(_parcel_tiles_dir(photo["parcela_id"]), exist_ok=True)
     absolute_path = os.path.join(
         _parcel_tiles_dir(photo["parcela_id"]),
-        photo["filename"],
+        photo["nombre_archivo"],
     )
 
     with open(absolute_path, "wb") as output_file:
@@ -1033,12 +1074,12 @@ def get_zone_status_summary(parcel_id: int) -> dict | None:
     ).scalars().all()
 
     summary = _parcel_to_dict(parcel)
-    summary["tile_count"] = len(photos)
-    summary["pending_tiles"] = photos.count("pending")
-    summary["processing_tiles"] = photos.count("processing")
-    summary["completed_tiles"] = photos.count("completed")
-    summary["failed_tiles"] = photos.count("failed")
-    summary["display_name"] = _zone_display_name_from_row(summary)
+    summary["total_teselas"] = len(photos)
+    summary["teselas_pendientes"] = photos.count("pending")
+    summary["teselas_procesando"] = photos.count("processing")
+    summary["teselas_completadas"] = photos.count("completed")
+    summary["teselas_fallidas"] = photos.count("failed")
+    summary["nombre_visible"] = _zone_display_name_from_row(summary)
     return summary
 
 
@@ -1072,13 +1113,13 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
     photos = []
     for photo_model in photo_models:
         photo = _photo_to_dict(photo_model)
-        photo["trace_status"] = _photo_trace_status(photo)
-        photo["is_stale"] = _photo_is_stale(photo)
-        photo["can_retry"] = _photo_can_retry(photo)
+        photo["estado_trazas"] = _photo_trace_status(photo)
+        photo["esta_atascada"] = _photo_is_stale(photo)
+        photo["puede_reintentar"] = _photo_can_retry(photo)
         photos.append(photo)
 
-    summary["photos"] = photos
-    summary["can_retry_all"] = zone_retry_is_enabled(photos)
+    summary["fotos"] = photos
+    summary["puede_reintentar_todo"] = zone_retry_is_enabled(photos)
     return summary
 
 
@@ -1092,7 +1133,7 @@ def retry_zone_pending_and_failed(parcel_id: int) -> int:
     if detail is None:
         return 0
 
-    photos = detail.get("photos") or []
+    photos = detail.get("fotos") or []
     if not zone_retry_is_enabled(photos):
         return 0
 

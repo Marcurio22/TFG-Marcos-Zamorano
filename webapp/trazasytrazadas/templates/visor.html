@@ -35,13 +35,13 @@ Versión: 0.1
         {% if initial_zone %}
           <div id="map-traces-panel"
                class="flex flex-wrap items-center gap-3 rounded-box border border-base-300 bg-white/95 px-3 py-2 text-base-content shadow-sm"
-               data-trace-status="{{ initial_zone.trace_status or 'pending' }}">
+               data-trace-status="{{ initial_zone.estado_trazas or 'pending' }}">
             <label class="inline-flex items-center gap-2 text-sm font-medium"
                    title="{{ _("Muestra u oculta las trazas calculadas sobre el mapa.") }}">
               <input id="map-traces-checkbox"
                      type="checkbox"
                      class="checkbox checkbox-sm checkbox-primary"
-                     {% if initial_zone.can_draw_traces %}checked{% else %}disabled aria-disabled="true"{% endif %}>
+                     {% if initial_zone.puede_dibujar_trazas %}checked{% else %}disabled aria-disabled="true"{% endif %}>
               <span>{{ _("Dibujar trazas") }}</span>
             </label>
             <div class="flex items-center gap-2">
@@ -200,7 +200,7 @@ Versión: 0.1
       "mapTraceStatusPending": _("Trazas pendientes"),
       "close": _("Cerrar")
     },
-    "initialZone": initial_zone
+    "zonaInicial": initial_zone
   } | tojson }};
   </script>
   <script src="{{ url_for('static', filename='js/visor.js') }}"></script>

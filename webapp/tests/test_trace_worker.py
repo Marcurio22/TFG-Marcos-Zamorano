@@ -58,47 +58,47 @@ def _register_zone(client, monkeypatch):
             [
                 {
                     "id": "r01_c01",
-                    "row": 1,
-                    "col": 1,
-                    "filename": "tile_1.jpg",
-                    "label": "Tesela 1-1",
-                    "bounds": {
-                        "south": 40.0,
-                        "west": -4.0,
-                        "north": 40.1,
-                        "east": -3.9,
+                    "fila": 1,
+                    "columna": 1,
+                    "nombre_archivo": "tile_1.jpg",
+                    "nombre": "Tesela 1-1",
+                    "limites": {
+                        "sur": 40.0,
+                        "oeste": -4.0,
+                        "norte": 40.1,
+                        "este": -3.9,
                     },
-                    "bbox3857": {
+                    "limites_3857": {
                         "xmin": -1.0,
                         "ymin": -1.0,
                         "xmax": 1.0,
                         "ymax": 1.0,
                     },
-                    "width": 1024,
-                    "height": 640,
-                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                    "ancho": 1024,
+                    "alto": 640,
+                    "url_descarga": "/visor/download/tile?source_id=pnoa2023",
                 },
                 {
                     "id": "r01_c02",
-                    "row": 1,
-                    "col": 2,
-                    "filename": "tile_2.jpg",
-                    "label": "Tesela 1-2",
-                    "bounds": {
-                        "south": 40.0,
-                        "west": -3.9,
-                        "north": 40.1,
-                        "east": -3.8,
+                    "fila": 1,
+                    "columna": 2,
+                    "nombre_archivo": "tile_2.jpg",
+                    "nombre": "Tesela 1-2",
+                    "limites": {
+                        "sur": 40.0,
+                        "oeste": -3.9,
+                        "norte": 40.1,
+                        "este": -3.8,
                     },
-                    "bbox3857": {
+                    "limites_3857": {
                         "xmin": 1.0,
                         "ymin": -1.0,
                         "xmax": 2.0,
                         "ymax": 1.0,
                     },
-                    "width": 1024,
-                    "height": 640,
-                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                    "ancho": 1024,
+                    "alto": 640,
+                    "url_descarga": "/visor/download/tile?source_id=pnoa2023",
                 },
             ],
             1,
@@ -115,22 +115,22 @@ def _register_zone(client, monkeypatch):
     response = client.post(
         "/visor/grid-plan",
         json={
-            "bbox": {
-                "south": 40.0,
-                "west": -4.0,
-                "north": 40.1,
-                "east": -3.8,
+            "limites": {
+                "sur": 40.0,
+                "oeste": -4.0,
+                "norte": 40.1,
+                "este": -3.8,
             },
-            "origin": {"lat": 40.123456, "lng": -3.654321},
-            "destination": {"lat": 40.654321, "lng": -3.123456},
-            "resolution": 0.25,
+            "origen": {"lat": 40.123456, "lng": -3.654321},
+            "destino": {"lat": 40.654321, "lng": -3.123456},
+            "resolucion": 0.25,
         },
     )
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert payload["parcel_id"] is not None
-    return int(payload["parcel_id"])
+    assert payload["parcela_id"] is not None
+    return int(payload["parcela_id"])
 
 
 def test_grid_plan_registers_pending_tiles_without_local_download(

@@ -501,16 +501,72 @@ def _visor_source_by_id(source_id: str) -> dict | None:
     return None
 
 
+def _visor_public_source(source: dict) -> dict:
+    """Devuelve la fuente cartográfica en el contrato público en español."""
+    return {
+        "id": source["id"],
+        "nombre": source["label"],
+        "servicio": source["service"],
+        "capa": source["layer"],
+    }
+
+
+def _visor_public_preview(source: dict) -> dict | None:
+    """Devuelve la previsualización WMS en el contrato público en español."""
+    preview = source.get("preview") or None
+    if not preview:
+        return None
+    return {
+        "tipo": preview.get("type"),
+        "url": preview.get("url"),
+        "capa": preview.get("layer"),
+    }
+
+
+def _visor_public_warning(warning: dict) -> dict:
+    """Devuelve un aviso del visor en el contrato público en español."""
+    return {
+        "nivel": warning.get("level", "warning"),
+        "codigo": warning.get("code", "warning"),
+        "mensaje": warning.get("message", ""),
+    }
+
+
+def _visor_public_tile(tile: dict) -> dict:
+    """Normaliza una tesela al contrato público en español."""
+    limites = tile.get("limites") or tile.get("bounds") or {}
+    limites = {
+        "sur": limites.get("sur", limites.get("south")),
+        "oeste": limites.get("oeste", limites.get("west")),
+        "norte": limites.get("norte", limites.get("north")),
+        "este": limites.get("este", limites.get("east")),
+    }
+    fila = tile.get("fila", tile.get("row"))
+    columna = tile.get("columna", tile.get("col"))
+    return {
+        "id": tile.get("id"),
+        "fila": fila,
+        "columna": columna,
+        "nombre_archivo": tile.get("nombre_archivo", tile.get("filename")),
+        "nombre": tile.get("nombre", tile.get("label")),
+        "limites": limites,
+        "limites_3857": tile.get("limites_3857", tile.get("bbox3857", {})),
+        "ancho": tile.get("ancho", tile.get("width")),
+        "alto": tile.get("alto", tile.get("height")),
+        "url_descarga": tile.get("url_descarga", tile.get("download_url")),
+    }
+
+
 def _visor_validate_bbox(
     payload_bbox: dict,
 ) -> tuple[float, float, float, float]:
     """Valida y normaliza un bounding box geográfico en EPSG:4326."""
     try:
-        south = float(payload_bbox["south"])
-        west = float(payload_bbox["west"])
-        north = float(payload_bbox["north"])
-        east = float(payload_bbox["east"])
-    except (KeyError, TypeError, ValueError) as exc:
+        south = float(payload_bbox.get("sur", payload_bbox.get("south")))
+        west = float(payload_bbox.get("oeste", payload_bbox.get("west")))
+        north = float(payload_bbox.get("norte", payload_bbox.get("north")))
+        east = float(payload_bbox.get("este", payload_bbox.get("east")))
+    except (AttributeError, TypeError, ValueError) as exc:
         raise ValueError(_("Coordenadas del rectángulo no válidas.")) from exc
 
     if south == north or west == east:
@@ -569,10 +625,10 @@ def _visor_bbox_to_latlng(
     """Convierte un bbox en EPSG:3857 a coordenadas geográficas."""
     xmin, ymin, xmax, ymax = bbox3857
     return {
-        "south": _mercator_y_to_lat(ymin),
-        "west": _mercator_x_to_lon(xmin),
-        "north": _mercator_y_to_lat(ymax),
-        "east": _mercator_x_to_lon(xmax),
+        "sur": _mercator_y_to_lat(ymin),
+        "oeste": _mercator_x_to_lon(xmin),
+        "norte": _mercator_y_to_lat(ymax),
+        "este": _mercator_x_to_lon(xmax),
     }
 
 
@@ -784,33 +840,33 @@ def _visor_build_tiles(
             tiles.append(
                 {
                     "id": tile_id,
-                    "row": row + 1,
-                    "col": col + 1,
-                    "filename": filename,
-                    "label": _(
+                    "fila": row + 1,
+                    "columna": col + 1,
+                    "nombre_archivo": filename,
+                    "nombre": _(
                         "Tesela %(row)s-%(col)s",
                         row=row + 1,
                         col=col + 1,
                     ),
-                    "bounds": _visor_bbox_to_latlng(bbox_tile),
-                    "bbox3857": {
+                    "limites": _visor_bbox_to_latlng(bbox_tile),
+                    "limites_3857": {
                         "xmin": tile_xmin,
                         "ymin": tile_ymin,
                         "xmax": tile_xmax,
                         "ymax": tile_ymax,
                     },
-                    "width": tile_width_px,
-                    "height": tile_height_px,
-                    "download_url": url_for(
+                    "ancho": tile_width_px,
+                    "alto": tile_height_px,
+                    "url_descarga": url_for(
                         "trazas.visor_download_tile",
-                        source_id=source["id"],
+                        fuente_id=source["id"],
                         xmin=tile_xmin,
                         ymin=tile_ymin,
                         xmax=tile_xmax,
                         ymax=tile_ymax,
-                        width=tile_width_px,
-                        height=tile_height_px,
-                        filename=filename,
+                        ancho=tile_width_px,
+                        alto=tile_height_px,
+                        nombre_archivo=filename,
                     ),
                 }
             )
@@ -822,7 +878,7 @@ def _visor_parse_tile_request(
     args: dict,
 ) -> tuple[dict, tuple[float, ...], int, int, str]:
     """Valida la petición de descarga de una tesela individual."""
-    source_id = args.get("source_id", "")
+    source_id = args.get("fuente_id", args.get("source_id", ""))
     source = _visor_source_by_id(source_id)
     if source is None:
         raise ValueError(_("La fuente solicitada no existe."))
@@ -832,8 +888,8 @@ def _visor_parse_tile_request(
         ymin = float(args["ymin"])
         xmax = float(args["xmax"])
         ymax = float(args["ymax"])
-        width = int(args["width"])
-        height = int(args["height"])
+        width = int(args.get("ancho", args.get("width")))
+        height = int(args.get("alto", args.get("height")))
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError(
             _("Los parámetros de descarga no son válidos.")) from exc
@@ -841,7 +897,8 @@ def _visor_parse_tile_request(
     if width <= 0 or height <= 0:
         raise ValueError(_("El tamaño de descarga no es válido."))
 
-    filename = args.get("filename") or f"{source_id}.jpg"
+    filename = args.get("nombre_archivo", args.get(
+        "filename")) or f"{source_id}.jpg"
     return source, (xmin, ymin, xmax, ymax), width, height, filename
 
 
@@ -896,10 +953,13 @@ def register_visor_routes(bp) -> None:
         payload = request.get_json(silent=True) or {}
 
         try:
-            bbox4326 = _visor_validate_bbox(payload.get("bbox", {}))
-            requested_resolution = float(payload.get("resolution", 0.25))
-            origin_payload = payload.get("origin") or {}
-            destination_payload = payload.get("destination") or {}
+            bbox4326 = _visor_validate_bbox(
+                payload.get("limites", payload.get("bbox", {})))
+            requested_resolution = float(payload.get(
+                "resolucion", payload.get("resolution", 0.25)))
+            origin_payload = payload.get("origen", payload.get("origin")) or {}
+            destination_payload = payload.get(
+                "destino", payload.get("destination")) or {}
             south, west, north, east = bbox4326
             origin_point = {
                 "lat": float(origin_payload.get("lat", south)),
@@ -954,6 +1014,7 @@ def register_visor_routes(bp) -> None:
                 tile_height,
                 source,
             )
+            tiles = [_visor_public_tile(tile) for tile in tiles]
 
             if len(tiles) > VISOR_TILE_WARNING_THRESHOLD:
                 warnings.append(
@@ -1002,23 +1063,18 @@ def register_visor_routes(bp) -> None:
 
             return jsonify(
                 {
-                    "parcel_id": saved_zone_id,
-                    "source": {
-                        "id": source["id"],
-                        "label": source["label"],
-                        "service": source["service"],
-                        "layer": source["layer"],
-                    },
-                    "preview": source.get("preview"),
-                    "requested_resolution": requested_resolution,
-                    "actual_resolution": actual_resolution,
-                    "tile_width": tile_width,
-                    "tile_height": tile_height,
-                    "tile_count": len(tiles),
-                    "rows": rows,
-                    "cols": cols,
-                    "warnings": warnings,
-                    "tiles": tiles,
+                    "parcela_id": saved_zone_id,
+                    "fuente": _visor_public_source(source),
+                    "previsualizacion": _visor_public_preview(source),
+                    "resolucion_solicitada": requested_resolution,
+                    "resolucion_real": actual_resolution,
+                    "ancho_tesela": tile_width,
+                    "alto_tesela": tile_height,
+                    "total_teselas": len(tiles),
+                    "filas": rows,
+                    "columnas": cols,
+                    "avisos": [_visor_public_warning(w) for w in warnings],
+                    "teselas": tiles,
                 }
             )
 
@@ -1075,9 +1131,9 @@ def register_visor_routes(bp) -> None:
     def visor_download_zip():
         """Genera un ZIP con las teselas del visor usando el backend."""
         payload = request.get_json(silent=True) or {}
-        source_id = payload.get("source_id", "")
+        source_id = payload.get("fuente_id", payload.get("source_id", ""))
         source = _visor_source_by_id(source_id)
-        tiles = payload.get("tiles", [])
+        tiles = payload.get("teselas", payload.get("tiles", []))
 
         if source is None:
             return jsonify({
@@ -1110,7 +1166,7 @@ def register_visor_routes(bp) -> None:
             )
 
         zip_buffer = io.BytesIO()
-        log: dict[str, list] = {"downloaded": [], "failed": []}
+        log: dict[str, list] = {"descargadas": [], "fallidas": []}
 
         with zipfile.ZipFile(
             zip_buffer,
@@ -1119,17 +1175,18 @@ def register_visor_routes(bp) -> None:
         ) as zf:
             for tile in tiles:
                 try:
-                    bbox = tile.get("bbox3857", {})
+                    bbox = tile.get("limites_3857", tile.get("bbox3857", {}))
                     bbox3857 = (
                         float(bbox["xmin"]),
                         float(bbox["ymin"]),
                         float(bbox["xmax"]),
                         float(bbox["ymax"]),
                     )
-                    width = int(tile.get("width", 0))
-                    height = int(tile.get("height", 0))
+                    width = int(tile.get("ancho", tile.get("width", 0)))
+                    height = int(tile.get("alto", tile.get("height", 0)))
                     filename = (
-                        tile.get("filename")
+                        tile.get("nombre_archivo")
+                        or tile.get("filename")
                         or f"{tile.get('id', 'tile')}.jpg"
                     )
                     image_bytes = _visor_fetch_tile_bytes(
@@ -1139,11 +1196,11 @@ def register_visor_routes(bp) -> None:
                         height,
                     )
                     zf.writestr(filename, image_bytes)
-                    log["downloaded"].append(filename)
+                    log["descargadas"].append(filename)
                 except Exception as exc:  # pragma: no cover
-                    log["failed"].append(
+                    log["fallidas"].append(
                         {
-                            "tile": tile.get("id", "unknown"),
+                            "tesela": tile.get("id", "unknown"),
                             "error": str(exc),
                         }
                     )

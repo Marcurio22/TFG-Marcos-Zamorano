@@ -28,10 +28,7 @@ from trazasytrazadas.collection_store import (
     refresh_parcel_status,
     get_zone_live_status,
 )
-from trazasytrazadas.db import (
-    _reassign_legacy_parcels_to_configured_user,
-    db,
-)
+from trazasytrazadas.db import db
 from trazasytrazadas.models import Foto, Parcela, Usuario
 
 
@@ -78,47 +75,47 @@ def _register_zone(client, monkeypatch):
             [
                 {
                     "id": "r01_c01",
-                    "row": 1,
-                    "col": 1,
-                    "filename": "tile_1.jpg",
-                    "label": "Tesela 1-1",
-                    "bounds": {
-                        "south": 40.0,
-                        "west": -4.0,
-                        "north": 40.1,
-                        "east": -3.9,
+                    "fila": 1,
+                    "columna": 1,
+                    "nombre_archivo": "tile_1.jpg",
+                    "nombre": "Tesela 1-1",
+                    "limites": {
+                        "sur": 40.0,
+                        "oeste": -4.0,
+                        "norte": 40.1,
+                        "este": -3.9,
                     },
-                    "bbox3857": {
+                    "limites_3857": {
                         "xmin": -1.0,
                         "ymin": -1.0,
                         "xmax": 1.0,
                         "ymax": 1.0,
                     },
-                    "width": 1024,
-                    "height": 640,
-                    "download_url": "/visor/download/tile?fuente_id=pnoa2023",
+                    "ancho": 1024,
+                    "alto": 640,
+                    "url_descarga": "/visor/download/tile?fuente_id=pnoa2023",
                 },
                 {
                     "id": "r01_c02",
-                    "row": 1,
-                    "col": 2,
-                    "filename": "tile_2.jpg",
-                    "label": "Tesela 1-2",
-                    "bounds": {
-                        "south": 40.0,
-                        "west": -3.9,
-                        "north": 40.1,
-                        "east": -3.8,
+                    "fila": 1,
+                    "columna": 2,
+                    "nombre_archivo": "tile_2.jpg",
+                    "nombre": "Tesela 1-2",
+                    "limites": {
+                        "sur": 40.0,
+                        "oeste": -3.9,
+                        "norte": 40.1,
+                        "este": -3.8,
                     },
-                    "bbox3857": {
+                    "limites_3857": {
                         "xmin": 1.0,
                         "ymin": -1.0,
                         "xmax": 2.0,
                         "ymax": 1.0,
                     },
-                    "width": 1024,
-                    "height": 640,
-                    "download_url": "/visor/download/tile?fuente_id=pnoa2023",
+                    "ancho": 1024,
+                    "alto": 640,
+                    "url_descarga": "/visor/download/tile?fuente_id=pnoa2023",
                 },
             ],
             1,
@@ -130,22 +127,22 @@ def _register_zone(client, monkeypatch):
     response = client.post(
         "/visor/grid-plan",
         json={
-            "bbox": {
-                "south": 40.0,
-                "west": -4.0,
-                "north": 40.1,
-                "east": -3.8,
+            "limites": {
+                "sur": 40.0,
+                "oeste": -4.0,
+                "norte": 40.1,
+                "este": -3.8,
             },
-            "origin": {"lat": 40.123456, "lng": -3.654321},
-            "destination": {"lat": 40.654321, "lng": -3.123456},
-            "resolution": 0.25,
+            "origen": {"lat": 40.123456, "lng": -3.654321},
+            "destino": {"lat": 40.654321, "lng": -3.123456},
+            "resolucion": 0.25,
         },
     )
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert payload["parcel_id"] is not None
-    return int(payload["parcel_id"])
+    assert payload["parcela_id"] is not None
+    return int(payload["parcela_id"])
 
 
 def _create_user(
@@ -240,15 +237,15 @@ def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
         plan = get_zone_plan(parcel_id)
 
     assert plan is not None
-    assert plan["trace_status"] == "completed"
-    assert plan["can_draw_traces"] is True
-    assert plan["plan"]["trace_status"] == "completed"
-    assert plan["plan"]["can_draw_traces"] is True
+    assert plan["estado_trazas"] == "completed"
+    assert plan["puede_dibujar_trazas"] is True
+    assert plan["plan"]["estado_trazas"] == "completed"
+    assert plan["plan"]["puede_dibujar_trazas"] is True
 
-    tile = plan["plan"]["tiles"][1]
-    assert tile["photo_id"] == second_photo_id
-    assert tile["trace_status"] == "completed"
-    assert tile["traces_url"].endswith(
+    tile = plan["plan"]["teselas"][1]
+    assert tile["foto_id"] == second_photo_id
+    assert tile["estado_trazas"] == "completed"
+    assert tile["url_trazas"].endswith(
         f"/coleccion/fotos/{second_photo_id}/traces")
 
 
@@ -304,12 +301,12 @@ def test_visor_can_restore_zone_from_collection(app, client, monkeypatch):
 
     response = client.get(f"/visor?parcel_id={parcel_id}")
     assert response.status_code == 200
-    assert b"initialZone" in response.data
+    assert b"zonaInicial" in response.data
 
     with app.app_context():
         detail = get_zone_detail(parcel_id)
         assert detail is not None
-        assert detail["tile_count"] == 2
+        assert detail["total_teselas"] == 2
 
 
 def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):
@@ -348,9 +345,9 @@ def test_collection_delete_removes_zone_storage(app, client, monkeypatch):
     with app.app_context():
         detail = get_zone_detail(parcel_id)
         assert detail is not None
-        assert detail["photos"]
+        assert detail["fotos"]
 
-        first_photo = detail["photos"][0]
+        first_photo = detail["fotos"][0]
         tile_path = materialize_photo_tile(first_photo)
         assert os.path.exists(tile_path)
 
@@ -386,13 +383,13 @@ def test_collection_status_endpoint_returns_zone_summary(app,
     assert response.status_code == 200
 
     payload = response.get_json()
-    assert "zones" in payload
-    assert len(payload["zones"]) == 1
-    zone = payload["zones"][0]
+    assert "zonas" in payload
+    assert len(payload["zonas"]) == 1
+    zone = payload["zonas"][0]
     assert zone["parcela_id"] == parcel_id
     assert zone["estado"] == "pending"
-    assert zone["tile_count"] == 2
-    assert zone["completed_tiles"] == 0
+    assert zone["total_teselas"] == 2
+    assert zone["teselas_completadas"] == 0
 
 
 def test_collection_zone_status_endpoint_returns_photo_states(
@@ -428,12 +425,12 @@ def test_collection_zone_status_endpoint_returns_photo_states(
     payload = response.get_json()
     assert payload["parcela_id"] == parcel_id
     assert payload["estado"] == "processing"
-    assert payload["tile_count"] == 2
-    assert payload["completed_tiles"] == 1
-    assert payload["processing_tiles"] == 1
-    assert len(payload["photos"]) == 2
-    assert payload["photos"][0]["estado"] == "processing"
-    assert payload["photos"][1]["estado"] == "completed"
+    assert payload["total_teselas"] == 2
+    assert payload["teselas_completadas"] == 1
+    assert payload["teselas_procesando"] == 1
+    assert len(payload["fotos"]) == 2
+    assert payload["fotos"][0]["estado"] == "processing"
+    assert payload["fotos"][1]["estado"] == "completed"
 
 
 def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
@@ -499,7 +496,7 @@ def test_collection_zone_rename_updates_db_and_gallery_title(
         detail = get_zone_detail(parcel_id)
         assert detail is not None
         assert detail["nombre_coleccion"] == "Parcela norte"
-        assert detail["display_name"] == "Parcela norte"
+        assert detail["nombre_visible"] == "Parcela norte"
 
 
 def test_collection_photo_traces_endpoint_returns_json(
@@ -738,7 +735,7 @@ def test_collection_zone_status_disables_bulk_retry_when_completed(
         payload = get_zone_live_status(parcel_id)
         assert payload is not None
         assert payload["estado"] == "completed"
-        assert payload["can_retry_all"] is False
+        assert payload["puede_reintentar_todo"] is False
 
 
 def test_collection_preview_persists_file_on_first_request(
@@ -855,59 +852,21 @@ def test_anonymous_user_cannot_create_zone_from_visor(client):
     response = client.post(
         "/visor/grid-plan",
         json={
-            "bbox": {
-                "south": 40.0,
-                "west": -4.0,
-                "north": 40.1,
-                "east": -3.8,
+            "limites": {
+                "sur": 40.0,
+                "oeste": -4.0,
+                "norte": 40.1,
+                "este": -3.8,
             },
-            "origin": {"lat": 40.123456, "lng": -3.654321},
-            "destination": {"lat": 40.654321, "lng": -3.123456},
-            "resolution": 0.25,
+            "origen": {"lat": 40.123456, "lng": -3.654321},
+            "destino": {"lat": 40.654321, "lng": -3.123456},
+            "resolucion": 0.25,
         },
         follow_redirects=False,
     )
 
     assert response.status_code == 302
     assert "/login" in response.headers["Location"]
-
-
-def test_legacy_parcels_are_reassigned_to_configured_user(app):
-    """Las parcelas legacy del usuario técnico se reasignan a Vindi22."""
-    with app.app_context():
-        legacy_parcel = Parcela(
-            usuario_id=1,
-            tamano_metros=100.0,
-            pto_origen_latitud=40.0,
-            pto_origen_longitud=-4.0,
-            pto_fin_latitud=40.1,
-            pto_fin_longitud=-3.8,
-            fuente_id="pnoa2023",
-            fuente_nombre="PNOA 2023",
-            resolucion_solicitada=0.25,
-            resolucion_real=0.25,
-            ancho_tesela=1024,
-            alto_tesela=640,
-            estado="pending",
-            nombre_coleccion="Legacy zone",
-        )
-        db.session.add(legacy_parcel)
-        db.session.commit()
-
-        user_id = _create_user(
-            app,
-            username="Vindi22",
-            email="vindi@example.com",
-        )
-
-        _reassign_legacy_parcels_to_configured_user()
-
-        parcel = db.session.execute(
-            db.select(Parcela).filter_by(nombre_coleccion="Legacy zone")
-        ).scalar_one()
-        owner_id = parcel.usuario_id
-
-    assert owner_id == user_id
 
 
 def test_collection_gallery_returns_404_for_foreign_zone(

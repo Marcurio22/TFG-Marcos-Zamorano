@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPlan = null;
   let drawingMapTraces = false;
   const traceOverlayCache = new Map();
-  const initialZone = CFG.initialZone || null;
+  const initialZone = CFG.zonaInicial || CFG.initialZone || null;
 
   function formatTemplate(template, values) {
     return Object.keys(values).reduce(
@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const status = plan?.trace_status || mapTracesPanel?.dataset.traceStatus || "pending";
+    const status = plan?.estado_trazas || mapTracesPanel?.dataset.traceStatus || "pending";
     mapTracesStatus.innerHTML = renderMapTraceStatusMarkup(status);
     mapTracesStatus.title = getMapTraceStatusTitle(status);
     mapTracesStatus.dataset.traceStatus = status;
@@ -317,7 +317,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const canDraw = Boolean(plan?.can_draw_traces);
+    const canDraw = Boolean(plan?.puede_dibujar_trazas);
 
     if (!canDraw) {
       clearMapTraceOverlays({ resetCheckbox: true });
@@ -339,16 +339,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchTileTraces(tile) {
-    const cacheKey = String(tile.photo_id || tile.id || tile.traces_url || "");
+    const cacheKey = String(tile.foto_id || tile.id || tile.url_trazas || "");
     if (cacheKey && traceOverlayCache.has(cacheKey)) {
       return traceOverlayCache.get(cacheKey);
     }
 
-    if (!tile.traces_url) {
+    if (!tile.url_trazas) {
       throw new Error(I18N.mapTracesError);
     }
 
-    const tracesUrl = new URL(tile.traces_url, window.location.origin);
+    const tracesUrl = new URL(tile.url_trazas, window.location.origin);
     tracesUrl.searchParams.set("_ts", Date.now().toString());
 
     const response = await fetch(tracesUrl.toString(), {
@@ -373,8 +373,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildTileTraceOverlay(tile, traces) {
-    const width = Number(tile.width || currentPlan?.tile_width || 1024);
-    const height = Number(tile.height || currentPlan?.tile_height || 640);
+    const width = Number(tile.ancho || currentPlan?.ancho_tesela || 1024);
+    const height = Number(tile.alto || currentPlan?.alto_tesela || 640);
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -397,8 +397,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const bounds = L.latLngBounds(
-      [tile.bounds.south, tile.bounds.west],
-      [tile.bounds.north, tile.bounds.east]
+      [tile.limites.sur, tile.limites.oeste],
+      [tile.limites.norte, tile.limites.este]
     );
 
     return L.imageOverlay(canvas.toDataURL("image/png"), bounds, {
@@ -408,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function drawMapTraces({ silent = false } = {}) {
-    if (!currentPlan?.can_draw_traces) {
+    if (!currentPlan?.puede_dibujar_trazas) {
       if (mapTracesCheckbox) {
         mapTracesCheckbox.checked = false;
       }
@@ -431,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       traceOverlayGroup.clearLayers();
 
-      for (const tile of currentPlan.tiles || []) {
+      for (const tile of currentPlan.teselas || []) {
         const traces = await fetchTileTraces(tile);
         const overlay = buildTileTraceOverlay(tile, traces);
         if (overlay) {
@@ -501,19 +501,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const sw = selectionBounds.getSouthWest();
     const ne = selectionBounds.getNorthEast();
     return {
-      bbox: {
-        south: sw.lat,
-        west: sw.lng,
-        north: ne.lat,
-        east: ne.lng,
+      limites: {
+        sur: sw.lat,
+        oeste: sw.lng,
+        norte: ne.lat,
+        este: ne.lng,
       },
-      origin: selectedPoints[0]
+      origen: selectedPoints[0]
         ? { lat: selectedPoints[0].lat, lng: selectedPoints[0].lng }
         : { lat: sw.lat, lng: sw.lng },
-      destination: selectedPoints[1]
+      destino: selectedPoints[1]
         ? { lat: selectedPoints[1].lat, lng: selectedPoints[1].lng }
         : { lat: ne.lat, lng: ne.lng },
-      resolution: Number.parseFloat(resolutionSelect.value),
+      resolucion: Number.parseFloat(resolutionSelect.value),
     };
   }
 
@@ -529,20 +529,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function downloadSingleTile(tile) {
-    addAlert("alert-info", formatTemplate(I18N.downloadingTile, { tile: tile.label }));
-    const response = await fetch(tile.download_url, { method: "GET" });
+    addAlert("alert-info", formatTemplate(I18N.downloadingTile, { tile: tile.nombre }));
+    const response = await fetch(tile.url_descarga, { method: "GET" });
     if (!response.ok) {
       throw new Error(I18N.serverError);
     }
     const blob = await response.blob();
-    triggerFileDownload(blob, tile.filename);
+    triggerFileDownload(blob, tile.nombre_archivo);
   }
 
   function renderDownloadList(plan) {
     if (!downloadListEl) return;
     downloadListEl.innerHTML = "";
 
-    const visibleTiles = plan.tiles.slice(0, DEFAULTS.tileListSoftLimit);
+    const visibleTiles = plan.teselas.slice(0, DEFAULTS.tileListSoftLimit);
     visibleTiles.forEach((tile) => {
       const row = document.createElement("div");
       row.className = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-box border border-base-200 bg-base-50 px-3 py-2";
@@ -550,8 +550,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const meta = document.createElement("div");
       meta.className = "min-w-0";
       meta.innerHTML = `
-        <div class="font-semibold text-sm truncate">${tile.label}</div>
-        <div class="text-xs opacity-70 truncate">${tile.filename}</div>
+        <div class="font-semibold text-sm truncate">${tile.nombre}</div>
+        <div class="text-xs opacity-70 truncate">${tile.nombre_archivo}</div>
       `;
 
       const btn = document.createElement("button");
@@ -572,7 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
       downloadListEl.appendChild(row);
     });
 
-    if (plan.tiles.length > visibleTiles.length) {
+    if (plan.teselas.length > visibleTiles.length) {
       const note = document.createElement("div");
       note.className = "text-xs opacity-70";
       note.textContent = formatTemplate(I18N.downloadsPartialList, {
@@ -594,31 +594,31 @@ document.addEventListener("DOMContentLoaded", () => {
       activePreviewLayer = null;
     }
 
-    if (!plan.preview || plan.preview.type !== "wms") {
+    if (!plan.previsualizacion || plan.previsualizacion.tipo !== "wms") {
       setSourceSummary(
         formatTemplate(I18N.activePreview, {
-          source: plan.source.label,
-          resolution: plan.actual_resolution.toFixed(2),
+          source: plan.fuente.nombre,
+          resolution: plan.resolucion_real.toFixed(2),
         })
       );
       return;
     }
 
-    activePreviewLayer = L.tileLayer.wms(plan.preview.url, {
-      layers: plan.preview.layer,
+    activePreviewLayer = L.tileLayer.wms(plan.previsualizacion.url, {
+      layers: plan.previsualizacion.capa,
       format: "image/jpeg",
       transparent: false,
       version: "1.1.1",
-      attribution: plan.source.label,
+      attribution: plan.fuente.nombre,
     });
 
-    layerControl.addOverlay(activePreviewLayer, plan.source.label);
+    layerControl.addOverlay(activePreviewLayer, plan.fuente.nombre);
     previewGroup.addLayer(activePreviewLayer);
 
     setSourceSummary(
       formatTemplate(I18N.activePreview, {
-        source: plan.source.label,
-        resolution: plan.actual_resolution.toFixed(2),
+        source: plan.fuente.nombre,
+        resolution: plan.resolucion_real.toFixed(2),
       })
     );
   }
@@ -627,10 +627,10 @@ document.addEventListener("DOMContentLoaded", () => {
     gridGroup.clearLayers();
     traceOverlayGroup.clearLayers();
 
-    plan.tiles.forEach((tile) => {
+    plan.teselas.forEach((tile) => {
       const bounds = L.latLngBounds(
-        [tile.bounds.south, tile.bounds.west],
-        [tile.bounds.north, tile.bounds.east]
+        [tile.limites.sur, tile.limites.oeste],
+        [tile.limites.norte, tile.limites.este]
       );
 
       const rect = L.rectangle(bounds, {
@@ -638,7 +638,7 @@ document.addEventListener("DOMContentLoaded", () => {
         weight: 1,
         fillOpacity: 0.04,
       });
-      rect.bindTooltip(tile.label, { sticky: true });
+      rect.bindTooltip(tile.nombre, { sticky: true });
       rect.addTo(gridGroup);
     });
 
@@ -646,13 +646,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function restoreInitialZone(zone) {
-    if (!zone || !zone.bbox || !zone.plan) return;
+    if (!zone || !zone.limites || !zone.plan) return;
 
     resetSelection();
 
     selectedPoints = [
-      L.latLng(zone.origin.lat, zone.origin.lng),
-      L.latLng(zone.destination.lat, zone.destination.lng),
+      L.latLng(zone.origen.lat, zone.origen.lng),
+      L.latLng(zone.destino.lat, zone.destino.lng),
     ];
 
     selectedPoints.forEach((point) => {
@@ -660,8 +660,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     selectionBounds = L.latLngBounds(
-      [zone.bbox.south, zone.bbox.west],
-      [zone.bbox.north, zone.bbox.east]
+      [zone.limites.sur, zone.limites.oeste],
+      [zone.limites.norte, zone.limites.este]
     );
 
     selectionRectangle = L.rectangle(selectionBounds, {
@@ -676,19 +676,19 @@ document.addEventListener("DOMContentLoaded", () => {
     renderDownloadList(currentPlan);
     updateSelectionSummaryFromBounds(selectionBounds);
 
-    if (resolutionSelect && currentPlan.requested_resolution) {
-      resolutionSelect.value = String(currentPlan.requested_resolution);
+    if (resolutionSelect && currentPlan.resolucion_solicitada) {
+      resolutionSelect.value = String(currentPlan.resolucion_solicitada);
     }
 
     setDownloadsSummary(
       `${formatTemplate(I18N.downloadsReady, {
-        count: currentPlan.tile_count,
-        resolution: Number(currentPlan.actual_resolution).toFixed(2),
-        source: currentPlan.source.label,
+        count: currentPlan.total_teselas,
+        resolution: Number(currentPlan.resolucion_real).toFixed(2),
+        source: currentPlan.fuente.nombre,
       })} ${formatTemplate(I18N.tilesCount, {
-        count: currentPlan.tile_count,
-        width: currentPlan.tile_width,
-        height: currentPlan.tile_height,
+        count: currentPlan.total_teselas,
+        width: currentPlan.ancho_tesela,
+        height: currentPlan.alto_tesela,
       })}`
     );
 
@@ -698,7 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateMapTraceControls(currentPlan);
 
-    if (mapTracesCheckbox?.checked && currentPlan?.can_draw_traces) {
+    if (mapTracesCheckbox?.checked && currentPlan?.puede_dibujar_trazas) {
       drawMapTraces({ silent: true });
     }
   }
@@ -753,13 +753,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setDownloadsSummary(
         `${formatTemplate(I18N.downloadsReady, {
-          count: data.tile_count,
-          resolution: data.actual_resolution.toFixed(2),
-          source: data.source.label,
+          count: data.total_teselas,
+          resolution: data.resolucion_real.toFixed(2),
+          source: data.fuente.nombre,
         })} ${formatTemplate(I18N.tilesCount, {
-          count: data.tile_count,
-          width: data.tile_width,
-          height: data.tile_height,
+          count: data.total_teselas,
+          width: data.ancho_tesela,
+          height: data.alto_tesela,
         })}`
       );
 
@@ -767,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
         controlsModal.close();
       }
 
-      if (data.parcel_id && URLS.collection) {
+      if (data.parcela_id && URLS.collection) {
         addAlert(
           "alert-success",
           `${I18N.zoneRegistered} <a class="link font-semibold" href="${URLS.collection}">${I18N.openCollection}</a>`
@@ -778,11 +778,11 @@ document.addEventListener("DOMContentLoaded", () => {
         scrollToDownloads();
       });
 
-      (data.warnings || []).forEach((warning) => {
-        addAlert(`alert-${warning.level || "warning"}`, warning.message);
+      (data.avisos || []).forEach((warning) => {
+        addAlert(`alert-${warning.nivel || "warning"}`, warning.mensaje);
       });
 
-      if (data.tile_count > DEFAULTS.tileWarningThreshold) {
+      if (data.total_teselas > DEFAULTS.tileWarningThreshold) {
         addAlert("alert-warning", I18N.largeGridWarning);
       }
     } catch (error) {
@@ -804,9 +804,9 @@ document.addEventListener("DOMContentLoaded", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          source_id: currentPlan.source.id,
-          actual_resolution: currentPlan.actual_resolution,
-          tiles: currentPlan.tiles,
+          fuente_id: currentPlan.fuente.id,
+          resolucion_real: currentPlan.resolucion_real,
+          teselas: currentPlan.teselas,
         }),
       });
 

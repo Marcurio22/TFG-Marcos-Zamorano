@@ -153,10 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const total = Number(payload.tile_count || 0);
-    const completed = Number(payload.completed_tiles || 0);
+    const total = Number(payload.total_teselas || 0);
+    const completed = Number(payload.teselas_completadas || 0);
     const allCompleted = total > 0 && completed === total;
-    const canRetryAll = Boolean(payload.can_retry_all);
+    const canRetryAll = Boolean(payload.puede_reintentar_todo);
 
     zoneRetryAllButton.disabled = !canRetryAll;
     zoneRetryAllButton.classList.toggle("btn-disabled", !canRetryAll);
@@ -792,7 +792,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const payload = await response.json();
-    const zones = Array.isArray(payload.zones) ? payload.zones : [];
+    const zones = Array.isArray(payload.zonas) ? payload.zonas : [];
     const byId = new Map(zones.map((zone) => [String(zone.parcela_id), zone]));
 
     rows.forEach((row) => {
@@ -811,8 +811,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (progressEl) {
         progressEl.textContent = formatTemplate(I18N.progressText, {
-          completed: zone.completed_tiles || 0,
-          total: zone.tile_count || 0,
+          completed: zone.teselas_completadas || 0,
+          total: zone.total_teselas || 0,
         });
       }
     });
@@ -851,12 +851,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (progressSummaryEl) {
       progressSummaryEl.textContent = formatTemplate(I18N.progressText, {
-        completed: payload.completed_tiles || 0,
-        total: payload.tile_count || 0,
+        completed: payload.teselas_completadas || 0,
+        total: payload.total_teselas || 0,
       });
     }
 
-    const photos = Array.isArray(payload.photos) ? payload.photos : [];
+    const photos = Array.isArray(payload.fotos) ? payload.fotos : [];
     const byId = new Map(photos.map((photo) => [String(photo.foto_id), photo]));
 
     document.querySelectorAll("[data-photo-status]").forEach((container) => {
@@ -865,7 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const isStale = Boolean(photo.is_stale);
+      const isStale = Boolean(photo.esta_atascada);
       container.innerHTML = renderPhotoStateMarkup(photo.estado, isStale);
       container.dataset.photoState = photo.estado;
 
@@ -890,7 +890,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       container.innerHTML = renderPhotoActionsMarkup({
         status: photo.estado,
-        canRetry: Boolean(photo.can_retry),
+        canRetry: Boolean(photo.puede_reintentar),
         retryUrl: container.dataset.photoRetryUrl,
         downloadUrl: container.dataset.photoDownloadUrl,
       });
@@ -903,8 +903,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       card.dataset.photoState = photo.estado || "pending";
-      card.dataset.photoTraceStatus = photo.trace_status || "pending";
-      card.dataset.photoCanRetry = photo.can_retry ? "1" : "0";
+      card.dataset.photoTraceStatus = photo.estado_trazas || "pending";
+      card.dataset.photoCanRetry = photo.puede_reintentar ? "1" : "0";
 
       if (currentViewerPhotoId && currentViewerPhotoId === String(photo.foto_id)) {
         updatePhotoViewerControls(getPhotoDataFromCard(card));

@@ -57,25 +57,25 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
             [
                 {
                     "id": "r01_c01",
-                    "row": 1,
-                    "col": 1,
-                    "filename": "tile_1.jpg",
-                    "label": "Tesela 1-1",
-                    "bounds": {
-                        "south": 40.0,
-                        "west": -4.0,
-                        "north": 40.1,
-                        "east": -3.9,
+                    "fila": 1,
+                    "columna": 1,
+                    "nombre_archivo": "tile_1.jpg",
+                    "nombre": "Tesela 1-1",
+                    "limites": {
+                        "sur": 40.0,
+                        "oeste": -4.0,
+                        "norte": 40.1,
+                        "este": -3.9,
                     },
-                    "bbox3857": {
+                    "limites_3857": {
                         "xmin": -1.0,
                         "ymin": -1.0,
                         "xmax": 1.0,
                         "ymax": 1.0,
                     },
-                    "width": 1024,
-                    "height": 640,
-                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                    "ancho": 1024,
+                    "alto": 640,
+                    "url_descarga": "/visor/download/tile?source_id=pnoa2023",
                 }
             ],
             1,
@@ -97,21 +97,21 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
     response = client.post(
         "/visor/grid-plan",
         json={
-            "bbox": {
-                "south": 40.0,
-                "west": -4.0,
-                "north": 40.1,
-                "east": -3.9,
+            "limites": {
+                "sur": 40.0,
+                "oeste": -4.0,
+                "norte": 40.1,
+                "este": -3.9,
             },
-            "resolution": 0.25,
+            "resolucion": 0.25,
         },
     )
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert payload["source"]["id"] == "pnoa2023"
-    assert payload["tile_count"] == 1
-    assert payload["tiles"][0]["filename"] == "tile_1.jpg"
+    assert payload["fuente"]["id"] == "pnoa2023"
+    assert payload["total_teselas"] == 1
+    assert payload["teselas"][0]["nombre_archivo"] == "tile_1.jpg"
 
 
 def test_visor_download_tile_uses_backend_proxy(client, monkeypatch):
@@ -125,14 +125,14 @@ def test_visor_download_tile_uses_backend_proxy(client, monkeypatch):
     response = client.get(
         "/visor/download/tile",
         query_string={
-            "source_id": "pnoa2023",
+            "fuente_id": "pnoa2023",
             "xmin": 0,
             "ymin": 0,
             "xmax": 1,
             "ymax": 1,
-            "width": 256,
-            "height": 256,
-            "filename": "tile.jpg",
+            "ancho": 256,
+            "alto": 256,
+            "nombre_archivo": "tile.jpg",
         },
     )
 
@@ -163,25 +163,25 @@ def test_visor_grid_plan_triggers_worker(app, client, monkeypatch):
             [
                 {
                     "id": "r01_c01",
-                    "row": 1,
-                    "col": 1,
-                    "filename": "tile_1.jpg",
-                    "label": "Tesela 1-1",
-                    "bounds": {
-                        "south": 40.0,
-                        "west": -4.0,
-                        "north": 40.1,
-                        "east": -3.9,
+                    "fila": 1,
+                    "columna": 1,
+                    "nombre_archivo": "tile_1.jpg",
+                    "nombre": "Tesela 1-1",
+                    "limites": {
+                        "sur": 40.0,
+                        "oeste": -4.0,
+                        "norte": 40.1,
+                        "este": -3.9,
                     },
-                    "bbox3857": {
+                    "limites_3857": {
                         "xmin": -1.0,
                         "ymin": -1.0,
                         "xmax": 1.0,
                         "ymax": 1.0,
                     },
-                    "width": 1024,
-                    "height": 640,
-                    "download_url": "/visor/download/tile?source_id=pnoa2023",
+                    "ancho": 1024,
+                    "alto": 640,
+                    "url_descarga": "/visor/download/tile?source_id=pnoa2023",
                 }
             ],
             1,
@@ -203,13 +203,13 @@ def test_visor_grid_plan_triggers_worker(app, client, monkeypatch):
     response = client.post(
         "/visor/grid-plan",
         json={
-            "bbox": {
-                "south": 40.0,
-                "west": -4.0,
-                "north": 40.1,
-                "east": -3.9,
+            "limites": {
+                "sur": 40.0,
+                "oeste": -4.0,
+                "norte": 40.1,
+                "este": -3.9,
             },
-            "resolution": 0.25,
+            "resolucion": 0.25,
         },
     )
 

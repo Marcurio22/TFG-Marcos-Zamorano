@@ -122,11 +122,11 @@ def _fetch_photo_bytes(photo: dict) -> bytes:
         with open(local_image_path, "rb") as image_file:
             return image_file.read()
 
-    source = _visor_source_by_id(photo["source_id"])
+    source = _visor_source_by_id(photo["fuente_id"])
     if source is None:
         raise RuntimeError(_("La fuente de la tesela ya no está disponible."))
 
-    bbox = photo["bbox3857"]
+    bbox = photo["limites_3857"]
     bbox3857 = (
         float(bbox["xmin"]),
         float(bbox["ymin"]),
@@ -136,8 +136,8 @@ def _fetch_photo_bytes(photo: dict) -> bytes:
     return _visor_fetch_tile_bytes(
         source,
         bbox3857,
-        int(photo["width"]),
-        int(photo["height"]),
+        int(photo["ancho"]),
+        int(photo["alto"]),
     )
 
 
@@ -209,7 +209,7 @@ def _build_photo_download_zip(photo: dict) -> tuple[bytes, str]:
         traces=traces,
     )
 
-    filename_root, extension = os.path.splitext(photo["filename"])
+    filename_root, extension = os.path.splitext(photo["nombre_archivo"])
     zip_suffix = _("resultados")
     zip_name = f"{filename_root}_{zip_suffix}.zip"
 
@@ -238,7 +238,7 @@ def _build_photo_download_zip(photo: dict) -> tuple[bytes, str]:
 
 def _zone_download_filename(detail: dict) -> str:
     """Construye un nombre de descarga legible para el ZIP de una zona."""
-    base_name = secure_filename((detail.get("display_name") or "").strip())
+    base_name = secure_filename((detail.get("nombre_visible") or "").strip())
     if not base_name:
         base_name = f"parcela_{detail['parcela_id']}"
     return f"{base_name}_tiles.zip"
@@ -253,7 +253,7 @@ def _build_zone_preview_bytes(detail: dict) -> bytes:
     relación de aspecto, por lo que el área representada sigue siendo
     exactamente la seleccionada por el usuario.
     """
-    photos = detail.get("photos") or []
+    photos = detail.get("fotos") or []
     if not photos:
         raise RuntimeError(_("La zona no contiene teselas."))
 
@@ -261,15 +261,15 @@ def _build_zone_preview_bytes(detail: dict) -> bytes:
     row_heights: dict[int, int] = {}
 
     for photo in photos:
-        col_index = int(photo["col_index"])
-        row_index = int(photo["row_index"])
+        col_index = int(photo["indice_columna"])
+        row_index = int(photo["indice_fila"])
         col_widths[col_index] = max(
             col_widths.get(col_index, 0),
-            int(photo["width"]),
+            int(photo["ancho"]),
         )
         row_heights[row_index] = max(
             row_heights.get(row_index, 0),
-            int(photo["height"]),
+            int(photo["alto"]),
         )
 
     col_offsets: dict[int, int] = {}
@@ -296,13 +296,13 @@ def _build_zone_preview_bytes(detail: dict) -> bytes:
             image_bytes = _fetch_photo_bytes(photo)
             with Image.open(io.BytesIO(image_bytes)) as image:
                 tile = image.convert("RGB")
-                expected_size = (int(photo["width"]), int(photo["height"]))
+                expected_size = (int(photo["ancho"]), int(photo["alto"]))
 
                 if tile.size != expected_size:
                     tile = tile.resize(expected_size, _PREVIEW_RESAMPLING)
 
-                x = col_offsets[int(photo["col_index"])]
-                y = row_offsets[int(photo["row_index"])]
+                x = col_offsets[int(photo["indice_columna"])]
+                y = row_offsets[int(photo["indice_fila"])]
                 canvas.paste(tile, (x, y))
                 loaded_tiles += 1
         except Exception:
@@ -385,7 +385,7 @@ def register_collection_routes(bp) -> None:
 
         return jsonify(
             {
-                "zones": list_zone_status_summaries(parcel_ids),
+                "zonas": list_zone_status_summaries(parcel_ids),
             }
         )
 
@@ -467,22 +467,22 @@ def register_collection_routes(bp) -> None:
     def collection_download_zip(parcel_id: int):
         """Genera un ZIP descargable a partir de las teselas persistidas."""
         detail = _load_zone_or_404(parcel_id)
-        if not detail["photos"]:
+        if not detail["fotos"]:
             abort(404)
 
         zip_buffer = io.BytesIO()
-        log: dict[str, list] = {"downloaded": [], "failed": []}
+        log: dict[str, list] = {"descargadas": [], "fallidas": []}
 
         with zipfile.ZipFile(
             zip_buffer,
             "w",
             compression=zipfile.ZIP_DEFLATED,
         ) as archive:
-            for photo in detail["photos"]:
+            for photo in detail["fotos"]:
                 try:
                     image_bytes = _fetch_photo_bytes(photo)
                     filename_root, extension = os.path.splitext(
-                        photo["filename"])
+                        photo["nombre_archivo"])
 
                     archive.writestr(
                         f"input/{filename_root}{extension}",
@@ -509,11 +509,11 @@ def register_collection_routes(bp) -> None:
                             overlay_png,
                         )
 
-                    log["downloaded"].append(photo["filename"])
+                    log["descargadas"].append(photo["nombre_archivo"])
                 except Exception as exc:  # pragma: no cover
-                    log["failed"].append(
+                    log["fallidas"].append(
                         {
-                            "tile": photo["tile_id"],
+                            "tesela": photo["tesela_id"],
                             "error": str(exc),
                         }
                     )
@@ -589,12 +589,12 @@ def register_collection_routes(bp) -> None:
     def collection_zone_retry_pending_failed(parcel_id: int):
         """Recalcula solo las teselas pendientes o con error de una zona."""
         detail = _load_zone_or_404(parcel_id)
-        photos = detail.get("photos") or []
+        photos = detail.get("fotos") or []
 
         if not zone_retry_is_enabled(photos):
             if (
-                detail.get("tile_count")
-                and detail.get("completed_tiles") == detail.get("tile_count")
+                detail.get("total_teselas")
+                and detail.get("teselas_completadas") == detail.get("total_teselas")
             ):
                 flash(
                     _("Todas las teselas ya tienen las trazas calculadas."),
@@ -680,7 +680,7 @@ def register_collection_routes(bp) -> None:
             io.BytesIO(image_bytes),
             mimetype="image/jpeg",
             as_attachment=False,
-            download_name=photo["filename"],
+            download_name=photo["nombre_archivo"],
         )
 
     @bp.route("/coleccion/fotos/<int:photo_id>/traces", methods=["GET"])
@@ -737,5 +737,5 @@ def register_collection_routes(bp) -> None:
             io.BytesIO(image_bytes),
             mimetype="image/jpeg",
             as_attachment=True,
-            download_name=photo["filename"],
+            download_name=photo["nombre_archivo"],
         )
