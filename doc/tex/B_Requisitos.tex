@@ -217,10 +217,10 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		Usuario anónimo, Usuario registrado, Administrador \\
 		
 		Descripción &
-		Ejecuta el cálculo de trazas mediante el modelo de detección y segmentación. Si la imagen ha sido seleccionada por el cliente, se envía al backend durante esta operación. \\
+		Ejecuta el cálculo de trazas mediante el modelo de detección y segmentación. La operación puede aplicarse sobre una única imagen cargada por el usuario o sobre una colección de imágenes generada a partir de una cuadrícula en el visor cartográfico. En el primer caso se procesa una imagen individual; en el segundo, el sistema procesa las teselas asociadas a la zona seleccionada. \\
 		
 		Precondición &
-		Existe una imagen seleccionada en el cliente (CU-01) o una imagen previamente almacenada en el servidor en sesión. \\
+		Existe una imagen seleccionada en el cliente (CU-01), una imagen previamente almacenada en el servidor en sesión, o una colección de imágenes/teselas generada desde una zona de interés definida en el visor cartográfico (CU-06.1). \\
 		
 		Flujo principal &
 		\parbox[t]{11cm}{
@@ -229,28 +229,32 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 				\setlength{\itemsep}{0pt}
 				\setlength{\parskip}{0pt}
 				\setlength{\parsep}{0pt}
-				\item El usuario pulsa \textit{Calcular trazas}.
-				\item El sistema envía al backend la imagen seleccionada si procede; en caso contrario, reutiliza la imagen existente en servidor.
-				\item El backend valida el formato, almacena la imagen y ejecuta la inferencia.
-				\item El sistema genera y persiste el JSON de trazas asociado a la imagen.
-				\item El sistema deja disponible la visualización del resultado (CU-03).
+				\item El usuario solicita el cálculo de trazas, bien desde el flujo de imagen individual o bien tras generar una cuadrícula de teselas en el visor cartográfico.
+				\item El sistema determina el tipo de entrada disponible: una imagen individual o una colección de imágenes asociada a una zona.
+				\item Si se trata de una imagen individual, el sistema envía o reutiliza la imagen correspondiente, valida el formato, la almacena si procede y ejecuta la inferencia sobre dicha imagen.
+				\item Si se trata de una colección, el sistema registra las imágenes o teselas asociadas, mantiene su estado de procesamiento y ejecuta la inferencia sobre cada una de ellas.
+				\item El backend aplica el modelo activo de detección y segmentación, generando el resultado de trazas correspondiente.
+				\item El sistema persiste el JSON de trazas asociado a la imagen individual o a cada imagen de la colección.
+				\item El sistema deja disponible la visualización del resultado (CU-03), ya sea sobre la imagen procesada o sobre las imágenes pertenecientes a la colección.
 			\end{enumerate}
 		} \\
 		
 		Postcondición &
-		Trazas calculadas y disponibles para su visualización. \\
+		Trazas calculadas y disponibles para su visualización, bien para una imagen individual o bien para las imágenes de una colección generada desde el visor. \\
 		
 		Excepciones &
 		\parbox[t]{11cm}{
-			E1) No existe imagen seleccionada en el cliente ni imagen almacenada en el servidor $\rightarrow$ se informa al usuario y no se ejecuta el cálculo.\\
-			E2) Formato no permitido $\rightarrow$ se rechaza la operación y se informa al usuario.\\
-			E3) Error durante la inferencia o la segmentación $\rightarrow$ se muestra un mensaje de error y no se generan trazas.\\
-			E4) La carga excede el tamaño máximo permitido $\rightarrow$ se aborta la petición y se notifica el error.
+			E1) No existe imagen seleccionada, imagen almacenada, ni colección de imágenes disponible $\rightarrow$ se informa al usuario y no se ejecuta el cálculo.\\
+			E2) Formato no permitido o imagen no válida $\rightarrow$ se rechaza la operación y se informa al usuario.\\
+			E3) Error durante la inferencia o la segmentación $\rightarrow$ se muestra un mensaje de error y no se generan trazas para la imagen afectada.\\
+			E4) La carga excede el tamaño máximo permitido $\rightarrow$ se aborta la petición y se notifica el error.\\
+			E5) En una colección, una o varias teselas no pueden procesarse correctamente $\rightarrow$ se marca su estado como fallido y se permite su posterior reintento cuando proceda.
 		} \\
 		
 		Relaciones &
 		\parbox[t]{11cm}{
-			Incluye CU-03 Visualizar resultado.
+			Incluye CU-03 Visualizar resultado.\\
+			Puede ser invocado tras CU-01 Insertar imagen o tras CU-06.1 Recortar zona de interés, cuando la zona seleccionada genera una colección de imágenes para su procesamiento.
 		} \\
 		
 		Importancia &
@@ -499,53 +503,6 @@ En las Tablas~\ref{tab:cu01}--\ref{tab:cu12} se presenta la descripción detalla
 		
 		Importancia &
 		Media \\
-		\bottomrule
-	\end{tabular}
-\end{table}
-
-\begin{table}[H]
-	\refstepcounter{table}\label{tab:cu062}
-	\centering
-	\footnotesize
-	\renewcommand{\arraystretch}{1.3}
-	\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} p{11cm}}
-		\toprule
-		\multicolumn{2}{l}{\textbf{CU-06.2 Visualizar trazas en la zona}} \\
-		\midrule
-		Actores &
-		Usuario registrado, Administrador \\
-		
-		Descripción &
-		Permite visualizar las trazas detectadas dentro de la zona de interés seleccionada. \\
-		
-		Precondición &
-		Zona de interés definida (CU-06.1). \\
-		
-		Flujo principal &
-		\parbox[t]{11cm}{
-			\begin{enumerate}
-				\renewcommand{\labelenumi}{\arabic{enumi})}
-				\setlength{\itemsep}{0pt}
-				\setlength{\parskip}{0pt}
-				\setlength{\parsep}{0pt}
-				\item El sistema consulta las trazas dentro de la zona.
-				\item El sistema renderiza las trazas sobre el visor.
-				\item El usuario inspecciona el resultado.
-			\end{enumerate}
-		} \\
-		
-		Postcondición &
-		Trazas visualizadas en la zona seleccionada. \\
-		
-		Excepciones &
-		\parbox[t]{11cm}{
-			E1) No existen trazas en la zona $\rightarrow$ se informa al usuario y se muestra la zona sin trazas.\\
-			E2) Error de consulta o de renderizado $\rightarrow$ se notifica y se permite reintentar.\\
-			E3) Zona no definida $\rightarrow$ se solicita definir recorte (CU-06.1).
-		} \\
-		
-		Importancia &
-		Media-Alta \\
 		\bottomrule
 	\end{tabular}
 \end{table}
