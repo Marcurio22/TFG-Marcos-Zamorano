@@ -10,7 +10,7 @@ import torch
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from trazasytrazadas.db import db
-from trazasytrazadas.models import Modelo, Usuario
+from trazasytrazadas.models import Foto, Modelo, Parcela, Usuario
 
 
 class _AdminUploadDummyModel(torch.nn.Module):
@@ -1292,6 +1292,97 @@ def test_admin_can_delete_user_without_parcels(app, client):
     with app.app_context():
         user = db.session.get(Usuario, managed_user_id)
         assert user is None
+
+
+def test_admin_can_delete_user_with_parcels_by_cascade(app, client):
+    """Eliminar un usuario borra también sus parcelas y fotos."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    managed_user_id = _create_user(
+        app,
+        username="UsuarioConParcelas",
+        email="parcelas@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="user",
+    )
+
+    with app.app_context():
+        parcel = Parcela(
+            usuario_id=managed_user_id,
+            tamano_metros=100.0,
+            pto_origen_latitud=40.0,
+            pto_origen_longitud=-4.0,
+            pto_fin_latitud=40.1,
+            pto_fin_longitud=-3.8,
+            fuente_id="pnoa2023",
+            fuente_nombre="PNOA 2023",
+            resolucion_solicitada=0.25,
+            resolucion_real=0.25,
+            ancho_tesela=1024,
+            alto_tesela=640,
+            estado="pending",
+            nombre_coleccion="Zona del usuario",
+        )
+        db.session.add(parcel)
+        db.session.flush()
+
+        photo = Foto(
+            parcela_id=int(parcel.parcela_id),
+            modelo_id=None,
+            fecha_foto="2026-01-01",
+            resolucion_valor=0.25,
+            resolucion_unidad="m/px",
+            longitud=-4.0,
+            latitud=40.0,
+            ruta_foto="parcelas/test/tile.jpg",
+            ruta_trazas=None,
+            trazas=0,
+            estado="pending",
+            mensaje_error=None,
+            iniciado_en=None,
+            finalizado_en=None,
+            numero_intentos=0,
+            tesela_id="r01_c01",
+            indice_fila=1,
+            indice_columna=1,
+            nombre_archivo="tile.jpg",
+            ancho=1024,
+            alto=640,
+            limites_3857_json="{}",
+            limites_json="{}",
+        )
+        db.session.add(photo)
+        db.session.commit()
+
+        parcel_id = int(parcel.parcela_id)
+        photo_id = int(photo.foto_id)
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        f"/admin/usuarios/{managed_user_id}/eliminar",
+        data={},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Usuario eliminado correctamente." in html
+    assert "parcelas asociadas" in html
+
+    with app.app_context():
+        assert db.session.get(Usuario, managed_user_id) is None
+        assert db.session.get(Parcela, parcel_id) is None
+        assert db.session.get(Foto, photo_id) is None
 
 
 def test_admin_cannot_delete_another_admin(app, client):

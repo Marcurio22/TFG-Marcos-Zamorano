@@ -421,6 +421,57 @@ def _stage_parcel_dir_for_delete(
     return parcel_root, staged_path
 
 
+def stage_parcel_dirs_for_delete(
+    parcel_ids: list[int],
+) -> list[tuple[str | None, str | None]]:
+    """
+    Mueve a staging las carpetas físicas de varias parcelas.
+
+    Se usa antes de borrar en base de datos para poder restaurar las carpetas
+    si el commit falla.
+    """
+    staged_paths: list[tuple[str | None, str | None]] = []
+
+    try:
+        for parcel_id in parcel_ids:
+            staged_paths.append(_stage_parcel_dir_for_delete(int(parcel_id)))
+    except OSError:
+        restore_staged_parcel_dirs(staged_paths)
+        raise
+
+    return staged_paths
+
+
+def restore_staged_parcel_dirs(
+    staged_paths: list[tuple[str | None, str | None]],
+) -> None:
+    """Restaura carpetas físicas movidas a staging si falla el borrado."""
+    for parcel_root, staged_path in reversed(staged_paths):
+        if parcel_root and staged_path and os.path.exists(staged_path):
+            try:
+                os.replace(staged_path, parcel_root)
+            except OSError:
+                current_app.logger.exception(
+                    "No se pudo restaurar la carpeta física de la parcela %s.",
+                    parcel_root,
+                )
+
+
+def purge_staged_parcel_dirs(
+    staged_paths: list[tuple[str | None, str | None]],
+) -> None:
+    """Elimina definitivamente carpetas físicas tras un commit correcto."""
+    for _parcel_root, staged_path in staged_paths:
+        if staged_path and os.path.exists(staged_path):
+            try:
+                shutil.rmtree(staged_path)
+            except OSError:
+                current_app.logger.exception(
+                    "No se pudo purgar la carpeta temporal %s.",
+                    staged_path,
+                )
+
+
 def _photo_trace_status(photo: dict) -> str:
     """
     Deriva el estado visual de trazas para una foto.

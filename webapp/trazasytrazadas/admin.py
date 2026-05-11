@@ -39,6 +39,11 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from .collection import COLLECTION_PER_PAGE_OPTIONS, _pagination_items
+from .collection_store import (
+    purge_staged_parcel_dirs,
+    restore_staged_parcel_dirs,
+    stage_parcel_dirs_for_delete,
+)
 from .db import db
 from .forms import (
     AdminActionForm,
@@ -443,7 +448,6 @@ class UserAdminView(_AdminAccessMixin, BaseView):
                 not is_system_user
                 and not is_current_user
                 and not is_admin_user
-                and parcel_count == 0
             ),
             is_current_user=is_current_user,
             is_system_user=is_system_user,
@@ -513,7 +517,7 @@ class UserAdminView(_AdminAccessMixin, BaseView):
 
     @expose("/<int:user_id>/eliminar", methods=("POST",))
     def delete_view(self, user_id: int):
-        """Elimina un usuario si cumple las restricciones de seguridad."""
+        """Elimina un usuario y sus parcelas asociadas."""
         form = AdminActionForm()
         if not form.validate_on_submit():
             abort(400)
@@ -544,23 +548,22 @@ class UserAdminView(_AdminAccessMixin, BaseView):
             return redirect(url_for("admin_usuarios.detail_view",
                                     user_id=user_id))
 
-        parcel_count = self._count_user_parcels(user_id)
-        if parcel_count > 0:
-            flash(
-                _(
-                    "No se puede eliminar el usuario porque tiene "
-                    "parcelas asociadas."
-                ),
-                "warning",
-            )
-            return redirect(url_for("admin_usuarios.detail_view",
-                                    user_id=user_id))
+        parcel_ids = [
+            int(parcel_id)
+            for parcel_id in db.session.execute(
+                select(Parcela.parcela_id).where(Parcela.usuario_id == user_id)
+            ).scalars().all()
+        ]
+        parcel_count = len(parcel_ids)
+        staged_paths: list[tuple[str | None, str | None]] = []
 
         try:
+            staged_paths = stage_parcel_dirs_for_delete(parcel_ids)
             db.session.delete(user)
             db.session.commit()
-        except (IntegrityError, SQLAlchemyError):
+        except (IntegrityError, SQLAlchemyError, OSError):
             db.session.rollback()
+            restore_staged_parcel_dirs(staged_paths)
             flash(
                 _(
                     "No se ha podido eliminar el usuario. "
@@ -569,7 +572,19 @@ class UserAdminView(_AdminAccessMixin, BaseView):
                 "error",
             )
         else:
-            flash(_("Usuario eliminado correctamente."), "success")
+            purge_staged_parcel_dirs(staged_paths)
+
+            if parcel_count > 0:
+                flash(
+                    _(
+                        "Usuario eliminado correctamente. También se han "
+                        "eliminado %(count)s parcelas asociadas.",
+                        count=parcel_count,
+                    ),
+                    "success",
+                )
+            else:
+                flash(_("Usuario eliminado correctamente."), "success")
 
         return redirect(url_for("admin_usuarios.index_view"))
 

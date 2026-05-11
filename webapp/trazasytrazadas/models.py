@@ -91,7 +91,7 @@ class Usuario(UserMixin, db.Model):
     parcelas = db.relationship(
         "Parcela",
         back_populates="usuario",
-        lazy="select",
+        cascade="all, delete-orphan",
     )
 
     def get_id(self) -> str:
@@ -148,16 +148,18 @@ class Parcela(db.Model):
         server_default=db.text("CURRENT_TIMESTAMP"),
     )
 
-    usuario = db.relationship(
-        "Usuario",
-        back_populates="parcelas",
-        lazy="select",
+    usuario_id = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.usuario_id", ondelete="CASCADE"),
+        nullable=False,
     )
+
+    usuario = db.relationship("Usuario", back_populates="parcelas")
+
     fotos = db.relationship(
         "Foto",
         back_populates="parcela",
         cascade="all, delete-orphan",
-        lazy="select",
     )
 
 
@@ -236,11 +238,14 @@ class Foto(db.Model):
         server_default=db.text("CURRENT_TIMESTAMP"),
     )
 
-    parcela = db.relationship(
-        "Parcela",
-        back_populates="fotos",
-        lazy="select",
+    parcela_id = db.Column(
+        db.Integer,
+        db.ForeignKey("parcela.parcela_id", ondelete="CASCADE"),
+        nullable=False,
     )
+
+    parcela = db.relationship("Parcela", back_populates="fotos")
+
     modelo = db.relationship(
         "Modelo",
         back_populates="fotos",
