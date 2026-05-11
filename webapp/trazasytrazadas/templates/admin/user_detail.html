@@ -23,14 +23,21 @@
             <div class="card-body p-5 sm:p-8">
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-[180px_1fr]">
                     <div class="flex flex-col items-center gap-4">
-                        <div class="grid h-36 w-36 place-items-center rounded-full bg-primary text-primary-content shadow-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 24 24"
-                                 fill="currentColor"
-                                 class="w-24 h-24">
-                                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5Z" />
-                            </svg>
-                        </div>
+                        {% if user.ruta_imagen_perfil %}
+                            <img src="{{ url_for('trazas.profile_image_file', filename=user.ruta_imagen_perfil) }}"
+                                 alt="{{ _("Imagen de perfil") }} · {{ user.nombre_usuario }}"
+                                 class="h-36 w-36 rounded-full border-4 border-primary/20 bg-base-200 object-cover shadow-lg"
+                                 title="{{ _("Imagen de perfil del usuario") }}">
+                        {% else %}
+                            <div class="grid h-36 w-36 place-items-center rounded-full bg-primary text-primary-content shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-24 h-24">
+                                    <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.314 0-6 2.239-6 5v1h12v-1c0-2.761-2.686-5-6-5Z" />
+                                </svg>
+                            </div>
+                        {% endif %}
                         {% if can_delete %}
                             <button type="button"
                                     class="btn btn-error w-full"
