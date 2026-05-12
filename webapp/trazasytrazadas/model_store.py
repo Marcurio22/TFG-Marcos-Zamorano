@@ -23,14 +23,18 @@ import re
 import uuid
 from pathlib import Path
 
+from sqlalchemy import func
+
 from flask import current_app, has_app_context
 from werkzeug.utils import secure_filename
 
 from .db import db
 from .models import Modelo
 
-_FOLD_FILENAME_RE = re.compile(r"^fold\.(\d+)$")
+_FOLD_INDEX_RE = re.compile(r"^fold\.(\d+)$")
+_RESERVED_FILENAME_CHARS_RE = re.compile(r'[<>:"|?*\x00-\x1f]')
 _METADATA_SUFFIX = ".metadata.json"
+_VALIDATION_EVENTS_FILENAME = ".validation_events.jsonl"
 
 
 def _get_models_dir(models_dir: str | Path | None = None) -> Path:
@@ -44,6 +48,73 @@ def _get_models_dir(models_dir: str | Path | None = None) -> Path:
         )
 
     return Path(current_app.config["SEG_MODELS_DIR"])
+
+
+def _validation_events_path(
+    models_dir: str | Path | None = None,
+) -> Path:
+    """Devuelve la ruta del registro temporal de eventos de validación."""
+    return _get_models_dir(models_dir) / _VALIDATION_EVENTS_FILENAME
+
+
+def record_fold_validation_event(
+    fold_name: str,
+    status: str,
+    error_message: str | None = None,
+    models_dir: str | Path | None = None,
+) -> None:
+    """Registra un evento de validación para mostrarlo en la próxima carga."""
+    normalized_name = (fold_name or "").strip()
+    if not normalized_name:
+        return
+
+    if status not in {"success", "error"}:
+        return
+
+    try:
+        events_path = _validation_events_path(models_dir)
+        events_path.parent.mkdir(parents=True, exist_ok=True)
+        event = {
+            "id": uuid.uuid4().hex,
+            "fold_name": normalized_name,
+            "status": status,
+            "error_message": (error_message or "")[:500],
+        }
+        with events_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(event, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
+
+
+def consume_fold_validation_events(
+    models_dir: str | Path | None = None,
+) -> list[dict]:
+    """Lee y elimina los eventos de validación pendientes."""
+    try:
+        events_path = _validation_events_path(models_dir)
+        raw_events = events_path.read_text(encoding="utf-8")
+        events_path.unlink()
+    except FileNotFoundError:
+        return []
+    except OSError:
+        return []
+
+    events: list[dict] = []
+    for line in raw_events.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        if not isinstance(event, dict):
+            continue
+
+        if event.get("status") not in {"success", "error"}:
+            continue
+
+        events.append(event)
+
+    return events
 
 
 def _metadata_path_for_fold_path(fold_path: Path) -> Path:
@@ -61,13 +132,26 @@ def _metadata_path_for_fold_name(
 
 
 def is_valid_fold_name(name: str) -> bool:
-    """Comprueba si un nombre sigue el patrón fold.N."""
-    return _FOLD_FILENAME_RE.fullmatch((name or "").strip()) is not None
+    """Comprueba si un nombre de modelo es seguro como nombre de fichero."""
+    normalized_name = (name or "").strip()
+    if not normalized_name:
+        return False
+    if normalized_name in {".", ".."}:
+        return False
+    if normalized_name.startswith("."):
+        return False
+    if len(normalized_name) > 100:
+        return False
+    if "/" in normalized_name or "\\" in normalized_name:
+        return False
+    if _RESERVED_FILENAME_CHARS_RE.search(normalized_name):
+        return False
+    return True
 
 
 def parse_fold_index_from_name(name: str) -> int | None:
-    """Extrae el índice numérico desde un nombre fold.N."""
-    match = _FOLD_FILENAME_RE.fullmatch((name or "").strip())
+    """Extrae el índice numérico desde nombres legacy fold.N."""
+    match = _FOLD_INDEX_RE.fullmatch((name or "").strip())
     if match is None:
         return None
     return int(match.group(1))
@@ -103,7 +187,7 @@ def write_fold_metadata(
     """Persiste metadatos opcionales de un fold en un sidecar JSON."""
     normalized_name = (fold_name or "").strip()
     if not is_valid_fold_name(normalized_name):
-        raise ValueError("El nombre del modelo debe seguir el formato fold.N.")
+        raise ValueError("Introduce un nombre de modelo válido.")
 
     metadata_path = _metadata_path_for_fold_name(normalized_name, models_dir)
     metadata_path.write_text(
@@ -125,7 +209,7 @@ def delete_fold_metadata(
 
 
 def list_fold_files(models_dir: str | Path | None = None) -> list[dict]:
-    """Lista los ficheros fold.N reales presentes en el directorio."""
+    """Lista los ficheros de modelo reales presentes en el directorio."""
     resolved_models_dir = _get_models_dir(models_dir)
     if not resolved_models_dir.exists():
         return []
@@ -134,13 +218,14 @@ def list_fold_files(models_dir: str | Path | None = None) -> list[dict]:
     for path in resolved_models_dir.iterdir():
         if not path.is_file():
             continue
+        if path.name.endswith(_METADATA_SUFFIX):
+            continue
+        if path.name.endswith(".upload"):
+            continue
         if not is_valid_fold_name(path.name):
             continue
 
         index = parse_fold_index_from_name(path.name)
-        if index is None:
-            continue
-
         folds.append(
             {
                 "name": path.name,
@@ -153,7 +238,12 @@ def list_fold_files(models_dir: str | Path | None = None) -> list[dict]:
             }
         )
 
-    folds.sort(key=lambda item: item["index"])
+    folds.sort(
+        key=lambda item: (
+            item["index"] is None,
+            item["index"] if item["index"] is not None else item["name"].lower(),
+        )
+    )
     return folds
 
 
@@ -264,6 +354,8 @@ def list_model_rows(models_dir: str | Path | None = None) -> list[dict]:
                 "index": fold_index,
                 "estado": model.estado,
                 "validacion": model.validacion,
+                "creado_en": model.creado_en,
+                "actualizado_en": model.actualizado_en,
                 "is_active": model.estado == "activo",
                 "file_exists": model.nombre_modelo in available_files,
                 "metadata": metadata,
@@ -302,6 +394,7 @@ def get_active_fold_name(
         active_model = get_active_model()
         if active_model is not None:
             return active_model.nombre_modelo
+        return None
 
     folds = list_fold_files(models_dir=models_dir)
     if not folds:
@@ -324,7 +417,7 @@ def set_active_fold_name(
     normalized_name = (fold_name or "").strip()
 
     if not is_valid_fold_name(normalized_name):
-        raise ValueError("El modelo seleccionado no sigue el formato fold.N.")
+        raise ValueError("El modelo seleccionado no es válido.")
 
     if normalized_name not in _available_file_names(models_dir=models_dir):
         raise FileNotFoundError(
@@ -372,7 +465,7 @@ def rename_fold_file(
         raise ValueError("El modelo actual no es válido.")
 
     if not is_valid_fold_name(new_name):
-        raise ValueError("El nuevo nombre debe seguir el formato fold.N.")
+        raise ValueError("Introduce un nombre de modelo válido.")
 
     if current_name == new_name:
         raise ValueError("El nuevo nombre debe ser diferente del actual.")
@@ -427,12 +520,13 @@ def add_fold_file(
     *,
     validator=None,
     models_dir: str | Path | None = None,
+    validation_status: str = "validado",
 ) -> Path:
-    """Guarda un nuevo fold tras validarlo en una ruta temporal."""
+    """Guarda un nuevo modelo en una ruta temporal y registra su estado."""
     normalized_name = (fold_name or "").strip()
 
     if not is_valid_fold_name(normalized_name):
-        raise ValueError("El nombre del modelo debe seguir el formato fold.N.")
+        raise ValueError("Introduce un nombre de modelo válido.")
 
     if file_storage is None:
         raise ValueError("Selecciona un archivo de modelo.")
@@ -483,14 +577,18 @@ def add_fold_file(
             )
 
         if has_app_context():
+            final_validation_status = "validado" if validator is not None else validation_status
+            if final_validation_status not in {"pendiente", "validado"}:
+                final_validation_status = "pendiente"
             model = Modelo(
                 nombre_modelo=normalized_name,
                 estado="no_activo",
-                validacion="validado",
+                validacion=final_validation_status,
             )
             db.session.add(model)
             db.session.commit()
-            _ensure_active_model(models_dir=resolved_models_dir)
+            if final_validation_status == "validado":
+                _ensure_active_model(models_dir=resolved_models_dir)
 
         return final_path
     except Exception:
@@ -499,6 +597,89 @@ def add_fold_file(
         except OSError:
             pass
         raise
+
+
+def mark_fold_validation_succeeded(
+    fold_name: str,
+    metadata: dict | None = None,
+    models_dir: str | Path | None = None,
+) -> None:
+    """Marca un modelo pendiente como validado y persiste sus metadatos."""
+    normalized_name = (fold_name or "").strip()
+    if not is_valid_fold_name(normalized_name):
+        raise ValueError("Introduce un nombre de modelo válido.")
+
+    if metadata:
+        write_fold_metadata(normalized_name, metadata, models_dir=models_dir)
+
+    if not has_app_context():
+        return
+
+    model = db.session.execute(
+        db.select(Modelo).where(Modelo.nombre_modelo == normalized_name)
+    ).scalar_one_or_none()
+    if model is None:
+        model = Modelo(
+            nombre_modelo=normalized_name,
+            estado="no_activo",
+            validacion="validado",
+        )
+        db.session.add(model)
+    else:
+        model.validacion = "validado"
+        model.actualizado_en = func.now()
+
+        db.session.commit()
+        record_fold_validation_event(
+            normalized_name,
+            "success",
+            models_dir=models_dir,
+        )
+        _ensure_active_model(models_dir=models_dir)
+
+
+def mark_fold_validation_failed(
+    fold_name: str,
+    error_message: str,
+    models_dir: str | Path | None = None,
+) -> None:
+    """Elimina un modelo cuya validación en segundo plano ha fallado."""
+    normalized_name = (fold_name or "").strip()
+    if not is_valid_fold_name(normalized_name):
+        return
+
+    resolved_models_dir = _get_models_dir(models_dir)
+    fold_path = resolved_models_dir / normalized_name
+
+    try:
+        fold_path.unlink()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        pass
+
+    try:
+        delete_fold_metadata(normalized_name, models_dir=resolved_models_dir)
+    except OSError:
+        pass
+
+    if not has_app_context():
+        return
+
+    model = db.session.execute(
+        db.select(Modelo).where(Modelo.nombre_modelo == normalized_name)
+    ).scalar_one_or_none()
+
+    if model is not None:
+        db.session.delete(model)
+        db.session.commit()
+
+    record_fold_validation_event(
+        normalized_name,
+        "error",
+        error_message=error_message,
+        models_dir=resolved_models_dir,
+    )
 
 
 def delete_fold_file(
@@ -525,14 +706,14 @@ def delete_fold_file(
         if model is not None and model.estado == "activo":
             raise ValueError(
                 "No se puede eliminar el modelo activo. "
-                "Activa otro fold antes de eliminar este."
+                "Activa otro modelo antes de eliminar este."
             )
 
     active_name = get_active_fold_name(models_dir=resolved_models_dir)
     if active_name == normalized_name:
         raise ValueError(
             "No se puede eliminar el modelo activo. "
-            "Activa otro fold antes de eliminar este."
+            "Activa otro modelo antes de eliminar este."
         )
 
     fold_path.unlink()

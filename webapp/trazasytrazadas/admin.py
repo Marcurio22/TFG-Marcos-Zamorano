@@ -13,8 +13,10 @@ Versión: 0.1
 from __future__ import annotations
 
 import csv
+import threading
 from datetime import datetime
 from io import BytesIO, StringIO
+from pathlib import Path
 from xml.sax.saxutils import escape
 
 from flask import (
@@ -54,9 +56,12 @@ from .forms import (
 )
 from .model_store import (
     add_fold_file,
+    consume_fold_validation_events,
     delete_fold_file,
     get_active_fold_name,
     list_model_rows,
+    mark_fold_validation_failed,
+    mark_fold_validation_succeeded,
     rename_fold_file,
     set_active_fold_name,
 )
@@ -85,6 +90,90 @@ def _format_user_joined_at(value) -> str:
             continue
 
     return str(value)
+
+
+def _format_model_created_at(value) -> str:
+    """Devuelve la fecha de creación de un modelo con formato DD/MM/AAAA, HH:mm."""
+    return _format_user_joined_at(value)
+
+
+def _flash_model_validation_events() -> None:
+    """Muestra los resultados de validaciones ejecutadas en segundo plano."""
+    for event in consume_fold_validation_events():
+        model_name = event.get("fold_name") or "-"
+
+        if event.get("status") == "success":
+            flash(
+                _(
+                    "Validación completada. El modelo «%(name)s» ya está disponible.",
+                    name=model_name,
+                ),
+                "success",
+            )
+            continue
+
+        if event.get("status") == "error":
+            flash(
+                _(
+                    "La validación del modelo «%(name)s» ha fallado y se ha eliminado de la lista.",
+                    name=model_name,
+                ),
+                "error",
+            )
+
+
+def _validate_model_file_in_background(
+    app,
+    *,
+    fold_name: str,
+    source_filename: str | None,
+) -> None:
+    """Valida un modelo pendiente en un hilo independiente."""
+    with app.app_context():
+        from .segmentation_inference import validate_fold_model_file
+
+        models_dir = current_app.config["SEG_MODELS_DIR"]
+        model_path = Path(models_dir) / fold_name
+
+        try:
+            metadata = validate_fold_model_file(
+                str(model_path),
+                use_gpu=bool(
+                    current_app.config.get("MODEL_VALIDATION_USE_GPU", False)
+                ),
+                image_size=int(
+                    current_app.config.get("MODEL_VALIDATION_IMAGE_SIZE", 128)
+                ),
+                source_filename=source_filename,
+            )
+            metadata.setdefault("source_filename", source_filename or "")
+            metadata.setdefault("metadata_version", 1)
+            mark_fold_validation_succeeded(
+                fold_name,
+                metadata,
+                models_dir=models_dir,
+            )
+        except Exception as exc:  # pragma: no cover - depende del modelo subido
+            mark_fold_validation_failed(
+                fold_name,
+                str(exc),
+                models_dir=models_dir,
+            )
+
+
+def _start_model_validation_task(fold_name: str, source_filename: str | None) -> None:
+    """Arranca la validación de modelo sin bloquear la petición actual."""
+    app = current_app._get_current_object()
+    thread = threading.Thread(
+        target=_validate_model_file_in_background,
+        kwargs={
+            "app": app,
+            "fold_name": fold_name,
+            "source_filename": source_filename,
+        },
+        daemon=True,
+    )
+    thread.start()
 
 
 def _parse_positive_int(value, default: int) -> int:
@@ -594,7 +683,12 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
 
     @expose("/", methods=("GET",))
     def index(self):
+        _flash_model_validation_events()
         rows = list_model_rows()
+        for row in rows:
+            row["created_label"] = _format_model_created_at(
+                row.get("creado_en")
+            )
         active_name = get_active_fold_name()
 
         return self.render(
@@ -685,25 +779,12 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
             )
             return redirect(url_for("admin_folds.index"))
 
-        from .segmentation_inference import validate_fold_model_file
-
-        def _validate_uploaded_model(path):
-            return validate_fold_model_file(
-                str(path),
-                use_gpu=bool(
-                    current_app.config.get("MODEL_VALIDATION_USE_GPU", False)
-                ),
-                image_size=int(
-                    current_app.config.get("MODEL_VALIDATION_IMAGE_SIZE", 128)
-                ),
-                source_filename=form.model_file.data.filename,
-            )
-
+        source_filename = form.model_file.data.filename
         try:
             add_fold_file(
                 fold_name=form.fold_name.data,
                 file_storage=form.model_file.data,
-                validator=_validate_uploaded_model,
+                validation_status="pendiente",
             )
         except ValueError as exc:
             flash(str(exc), "warning")
@@ -712,7 +793,17 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
         except OSError:
             flash(_("No se ha podido guardar el modelo."), "error")
         else:
-            flash(_("Modelo añadido y validado correctamente."), "success")
+            _start_model_validation_task(
+                form.fold_name.data,
+                source_filename,
+            )
+            flash(
+                _(
+                    "Modelo añadido correctamente. "
+                    "La validación se ejecutará en segundo plano."
+                ),
+                "success",
+            )
 
         return redirect(url_for("admin_folds.index"))
 

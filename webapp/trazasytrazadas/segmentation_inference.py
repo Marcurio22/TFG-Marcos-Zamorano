@@ -31,7 +31,6 @@ import torch.nn.functional as F
 
 from .model_store import (
     get_active_fold_name,
-    parse_fold_index_from_name,
     read_fold_metadata,
 )
 
@@ -470,15 +469,13 @@ def _load_model_for_inference(
 
 
 @lru_cache(maxsize=8)
-def load_fold_pickle_models(
+def load_model_file_models(
     models_dir: str,
-    model_template: str,
-    fold_id: int,
+    model_name: str,
     use_gpu: bool,
 ):
     """
-    Carga un modelo serializado, lo adapta para inferencia y lo deja
-    preparado en el dispositivo correspondiente.
+    Carga un modelo serializado por nombre de fichero.
 
     Returns:
         tuple[list[nn.Module], torch.device]: Lista de modelos lista para
@@ -491,15 +488,14 @@ def load_fold_pickle_models(
     _inject_symbols_into_main()
     _patch_smp_compat()
 
-    fold = int(fold_id)
-    p = os.path.join(models_dir, model_template.format(fold=fold))
+    normalized_name = (model_name or "").strip()
+    p = os.path.join(models_dir, normalized_name)
     if not os.path.exists(p):
         raise FileNotFoundError(
-            f"No se encontró el modelo del fold {fold}: {p}"
+            f"No se encontró el modelo activo {normalized_name}: {p}"
         )
 
-    fold_name = model_template.format(fold=fold)
-    metadata = read_fold_metadata(fold_name, models_dir=models_dir)
+    metadata = read_fold_metadata(normalized_name, models_dir=models_dir)
     loader_kind = metadata.get("loader_kind", "auto")
 
     model, _resolved_loader_kind = _load_model_for_inference(
@@ -508,6 +504,23 @@ def load_fold_pickle_models(
         loader_kind=loader_kind,
     )
     return [model], device
+
+
+@lru_cache(maxsize=8)
+def load_fold_pickle_models(
+    models_dir: str,
+    model_template: str,
+    fold_id: int,
+    use_gpu: bool,
+):
+    """Carga legacy por índice fold.N conservando compatibilidad externa."""
+    fold = int(fold_id)
+    model_name = model_template.format(fold=fold)
+    return load_model_file_models(
+        models_dir=models_dir,
+        model_name=model_name,
+        use_gpu=use_gpu,
+    )
 
 
 # Predicción de máscara binaria.
@@ -538,18 +551,13 @@ def predict_mask_ensemble(
     )
 
     if active_fold_name is None:
-        active_fold_name = "fold.0"
-
-    active_fold_id = parse_fold_index_from_name(active_fold_name)
-    if active_fold_id is None:
-        raise ValueError(
-            f"El fold activo '{active_fold_name}' no sigue el formato fold.N."
+        raise FileNotFoundError(
+            "No hay ningún modelo validado activo para calcular trazas."
         )
 
-    models, device = load_fold_pickle_models(
+    models, device = load_model_file_models(
         models_dir=models_dir,
-        model_template=model_template,
-        fold_id=active_fold_id,
+        model_name=active_fold_name,
         use_gpu=use_gpu,
     )
 

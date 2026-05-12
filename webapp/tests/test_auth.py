@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 import torch
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import trazasytrazadas.admin as admin_module
 from trazasytrazadas.db import db
 from trazasytrazadas.models import Foto, Modelo, Parcela, Usuario
 
@@ -1498,8 +1499,8 @@ def test_admin_cannot_remove_admin_role_from_admin_user(app, client):
         assert user.rol == "admin"
 
 
-def test_admin_folds_page_lists_from_fold_zero(app, client):
-    """La gestión de folds lista folds reales empezando en fold.0."""
+def test_admin_folds_page_lists_models_with_any_safe_name(app, client):
+    """La gestión de modelos lista ficheros reales con nombres libres."""
     admin_id = _create_user(
         app,
         username="admin_folds",
@@ -1513,6 +1514,7 @@ def test_admin_folds_page_lists_from_fold_zero(app, client):
         Path(models_dir, "fold.0").write_text("a", encoding="utf-8")
         Path(models_dir, "fold.1").write_text("b", encoding="utf-8")
         Path(models_dir, "fold.9").write_text("c", encoding="utf-8")
+        Path(models_dir, "modelo principal").write_text("d", encoding="utf-8")
 
     with client.session_transaction() as session:
         session["_user_id"] = str(admin_id)
@@ -1525,6 +1527,7 @@ def test_admin_folds_page_lists_from_fold_zero(app, client):
     assert "fold.0" in html
     assert "fold.1" in html
     assert "fold.9" in html
+    assert "modelo principal" in html
     assert "fold.10" not in html
 
 
@@ -1596,8 +1599,8 @@ def test_admin_can_activate_fold_and_persists_in_db(app, client):
         assert active_model.nombre_modelo == "fold.1"
 
 
-def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
-    """Renombrar el fold activo actualiza también la referencia persistida."""
+def test_admin_can_rename_active_model_with_custom_name(app, client):
+    """Renombrar el modelo activo permite nombres libres y actualiza la BD."""
     _disable_csrf(app)
 
     admin_id = _create_user(
@@ -1629,7 +1632,7 @@ def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
         "/admin/folds/renombrar",
         data={
             "current_name": "fold.3",
-            "new_name": "fold.7",
+            "new_name": "modelo principal",
         },
         follow_redirects=True,
     )
@@ -1640,18 +1643,18 @@ def test_admin_can_rename_active_fold_and_updates_db_setting(app, client):
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
-        assert (models_dir / "fold.7").exists()
+        assert (models_dir / "modelo principal").exists()
         assert not (models_dir / "fold.3").exists()
 
         active_model = db.session.execute(
             db.select(Modelo).where(Modelo.estado == "activo")
         ).scalar_one()
 
-        assert active_model.nombre_modelo == "fold.7"
+        assert active_model.nombre_modelo == "modelo principal"
 
 
-def test_admin_can_upload_validated_fold(app, client):
-    """El administrador puede subir un fold si pasa la validación real."""
+def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
+    """El administrador sube un modelo y queda pendiente de validación."""
     _disable_csrf(app)
 
     admin_id = _create_user(
@@ -1662,6 +1665,12 @@ def test_admin_can_upload_validated_fold(app, client):
         role="admin",
     )
 
+    monkeypatch.setattr(
+        admin_module,
+        "_start_model_validation_task",
+        lambda fold_name, source_filename: None,
+    )
+
     with client.session_transaction() as session:
         session["_user_id"] = str(admin_id)
         session["_fresh"] = True
@@ -1669,7 +1678,7 @@ def test_admin_can_upload_validated_fold(app, client):
     response = client.post(
         "/admin/folds/subir",
         data={
-            "fold_name": "fold.2",
+            "fold_name": "modelo nuevo",
             "model_file": (
                 BytesIO(_serialized_dummy_model()),
                 "modelo-validado.pkl",
@@ -1681,16 +1690,21 @@ def test_admin_can_upload_validated_fold(app, client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Modelo añadido y validado correctamente." in html
-    assert "fold.2" in html
+    assert "Modelo añadido correctamente." in html
+    assert "modelo nuevo" in html
+    assert "Pendiente" in html
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
-        assert (models_dir / "fold.2").exists()
+        assert (models_dir / "modelo nuevo").exists()
+        model = db.session.execute(
+            db.select(Modelo).where(Modelo.nombre_modelo == "modelo nuevo")
+        ).scalar_one()
+        assert model.validacion == "pendiente"
 
 
-def test_admin_upload_rejects_invalid_model_file(app, client):
-    """Un archivo que no es modelo no se incorpora al directorio de folds."""
+def test_admin_upload_stores_invalid_model_as_pending(app, client, monkeypatch):
+    """La validación queda diferida, por lo que el archivo se guarda pendiente."""
     _disable_csrf(app)
 
     admin_id = _create_user(
@@ -1701,6 +1715,12 @@ def test_admin_upload_rejects_invalid_model_file(app, client):
         role="admin",
     )
 
+    monkeypatch.setattr(
+        admin_module,
+        "_start_model_validation_task",
+        lambda fold_name, source_filename: None,
+    )
+
     with client.session_transaction() as session:
         session["_user_id"] = str(admin_id)
         session["_fresh"] = True
@@ -1708,7 +1728,7 @@ def test_admin_upload_rejects_invalid_model_file(app, client):
     response = client.post(
         "/admin/folds/subir",
         data={
-            "fold_name": "fold.4",
+            "fold_name": "modelo pendiente",
             "model_file": (
                 BytesIO(b"%PDF-1.4\nesto no es un modelo"),
                 "falso.pdf",
@@ -1719,15 +1739,17 @@ def test_admin_upload_rejects_invalid_model_file(app, client):
     )
 
     assert response.status_code == 200
-    assert "El archivo no se ha podido" in response.get_data(
-        as_text=True
-    )
+    assert "Modelo añadido correctamente." in response.get_data(as_text=True)
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
-        assert not (models_dir / "fold.4").exists()
+        assert (models_dir / "modelo pendiente").exists()
         assert not list(models_dir.glob("*.upload"))
         assert not list(models_dir.glob(".*.upload"))
+        model = db.session.execute(
+            db.select(Modelo).where(Modelo.nombre_modelo == "modelo pendiente")
+        ).scalar_one()
+        assert model.validacion == "pendiente"
 
 
 def test_admin_upload_rejects_existing_fold_name(app, client):
@@ -1776,8 +1798,8 @@ def test_admin_upload_rejects_existing_fold_name(app, client):
         ) == "modelo original"
 
 
-def test_admin_can_upload_torchscript_infer_fold(app, client):
-    """La subida admite TorchScript de inferencia completa *_infer.pt."""
+def test_admin_can_upload_torchscript_infer_model_as_pending(app, client, monkeypatch):
+    """La subida de TorchScript queda registrada como pendiente."""
     _disable_csrf(app)
 
     admin_id = _create_user(
@@ -1788,6 +1810,12 @@ def test_admin_can_upload_torchscript_infer_fold(app, client):
         role="admin",
     )
 
+    monkeypatch.setattr(
+        admin_module,
+        "_start_model_validation_task",
+        lambda fold_name, source_filename: None,
+    )
+
     with client.session_transaction() as session:
         session["_user_id"] = str(admin_id)
         session["_fresh"] = True
@@ -1795,7 +1823,7 @@ def test_admin_can_upload_torchscript_infer_fold(app, client):
     response = client.post(
         "/admin/folds/subir",
         data={
-            "fold_name": "fold.8",
+            "fold_name": "torchscript infer",
             "model_file": (
                 BytesIO(_serialized_dummy_torchscript_model()),
                 "modelo_infer.pt",
@@ -1807,15 +1835,17 @@ def test_admin_can_upload_torchscript_infer_fold(app, client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Modelo añadido y validado correctamente." in html
-    assert "fold.8" in html
+    assert "Modelo añadido correctamente." in html
+    assert "torchscript infer" in html
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
-        assert (models_dir / "fold.8").exists()
-        metadata_path = models_dir / ".fold.8.metadata.json"
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        assert metadata["loader_kind"] == "torchscript_infer"
+        assert (models_dir / "torchscript infer").exists()
+        model = db.session.execute(
+            db.select(Modelo).where(
+                Modelo.nombre_modelo == "torchscript infer")
+        ).scalar_one()
+        assert model.validacion == "pendiente"
 
 
 def test_admin_can_delete_non_active_fold(app, client):

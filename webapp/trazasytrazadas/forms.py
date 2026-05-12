@@ -569,13 +569,6 @@ class AdminFoldRenameForm(FlaskForm):
                     "El nombre del modelo debe tener entre 1 y 100 caracteres."
                 ),
             ),
-            Regexp(
-                r"^[A-Za-z0-9._-]+$",
-                message=_l(
-                    "El nombre solo puede contener letras, números, puntos, "
-                    "guiones y guiones bajos."
-                ),
-            ),
         ],
     )
     submit = SubmitField(_l("Guardar nombre"))
@@ -588,9 +581,20 @@ class AdminFoldRenameForm(FlaskForm):
         if value in {".", ".."}:
             raise ValidationError(_("Introduce un nombre de modelo válido."))
 
+        if value.startswith("."):
+            raise ValidationError(
+                _("El nombre del modelo no puede empezar por punto.")
+            )
+
         if "/" in value or "\\" in value:
             raise ValidationError(
                 _("El nombre del modelo no puede contener rutas.")
+            )
+
+        reserved_chars = set('<>:"|?*')
+        if any(char in reserved_chars or ord(char) < 32 for char in value):
+            raise ValidationError(
+                _("El nombre del modelo contiene caracteres no permitidos.")
             )
 
 
@@ -598,19 +602,15 @@ class AdminFoldUploadForm(FlaskForm):
     """Formulario para subir y validar un nuevo modelo del sistema."""
 
     fold_name = StringField(
-        _l("Nombre técnico del modelo"),
+        _l("Nombre del modelo"),
         validators=[
             DataRequired(message=_l("Introduce un nombre para el modelo.")),
             Length(
-                min=6,
-                max=32,
+                min=1,
+                max=100,
                 message=_l(
-                    "El nombre del modelo debe tener entre 6 y 32 caracteres."
+                    "El nombre del modelo debe tener entre 1 y 100 caracteres."
                 ),
-            ),
-            Regexp(
-                r"^fold\.[0-9]+$",
-                message=_l("El nombre debe seguir el formato fold.N."),
             ),
         ],
     )
@@ -620,8 +620,28 @@ class AdminFoldUploadForm(FlaskForm):
             FileRequired(message=_l("Selecciona un archivo de modelo.")),
         ],
     )
-    submit = SubmitField(_l("Validar y añadir modelo"))
+    submit = SubmitField(_l("Guardar y validar modelo"))
 
     def validate_fold_name(self, field) -> None:
-        """Normaliza el nombre de destino del modelo."""
-        field.data = (field.data or "").strip()
+        """Normaliza y valida el nombre de destino del modelo."""
+        value = (field.data or "").strip()
+        field.data = value
+
+        if value in {".", ".."}:
+            raise ValidationError(_("Introduce un nombre de modelo válido."))
+
+        if value.startswith("."):
+            raise ValidationError(
+                _("El nombre del modelo no puede empezar por punto.")
+            )
+
+        if "/" in value or "\\" in value:
+            raise ValidationError(
+                _("El nombre del modelo no puede contener rutas.")
+            )
+
+        reserved_chars = set('<>:"|?*')
+        if any(char in reserved_chars or ord(char) < 32 for char in value):
+            raise ValidationError(
+                _("El nombre del modelo contiene caracteres no permitidos.")
+            )

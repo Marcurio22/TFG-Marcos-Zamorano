@@ -50,7 +50,7 @@
                     <div>
                         <h3 class="text-xl sm:text-2xl font-bold">{{ _("Listado de modelos") }}</h3>
                         <p class="text-sm text-base-content/70">
-                            {{ _("Consulta los modelos disponibles, activa uno, renómbralos o añade nuevos modelos validados.") }}
+                            {{ _("Consulta los modelos disponibles, activa uno, renómbralos o añade nuevos modelos para validarlos en segundo plano.") }}
                         </p>
                     </div>
                     {% if active_fold_name %}
@@ -74,13 +74,14 @@
                                     <th>{{ _("Nombre") }}</th>
                                     <th class="w-44">{{ _("Estado") }}</th>
                                     <th class="w-44">{{ _("Validación") }}</th>
+                                    <th class="w-44">{{ _("Fecha de creación") }}</th>
                                     <th class="text-right">{{ _("Acciones") }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for row in fold_rows %}
                                     <tr>
-                                        <td class="font-bold text-base-content/75">#{{ row.index }}</td>
+                                        <td class="font-bold text-base-content/75">#{{ row.modelo_id }}</td>
                                         <td class="font-semibold">{{ row.name }}</td>
                                         <td>
                                             {% if row.is_active %}
@@ -108,6 +109,7 @@
                                                 </div>
                                             {% endif %}
                                         </td>
+                                        <td class="text-sm text-base-content/75">{{ row.created_label }}</td>
                                         <td>
                                             <div class="flex flex-wrap justify-end gap-2">
                                                 {% if not row.is_active and row.validacion == "validado" and row.file_exists %}
@@ -126,13 +128,13 @@
                                                           title="{{ _("El archivo físico del modelo no existe en la carpeta de modelos.") }}">{{ _("Sin fichero") }}</span>
                                                 {% else %}
                                                     <span class="badge badge-outline badge-warning badge-sm"
-                                                          title="{{ _("Este modelo todavía no está validado y no puede activarse.") }}">{{ _("Pendiente") }}</span>
+                                                          title="{{ _("Este modelo se está validando en segundo plano y todavía no puede activarse.") }}">{{ _("Pendiente") }}</span>
                                                 {% endif %}
                                                 <button type="button"
                                                         class="btn btn-xs btn-outline btn-primary"
                                                         data-rename-fold-button
                                                         data-current-name="{{ row.name }}"
-                                                        title="{{ _("Renombra este modelo manteniendo el formato fold.N.") }}">
+                                                        title="{{ _("Renombra este modelo.") }}">
                                                     {{ _("Renombrar") }}
                                                 </button>
                                                 <button type="button"
@@ -244,7 +246,7 @@
     <dialog id="rename-fold-modal" class="modal">
         <div class="modal-box max-w-md border border-primary/20 bg-base-100 shadow-2xl">
             <h3 class="text-lg font-bold">{{ _("Renombrar modelo") }}</h3>
-            <p class="mt-3 text-sm text-base-content/75">{{ _("Introduce un nuevo nombre válido con formato fold.N") }}</p>
+            <p class="mt-3 text-sm text-base-content/75">{{ _("Introduce un nuevo nombre para el modelo.") }}</p>
             <form id="rename-fold-form"
                   method="post"
                   action="{{ url_for("admin_folds.rename") }}"
@@ -257,10 +259,11 @@
                     </label>
                     {{ rename_form.new_name(id="rename-new-name",
                                         class="input input-bordered w-full",
-                                        placeholder="fold.0",
-                                        pattern="^fold[.][0-9]+$",
-                                        title=_("Escribe un nombre técnico con formato fold.N.") ) }}
-                    <p class="mt-2 text-xs text-base-content/70">{{ _("Formato permitido: fold.0, fold.1, fold.2...") }}</p>
+                                        placeholder=_("Nombre del modelo") ,
+                    title=_("Escribe un nombre único para el modelo.") ) }}
+                    <p class="mt-2 text-xs text-base-content/70">
+                        {{ _("Puedes usar cualquier nombre único sin barras ni caracteres reservados del sistema.") }}
+                    </p>
                 </div>
                 <div class="modal-action">
                     <button type="button"
@@ -283,7 +286,7 @@
         <div class="modal-box max-w-xl border border-primary/20 bg-base-100 shadow-2xl">
             <h3 class="text-lg font-bold">{{ _("Añadir nuevo modelo") }}</h3>
             <p class="mt-3 text-sm text-base-content/75">
-                {{ _("Selecciona el archivo serializado del modelo y asígnale un nombre con formato fold.N. El sistema lo validará ejecutando una inferencia de prueba antes de guardarlo.") }}
+                {{ _("Selecciona el archivo serializado del modelo y asígnale un nombre. El sistema lo guardará y lo validará en segundo plano con una inferencia de prueba.") }}
             </p>
             <form id="upload-fold-form"
                   method="post"
@@ -293,14 +296,13 @@
                 {{ upload_form.csrf_token }}
                 <div>
                     <label class="label" for="{{ upload_form.fold_name.id }}">
-                        <span class="label-text">{{ _("Nombre técnico del modelo") }}</span>
+                        <span class="label-text">{{ _("Nombre del modelo") }}</span>
                     </label>
                     {{ upload_form.fold_name(class="input input-bordered w-full",
-                                        placeholder="fold.2",
-                                        pattern="^fold[.][0-9]+$",
-                                        title=_("Escribe un nombre técnico único con formato fold.N.") ) }}
+                                        placeholder=_("Nombre del modelo") ,
+                    title=_("Escribe un nombre único para identificar este modelo.") ) }}
                     <p class="mt-2 text-xs text-base-content/70">
-                        {{ _("Debe ser único y seguir el formato fold.0, fold.1, fold.2...") }}
+                        {{ _("Debe ser único. No puede contener rutas ni caracteres reservados del sistema.") }}
                     </p>
                 </div>
                 <div>
@@ -308,14 +310,12 @@
                         <span class="label-text">{{ _("Archivo del modelo") }}</span>
                     </label>
                     {{ upload_form.model_file(class="file-input file-input-bordered w-full", title=_("Selecciona el archivo serializado del modelo que se va a validar.") ) }}
-                    <p class="mt-2 text-xs text-base-content/70">
-                        {{ _("No se guardará si no puede cargarse como modelo de segmentación compatible.") }}
-                    </p>
+                    <p class="mt-2 text-xs text-base-content/70">{{ _("Se guardará como pendiente y se validará en segundo plano.") }}</p>
                 </div>
                 <div class="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning-content">
-                    <p class="font-bold">{{ _("Validación obligatoria") }}</p>
+                    <p class="font-bold">{{ _("Validación en segundo plano") }}</p>
                     <p class="mt-1">
-                        {{ _("La subida puede tardar porque se deserializa el modelo y se prueba con imágenes RGB sintéticas antes de incorporarlo al directorio de modelos.") }}
+                        {{ _("Tras guardar el archivo, el sistema comprobará en segundo plano que puede cargarse y ejecutar una inferencia de prueba.") }}
                     </p>
                 </div>
                 <div class="modal-action">
@@ -327,8 +327,8 @@
                     </button>
                     <button type="submit"
                             class="btn btn-primary"
-                            title="{{ _("Valida el archivo y añade el modelo si es compatible.") }}">
-                        {{ _("Validar y añadir modelo") }}
+                            title="{{ _("Guarda el archivo e inicia la validación en segundo plano.") }}">
+                        {{ _("Guardar y validar modelo") }}
                     </button>
                 </div>
             </form>
@@ -339,59 +339,85 @@
     </dialog>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const uploadDialog = document.getElementById("upload-fold-modal");
-      document.querySelectorAll("[data-upload-fold-button]").forEach((button) => {
-        button.addEventListener("click", () => {
-          if (typeof uploadDialog.showModal === "function") {
-            uploadDialog.showModal();
-          }
+        const hasPendingModels = {{ "true" if fold_rows|selectattr("validacion", "equalto", "pendiente")|list else "false" }};
+
+        if (hasPendingModels) {
+            window.setInterval(() => {
+            const openDialog = document.querySelector("dialog[open]");
+            if (!openDialog) {
+                window.location.reload();
+            }
+            }, 5000);
+        }
+
+        const uploadDialog = document.getElementById("upload-fold-modal");
+        const uploadForm = document.getElementById("upload-fold-form");
+        const uploadSubmitButton = uploadForm?.querySelector('button[type="submit"]');
+
+        document.querySelectorAll("[data-upload-fold-button]").forEach((button) => {
+            button.addEventListener("click", () => {
+                if (typeof uploadDialog.showModal === "function") {
+                uploadDialog.showModal();
+                }
+            });
         });
-      });
 
-      const activateDialog = document.getElementById("activate-fold-modal");
-      const activateName = document.getElementById("activate-fold-name");
-      const activateInput = document.getElementById("activate-fold-input");
+        uploadForm?.addEventListener("submit", () => {
+            if (uploadDialog?.open) {
+                uploadDialog.close();
+            }
 
-      document.querySelectorAll("[data-activate-fold-button]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const foldName = button.dataset.foldName || "";
-          activateName.textContent = foldName;
-          activateInput.value = foldName;
-          if (typeof activateDialog.showModal === "function") {
-            activateDialog.showModal();
-          }
-        });
-      });
-
-      const deleteDialog = document.getElementById("delete-fold-modal");
-      const deleteName = document.getElementById("delete-fold-name");
-      const deleteInput = document.getElementById("delete-fold-input");
-
-      document.querySelectorAll("[data-delete-fold-button]").forEach((button) => {
-        button.addEventListener("click", () => {
-            const foldName = button.dataset.foldName || "";
-            deleteName.textContent = foldName;
-            deleteInput.value = foldName;
-            if (typeof deleteDialog.showModal === "function") {
-            deleteDialog.showModal();
+            if (uploadSubmitButton) {
+                uploadSubmitButton.disabled = true;
+                uploadSubmitButton.classList.add("btn-disabled");
+                uploadSubmitButton.textContent = "{{ _('Guardando...') }}";
             }
         });
-      });
 
-      const renameDialog = document.getElementById("rename-fold-modal");
-      const renameCurrentName = document.getElementById("rename-current-name");
-      const renameNewName = document.getElementById("rename-new-name");
+        const activateDialog = document.getElementById("activate-fold-modal");
+        const activateName = document.getElementById("activate-fold-name");
+        const activateInput = document.getElementById("activate-fold-input");
 
-      document.querySelectorAll("[data-rename-fold-button]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const currentName = button.dataset.currentName || "";
-          renameCurrentName.value = currentName;
-          renameNewName.value = currentName;
-          if (typeof renameDialog.showModal === "function") {
-            renameDialog.showModal();
-          }
+        document.querySelectorAll("[data-activate-fold-button]").forEach((button) => {
+            button.addEventListener("click", () => {
+            const foldName = button.dataset.foldName || "";
+            activateName.textContent = foldName;
+            activateInput.value = foldName;
+            if (typeof activateDialog.showModal === "function") {
+                activateDialog.showModal();
+            }
+            });
         });
-      });
+
+        const deleteDialog = document.getElementById("delete-fold-modal");
+        const deleteName = document.getElementById("delete-fold-name");
+        const deleteInput = document.getElementById("delete-fold-input");
+
+        document.querySelectorAll("[data-delete-fold-button]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const foldName = button.dataset.foldName || "";
+                deleteName.textContent = foldName;
+                deleteInput.value = foldName;
+                if (typeof deleteDialog.showModal === "function") {
+                deleteDialog.showModal();
+                }
+            });
+        });
+
+        const renameDialog = document.getElementById("rename-fold-modal");
+        const renameCurrentName = document.getElementById("rename-current-name");
+        const renameNewName = document.getElementById("rename-new-name");
+
+        document.querySelectorAll("[data-rename-fold-button]").forEach((button) => {
+            button.addEventListener("click", () => {
+            const currentName = button.dataset.currentName || "";
+            renameCurrentName.value = currentName;
+            renameNewName.value = currentName;
+            if (typeof renameDialog.showModal === "function") {
+                renameDialog.showModal();
+            }
+            });
+        });
     });
     </script>
 {% endblock %}
