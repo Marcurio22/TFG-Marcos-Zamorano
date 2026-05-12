@@ -14,10 +14,8 @@ Versión: 0.1
 from __future__ import annotations
 
 import click
-from flask import current_app
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, select
 
 
 db = SQLAlchemy()
@@ -47,6 +45,7 @@ def _ensure_system_user() -> None:
         "correo_electronico": "system@local.invalid",
         "rol": "system",
     }
+
     for attr_name, expected_value in expected_values.items():
         if getattr(system_user, attr_name) != expected_value:
             setattr(system_user, attr_name, expected_value)
@@ -58,14 +57,17 @@ def _ensure_system_user() -> None:
 
 def init_db() -> None:
     """Inicializa la base de datos desde los modelos SQLAlchemy."""
-    from . import models  # noqa: F401  Registra modelos antes de create_all().
-
-    db.create_all()
-    _ensure_system_user()
-
+    from . import models  # noqa: F401
     from .model_store import sync_models_from_files
 
+    db.create_all()
+
+    _ensure_system_user()
     sync_models_from_files()
+
+    from .seed_data import load_demo_data_if_needed
+
+    load_demo_data_if_needed()
 
 
 @click.command("init-db")

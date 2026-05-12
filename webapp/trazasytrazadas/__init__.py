@@ -55,6 +55,15 @@ def select_locale():
     return request.accept_languages.best_match(LANGUAGES.keys()) or "es"
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    """Lee una variable booleana del entorno del sistema."""
+    value = os.environ.get(name)
+    if value is None:
+        return default
+
+    return value.strip().lower() in {"1", "true", "yes", "on", "si", "sí"}
+
+
 def create_app(test_config=None):
     """
     Crea y configura la aplicación Flask.
@@ -136,6 +145,17 @@ def create_app(test_config=None):
         f"sqlite:///{database_path.as_posix()}",
     )
     app.config.setdefault("SQLALCHEMY_TRACK_MODIFICATIONS", False)
+
+    # Configuración de datos demo.
+    app.config.setdefault("LOAD_DEMO_DATA", _env_bool("LOAD_DEMO_DATA", True))
+    app.config.setdefault(
+        "DEMO_SQL_FILE",
+        os.path.join(app.root_path, "seed", "demo_data.sql"),
+    )
+    app.config.setdefault(
+        "DEMO_STORAGE_DIR",
+        os.path.join(app.root_path, "seed", "collection_storage"),
+    )
 
     # Configuración de internacionalización.
     app.config.setdefault("BABEL_DEFAULT_LOCALE", "es")

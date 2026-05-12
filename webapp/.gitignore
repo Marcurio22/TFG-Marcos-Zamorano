@@ -8,6 +8,7 @@ __pycache__/
 TFG_env/
 env/
 venv/
+seed/
 
 # Archivos de Flask / aplicación
 instance/
