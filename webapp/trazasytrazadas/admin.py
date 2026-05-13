@@ -93,7 +93,8 @@ def _format_user_joined_at(value) -> str:
 
 
 def _format_model_created_at(value) -> str:
-    """Devuelve la fecha de creación de un modelo con formato DD/MM/AAAA, HH:mm."""
+    """Devuelve la fecha de creación de un modelo con formato
+        DD/MM/AAAA, HH:mm."""
     return _format_user_joined_at(value)
 
 
