@@ -19,7 +19,7 @@ from trazasytrazadas import trace_worker as worker_module
 from trazasytrazadas import visor as visor_module
 from trazasytrazadas.collection_store import (
     get_storage_abspath,
-    refresh_parcel_status
+    refresh_parcel_status,
 )
 from trazasytrazadas.db import db
 from trazasytrazadas.models import Foto, Parcela
@@ -28,7 +28,7 @@ from trazasytrazadas.models import Foto, Parcela
 @pytest.fixture(autouse=True)
 def _login_required_user(force_login):
     """Las pruebas del worker que tocan visor/colección
-        se ejecutan autenticadas."""
+    se ejecutan autenticadas."""
     force_login(
         username="usuario_worker",
         email="usuario_worker@example.com",
@@ -54,6 +54,7 @@ def _register_zone(client, monkeypatch):
     )
 
     def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
+        """Devuelve teselas falsas para evitar red externa."""
         return (
             [
                 {
@@ -193,6 +194,7 @@ def test_traces_worker_marks_failed_photos(app, client, monkeypatch):
     parcel_id = _register_zone(client, monkeypatch)
 
     def _raise_error(**kwargs):
+        """Lanza un error controlado para la prueba."""
         raise RuntimeError("segmentation failed")
 
     monkeypatch.setattr(
@@ -249,9 +251,10 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert "La tesela se ha marcado para recalcular las trazas.".encode(
-        "utf-8"
-    ) in response.data
+    assert (
+        "La tesela se ha marcado para recalcular las trazas.".encode("utf-8")
+        in response.data
+    )
 
     with app.app_context():
         photo = db.session.get(Foto, photo_id)
@@ -272,12 +275,15 @@ def test_trigger_trace_worker_does_not_start_when_app_is_testing(
 
     class _UnexpectedThread:
         def __init__(self, *args, **kwargs):
+            """Inicializa el doble de prueba."""
             created_threads.append((args, kwargs))
 
         def start(self):
+            """Registra el inicio del hilo simulado."""
             created_threads.append("started")
 
         def is_alive(self):
+            """Indica si el hilo simulado está vivo."""
             return False
 
     monkeypatch.setattr(worker_module.threading, "Thread", _UnexpectedThread)
@@ -298,9 +304,11 @@ def test_trigger_trace_worker_does_not_start_when_thread_is_alive(
 
     class _AliveThread:
         def is_alive(self):
+            """Indica si el hilo simulado está vivo."""
             return True
 
     def _unexpected_thread(*args, **kwargs):
+        """Falla si se intenta crear un hilo inesperado."""
         created_threads.append((args, kwargs))
         raise AssertionError("No debería crearse un nuevo thread.")
 

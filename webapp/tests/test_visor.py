@@ -53,6 +53,7 @@ def test_visor_grid_plan_returns_tiles(client, monkeypatch):
     )
 
     def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
+        """Devuelve teselas falsas para evitar red externa."""
         return (
             [
                 {
@@ -159,6 +160,7 @@ def test_visor_grid_plan_triggers_worker(app, client, monkeypatch):
     )
 
     def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
+        """Devuelve teselas falsas para evitar red externa."""
         return (
             [
                 {

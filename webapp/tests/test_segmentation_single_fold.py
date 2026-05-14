@@ -20,6 +20,7 @@ class DummyModel(torch.nn.Module):
     """Modelo mínimo que devuelve una máscara completamente positiva."""
 
     def forward(self, x):
+        """Devuelve una máscara constante para la inferencia simulada."""
         return torch.ones((1, 1, x.shape[2], x.shape[3]), device=x.device)
 
 
@@ -33,6 +34,7 @@ def test_predict_uses_active_model_name(tmp_path, monkeypatch):
     # Sustituye el cargador real para capturar el modelo solicitado y evitar
     # dependencias de modelos serializados.
     def fake_loader(models_dir, model_name, use_gpu):
+        """Simula la carga del modelo activo."""
         called["model_name"] = model_name
         called["times"] += 1
         device = torch.device("cpu")

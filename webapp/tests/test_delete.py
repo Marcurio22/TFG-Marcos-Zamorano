@@ -31,14 +31,17 @@ def upload_image(client):
 
 
 def test_delete_requires_image(client):
+    """Verifica que el borrado exige el caso previsto."""
     resp = client.post("/delete", follow_redirects=True)
-    assert "No hay ninguna imagen cargada para borrar.".encode(
-        "utf-8"
-    ) in resp.data
+    assert (
+        "No hay ninguna imagen cargada para borrar.".encode("utf-8")
+        in resp.data
+    )
 
 
 def test_delete_cleans_files_and_session(client, mock_compute_traces):
     # Sustituye el cálculo real para evitar depender de pesos de segmentación.
+    """Verifica el borrado en el caso previsto."""
     mock_compute_traces()
 
     data = {"image": (create_test_image_bytes(), "test.jpg")}

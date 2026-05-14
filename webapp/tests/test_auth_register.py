@@ -256,6 +256,7 @@ def test_register_handles_integrity_error(app, client, monkeypatch):
     _disable_csrf(app)
 
     def _raise_integrity_error():
+        """Simula un fallo de integridad en base de datos."""
         raise IntegrityError("statement", "params", Exception("boom"))
 
     monkeypatch.setattr(db.session, "commit", _raise_integrity_error)

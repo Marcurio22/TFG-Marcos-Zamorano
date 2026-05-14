@@ -8,6 +8,7 @@ borrado en cascada de parcelas y fotos asociadas.
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
 """
+
 import io
 import json
 import os
@@ -71,6 +72,7 @@ def _register_zone(client, monkeypatch):
     )
 
     def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
+        """Devuelve teselas falsas para evitar red externa."""
         return (
             [
                 {
@@ -246,7 +248,8 @@ def test_zone_plan_includes_trace_overlay_metadata(app, client, monkeypatch):
     assert tile["foto_id"] == second_photo_id
     assert tile["estado_trazas"] == "completed"
     assert tile["url_trazas"].endswith(
-        f"/coleccion/fotos/{second_photo_id}/traces")
+        f"/coleccion/fotos/{second_photo_id}/traces"
+    )
 
 
 def test_collection_page_renders_empty_state(client):
@@ -288,9 +291,7 @@ def test_collection_gallery_route_renders_saved_tiles(client, monkeypatch):
     response = client.get(f"/coleccion/{parcel_id}/galeria")
     assert response.status_code == 200
     assert "Teselas guardadas a partir de la cuadrícula "
-    "generada en el visor.".encode(
-        "utf-8"
-    ) in response.data
+    "generada en el visor.".encode("utf-8") in response.data
     assert b"tile_1.jpg" in response.data
     assert b"tile_2.jpg" in response.data
 
@@ -319,8 +320,10 @@ def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert "La zona se ha eliminado correctamente.".encode(
-        "utf-8") in response.data
+    assert (
+        "La zona se ha eliminado correctamente.".encode("utf-8")
+        in response.data
+    )
 
     with app.app_context():
         parcel_count = db.session.execute(
@@ -374,8 +377,9 @@ def test_collection_delete_removes_zone_storage(app, client, monkeypatch):
         assert not os.path.exists(parcel_root)
 
 
-def test_collection_status_endpoint_returns_zone_summary(app,
-                                                         client, monkeypatch):
+def test_collection_status_endpoint_returns_zone_summary(
+    app, client, monkeypatch
+):
     """Comprueba el endpoint JSON resumido de estados de colección."""
     parcel_id = _register_zone(client, monkeypatch)
 
@@ -460,9 +464,10 @@ def test_collection_photo_retry_resets_failed_tile(app, client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert "La tesela se ha marcado para recalcular las trazas.".encode(
-        "utf-8"
-    ) in response.data
+    assert (
+        "La tesela se ha marcado para recalcular las trazas.".encode("utf-8")
+        in response.data
+    )
 
     with app.app_context():
         photo = db.session.get(Foto, photo_id)
@@ -518,7 +523,7 @@ def test_collection_photo_download_returns_zip_when_traces_exist(
     app, client, monkeypatch
 ):
     """Descarga un ZIP con imagen, JSON y overlay
-        si la tesela ya tiene trazas."""
+    si la tesela ya tiene trazas."""
     parcel_id = _register_zone(client, monkeypatch)
     _photo_id, filename, traces = _mark_photo_completed_with_traces(
         app,
@@ -537,9 +542,14 @@ def test_collection_photo_download_returns_zip_when_traces_exist(
             f"output/{filename_root}_traces.json",
             f"output/{filename_root}_traces.png",
         }
-        assert json.loads(
-            archive.read(f"output/{filename_root}_traces.json").decode("utf-8")
-        ) == traces
+        assert (
+            json.loads(
+                archive.read(f"output/{filename_root}_traces.json").decode(
+                    "utf-8"
+                )
+            )
+            == traces
+        )
         assert archive.read(f"output/{filename_root}_traces.png").startswith(
             b"\x89PNG\r\n\x1a\n"
         )
@@ -549,7 +559,7 @@ def test_collection_download_zip_includes_traces_artifacts(
     app, client, monkeypatch
 ):
     """El ZIP de la galería incluye artefactos
-        extra para teselas completadas."""
+    extra para teselas completadas."""
     parcel_id = _register_zone(client, monkeypatch)
     photo_id, filename, traces = _mark_photo_completed_with_traces(
         app,
@@ -570,9 +580,14 @@ def test_collection_download_zip_includes_traces_artifacts(
         assert f"output/{filename_root}_traces.json" in names
         assert f"output/{filename_root}_traces.png" in names
         assert "log.json" in names
-        assert json.loads(
-            archive.read(f"output/{filename_root}_traces.json").decode("utf-8")
-        ) == traces
+        assert (
+            json.loads(
+                archive.read(f"output/{filename_root}_traces.json").decode(
+                    "utf-8"
+                )
+            )
+            == traces
+        )
         assert archive.read(f"output/{filename_root}_traces.png").startswith(
             b"\x89PNG\r\n\x1a\n"
         )
@@ -597,8 +612,7 @@ def test_collection_download_zip_uses_collection_name(
     response = client.get(f"/coleccion/{parcel_id}/download-zip")
     assert response.status_code == 200
     assert (
-        'filename=Ondas_tiles.zip'
-        in response.headers["Content-Disposition"]
+        "filename=Ondas_tiles.zip" in response.headers["Content-Disposition"]
     )
 
 
@@ -624,11 +638,15 @@ def test_collection_zone_retry_pending_only_skips_completed(
     assert response.status_code == 200
 
     with app.app_context():
-        rows = db.session.execute(
-            db.select(Foto)
-            .where(Foto.parcela_id == parcel_id)
-            .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc())
-        ).scalars().all()
+        rows = (
+            db.session.execute(
+                db.select(Foto)
+                .where(Foto.parcela_id == parcel_id)
+                .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc())
+            )
+            .scalars()
+            .all()
+        )
 
         assert len(rows) == 2
 
@@ -690,11 +708,15 @@ def test_collection_zone_retry_failed_only_skips_completed(
     assert response.status_code == 200
 
     with app.app_context():
-        rows = db.session.execute(
-            db.select(Foto)
-            .where(Foto.parcela_id == parcel_id)
-            .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc())
-        ).scalars().all()
+        rows = (
+            db.session.execute(
+                db.select(Foto)
+                .where(Foto.parcela_id == parcel_id)
+                .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc())
+            )
+            .scalars()
+            .all()
+        )
 
         assert len(rows) == 2
 
@@ -727,9 +749,11 @@ def test_collection_zone_status_disables_bulk_retry_when_completed(
     parcel_id = _register_zone(client, monkeypatch)
 
     _mark_photo_completed_with_traces(
-        app, parcel_id, indice_fila=1, indice_columna=1)
+        app, parcel_id, indice_fila=1, indice_columna=1
+    )
     _mark_photo_completed_with_traces(
-        app, parcel_id, indice_fila=1, indice_columna=2)
+        app, parcel_id, indice_fila=1, indice_columna=2
+    )
 
     with app.app_context():
         payload = get_zone_live_status(parcel_id)
@@ -747,6 +771,7 @@ def test_collection_preview_persists_file_on_first_request(
     response = client.get(f"/coleccion/{parcel_id}/preview")
     assert response.status_code == 200
     assert response.mimetype == "image/jpeg"
+    response.close()
 
     with app.app_context():
         preview_path = get_zone_preview_abspath(parcel_id)
@@ -756,16 +781,16 @@ def test_collection_preview_persists_file_on_first_request(
             assert preview_file.read(3) == b"\xff\xd8\xff"
 
 
-def test_collection_preview_reuses_persisted_file(
-    app, client, monkeypatch
-):
+def test_collection_preview_reuses_persisted_file(app, client, monkeypatch):
     """Una preview ya persistida se reutiliza sin reconstruirse."""
     parcel_id = _register_zone(client, monkeypatch)
 
     first_response = client.get(f"/coleccion/{parcel_id}/preview")
     assert first_response.status_code == 200
+    first_response.close()
 
     def _fail_if_rebuilt(_detail):
+        """Falla si la prueba intenta reconstruir la vista previa."""
         raise AssertionError("La preview no debería reconstruirse.")
 
     monkeypatch.setattr(
@@ -777,6 +802,7 @@ def test_collection_preview_reuses_persisted_file(
     second_response = client.get(f"/coleccion/{parcel_id}/preview")
     assert second_response.status_code == 200
     assert second_response.mimetype == "image/jpeg"
+    second_response.close()
 
 
 def test_collection_photo_retry_triggers_worker(app, client, monkeypatch):

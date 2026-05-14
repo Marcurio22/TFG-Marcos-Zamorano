@@ -91,9 +91,7 @@ def test_pipeline_calculate_without_file_uses_session_image(
 def test_pipeline_requires_image_if_no_file_and_no_session(client):
     """Debe fallar si no hay fichero enviado ni imagen previa en sesión."""
     resp = client.post("/upload_and_calculate", follow_redirects=True)
-    error_msg = (
-        "Primero debes insertar una imagen antes de calcular trazas."
-    )
+    error_msg = "Primero debes insertar una imagen antes de calcular trazas."
     assert error_msg.encode("utf-8") in resp.data
 
 

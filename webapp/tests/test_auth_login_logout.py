@@ -143,6 +143,7 @@ def test_login_handles_database_error(app, client, monkeypatch):
     _disable_csrf(app)
 
     def _raise_db_error(*_args, **_kwargs):
+        """Simula un fallo de base de datos."""
         raise SQLAlchemyError("boom")
 
     monkeypatch.setattr(db.session, "execute", _raise_db_error)

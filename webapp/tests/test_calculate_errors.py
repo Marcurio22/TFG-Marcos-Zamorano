@@ -30,6 +30,7 @@ def upload_image(client):
 
 
 def test_calculate_handles_filenotfounderror(client, mock_compute_traces):
+    """Verifica que el comportamiento esperado gestiona el caso previsto."""
     upload_image(client)
 
     mock_compute_traces(exc=FileNotFoundError("Missing weights"))
@@ -39,6 +40,7 @@ def test_calculate_handles_filenotfounderror(client, mock_compute_traces):
 
 
 def test_calculate_handles_generic_exception(client, mock_compute_traces):
+    """Verifica que el comportamiento esperado gestiona el caso previsto."""
     upload_image(client)
 
     mock_compute_traces(exc=RuntimeError("Boom"))

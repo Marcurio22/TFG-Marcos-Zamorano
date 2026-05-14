@@ -86,6 +86,7 @@ def test_upload_empty_filename(client):
         content_type="multipart/form-data",
         follow_redirects=True,
     )
-    assert "No se ha seleccionado ningún archivo.".encode(
-        "utf-8"
-    ) in response.data
+    assert (
+        "No se ha seleccionado ningún archivo.".encode("utf-8")
+        in response.data
+    )

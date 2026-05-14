@@ -26,6 +26,7 @@ class _AdminUploadDummyModel:
     """Objeto mínimo serializable para pruebas de subida de modelos."""
 
     def forward(self, x):
+        """Devuelve una máscara constante para la inferencia simulada."""
         return x.mean(dim=1, keepdim=True)
 
 
@@ -38,16 +39,19 @@ def _profile_image_bytes() -> BytesIO:
 
 
 def _serialized_dummy_model() -> bytes:
+    """Devuelve un modelo serializado mínimo para los tests."""
     buffer = BytesIO()
     pickle.dump(_AdminUploadDummyModel(), buffer)
     return buffer.getvalue()
 
 
 def _serialized_dummy_torchscript_model() -> bytes:
+    """Devuelve un TorchScript mínimo embebido para tests."""
     import torch
 
     class _TorchScriptDummyModel(torch.nn.Module):
         def forward(self, x):
+            """Devuelve una máscara constante para la inferencia simulada."""
             return x.mean(dim=1, keepdim=True)
 
     buffer = BytesIO()

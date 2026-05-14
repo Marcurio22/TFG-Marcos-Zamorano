@@ -40,8 +40,10 @@ def test_index_without_image_shows_empty_state(client):
 
     assert "Sin imagen".encode("utf-8") in response.data
     assert (
-        "Estado: ninguna imagen cargada. Inserta una imagen para empezar."
-        .encode("utf-8")
+        (
+            "Estado: ninguna imagen cargada. "
+            "Inserta una imagen para empezar."
+        ).encode("utf-8")
     ) in response.data
 
 
@@ -54,8 +56,7 @@ def test_index_with_uploaded_image_shows_ready_state(client):
 
     assert "Lista para calcular".encode("utf-8") in response.data
     assert (
-        "Estado: imagen cargada. Pulsa «Calcular trazas»."
-        .encode("utf-8")
+        "Estado: imagen cargada. Pulsa «Calcular trazas».".encode("utf-8")
     ) in response.data
     assert b"/uploads/" in response.data
 
@@ -87,8 +88,7 @@ def test_calculate_success_stores_traces_and_updates_index(
     assert "Trazas calculadas".encode("utf-8") in response.data
     assert (
         "Estado: trazas calculadas. Se dibujarán automáticamente sobre la "
-        "imagen."
-        .encode("utf-8")
+        "imagen.".encode("utf-8")
     ) in response.data
     assert b'"autoDrawTraces": true' in response.data
 

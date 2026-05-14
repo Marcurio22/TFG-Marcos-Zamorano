@@ -235,8 +235,8 @@ def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
 def test_admin_upload_stores_invalid_model_as_pending(
     app, client, monkeypatch
 ):
-    """La validación queda diferida, por lo que el 
-        archivo se guarda pendiente."""
+    """La validación queda diferida, por lo que el
+    archivo se guarda pendiente."""
     _disable_csrf(app)
 
     admin_id = _create_user(
@@ -331,7 +331,8 @@ def test_admin_upload_rejects_existing_fold_name(app, client):
 
 
 def test_admin_can_upload_torchscript_infer_model_as_pending(
-        app, client, monkeypatch):
+    app, client, monkeypatch
+):
     """La subida de TorchScript queda registrada como pendiente."""
     _disable_csrf(app)
 
@@ -376,7 +377,8 @@ def test_admin_can_upload_torchscript_infer_model_as_pending(
         assert (models_dir / "torchscript infer").exists()
         model = db.session.execute(
             db.select(Modelo).where(
-                Modelo.nombre_modelo == "torchscript infer")
+                Modelo.nombre_modelo == "torchscript infer"
+            )
         ).scalar_one()
         assert model.validacion == "pendiente"
 

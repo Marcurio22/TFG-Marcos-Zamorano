@@ -23,7 +23,6 @@ from tests.auth_helpers import (
     _create_user,
     _disable_csrf,
     _profile_image_bytes,
-
 )
 
 
@@ -125,13 +124,15 @@ def test_profile_image_confirm_persists_avatar(app, client):
     with app.app_context():
         user = db.session.get(Usuario, user_id)
         assert user.ruta_imagen_perfil == f"users/{user_id}/avatar.png"
-        image_path = Path(
-            app.config["PROFILE_IMAGE_FOLDER"]) / user.ruta_imagen_perfil
+        image_path = (
+            Path(app.config["PROFILE_IMAGE_FOLDER"]) / user.ruta_imagen_perfil
+        )
         assert image_path.exists()
 
     image_response = client.get(f"/perfil/imagenes/users/{user_id}/avatar.png")
     assert image_response.status_code == 200
     assert image_response.mimetype == "image/png"
+    image_response.close()
 
 
 def test_profile_image_preview_rejects_invalid_extension(app, client):
@@ -228,7 +229,8 @@ def test_profile_update_rejects_duplicate_username(app, client):
 
     assert response.status_code == 200
     assert "Ya existe un usuario con ese nombre." in response.get_data(
-        as_text=True)
+        as_text=True
+    )
 
 
 def test_profile_update_rejects_duplicate_email(app, client):
@@ -263,7 +265,8 @@ def test_profile_update_rejects_duplicate_email(app, client):
 
     assert response.status_code == 200
     assert "Ya existe un usuario con ese correo electr" in response.get_data(
-        as_text=True)
+        as_text=True
+    )
 
 
 def test_profile_update_rejects_invalid_phone(app, client):

@@ -35,9 +35,7 @@ def app():
     collection_storage = os.path.join(tmpdir.name, "collection")
     profile_images = os.path.join(tmpdir.name, "profile_images")
 
-    model_template = (
-        "fold.{fold}"
-    )
+    model_template = "fold.{fold}"
 
     app = create_app(
         {
@@ -92,8 +90,11 @@ def mock_compute_traces(monkeypatch):
     from trazasytrazadas import traces as traces_module
 
     def _apply(result=None, exc=None):
+        """Aplica el parche de cálculo de trazas solicitado."""
         if exc is not None:
+
             def _raise(_image_path):
+                """Lanza la excepción configurada para la prueba."""
                 raise exc
 
             monkeypatch.setattr(traces_module, "compute_traces", _raise)
@@ -124,6 +125,7 @@ def force_login(app, client):
         email: str = "usuario_test@example.com",
         role: str = "user",
     ) -> int:
+        """Crea un usuario y lo autentica en la sesión de test."""
         with app.app_context():
             user = Usuario(
                 nombre_usuario=username,

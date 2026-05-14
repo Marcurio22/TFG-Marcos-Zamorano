@@ -86,7 +86,7 @@ def test_download_results_returns_expected_zip(client, mock_compute_traces):
 
 def test_download_results_returns_404_when_image_missing_only(client):
     """Debe devolver 404 si falta la imagen,
-        aunque exista el JSON de trazas."""
+    aunque exista el JSON de trazas."""
     out_dir = client.application.config["OUTPUT_FOLDER"]
     upload_dir = client.application.config["UPLOAD_FOLDER"]
 
@@ -111,7 +111,7 @@ def test_download_results_returns_404_when_image_missing_only(client):
 
 def test_download_results_returns_404_when_traces_missing_only(client):
     """Debe devolver 404 si falta el JSON de trazas,
-        aunque exista la imagen."""
+    aunque exista la imagen."""
     out_dir = client.application.config["OUTPUT_FOLDER"]
     upload_dir = client.application.config["UPLOAD_FOLDER"]
 
