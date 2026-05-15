@@ -545,6 +545,88 @@ También, recalcar que, tras finalizar este sprint, lancé la segunda release de
 
 Como muestra la Figura~\ref{fig:brsprint16}, el \textit{burndown} refleja un descenso progresivo y estable durante la semana, con una ligera pérdida de alineación respecto a la línea ideal en el tramo final. Esto se debe a la incorporación de tareas en los últimos días, lo que incrementó la carga restante cuando el \textit{sprint} ya estaba avanzado. Aun así, el cierre se completó el 30 de abril, consolidando el bloque final de la aplicación.
 
+\subsection{Sprint 17 - Arreglos funcionales y avances en la memoria}
+El \textit{Sprint 17} se desarrolló del 1 al 7 de mayo, con una duración de una semana. Para este \textit{sprint} estimé una dedicación inicial de 20~horas, aunque finalmente invertí aproximadamente 24~horas. Fue una iteración especialmente problemática, ya que gran parte del tiempo se destinó a modificar y depurar la BBDD, lo que bloqueó varias tareas que dependían directamente de ella y provocó que no pudiera cerrar tanto trabajo como estaba previsto.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Realizar primeras comprobaciones con \texttt{pytest-cov}.
+	\item Cambiar nombres confusos de la interfaz.
+	\item Establecer los requisitos funcionales y no funcionales.
+	\item Cambiar y actualizar la parte de Google Earth Engine (GEE) en la memoria.
+	\item Incorporar funcionalidad de fotos para los usuarios.
+	\item Redactar el apartado de técnicas y herramientas.
+	\item Corregir un \textit{bug} relacionado con las imágenes en la gestión de usuarios.
+	\item Cargar usuarios cuando se lance Flask y revisar toda la BBDD.
+	\item Permitir eliminar un usuario y sus parcelas en cascada.
+	\item Hacer el servicio de \textit{folds} en segundo plano y admitir cualquier nombre para los modelos.
+	\item Redactar el manual del programador.
+\end{itemize}
+
+Durante los primeros días realicé algunos avances funcionales y de documentación. Por un lado, cambié nombres confusos de la interfaz para que las acciones fuesen más claras para el usuario y empecé a revisar la integración de \texttt{pytest-cov}, aunque esta parte no quedó consolidada hasta el \textit{sprint} siguiente. Por otro lado, establecí los requisitos funcionales y no funcionales del sistema, lo que permitió dejar más claro el alcance real de la aplicación y su comportamiento esperado.
+
+También avancé en la memoria, especialmente en dos frentes. Primero, actualicé la parte relativa a Google Earth Engine, ajustando la redacción para que fuese coherente con los cambios realizados en la funcionalidad geoespacial, ya que ya no usábamos este motor, y con las limitaciones detectadas en \textit{sprints} anteriores. Después, redacté el apartado de técnicas y herramientas, donde se recogían las tecnologías principales utilizadas a lo largo del proyecto y su justificación dentro del desarrollo.
+
+En paralelo, añadí la funcionalidad de fotos para los usuarios y corregí un \textit{bug} relacionado con las imágenes en la página de gestión de usuarios. Aunque este error no era especialmente complejo, sí afectaba a la presentación y coherencia de la interfaz, por lo que era necesario resolverlo antes de seguir ampliando el módulo de administración.
+
+Sin embargo, el mayor problema del \textit{sprint} estuvo en la BBDD. Casi toda la iteración quedó condicionada por cambios y errores derivados de su estructura y de la forma en que interactuaba con las nuevas funcionalidades. Esto me impidió cerrar varias tareas previstas, como cargar usuarios al lanzar Flask, revisar completamente la BBDD, permitir eliminar usuarios junto con sus parcelas en cascada, y hacer que el servicio de \textit{folds} funcionase en segundo plano admitiendo nombres arbitrarios para los modelos. Estas tareas quedaron aplazadas al \textit{sprint} siguiente, donde se resolvería finalmente el bloqueo principal.
+
+Además, quedó pendiente la redacción del manual del programador, ya que requería una revisión más estable del código y de la estructura final de la aplicación. En retrospectiva, durante este \textit{sprint} fui resolviendo distintos flujos de error asociados a la BBDD, pero no los desglosé en tarjetas independientes, por lo que parte del esfuerzo realizado no quedó reflejado con tanta precisión en el tablero.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint17}
+	\caption[Burndown Report del Sprint 17]{Burndown Report del Sprint 17.}
+	\label{fig:brsprint17}
+\end{figure}
+
+Como se observa en la Figura~\ref{fig:brsprint17}, el \textit{burndown} muestra un avance irregular. La línea de \textit{open points} desciende poco durante buena parte del \textit{sprint}, ya que muchas tareas dependían de resolver primero el problema de la BBDD. La bajada pronunciada del último día no representa tanto un cierre real de todas las tareas, sino principalmente el aplazamiento de varias de ellas al \textit{sprint} siguiente, donde se abordarían una vez desbloqueada la base de datos.
+
+\subsection{Sprint 18 - Definición de arquitecturas y arreglo final de la BBDD}
+El \textit{Sprint 18} se desarrolló del 8 al 14 de mayo. Para este \textit{sprint} estimé una dedicación total de 28~horas, y finalmente invertí aproximadamente 32~horas. El foco principal fue dejar estabilizada la base de datos, cerrando problemas que venían bloqueando tareas del \textit{sprint} anterior, y definir de manera clara la arquitectura del sistema, tanto a nivel conceptual como mediante diagramas, además de reforzar la calidad del proyecto con \textit{coverage} y SonarCloud.
+
+Es importante aclarar que las tareas \textit{Cargar usuarios cuando se lance Flask y revisar toda la BBDD}, \textit{Permitir eliminar un usuario y sus parcelas en cascada}, \textit{Hacer el servicio de folds en segundo plano y admitir el nombre que sea para los modelos} y \textit{Primeras comprobaciones con pytest-cov} venían arrastradas del \textit{sprint} anterior. No pude finalizarlas entonces porque, como bien he comentado, existía un problema en la BBDD que impedía avanzar con garantías, y dicho bloqueo quedó resuelto durante este \textit{sprint}, lo que me permitió cerrarlas correctamente.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Cargar usuarios cuando se lance Flask y revisar la BBDD (tarea arrastrada).
+	\item Implementar el servicio de \textit{folds} en segundo plano y admitir nombres arbitrarios para modelos (tarea arrastrada).
+	\item Permitir eliminar un usuario y sus parcelas en cascada (tarea arrastrada).
+	\item Primeras comprobaciones con \textit{pytest-cov} (tarea arrastrada).
+	\item Cubrir los flecos restantes del \textit{coverage}.
+	\item Configurar SonarCloud correctamente.
+	\item Redactar el apartado F de anexos (ODS).
+	\item Definir y documentar la arquitectura del sistema:
+	\begin{itemize}
+		\item Crear una arquitectura hexagonal.
+		\item Crear el diagrama de arquitectura por capas.
+		\item Crear diagramas arquitectónicos adicionales que quedaban pendientes.
+		\item Redactar una explicación para este apartado (se pasó al siguiente \textit{sprint}).
+	\end{itemize}
+	\item Arreglar el diagrama de casos de uso y los diagramas de BBDD.
+	\item Redactar aspectos relevantes que todavía faltaban en la memoria.
+	\item Corregir un \textit{bug} puntual de la imagen de perfil en la gestión de usuarios.
+\end{itemize}
+
+Durante los primeros días el trabajo se centró en desbloquear y consolidar la base de datos, ya que era el requisito previo para poder cerrar varias tareas que estaban pendientes. En esta fase revisé el estado general de la BBDD y dejé implementada la carga de usuarios al iniciar Flask, asegurando que el sistema arrancase con un estado coherente. A partir de ahí, pude retomar la parte de los modelos: implementé el servicio en segundo plano y adapté la lógica para que el sistema aceptase nombres de modelos sin restricciones artificiales. En paralelo, añadí también la eliminación en cascada de un usuario junto con sus parcelas.
+
+A mitad del \textit{sprint} surgió un \textit{bug} menor relacionado con la imagen de perfil en la gestión de usuarios. Aunque no supuso un bloqueo grave, sí era necesario corregirlo para dejar la funcionalidad cerrada y estable, por lo que lo abordé en cuanto apareció.
+
+Una vez estabilizada la base del sistema, el grueso del \textit{sprint} se orientó a la definición de arquitecturas y a la mejora de calidad. Por un lado, trabajé en la parte de documentación técnica, creando la propuesta de arquitectura hexagonal y el diagrama por capas, además de generar otros diagramas arquitectónicos que aportasen una visión adicional al sistema. También revisé y corregí el diagrama de casos de uso y los diagramas asociados a la BBDD para que fuesen consistentes con el estado real del sistema tras los cambios de este tramo.
+
+Por otro lado, reforcé el apartado de calidad del proyecto: configuré SonarCloud correctamente y cerré los flecos restantes de \textit{coverage}, asegurando que el proyecto quedase mejor respaldado por pruebas y con un análisis estático más limpio. Además, redacté el apartado F de anexos relativo a los ODS e incorporé algunos aspectos relevantes que todavía faltaban en la memoria.
+
+Finalmente, aunque la tarea de \textit{Redactar el apartado de arquitecturas} estaba inicialmente planificada para este \textit{sprint}, se complicó más de lo esperado, ya que me llevó varias iteraciones decidir la mejor forma de presentar y justificar la arquitectura y su encaje con el proyecto. Por ello, dejé avanzados los diagramas y el criterio de diseño durante este \textit{sprint}, pero la redacción final del apartado quedó pospuesta y se completaría el primer día del \textit{sprint} siguiente.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint18}
+	\caption[Burndown Report del Sprint 18]{Burndown Report del Sprint 18.}
+	\label{fig:brsprint18}
+\end{figure}
+
+Como se aprecia en la Figura~\ref{fig:brsprint18}, el \textit{burndown} muestra un inicio prácticamente plano, ya que varias tareas dependían de resolver primero el bloqueo asociado a la BBDD y de consolidar cambios estructurales antes de poder cerrar \textit{issues}. Una vez resueltas esas dependencias, el cierre de tareas se aceleró de forma clara en la segunda mitad del \textit{sprint}, completándose el conjunto de trabajo el 14 de mayo.
+
 \section{Estudio de viabilidad}
 
 \subsection{Viabilidad económica}
