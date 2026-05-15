@@ -10,7 +10,7 @@ El diseño de datos define la estructura de persistencia que soporta el funciona
 	\centering
 	\includegraphics[
 	width=\textwidth,
-	trim=0 19cm 0 0,
+	trim=0 515 0 0,
 	clip
 	]{img/Diagrama_E-R.pdf}
 	\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
@@ -43,6 +43,7 @@ El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el
 	\label{fig:esquemarelacionalbbdd}
 \end{figure}
 
+\subsection{Modelo Relacional}
 En la Figura~\ref{fig:esquemarelacionalbbdd} se recoge la traducción del modelo conceptual al esquema relacional, estructurado en las tablas \textit{Usuario}, \textit{Parcela}, \textit{Foto} y \textit{Modelo}. La tabla \textit{Usuario} concentra los atributos de identificación, autenticación y perfil, incluyendo el nombre de usuario, la contraseña cifrada, el correo electrónico, el rol, la fecha de alta, el teléfono y la ruta de la imagen de perfil. A partir de ella, \textit{Parcela} actúa como entidad dependiente mediante la clave foránea \texttt{usuario\_id}, estableciendo una relación uno a muchos que permite organizar el histórico de zonas de análisis asociadas a cada usuario.
 
 La tabla \textit{Parcela} incorpora la información necesaria para describir cada área seleccionada, incluyendo el tamaño en metros, las coordenadas de origen y fin, la fuente de datos utilizada, la resolución solicitada y real, las dimensiones de tesela, el estado de procesamiento, el nombre de la colección y las marcas temporales de creación y actualización. De este modo, cada parcela funciona como contenedor lógico de un conjunto de imágenes derivadas del recorte geográfico definido por el usuario. A su vez, la tabla \textit{Foto} se vincula a \textit{Parcela} mediante \texttt{parcela\_id}, almacenando los metadatos específicos de cada tesela o imagen, como resolución, latitud, longitud, ruta del fichero original, identificador de tesela, posición dentro del \textit{grid}, dimensiones, límites geográficos y estado de ejecución.
@@ -51,25 +52,7 @@ En este esquema relacional, las trazas no se modelan como una tabla independient
 
 Por último, el esquema cuenta con la tabla \textit{Modelo}, que registra los modelos de segmentación disponibles en el sistema. Cada modelo queda identificado mediante \texttt{modelo\_id} y \texttt{nombre\_modelo}, y se caracteriza mediante atributos como \texttt{estado}, \texttt{validacion}, \texttt{creado\_en} y \texttt{actualizado\_en}. La relación con \textit{Foto} se lleva a cabo mediante la clave foránea \texttt{modelo\_id}, de forma que un mismo modelo puede haber procesado múltiples imágenes, mientras que cada foto conserva la referencia al modelo concreto que generó sus trazas. Esto permite conocer, no solo si una imagen dispone de trazas calculadas, sino también con qué modelo fueron obtenidas. 
 
-\section{Diseño arquitectónico}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=1.5\linewidth]{img/diagrama_flujo}
-	\caption[Diagrama de Flujo de la Aplicación]{}
-	\label{fig:diagramaflujo}
-\end{figure}
-
-
-La Figura \ref{fig:diagramaflujo} representa la arquitectura general de la aplicación y las interacciones entre sus distintos componentes, diferenciando claramente el lado cliente y el lado servidor.
-
-El usuario interactúa con la aplicación a través del navegador web, que actúa como intermediario entre la interfaz gráfica y el backend. En el cliente se distinguen dos responsabilidades bien separadas. Por un lado, el HTML renderizado mediante Jinja se encarga de mostrar la estructura de la interfaz, incluyendo botones, imágenes y modales informativos. Por otro lado, la lógica implementada en JavaScript, apoyada en un elemento \textit{canvas}, gestiona la descarga de los resultados en formato JSON y su representación gráfica, sin delegar operaciones de modificación visual al servidor.
-
-El servidor, implementado con Flask, centraliza la lógica de negocio y expone los distintos endpoints a través de un \textit{Blueprint} dedicado a la gestión de trazas. Para mantener el estado de la aplicación entre peticiones HTTP, se utiliza una \textit{session cookie} que almacena información relativa a la imagen activa y a la disponibilidad de resultados calculados. Asimismo, el sistema emplea almacenamiento en disco, dentro del directorio \textit{instance}, tanto para persistir las imágenes subidas por el usuario como para guardar los resultados intermedios en formato JSON.
-
-Este diseño garantiza una separación clara de responsabilidades, evitando que el cliente modifique directamente recursos en el servidor y relegando el procesamiento visual al navegador, lo que mejora la escalabilidad y simplifica la arquitectura.
-
-\subsection{Flujo temporal de interacción entre componentes}
+\section{Diseño procedimental}
 
 \begin{figure}
 	\centering
@@ -87,6 +70,89 @@ Posteriormente, cuando el usuario solicita el cálculo de trazas, el servidor ej
 Una vez cerrado el modal, el navegador solicita explícitamente los resultados mediante una petición \textit{GET traces}. El servidor lee el fichero JSON previamente generado y lo devuelve al cliente, donde el código JavaScript se encarga de dibujar las trazas sobre el \textit{canvas} y reflejar visualmente el estado de la aplicación.
 
 Finalmente, si el usuario decide eliminar la imagen, se envía una petición del tipo \textit{post} a la ruta \textit{delete} del sistema. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
+
+\section{Diseño arquitectónico}
+
+En esta sección se describe la arquitectura general de la aplicación, presentando la organización de los principales módulos software y de las relaciones que se establecen entre ellos. El sistema desarrollado corresponde a una aplicación web monolítica modular, implementada con Flask y Python.
+
+Con el fin de representar esta estructura desde distintos niveles de abstracción, se incluyen cuatro diagramas complementarios: una vista conceptual de tipo hexagonal, una vista por capas, un diagrama de componentes y un diagrama de despliegue. Cada uno de ellos permite analizar la arquitectura desde una perspectiva diferente, facilitando la comprensión tanto de la organización lógica del sistema como de su comportamiento en ejecución.
+
+\subsection{Vista conceptual de la arquitectura}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 435 0 0,
+	clip
+	]{img/Diagrama_hexagonal.pdf}
+	\caption[Diagrama hexagonal de la arquitectura del sistema]{Diagrama hexagonal de la arquitectura del sistema.}
+	\label{fig:diagramahexagonal}
+\end{figure}
+
+La Figura~\ref{fig:diagramahexagonal} muestra una interpretación conceptual de la arquitectura mediante un esquema hexagonal. Esta vista no pretende representar una implementación estricta basada en puertos e interfaces formales, sino explicar la separación lógica entre el dominio del problema, los casos de uso de la aplicación y los adaptadores técnicos que permiten ejecutar dichos casos sobre tecnologías concretas.
+
+En el centro se sitúan las entidades principales del sistema, como los usuarios, las imágenes, las parcelas, los modelos, las trazas y los estados de procesamiento. Alrededor de este núcleo se encuentran las operaciones que el sistema permite realizar, entre ellas el procesamiento de imágenes, el acceso al visor cartográfico, la gestión de cuentas, la administración de usuarios y la administración de modelos. Finalmente, la parte externa agrupa la infraestructura que conecta la aplicación con el navegador, la base de datos, el sistema de ficheros, los servicios cartográficos y el motor de inferencia.
+
+Las flechas del diagrama representan el sentido principal de comunicación entre la aplicación y sus dependencias externas. Algunas conexiones son bidireccionales, como las establecidas con el cliente web, la base de datos y el sistema de ficheros, ya que la aplicación recibe peticiones o datos desde estos elementos y, a su vez, devuelve respuestas, consulta información o persiste nuevos resultados. En cambio, otras flechas reflejan una dependencia orientada principalmente desde el sistema hacia el exterior, como ocurre con los servicios cartográficos o con el modelo de segmentación, puesto que la aplicación los invoca para obtener imágenes, ejecutar la inferencia o generar resultados, pero el control del flujo permanece en la propia aplicación.
+
+
+\subsection{Arquitectura por capas}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 550 0 0,
+	clip
+	]{img/Diagrama_Capas.pdf}
+	\caption[Arquitectura por capas del sistema]{Arquitectura por capas del sistema.}
+	\label{fig:diagramacapas}
+\end{figure}
+
+En la Figura~\ref{fig:diagramacapas} se representa la aplicación desde una perspectiva de capas. Esta vista permite observar la separación entre la capa de presentación, la capa de negocio, la capa de datos y los servicios externos. La capa de presentación se corresponde con el cliente web, compuesto por las páginas renderizadas desde Flask, las plantillas Jinja2, el código JavaScript y los elementos interactivos de la interfaz, como el visor cartográfico o la visualización de trazas.
+
+La capa de negocio está formada por la lógica implementada en Python dentro de la aplicación Flask. En ella se encuentran las rutas, los servicios internos, la gestión de sesiones, la autenticación, la administración, la generación de colecciones, el control de estados y la coordinación del proceso de inferencia. Esta capa actúa como núcleo operativo del sistema, recibiendo peticiones desde el navegador y transformándolas en operaciones sobre datos, ficheros, modelos o servicios externos.
+
+La capa de datos combina dos mecanismos de persistencia. La información estructurada se almacena en SQLite mediante SQLAlchemy, incluyendo usuarios, parcelas, fotos, modelos y estados. En cambio, los recursos de mayor tamaño se conservan en el sistema de ficheros, como las imágenes subidas, las teselas generadas, los resultados en formato JSON y los modelos entrenados. Por último, los servicios externos proporcionan la información cartográfica necesaria para el flujo basado en visor, principalmente a través de peticiones WMS sobre ortofotografía del PNOA.
+
+\subsection{Diagrama de componentes}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 560 0 0,
+	clip
+	]{img/Diagrama_componentes.pdf}
+	\caption[Diagrama de componentes de la aplicación]{Diagrama de componentes de la aplicación.}
+	\label{fig:diagramacomponentes}
+\end{figure}
+
+La Figura~\ref{fig:diagramacomponentes} resume los componentes principales que intervienen en la ejecución de la aplicación. En esta vista se abstrae la aplicación web como el componente central, encargado de coordinar la comunicación entre el usuario, la base de datos, el sistema de ficheros y los servicios cartográficos externos. Este diagrama permite identificar qué elementos participan directamente en el funcionamiento del sistema, sin entrar en el detalle interno de cada módulo.
+
+El componente principal es la aplicación Flask, que recibe las peticiones procedentes del navegador y decide qué operación debe ejecutarse. Cuando se trabaja con imágenes individuales, el servidor valida la subida, almacena la imagen, ejecuta la inferencia y deja disponibles las trazas para su visualización. Cuando se trabaja con el visor cartográfico, el servidor registra la zona seleccionada, genera las teselas asociadas y delega el procesamiento en segundo plano al \textit{worker}. En ambos casos, Flask actúa como punto de coordinación entre la interfaz, la persistencia y los modelos.
+
+La base de datos almacena el estado lógico de la aplicación, mientras que el sistema de ficheros conserva los artefactos generados o utilizados durante el procesamiento. El servicio cartográfico externo proporciona las imágenes necesarias para el flujo de colecciones, y el módulo de inferencia emplea los modelos disponibles para generar las máscaras y trazas correspondientes.
+
+\subsection{Diagrama de despliegue}
+
+\begin{figure}[tbp]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	trim=0 230 0 0,
+	clip
+	]{img/Diagrama_despliegue.pdf}
+	\caption[Diagrama de despliegue de la aplicación]{Diagrama de despliegue de la aplicación.}
+	\label{fig:diagramadespliegue}
+\end{figure}
+
+El diagrama de despliegue mostrado en la Figura~\ref{fig:diagramadespliegue} representa una vista simplificada y abstraída de la distribución física del sistema, con el objetivo de mostrar los principales nodos de ejecución y las comunicaciones entre ellos sin entrar en detalles específicos.
+
+\subsection{Resumen de la arquitectura adoptada}
+
+En conjunto, la arquitectura del sistema puede describirse como un monolito Flask modular con separación pragmática de responsabilidades. No se trata de una arquitectura de microservicios, ya que todos los módulos principales se ejecutan dentro de una misma aplicación, pero tampoco es una estructura monolítica desorganizada. La aplicación distingue de forma clara entre presentación, lógica de negocio, persistencia, procesamiento de imágenes, administración y comunicación con servicios externos.
 
 \section{Diseño web}
 
@@ -360,8 +426,6 @@ A continuación, se habilita un área de carga de imagen destinada a pruebas con
 La Figura~\ref{fig:mockupweb16} muestra la pantalla de \textit{Gestión de cuenta}, destinada a centralizar la información básica del usuario autenticado y a ofrecer accesos directos a las funcionalidades principales asociadas a su sesión. En esta vista se presentan los datos de perfil, incluyendo nombre de usuario, correo electrónico, teléfono y fecha de registro, junto con una acción para \textit{Editar información}, orientada a la actualización de los campos permitidos.
 
 Asimismo, se incorporan accesos rápidos al visor y a la colección de imágenes, con el objetivo de reducir fricción en la navegación y facilitar el retorno a los módulos de trabajo. Finalmente, se incluye la opción de \textit{Cerrar sesión}, que invalida la sesión activa y devuelve la aplicación al modo de acceso no autenticado.
-
-\section{Diseño procedimental}
 
 
 
