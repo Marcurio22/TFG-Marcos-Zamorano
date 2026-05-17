@@ -6,18 +6,25 @@
 \section{Diseño de datos}
 El diseño de datos define la estructura de persistencia que soporta el funcionamiento de la aplicación, garantizando que la información se almacene de forma coherente, trazable y escalable. En este apartado se presenta el esquema lógico de la base de datos, con el objetivo de justificar las entidades principales del dominio, sus relaciones y las restricciones de integridad que permiten mantener consistencia entre usuarios, parcelas, imágenes procesadas y resultados generados por el sistema.
 
-\begin{figure}[tbp]
-	\centering
-	\includegraphics[
-	width=\textwidth,
-	trim=0 515 0 0,
-	clip
-	]{img/Diagrama_E-R.pdf}
-	\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
-	\label{fig:esquemaerbbdd}
-\end{figure}
+\clearpage
+\begin{landscape}
+	\begin{figure}[p]
+		\centering
+		\includegraphics[
+		width=0.95\linewidth,
+		height=0.80\textheight,
+		keepaspectratio,
+		trim=0 515 0 0,
+		clip
+		]{img/Diagrama_E-R.pdf}
+		\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
+		\label{fig:esquemaerbbdd}
+	\end{figure}
+\end{landscape}
+\clearpage
 
 \subsection{Modelo Entidad--Relación}
+
 El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el manejo de la información necesaria en el flujo de la aplicación se han definido las siguientes entidades, junto con sus relaciones y cardinalidades:
 
 \begin{itemize}
@@ -32,16 +39,24 @@ El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el
 	\item \textbf{Trazas:} representa el resultado generado por el sistema a partir de una foto concreta. Contiene un identificador como clave primaria y una ruta asociada al recurso resultante. Cada uno de estos ficheros \texttt{.json} está asociado a una imagen, por lo que se establece una relación uno a uno entre la foto procesada y sus trazas correspondientes.
 \end{itemize}
 
-\begin{figure}[tbp]
-	\centering
-	\includegraphics[
-	width=\textwidth,
-	trim=0 435 0 0,
-	clip
-	]{img/Esquema_relacional_BBDD.pdf}
-	\caption[Diagrama relacional de la base de datos]{Diagrama relacional de la base de datos.}
-	\label{fig:esquemarelacionalbbdd}
-\end{figure}
+\FloatBarrier
+
+\clearpage
+\begin{landscape}
+	\begin{figure}[p]
+		\centering
+		\includegraphics[
+		width=0.95\linewidth,
+		height=0.80\textheight,
+		keepaspectratio,
+		trim=0 435 0 0,
+		clip
+		]{img/Esquema_relacional_BBDD.pdf}
+		\caption[Diagrama relacional de la base de datos]{Diagrama relacional de la base de datos.}
+		\label{fig:esquemarelacionalbbdd}
+	\end{figure}
+\end{landscape}
+\clearpage
 
 \subsection{Modelo Relacional}
 En la Figura~\ref{fig:esquemarelacionalbbdd} se recoge la traducción del modelo conceptual al esquema relacional, estructurado en las tablas \textit{Usuario}, \textit{Parcela}, \textit{Foto} y \textit{Modelo}. La tabla \textit{Usuario} concentra los atributos de identificación, autenticación y perfil, incluyendo el nombre de usuario, la contraseña cifrada, el correo electrónico, el rol, la fecha de alta, el teléfono y la ruta de la imagen de perfil. A partir de ella, \textit{Parcela} actúa como entidad dependiente mediante la clave foránea \texttt{usuario\_id}, estableciendo una relación uno a muchos que permite organizar el histórico de zonas de análisis asociadas a cada usuario.
@@ -51,6 +66,427 @@ La tabla \textit{Parcela} incorpora la información necesaria para describir cad
 En este esquema relacional, las trazas no se modelan como una tabla independiente, sino como un resultado asociado directamente a cada registro de \textit{Foto}. Para ello, se emplean atributos como \texttt{ruta\_trazas}, que almacena la ruta al fichero generado tras la segmentación, y \texttt{trazas}, que indica si existe un resultado calculado para esa imagen. Además, se incorporan campos de control como \texttt{estado}, \texttt{mensaje\_error}, \texttt{iniciado\_en}, \texttt{finalizado\_en} y \texttt{numero\_intentos}, lo que permite representar el ciclo de vida del procesamiento y gestionar fallos o reintentos de forma trazable.
 
 Por último, el esquema cuenta con la tabla \textit{Modelo}, que registra los modelos de segmentación disponibles en el sistema. Cada modelo queda identificado mediante \texttt{modelo\_id} y \texttt{nombre\_modelo}, y se caracteriza mediante atributos como \texttt{estado}, \texttt{validacion}, \texttt{creado\_en} y \texttt{actualizado\_en}. La relación con \textit{Foto} se lleva a cabo mediante la clave foránea \texttt{modelo\_id}, de forma que un mismo modelo puede haber procesado múltiples imágenes, mientras que cada foto conserva la referencia al modelo concreto que generó sus trazas. Esto permite conocer, no solo si una imagen dispone de trazas calculadas, sino también con qué modelo fueron obtenidas. 
+
+\subsection{Diccionario de datos}
+
+A continuación se presenta el diccionario de datos de las tablas principales del sistema. En cada tabla se recoge el nombre del atributo, el tipo de dato previsto, su papel dentro del esquema relacional y una breve descripción de su función.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.25}
+
+\begin{longtable}{@{}
+		>{\RaggedRight\arraybackslash}p{0.25\textwidth}
+		>{\RaggedRight\arraybackslash}p{0.22\textwidth}
+		>{\RaggedRight\arraybackslash}p{0.16\textwidth}
+		>{\RaggedRight\arraybackslash}p{0.30\textwidth}
+		@{}}
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endfirsthead
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endhead
+	
+	\texttt{usuario\_id} 
+	& \texttt{INTEGER} 
+	& PK 
+	& Identificador único del usuario. \\
+	
+	\texttt{nombre\_\allowbreak{}usuario} 
+	& \texttt{CHAR(50)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Nombre de usuario empleado para identificar la cuenta dentro de la aplicación. \\
+	
+	\texttt{contrasena} 
+	& \texttt{VARCHAR(255)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Hash de la contraseña del usuario. \\
+	
+	\texttt{correo\_\allowbreak{}electronico} 
+	& \texttt{VARCHAR(120)} 
+	& UNIQUE 
+	& Correo electrónico del usuario, utilizado como dato identificativo único. \\
+	
+	\texttt{telefono} 
+	& \texttt{VARCHAR(20)} 
+	& NULL 
+	& Teléfono opcional del usuario, almacenado de forma normalizada. \\
+	
+	\texttt{rol} 
+	& \texttt{ENUM} 
+	& \makecell[l]{NOT\\NULL} 
+	& Rol funcional del usuario, empleado para determinar sus permisos de acceso. \\
+	
+	\texttt{fecha\_\allowbreak{}alta} 
+	& \texttt{TIMESTAMP} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fecha y hora de creación de la cuenta. \\
+	
+	\texttt{ruta\_\allowbreak{}imagen\_\allowbreak{}perfil} 
+	& \texttt{VARCHAR(500)} 
+	& NULL 
+	& Ruta relativa de la imagen de perfil del usuario. \\
+	
+	\bottomrule
+	\caption{Diccionario de datos correspondiente a la tabla \textit{Usuario}.}
+	\label{tab:diccionario_usuario}
+\end{longtable}
+
+\endgroup
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.30}
+
+\begin{longtable}{@{}
+		L{0.25\textwidth}
+		L{0.22\textwidth}
+		L{0.16\textwidth}
+		L{0.30\textwidth}
+		@{}}
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endfirsthead
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endhead
+	
+	\midrule
+	\multicolumn{4}{r}{\small Continúa en la página siguiente} \\
+	\endfoot
+	
+	\endlastfoot
+	
+	\texttt{parcela\_id} 
+	& \texttt{INTEGER} 
+	& PK 
+	& Identificador único de la parcela. \\
+	
+	\texttt{usuario\_id} 
+	& \texttt{INTEGER} 
+	& FK 
+	& Usuario propietario de la parcela. \\
+	
+	\texttt{tamano\_\allowbreak{}metros} 
+	& \texttt{DECIMAL(12,3)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Tamaño aproximado de la zona seleccionada, expresado en metros. \\
+	
+	\texttt{pto\_\allowbreak{}origen\_\allowbreak{}latitud} 
+	& \texttt{DECIMAL(10,8)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Latitud del punto inicial seleccionado en el visor. \\
+	
+	\texttt{pto\_\allowbreak{}origen\_\allowbreak{}longitud} 
+	& \texttt{DECIMAL(11,8)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Longitud del punto inicial seleccionado en el visor. \\
+	
+	\texttt{pto\_\allowbreak{}fin\_\allowbreak{}latitud} 
+	& \texttt{DECIMAL(10,8)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Latitud del punto final seleccionado en el visor. \\
+	
+	\texttt{pto\_\allowbreak{}fin\_\allowbreak{}longitud} 
+	& \texttt{DECIMAL(11,8)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Longitud del punto final seleccionado en el visor. \\
+	
+	\texttt{fuente\_id} 
+	& \texttt{VARCHAR(50)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Identificador técnico de la fuente cartográfica utilizada. \\
+	
+	\texttt{fuente\_\allowbreak{}nombre} 
+	& \texttt{VARCHAR(100)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Nombre legible de la fuente cartográfica. \\
+	
+	\texttt{resolucion\_\allowbreak{}solicitada} 
+	& \texttt{DECIMAL(10,3)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Resolución inicialmente solicitada para la descarga o visualización. \\
+	
+	\texttt{resolucion\_\allowbreak{}real} 
+	& \texttt{DECIMAL(10,3)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Resolución finalmente utilizada por el sistema. \\
+	
+	\texttt{ancho\_\allowbreak{}tesela} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Anchura en píxeles de cada tesela generada. \\
+	
+	\texttt{alto\_\allowbreak{}tesela} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Altura en píxeles de cada tesela generada. \\
+	
+	\texttt{estado} 
+	& \texttt{ENUM} 
+	& \makecell[l]{NOT\\NULL} 
+	& Estado global de procesamiento de la parcela. \\
+	
+	\texttt{nombre\_\allowbreak{}coleccion} 
+	& \texttt{VARCHAR(120)} 
+	& NULL 
+	& Nombre visible asignado por el usuario a la colección. \\
+	
+	\texttt{creado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fecha y hora de creación de la parcela. \\
+	
+	\texttt{actualizado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fecha y hora de la última modificación de la parcela. \\
+	
+	\bottomrule
+	\caption{Diccionario de datos correspondiente a la tabla \textit{Parcela}.}
+	\label{tab:diccionario_parcela}
+	
+\end{longtable}
+
+\endgroup
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.30}
+
+\begin{longtable}{@{}
+		L{0.25\textwidth}
+		L{0.22\textwidth}
+		L{0.16\textwidth}
+		L{0.30\textwidth}
+		@{}}
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endfirsthead
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endhead
+	
+	\midrule
+	\multicolumn{4}{r}{\small Continúa en la página siguiente} \\
+	\endfoot
+	
+	\endlastfoot
+	
+	\texttt{foto\_id} 
+	& \texttt{INTEGER} 
+	& PK 
+	& Identificador único de la foto. \\
+	
+	\texttt{parcela\_id} 
+	& \texttt{INTEGER} 
+	& FK 
+	& Parcela a la que pertenece la foto. \\
+	
+	\texttt{modelo\_id} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{FK,\\NULL} 
+	& Modelo de segmentación utilizado para generar las trazas. Puede ser nulo si la foto todavía no se ha procesado. \\
+	
+	\texttt{fecha\_foto} 
+	& \texttt{TIMESTAMP} 
+	& NULL 
+	& Fecha asociada a la imagen. \\
+	
+	\texttt{resolucion\_\allowbreak{}valor} 
+	& \texttt{DECIMAL(10,3)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Valor numérico de la resolución espacial. \\
+	
+	\texttt{resolucion\_\allowbreak{}unidad} 
+	& \texttt{VARCHAR(20)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Unidad de resolución, como por ejemplo \texttt{m/px}. \\
+	
+	\texttt{longitud} 
+	& \texttt{DECIMAL(11,8)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Longitud geográfica asociada a la tesela. \\
+	
+	\texttt{latitud} 
+	& \texttt{DECIMAL(10,8)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Latitud geográfica asociada a la tesela. \\
+	
+	\texttt{ruta\_foto} 
+	& \texttt{VARCHAR(500)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Ruta relativa al archivo físico de imagen. \\
+	
+	\texttt{ruta\_\allowbreak{}trazas} 
+	& \texttt{VARCHAR(500)} 
+	& NULL 
+	& Ruta relativa al archivo físico de trazas generado. \\
+	
+	\texttt{trazas} 
+	& \texttt{BOOLEAN} 
+	& \makecell[l]{NOT\\NULL} 
+	& Indica si la foto tiene trazas generadas. \\
+	
+	\texttt{estado} 
+	& \texttt{ENUM} 
+	& \makecell[l]{NOT\\NULL} 
+	& Estado de procesamiento de la foto. \\
+	
+	\texttt{mensaje\_\allowbreak{}error} 
+	& \texttt{TEXT} 
+	& NULL 
+	& Detalle del error en caso de fallo de procesamiento. \\
+	
+	\texttt{iniciado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& NULL 
+	& Fecha y hora de inicio del procesamiento. \\
+	
+	\texttt{finalizado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& NULL 
+	& Fecha y hora de finalización del procesamiento. \\
+	
+	\texttt{numero\_\allowbreak{}intentos} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Número de intentos de procesamiento realizados. \\
+	
+	\texttt{tesela\_id} 
+	& \texttt{VARCHAR(50)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Identificador interno de la tesela dentro de la cuadrícula. \\
+	
+	\texttt{indice\_\allowbreak{}fila} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fila de la tesela dentro de la cuadrícula. \\
+	
+	\texttt{indice\_\allowbreak{}columna} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Columna de la tesela dentro de la cuadrícula. \\
+	
+	\texttt{nombre\_\allowbreak{}archivo} 
+	& \texttt{VARCHAR(255)} 
+	& \makecell[l]{NOT\\NULL} 
+	& Nombre del archivo físico de la tesela. \\
+	
+	\texttt{ancho} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Anchura en píxeles de la imagen. \\
+	
+	\texttt{alto} 
+	& \texttt{INTEGER} 
+	& \makecell[l]{NOT\\NULL} 
+	& Altura en píxeles de la imagen. \\
+	
+	\texttt{limites\_\allowbreak{}3857\_\allowbreak{}json} 
+	& \texttt{TEXT} 
+	& NULL 
+	& Límites de la tesela en EPSG:3857 almacenados como JSON serializado. \\
+	
+	\texttt{limites\_\allowbreak{}json} 
+	& \texttt{TEXT} 
+	& NULL 
+	& Límites geográficos de la tesela almacenados como JSON serializado. \\
+	
+	\texttt{creado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fecha y hora de creación del registro. \\
+	
+	\bottomrule
+	\caption{Diccionario de datos correspondiente a la tabla \textit{Foto}.}
+	\label{tab:diccionario_foto}
+	
+\end{longtable}
+
+\endgroup
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.30}
+
+\begin{longtable}{@{}
+		L{0.25\textwidth}
+		L{0.22\textwidth}
+		L{0.16\textwidth}
+		L{0.30\textwidth}
+		@{}}
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endfirsthead
+	
+	\toprule
+	\textbf{Nombre} & \textbf{Tipo} & \textbf{Columna} & \textbf{Descripción} \\
+	\midrule
+	\endhead
+	
+	\midrule
+	\multicolumn{4}{r}{\small Continúa en la página siguiente} \\
+	\endfoot
+	
+	\endlastfoot
+	
+	\texttt{modelo\_id} 
+	& \texttt{INTEGER} 
+	& PK 
+	& Identificador único del modelo de segmentación. \\
+	
+	\texttt{nombre\_\allowbreak{}modelo} 
+	& \texttt{VARCHAR(120)} 
+	& \makecell[l]{NOT NULL,\\UNIQUE} 
+	& Nombre del modelo dentro del sistema, normalmente coincidente con el archivo físico del mismo. \\
+	
+	\texttt{estado} 
+	& \texttt{ENUM} 
+	& \makecell[l]{NOT\\NULL} 
+	& Indica si el modelo está activo o no. El modelo activo se utiliza para nuevas inferencias. \\
+	
+	\texttt{validacion} 
+	& \texttt{ENUM} 
+	& \makecell[l]{NOT\\NULL} 
+	& Indica si el modelo ha superado la validación previa a su uso. \\
+	
+	\texttt{creado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fecha y hora en la que el modelo fue registrado. \\
+	
+	\texttt{actualizado\_\allowbreak{}en} 
+	& \texttt{TIMESTAMP} 
+	& \makecell[l]{NOT\\NULL} 
+	& Fecha y hora de la última actualización del modelo. \\
+	
+	\bottomrule
+	\caption{Diccionario de datos correspondiente a la tabla \textit{Modelo}.}
+	\label{tab:diccionario_modelo}\\
+	
+\end{longtable}
+
+\endgroup
 
 \section{Diseño procedimental}
 

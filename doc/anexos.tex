@@ -61,7 +61,13 @@
 	\end{figure}
 }
 
+% Mis estilos
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{ragged2e}
 
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
 % El comando \figura nos permite insertar figuras comodamente, y utilizando
 % siempre el mismo formato. Los parametros son:
