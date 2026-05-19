@@ -16,10 +16,17 @@ Versión: 0.1
   <section class="space-y-4">
     <div class="relative">
       <div class="absolute top-4 left-4 z-[700] flex flex-wrap gap-2 items-center">
-        <button id="open-controls-btn"
-                type="button"
-                class="btn btn-sm btn-primary shadow-sm"
-                title="{{ _("Abre las opciones para generar la cuadrícula de teselas.") }}">{{ _("Generar") }}</button>
+        <div class="flex flex-col gap-2">
+          <button id="open-controls-btn"
+                  type="button"
+                  class="btn btn-sm btn-primary shadow-sm"
+                  title="{{ _("Abre las opciones para generar la cuadrícula de teselas.") }}">
+            {{ _("Generar") }}
+          </button>
+          <button id="reset-selection-btn"
+                  type="button"
+                  class="btn btn-sm btn-outline bg-white shadow-sm">{{ _("Reiniciar selección") }}</button>
+        </div>
         <div>
           <button type="button"
                   class="btn btn-sm btn-outline bg-white text-base-content border-base-300 shadow-sm"
@@ -114,18 +121,12 @@ Versión: 0.1
       <div class="mt-3 text-sm opacity-70">
         {{ _("Las teselas mantienen un formato fijo 1024 × 640 px para parecerse a las imágenes de entrenamiento.") }}
       </div>
-      <div class="modal-action grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div class="modal-action">
         <button id="generate-grid-btn"
                 type="button"
                 class="btn btn-primary w-full"
                 title="{{ _("Genera la cuadrícula de teselas para el área seleccionada.") }}">
           {{ _("Generar cuadrícula") }}
-        </button>
-        <button id="reset-selection-btn"
-                type="button"
-                class="btn btn-outline w-full"
-                title="{{ _("Borra la selección actual para elegir una nueva área.") }}">
-          {{ _("Reiniciar selección") }}
         </button>
       </div>
     </div>
