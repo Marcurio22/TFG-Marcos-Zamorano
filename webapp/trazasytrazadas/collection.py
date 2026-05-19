@@ -593,7 +593,15 @@ def register_collection_routes(bp) -> None:
         if status_payload is None:
             abort(404)
 
-        if status_payload.get("estado") == "paused":
+        if status_payload.get("toggle_blocked"):
+            flash(
+                _(
+                    "No se puede pausar una colección "
+                    "con las trazas completas."
+                ),
+                "info",
+            )
+        elif status_payload.get("estado") == "paused":
             flash(_("El cálculo de trazas se ha pausado."), "info")
         else:
             trigger_trace_worker(current_app._get_current_object())

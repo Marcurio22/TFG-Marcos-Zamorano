@@ -20,6 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
       zonePending: "En espera",
       zoneFailed: "Error",
       zonePaused: "En pausa",
+      pauseProcessing: "Pausar cálculo",
+      resumeProcessing: "Reanudar cálculo",
+      processingCompleted: "Trazas completadas",
+      pauseProcessingTitle: "Pausa el cálculo de trazas de esta colección.",
+      resumeProcessingTitle: "Reanuda el cálculo de trazas de esta colección.",
+      processingCompletedTitle: "Las trazas ya están calculadas.",
       photoCompleted: "Trazas calculadas",
       photoProcessing: "Calculando trazas",
       photoPending: "Trazas no calculadas",
@@ -135,6 +141,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
+  }
+
+  function updateZoneProcessingToggle(button, status) {
+    if (!button) {
+      return;
+    }
+
+    const completed = status === "completed";
+    const paused = status === "paused";
+    const playIcon = button.querySelector("[data-toggle-icon-play]");
+    const pauseIcon = button.querySelector("[data-toggle-icon-pause]");
+
+    button.disabled = completed;
+    button.classList.toggle("btn-disabled", completed);
+    button.classList.toggle("btn-success", !completed && paused);
+    button.classList.toggle("btn-warning", !completed && !paused);
+    button.setAttribute("aria-disabled", completed ? "true" : "false");
+
+    if (completed) {
+      button.setAttribute("aria-label", I18N.processingCompleted);
+      button.title = I18N.processingCompletedTitle;
+    } else if (paused) {
+      button.setAttribute("aria-label", I18N.resumeProcessing);
+      button.title = I18N.resumeProcessingTitle;
+    } else {
+      button.setAttribute("aria-label", I18N.pauseProcessing);
+      button.title = I18N.pauseProcessingTitle;
+    }
+
+    if (playIcon) {
+      playIcon.classList.toggle("hidden", !paused);
+    }
+    if (pauseIcon) {
+      pauseIcon.classList.toggle("hidden", paused);
+    }
   }
 
   function renderZoneBadgeMarkup(status) {
@@ -810,13 +851,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      const total = Number(zone.total_teselas || 0);
+      const completed = Number(zone.teselas_completadas || 0);
+      const allCompleted = total > 0 && completed === total;
+      const status = allCompleted ? "completed" : (zone.estado || zone.status);
       const stateEl = row.querySelector("[data-zone-state]");
       const progressEl = row.querySelector("[data-zone-progress]");
+      const toggleButton = row.querySelector("[data-zone-toggle-processing]");
 
       if (stateEl) {
-        stateEl.innerHTML = renderZoneStateMarkup(zone.estado || zone.status);
-        stateEl.dataset.zoneStatus = zone.estado || zone.status;
+        stateEl.innerHTML = renderZoneStateMarkup(status);
+        stateEl.dataset.zoneStatus = status;
       }
+
+      updateZoneProcessingToggle(toggleButton, status);
 
       if (progressEl) {
         progressEl.textContent = formatTemplate(I18N.progressText, {
@@ -849,13 +897,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const payload = await response.json();
+    const total = Number(payload.total_teselas || 0);
+    const completed = Number(payload.teselas_completadas || 0);
+    const allCompleted = total > 0 && completed === total;
+    const status = allCompleted ? "completed" : (payload.estado || payload.status);
     const badgeEl = document.querySelector("[data-zone-status-badge]");
+    const toggleButton = document.querySelector("[data-zone-toggle-processing]");
     const progressSummaryEl = document.querySelector("[data-zone-progress-summary]");
 
     if (badgeEl) {
-      badgeEl.innerHTML = renderZoneBadgeMarkup(payload.estado || payload.status);
+      badgeEl.innerHTML = renderZoneBadgeMarkup(status);
     }
 
+    updateZoneProcessingToggle(toggleButton, status);
     updateZoneRetryAllButton(payload);
 
     if (progressSummaryEl) {

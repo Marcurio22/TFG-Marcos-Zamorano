@@ -610,10 +610,25 @@ def toggle_zone_processing(parcel_id: int) -> dict | None:
     if parcel is None:
         return None
 
+    statuses = db.session.execute(
+        select(Foto.estado).where(Foto.parcela_id == parcel_id)
+    ).scalars().all()
+    all_completed = bool(statuses) and all(
+        status == "completed" for status in statuses
+    )
+
+    if parcel.estado == "completed" or all_completed:
+        if parcel.estado != "completed":
+            parcel.estado = "completed"
+            parcel.actualizado_en = _now_db_string()
+            db.session.commit()
+        summary = get_zone_status_summary(parcel_id)
+        if summary is None:
+            return None
+        summary["toggle_blocked"] = True
+        return summary
+
     if parcel.estado == "paused":
-        statuses = db.session.execute(
-            select(Foto.estado).where(Foto.parcela_id == parcel_id)
-        ).scalars().all()
         parcel.estado = _status_from_photo_statuses(statuses)
         is_paused = False
     else:

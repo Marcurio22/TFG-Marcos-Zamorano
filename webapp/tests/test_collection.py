@@ -73,7 +73,6 @@ def _register_zone(client, monkeypatch):
     )
 
     def _fake_tiles(_bbox, _resolution, _tile_width, _tile_height, _source):
-        """Devuelve teselas falsas para evitar red externa."""
         return (
             [
                 {
@@ -916,6 +915,100 @@ def test_anonymous_collection_redirects_to_login(client):
 
     assert response.status_code == 302
     assert "/login" in response.headers["Location"]
+
+
+def test_completed_collection_disables_pause_button(app, client, monkeypatch):
+    """Una colección completada muestra la pausa deshabilitada."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=1,
+    )
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=2,
+    )
+
+    response = client.get("/coleccion")
+
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert 'data-zone-toggle-processing' in html
+    assert 'disabled aria-disabled="true"' in html
+    assert "Las trazas ya están calculadas." in html
+
+
+def test_completed_collection_toggle_route_does_not_pause(
+    app,
+    client,
+    monkeypatch,
+):
+    """La ruta de pausa no cambia una colección ya completada."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=1,
+    )
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=2,
+    )
+
+    worker_started = []
+    monkeypatch.setattr(
+        collection_module,
+        "trigger_trace_worker",
+        lambda _app: worker_started.append(True) or True,
+    )
+
+    response = client.post(
+        f"/coleccion/{parcel_id}/toggle-processing",
+        data={"redirect_to": "/coleccion"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert worker_started == []
+    with app.app_context():
+        parcel = db.session.get(Parcela, parcel_id)
+        assert parcel is not None
+        assert parcel.estado == "completed"
+
+
+def test_completed_gallery_disables_pause_button(app, client, monkeypatch):
+    """La galería también deshabilita la pausa si todo está calculado."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=1,
+    )
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=2,
+    )
+
+    response = client.get(f"/coleccion/{parcel_id}/galeria")
+
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert 'data-zone-toggle-processing' in html
+    assert 'disabled aria-disabled="true"' in html
+    assert "Las trazas ya están calculadas." in html
 
 
 def test_collection_toggle_pauses_and_resumes_processing(
