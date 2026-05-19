@@ -16,9 +16,81 @@ from __future__ import annotations
 import click
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 
 
 db = SQLAlchemy()
+
+
+def _ensure_parcela_paused_status() -> None:
+    """Amplía el CHECK de parcela.estado para aceptar paused."""
+    if db.engine.dialect.name != "sqlite":
+        return
+
+    table_sql = db.session.execute(
+        text(
+            "SELECT sql FROM sqlite_master "
+            "WHERE type = 'table' AND name = 'parcela'"
+        )
+    ).scalar_one_or_none()
+    if not table_sql or "'paused'" in table_sql:
+        return
+
+    db.session.commit()
+    with db.engine.begin() as connection:
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.exec_driver_sql("PRAGMA legacy_alter_table=ON")
+        connection.exec_driver_sql("ALTER TABLE parcela RENAME TO parcela_old")
+        connection.exec_driver_sql(
+            "CREATE TABLE parcela ("
+            "parcela_id INTEGER NOT NULL, "
+            "usuario_id INTEGER NOT NULL, "
+            "tamano_metros FLOAT NOT NULL, "
+            "pto_origen_latitud FLOAT NOT NULL, "
+            "pto_origen_longitud FLOAT NOT NULL, "
+            "pto_fin_latitud FLOAT NOT NULL, "
+            "pto_fin_longitud FLOAT NOT NULL, "
+            "fuente_id TEXT NOT NULL, "
+            "fuente_nombre TEXT NOT NULL, "
+            "resolucion_solicitada FLOAT NOT NULL, "
+            "resolucion_real FLOAT NOT NULL, "
+            "ancho_tesela INTEGER NOT NULL, "
+            "alto_tesela INTEGER NOT NULL, "
+            "estado TEXT DEFAULT 'pending' NOT NULL, "
+            "nombre_coleccion TEXT, "
+            "creado_en TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL, "
+            "actualizado_en TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL, "
+            "PRIMARY KEY (parcela_id), "
+            "CONSTRAINT ck_parcela_estado CHECK "
+            "(estado IN ('pending', 'processing', 'completed', "
+            "'failed', 'paused')), "
+            "FOREIGN KEY(usuario_id) REFERENCES usuario (usuario_id) "
+            "ON DELETE CASCADE"
+            ")"
+        )
+        connection.exec_driver_sql(
+            "INSERT INTO parcela ("
+            "parcela_id, usuario_id, tamano_metros, "
+            "pto_origen_latitud, pto_origen_longitud, "
+            "pto_fin_latitud, pto_fin_longitud, fuente_id, "
+            "fuente_nombre, resolucion_solicitada, resolucion_real, "
+            "ancho_tesela, alto_tesela, estado, nombre_coleccion, "
+            "creado_en, actualizado_en"
+            ") SELECT "
+            "parcela_id, usuario_id, tamano_metros, "
+            "pto_origen_latitud, pto_origen_longitud, "
+            "pto_fin_latitud, pto_fin_longitud, fuente_id, "
+            "fuente_nombre, resolucion_solicitada, resolucion_real, "
+            "ancho_tesela, alto_tesela, estado, nombre_coleccion, "
+            "creado_en, actualizado_en FROM parcela_old"
+        )
+        connection.exec_driver_sql("DROP TABLE parcela_old")
+        connection.exec_driver_sql(
+            "CREATE INDEX idx_parcela_usuario_fecha "
+            "ON parcela (usuario_id, creado_en)"
+        )
+        connection.exec_driver_sql("PRAGMA legacy_alter_table=OFF")
+        connection.exec_driver_sql("PRAGMA foreign_keys=ON")
 
 
 def _ensure_system_user() -> None:
@@ -61,6 +133,7 @@ def init_db() -> None:
     from .model_store import sync_models_from_files
 
     db.create_all()
+    _ensure_parcela_paused_status()
 
     _ensure_system_user()
     sync_models_from_files()

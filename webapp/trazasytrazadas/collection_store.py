@@ -31,7 +31,13 @@ from .model_store import get_active_model
 from .models import Foto, Parcela
 
 DEFAULT_SYSTEM_USER_ID = 1
-ALLOWED_ZONE_STATUSES = {"pending", "processing", "completed", "failed"}
+ALLOWED_ZONE_STATUSES = {
+    "pending",
+    "processing",
+    "completed",
+    "failed",
+    "paused",
+}
 COLLECTION_NAME_MAX_LENGTH = 120
 
 
@@ -196,7 +202,9 @@ def _photo_to_dict(photo: Foto) -> dict:
         "alto": photo.alto,
         "limites_3857_json": photo.limites_3857_json,
         "limites_json": photo.limites_json,
-        "fuente_id": photo.parcela.fuente_id if photo.parcela is not None else None,
+        "fuente_id": (
+            photo.parcela.fuente_id if photo.parcela is not None else None
+        ),
         "fuente_nombre": (
             photo.parcela.fuente_nombre if photo.parcela is not None else None
         ),
@@ -275,7 +283,7 @@ def _stale_cutoff_string() -> str:
 
 
 def _photo_is_stale(photo: dict) -> bool:
-    """Indica si una foto en processing lleva demasiado tiempo sin completarse."""
+    """Indica si una foto en processing lleva demasiado sin completarse."""
     if (photo.get("estado") or "").strip().lower() != "processing":
         return False
 
@@ -344,7 +352,11 @@ def _relative_storage_path(absolute_path: str) -> str:
 
 def _parcel_root_dir(parcel_id: int) -> str:
     """Devuelve la carpeta raíz física de una parcela."""
-    return os.path.join(get_collection_storage_root(), "parcelas", str(parcel_id))
+    return os.path.join(
+        get_collection_storage_root(),
+        "parcelas",
+        str(parcel_id),
+    )
 
 
 def _parcel_tiles_dir(parcel_id: int) -> str:
@@ -510,6 +522,120 @@ def _zone_trace_status(photos: list[dict]) -> str:
         return "processing"
 
     return "pending"
+
+
+def _status_from_photo_statuses(statuses: list[str]) -> str:
+    """Calcula el estado agregado a partir de estados de teselas."""
+    total = len(statuses)
+    pending_count = statuses.count("pending")
+    processing_count = statuses.count("processing")
+    completed_count = statuses.count("completed")
+    failed_count = statuses.count("failed")
+
+    if total == 0 or pending_count == total:
+        return "pending"
+    if completed_count == total:
+        return "completed"
+    if failed_count == total:
+        return "failed"
+    if processing_count > 0:
+        return "processing"
+    if pending_count > 0 and completed_count > 0:
+        return "processing"
+    if pending_count > 0 and failed_count > 0:
+        return "processing"
+    if failed_count > 0 and completed_count > 0:
+        return "failed"
+    return "processing"
+
+
+def _reset_photo_model_to_pending(
+    photo: Foto,
+    trace_relative_path: str | None = None,
+) -> None:
+    """Devuelve una tesela reclamada a estado pendiente."""
+    trace_path = trace_relative_path or photo.ruta_trazas
+    trace_absolute_path = get_storage_abspath(trace_path)
+    if trace_absolute_path and os.path.exists(trace_absolute_path):
+        try:
+            os.remove(trace_absolute_path)
+        except OSError:
+            pass
+
+    photo.modelo_id = None
+    photo.trazas = 0
+    photo.estado = "pending"
+    photo.ruta_trazas = None
+    photo.mensaje_error = None
+    photo.iniciado_en = None
+    photo.finalizado_en = None
+
+
+def reset_photo_if_zone_paused(
+    photo_id: int,
+    trace_relative_path: str | None = None,
+) -> bool:
+    """Cancela una tesela si su colección está pausada."""
+    photo = db.session.get(Foto, photo_id)
+    if photo is None or photo.parcela is None:
+        return False
+
+    if photo.parcela.estado != "paused":
+        return False
+
+    _reset_photo_model_to_pending(photo, trace_relative_path)
+    photo.parcela.actualizado_en = _now_db_string()
+    db.session.commit()
+    return True
+
+
+def is_zone_processing_paused(parcel_id: int) -> bool:
+    """Indica si una colección está pausada."""
+    parcel = db.session.get(Parcela, parcel_id)
+    return bool(parcel is not None and parcel.estado == "paused")
+
+
+def toggle_zone_processing(parcel_id: int) -> dict | None:
+    """Alterna pausa y reanudación del procesado de una colección."""
+    owner_id = _current_collection_owner_id()
+    if owner_id is None:
+        return None
+
+    parcel = db.session.execute(
+        select(Parcela).where(
+            Parcela.parcela_id == parcel_id,
+            Parcela.usuario_id == owner_id,
+        )
+    ).scalar_one_or_none()
+    if parcel is None:
+        return None
+
+    if parcel.estado == "paused":
+        statuses = db.session.execute(
+            select(Foto.estado).where(Foto.parcela_id == parcel_id)
+        ).scalars().all()
+        parcel.estado = _status_from_photo_statuses(statuses)
+        is_paused = False
+    else:
+        photos = db.session.execute(
+            select(Foto).where(
+                Foto.parcela_id == parcel_id,
+                Foto.estado == "processing",
+            )
+        ).scalars().all()
+        for photo in photos:
+            _reset_photo_model_to_pending(photo)
+        parcel.estado = "paused"
+        is_paused = True
+
+    parcel.actualizado_en = _now_db_string()
+    db.session.commit()
+
+    summary = get_zone_status_summary(parcel_id)
+    if summary is None:
+        return None
+    summary["paused"] = is_paused
+    return summary
 
 
 def get_default_user_id() -> int:
@@ -733,7 +859,11 @@ def get_zone_detail(parcel_id: int) -> dict | None:
     photo_models = db.session.execute(
         select(Foto)
         .where(Foto.parcela_id == parcel_id)
-        .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc(), Foto.foto_id.asc())
+        .order_by(
+            Foto.indice_fila.asc(),
+            Foto.indice_columna.asc(),
+            Foto.foto_id.asc(),
+        )
     ).scalars().all()
 
     photos = [_photo_contract_from_model(photo) for photo in photo_models]
@@ -762,6 +892,8 @@ def get_zone_plan(parcel_id: int) -> dict | None:
                for photo in detail["fotos"]), default=0)
 
     trace_status = _zone_trace_status(detail["fotos"])
+    if detail.get("estado") == "paused":
+        trace_status = "paused"
     can_draw_traces = trace_status == "completed"
 
     tiles = []
@@ -993,13 +1125,15 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
 
     photos = db.session.execute(
         select(Foto)
+        .join(Parcela)
         .where(
+            Parcela.estado != "paused",
             or_(
                 Foto.estado == "pending",
                 (Foto.estado == "processing")
                 & (Foto.iniciado_en.is_not(None))
                 & (Foto.iniciado_en <= stale_cutoff),
-            )
+            ),
         )
         .order_by(
             (Foto.estado == "processing").desc(),
@@ -1030,7 +1164,9 @@ def claim_pending_photos(*, limit: int = 1) -> list[dict]:
 
     return [
         photo for photo_id in photo_ids
-        if (photo := get_photo(photo_id, enforce_current_user=False)) is not None
+        if (
+            photo := get_photo(photo_id, enforce_current_user=False)
+        ) is not None
     ]
 
 
@@ -1040,9 +1176,12 @@ def mark_photo_completed(photo_id: int, trace_relative_path: str) -> None:
     if photo is None:
         return
 
+    parcel_id = int(photo.parcela_id)
+    if reset_photo_if_zone_paused(photo_id, trace_relative_path):
+        return
+
     active_model = get_active_model()
 
-    parcel_id = int(photo.parcela_id)
     if active_model is not None:
         photo.modelo_id = int(active_model.modelo_id)
     photo.trazas = 1
@@ -1061,6 +1200,9 @@ def mark_photo_failed(photo_id: int, message: str) -> None:
         return
 
     parcel_id = int(photo.parcela_id)
+    if reset_photo_if_zone_paused(photo_id):
+        return
+
     photo.modelo_id = None
     photo.trazas = 0
     photo.estado = "failed"
@@ -1070,39 +1212,24 @@ def mark_photo_failed(photo_id: int, message: str) -> None:
     refresh_parcel_status(parcel_id)
 
 
-def refresh_parcel_status(parcel_id: int) -> str:
+def refresh_parcel_status(
+    parcel_id: int,
+    *,
+    preserve_paused: bool = True,
+) -> str:
     """Recalcula el estado agregado de una parcela a partir de sus fotos."""
     parcel = db.session.get(Parcela, parcel_id)
     if parcel is None:
         return "pending"
 
+    if preserve_paused and parcel.estado == "paused":
+        return "paused"
+
     statuses = db.session.execute(
         select(Foto.estado).where(Foto.parcela_id == parcel_id)
     ).scalars().all()
 
-    total = len(statuses)
-    pending_count = statuses.count("pending")
-    processing_count = statuses.count("processing")
-    completed_count = statuses.count("completed")
-    failed_count = statuses.count("failed")
-
-    if total == 0 or pending_count == total:
-        status = "pending"
-    elif completed_count == total:
-        status = "completed"
-    elif failed_count == total:
-        status = "failed"
-    elif processing_count > 0:
-        status = "processing"
-    elif pending_count > 0 and completed_count > 0:
-        status = "processing"
-    elif pending_count > 0 and failed_count > 0:
-        status = "processing"
-    elif failed_count > 0 and completed_count > 0:
-        status = "failed"
-    else:
-        status = "processing"
-
+    status = _status_from_photo_statuses(statuses)
     parcel.estado = status
     parcel.actualizado_en = _now_db_string()
     db.session.commit()
@@ -1158,7 +1285,11 @@ def get_zone_live_status(parcel_id: int) -> dict | None:
     photo_models = db.session.execute(
         select(Foto)
         .where(Foto.parcela_id == parcel_id)
-        .order_by(Foto.indice_fila.asc(), Foto.indice_columna.asc(), Foto.foto_id.asc())
+        .order_by(
+            Foto.indice_fila.asc(),
+            Foto.indice_columna.asc(),
+            Foto.foto_id.asc(),
+        )
     ).scalars().all()
 
     photos = []

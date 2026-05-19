@@ -104,7 +104,8 @@ class Parcela(db.Model):
     __tablename__ = "parcela"
     __table_args__ = (
         db.CheckConstraint(
-            "estado IN ('pending', 'processing', 'completed', 'failed')",
+            "estado IN ('pending', 'processing', 'completed', "
+            "'failed', 'paused')",
             name="ck_parcela_estado",
         ),
         db.Index(

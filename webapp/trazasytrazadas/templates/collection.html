@@ -32,11 +32,13 @@ Versión: 0.1
     </section>
     <section class="card bg-base-100 border border-base-200 shadow-sm">
         <div class="card-body gap-4">
-            <div>
-                <h2 class="text-xl sm:text-2xl font-bold">{{ _("Colección de imágenes") }}</h2>
-                <p class="text-sm opacity-75">
-                    {{ _("Registro persistente de las zonas generadas desde el visor cartográfico y sus teselas asociadas.") }}
-                </p>
+            <div class="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold">{{ _("Colección de imágenes") }}</h2>
+                    <p class="text-sm opacity-75">
+                        {{ _("Registro persistente de las zonas generadas desde el visor cartográfico y sus teselas asociadas.") }}
+                    </p>
+                </div>
             </div>
             <form method="get"
                   class="grid grid-cols-1 gap-3 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
@@ -220,6 +222,9 @@ Versión: 0.1
                                             {% elif item.estado == 'failed' %}
                                                 <span class="badge badge-error badge-outline"
                                                       title="{{ _("Hay teselas con error de cálculo.") }}">{{ _("Error") }}</span>
+                                            {% elif item.estado == 'paused' %}
+                                                <span class="badge badge-warning badge-outline"
+                                                      title="{{ _("El cálculo de trazas está pausado.") }}">{{ _("En pausa") }}</span>
                                             {% else %}
                                                 <span class="badge badge-neutral badge-outline"
                                                       title="{{ _("La zona está pendiente de procesamiento.") }}">{{ _("En espera") }}</span>
@@ -234,6 +239,32 @@ Versión: 0.1
                                             <a href="{{ url_for('trazas.visor', parcel_id=item.parcela_id) }}"
                                                class="btn btn-sm btn-primary"
                                                title="{{ _("Recupera esta zona en el visor cartográfico.") }}">{{ _("Ver en el mapa") }}</a>
+                                            <form method="post"
+                                                  action="{{ url_for('trazas.collection_toggle_processing', parcel_id=item.parcela_id) }}"
+                                                  class="inline-flex">
+                                                <input type="hidden" name="redirect_to" value="{{ current_query }}">
+                                                <button type="submit"
+                                                        class="btn btn-square btn-sm {% if item.estado == 'paused' %}btn-success{% else %}btn-warning{% endif %}"
+                                                        aria-label="{% if item.estado == 'paused' %}{{ _("Reanudar cálculo") }}{% else %}{{ _("Pausar cálculo") }}{% endif %}"
+                                                        title="{% if item.estado == 'paused' %}{{ _("Reanuda el cálculo de trazas de esta colección.") }}{% else %}{{ _("Pausa el cálculo de trazas de esta colección.") }}{% endif %}">
+                                                    {% if item.estado == 'paused' %}
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                             viewBox="0 0 24 24"
+                                                             fill="currentColor"
+                                                             class="w-4 h-4">
+                                                            <path d="M8 5v14l11-7z" />
+                                                        </svg>
+                                                    {% else %}
+                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                             viewBox="0 0 24 24"
+                                                             fill="currentColor"
+                                                             class="w-4 h-4">
+                                                            <path d="M6 5h4v14H6z" />
+                                                            <path d="M14 5h4v14h-4z" />
+                                                        </svg>
+                                                    {% endif %}
+                                                </button>
+                                            </form>
                                             <form method="post"
                                                   action="{{ url_for('trazas.collection_delete', parcel_id=item.parcela_id) }}"
                                                   class="inline-flex"
@@ -445,6 +476,7 @@ Versión: 0.1
             "zoneProcessing": _("Procesando"),
             "zonePending": _("En espera"),
             "zoneFailed": _("Error"),
+            "zonePaused": _("En pausa"),
             "photoCompleted": _("Trazas calculadas"),
             "photoProcessing": _("Calculando trazas"),
             "photoPending": _("Trazas no calculadas"),

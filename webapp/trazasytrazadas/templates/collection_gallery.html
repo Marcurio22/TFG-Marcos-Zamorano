@@ -43,6 +43,32 @@ Versión: 0.1
                 </div>
                 <div class="flex flex-wrap items-center gap-2 lg:justify-end">
                     <form method="post"
+                          action="{{ url_for('trazas.collection_toggle_processing', parcel_id=zone.parcela_id) }}"
+                          class="inline-flex">
+                        <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+                        <button type="submit"
+                                class="btn btn-square btn-sm {% if zone.estado == 'paused' %}btn-success{% else %}btn-warning{% endif %}"
+                                aria-label="{% if zone.estado == 'paused' %}{{ _("Reanudar cálculo") }}{% else %}{{ _("Pausar cálculo") }}{% endif %}"
+                                title="{% if zone.estado == 'paused' %}{{ _("Reanuda el cálculo de trazas de esta colección.") }}{% else %}{{ _("Pausa el cálculo de trazas de esta colección.") }}{% endif %}">
+                            {% if zone.estado == 'paused' %}
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-4 h-4">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="currentColor"
+                                     class="w-4 h-4">
+                                    <path d="M6 5h4v14H6z" />
+                                    <path d="M14 5h4v14h-4z" />
+                                </svg>
+                            {% endif %}
+                        </button>
+                    </form>
+                    <form method="post"
                           action="{{ url_for('trazas.collection_zone_retry_pending_failed', parcel_id=zone.parcela_id) }}"
                           class="inline-flex">
                         <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
@@ -64,6 +90,9 @@ Versión: 0.1
                         {% elif zone.estado == 'failed' %}
                             <span class="badge badge-error badge-outline"
                                   title="{{ _("Hay teselas con error de cálculo.") }}">{{ _("Error") }}</span>
+                        {% elif zone.estado == 'paused' %}
+                            <span class="badge badge-warning badge-outline"
+                                  title="{{ _("El cálculo de trazas está pausado.") }}">{{ _("En pausa") }}</span>
                         {% else %}
                             <span class="badge badge-neutral badge-outline"
                                   title="{{ _("La zona está pendiente de procesamiento.") }}">{{ _("En espera") }}</span>
@@ -384,6 +413,7 @@ Versión: 0.1
                 "zoneProcessing": _("Procesando"),
                 "zonePending": _("En espera"),
                 "zoneFailed": _("Error"),
+                "zonePaused": _("En pausa"),
                 "photoCompleted": _("Trazas calculadas"),
                 "photoProcessing": _("Calculando trazas"),
                 "photoPending": _("Trazas no calculadas"),

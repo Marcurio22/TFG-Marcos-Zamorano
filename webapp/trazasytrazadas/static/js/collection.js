@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
       zoneProcessing: "Procesando",
       zonePending: "En espera",
       zoneFailed: "Error",
+      zonePaused: "En pausa",
       photoCompleted: "Trazas calculadas",
       photoProcessing: "Calculando trazas",
       photoPending: "Trazas no calculadas",
@@ -129,6 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return `<span class="badge badge-error badge-outline">${I18N.zoneFailed}</span>`;
     }
 
+    if (status === "paused") {
+      return `<span class="badge badge-warning badge-outline">${I18N.zonePaused}</span>`;
+    }
+
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
   }
 
@@ -143,6 +148,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (status === "failed") {
       return `<span class="badge badge-error badge-outline">${I18N.zoneFailed}</span>`;
+    }
+
+    if (status === "paused") {
+      return `<span class="badge badge-warning badge-outline">${I18N.zonePaused}</span>`;
     }
 
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;

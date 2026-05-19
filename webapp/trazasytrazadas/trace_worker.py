@@ -22,6 +22,7 @@ from flask.cli import with_appcontext
 
 from .collection_store import (
     claim_pending_photos,
+    reset_photo_if_zone_paused,
     mark_photo_completed,
     mark_photo_failed,
     materialize_photo_tile,
@@ -42,11 +43,28 @@ def _compute_photo_traces(image_path: str) -> dict:
     )
 
 
+class PhotoProcessingPaused(RuntimeError):
+    """Señala que la colección se ha pausado durante el cálculo."""
+
+
+def _raise_if_photo_paused(photo: dict) -> None:
+    """Detiene el trabajo de una tesela si su colección está pausada."""
+    if reset_photo_if_zone_paused(photo["foto_id"]):
+        raise PhotoProcessingPaused
+
+
 def _process_claimed_photo(photo: dict) -> None:
     """Procesa una foto ya reclamada y actualiza su estado final."""
+    _raise_if_photo_paused(photo)
     image_absolute_path = materialize_photo_tile(photo)
+    _raise_if_photo_paused(photo)
     traces = _compute_photo_traces(image_absolute_path)
+    _raise_if_photo_paused(photo)
     trace_relative_path = save_photo_traces_result(photo, traces)
+
+    if reset_photo_if_zone_paused(photo["foto_id"], trace_relative_path):
+        raise PhotoProcessingPaused
+
     mark_photo_completed(photo["foto_id"], trace_relative_path)
 
 
@@ -79,6 +97,11 @@ def run_trace_worker(
                 processed_count += 1
                 current_app.logger.info(
                     "Foto %s procesada correctamente.",
+                    photo["foto_id"],
+                )
+            except PhotoProcessingPaused:
+                current_app.logger.info(
+                    "Foto %s devuelta a pendiente por pausa de colección.",
                     photo["foto_id"],
                 )
             except Exception as exc:  # pragma: no cover

@@ -48,6 +48,7 @@ from .collection_store import (
     retry_photo,
     retry_zone_pending_and_failed,
     save_zone_preview_bytes,
+    toggle_zone_processing,
     update_zone_name,
     zone_retry_is_enabled,
 )
@@ -583,6 +584,27 @@ def register_collection_routes(bp) -> None:
         )
         return redirect(redirect_to)
 
+    @bp.route("/coleccion/<int:parcel_id>/toggle-processing",
+              methods=["POST"])
+    @login_required
+    def collection_toggle_processing(parcel_id: int):
+        """Pausa o reanuda el cálculo de trazas de una colección."""
+        status_payload = toggle_zone_processing(parcel_id)
+        if status_payload is None:
+            abort(404)
+
+        if status_payload.get("estado") == "paused":
+            flash(_("El cálculo de trazas se ha pausado."), "info")
+        else:
+            trigger_trace_worker(current_app._get_current_object())
+            _flash_ok(_("El cálculo de trazas se ha reanudado."))
+
+        redirect_to = _safe_internal_redirect(
+            request.form.get("redirect_to"),
+            url_for("trazas.collection"),
+        )
+        return redirect(redirect_to)
+
     @bp.route("/coleccion/<int:parcel_id>/retry-pending-failed",
               methods=["POST"])
     @login_required
@@ -594,7 +616,8 @@ def register_collection_routes(bp) -> None:
         if not zone_retry_is_enabled(photos):
             if (
                 detail.get("total_teselas")
-                and detail.get("teselas_completadas") == detail.get("total_teselas")
+                and detail.get("teselas_completadas")
+                == detail.get("total_teselas")
             ):
                 flash(
                     _("Todas las teselas ya tienen las trazas calculadas."),
