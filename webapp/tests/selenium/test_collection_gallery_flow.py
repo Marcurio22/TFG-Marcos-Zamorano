@@ -22,6 +22,7 @@ from tests.selenium.helpers import (
     login_through_ui,
     visible_css,
     wait_class,
+    wait_for_download,
     wait_for_text,
 )
 
@@ -92,3 +93,30 @@ def test_gallery_photo_viewer_draws_completed_traces(
 
     canvas = css(browser, "#photo-viewer-canvas")
     wait.until(lambda _driver: "hidden" not in canvas.get_attribute("class"))
+
+
+def test_collection_zip_can_be_downloaded(browser, live_server, app):
+    """La colección permite descargar sus teselas en un archivo ZIP."""
+    user_id = create_user(
+        app,
+        username="selenium_collection_zip",
+        email="selenium_collection_zip@example.com",
+    )
+    create_collection(
+        app,
+        user_id=user_id,
+        name="Colección ZIP Selenium",
+        photo_states=("completed", "completed"),
+    )
+    login_through_ui(browser, live_server, "selenium_collection_zip")
+
+    browser.get(f"{live_server}/coleccion")
+    wait_for_text(browser, "Colección ZIP Selenium")
+    clickable(browser, "a[href*='/download-zip']").click()
+
+    downloaded = wait_for_download(
+        browser.selenium_download_dir,
+        ".zip",
+    )
+    assert downloaded.suffix == ".zip"
+

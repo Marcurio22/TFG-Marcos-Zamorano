@@ -34,13 +34,17 @@ def test_admin_users_search_and_model_upload_modal(
     monkeypatch,
     tmp_path,
 ):
-    """El admin busca usuarios y sube un modelo pendiente desde el modal."""
+    """El admin sube un modelo pendiente desde el modal de gestión."""
     from trazasytrazadas import admin as admin_module
+
+    def skip_model_validation(*_args, **_kwargs):
+        """Evita validar modelos en el flujo Selenium de subida."""
+        return None
 
     monkeypatch.setattr(
         admin_module,
         "_start_model_validation_task",
-        lambda *_args, **_kwargs: None,
+        skip_model_validation,
     )
 
     create_user(
@@ -77,19 +81,19 @@ def test_admin_users_search_and_model_upload_modal(
     visible_css(
         browser,
         "#upload-fold-modal input[name='fold_name']",
-    ).send_keys("modelo_malo_selenium.pt")
+    ).send_keys("modelo_a_cargar_selenium.pt")
 
-    bad_model = tmp_path / "modelo_malo_selenium.pt"
-    bad_model.write_bytes(b"modelo no valido")
+    model_to_upload = tmp_path / "modelo_a_cargar_selenium.pt"
+    model_to_upload.write_bytes(b"contenido de modelo de prueba")
     css(
         browser,
         "#upload-fold-modal input[type='file']",
-    ).send_keys(str(bad_model))
+    ).send_keys(str(model_to_upload))
     css(
         browser,
         "#upload-fold-form button[type='submit']",
     ).click()
 
     wait_for_text(browser, "Modelo añadido correctamente")
-    wait_for_text(browser, "modelo_malo_selenium.pt")
+    wait_for_text(browser, "modelo_a_cargar_selenium.pt")
     wait_for_text(browser, "Pendiente")

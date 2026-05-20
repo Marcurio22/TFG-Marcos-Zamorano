@@ -60,8 +60,8 @@ def test_admin_can_rename_model_from_modal(browser, live_server, app):
     wait_for_text(browser, "modelo_renombrado_selenium.pt")
 
 
-def test_admin_can_open_activation_modal(browser, live_server, app):
-    """El administrador abre el modal de activación de modelo."""
+def test_admin_can_activate_model_from_modal(browser, live_server, app):
+    """El administrador activa un modelo desde su modal."""
     create_user(
         app,
         username="selenium_admin_activate",
@@ -83,3 +83,14 @@ def test_admin_can_open_activation_modal(browser, live_server, app):
     wait = wait_class()(browser, 8)
     wait.until(lambda _driver: modal.get_attribute("open") is not None)
     wait_for_text(browser, "modelo_para_activar.pt")
+    clickable(browser, "#activate-fold-form button[type='submit']").click()
+
+    wait_for_text(browser, "Modelo activo actualizado correctamente")
+    with app.app_context():
+        from trazasytrazadas.db import db
+        from trazasytrazadas.models import Modelo
+
+        active = db.session.execute(
+            db.select(Modelo).where(Modelo.estado == "activo")
+        ).scalar_one()
+        assert active.nombre_modelo == "modelo_para_activar.pt"

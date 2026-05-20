@@ -2,8 +2,8 @@
 ==============================================================================
 Pruebas Selenium de gestión administrativa de usuarios.
 
-Valida el detalle y la edición de usuarios desde el panel de administración con
-formularios reales y permisos de administrador.
+Valida el detalle y la edición de usuarios desde el panel de administración
+con formularios reales y permisos de administrador.
 
 Autor: Marcos Zamorano Lasso
 Versión: 0.1
@@ -52,7 +52,8 @@ def test_admin_can_view_and_edit_regular_user(browser, live_server, app):
     ).click()
 
     wait_for_text(browser, "Editar usuario")
-    wait_for_text(browser, "usuario_editable")
+    username_input = css(browser, "input[name='nombre_usuario']")
+    assert username_input.get_attribute("value") == "usuario_editable"
     fill(browser, "nombre_usuario", "usuario_editado_selenium")
     fill(browser, "correo_electronico", "editado_selenium@example.com")
     fill(browser, "telefono", "622 33 44 55")

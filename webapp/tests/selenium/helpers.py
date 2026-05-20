@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import io
 import json
+import math
 import time
 from pathlib import Path
 
@@ -114,8 +115,37 @@ def _dispatch_map_click(driver, map_element, x_pos: int, y_pos: int) -> None:
     )
 
 
-def zoom_map_to_detail(driver, clicks: int = 13) -> None:
-    """Acerca Leaflet hasta un nivel de detalle alto sobre España."""
+def configure_visor_map_start(
+    driver,
+    *,
+    center_lat: float,
+    center_lng: float,
+    zoom: int = 13,
+) -> None:
+    """Prepara el centro inicial del visor antes de cargar la página."""
+    script = f"""
+    Object.defineProperty(window, 'VISOR_APP', {{
+      configurable: true,
+      set(value) {{
+        value.defaults = value.defaults || {{}};
+        value.defaults.center = [{center_lat}, {center_lng}];
+        value.defaults.zoom = {zoom};
+        Object.defineProperty(window, 'VISOR_APP', {{
+          value,
+          writable: true,
+          configurable: true
+        }});
+      }}
+    }});
+    """
+    driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {"source": script},
+    )
+
+
+def zoom_map_to_detail(driver, clicks: int = 2) -> None:
+    """Acerca Leaflet unas capas manteniendo estable la zona visible."""
     visible_css(driver, ".leaflet-container")
     for _index in range(clicks):
         zoom_button = clickable(driver, ".leaflet-control-zoom-in")
@@ -125,8 +155,47 @@ def zoom_map_to_detail(driver, clicks: int = 13) -> None:
         time.sleep(0.05)
 
 
-def select_map_area_near_center(driver, selector: str = "#visor-map") -> None:
-    """Selecciona un rectángulo pequeño tras acercarse sobre España."""
+def _project_lat_lng(lat: float, lng: float, zoom: int) -> tuple[float, float]:
+    """Proyecta coordenadas WGS84 a píxeles WebMercator."""
+    sin_lat = math.sin(math.radians(lat))
+    sin_lat = min(max(sin_lat, -0.9999), 0.9999)
+    scale = 256 * (2 ** zoom)
+    x_pos = scale * ((lng + 180.0) / 360.0)
+    y_pos = scale * (
+        0.5 - math.log((1 + sin_lat) / (1 - sin_lat)) / (4 * math.pi)
+    )
+    return x_pos, y_pos
+
+
+def _map_pixel_for_lat_lng(
+    *,
+    lat: float,
+    lng: float,
+    center_lat: float,
+    center_lng: float,
+    zoom: int,
+    width: int,
+    height: int,
+) -> tuple[int, int]:
+    """Convierte una coordenada cercana al centro en píxeles del mapa."""
+    point_x, point_y = _project_lat_lng(lat, lng, zoom)
+    center_x, center_y = _project_lat_lng(center_lat, center_lng, zoom)
+    return (
+        round(width / 2 + point_x - center_x),
+        round(height / 2 + point_y - center_y),
+    )
+
+
+def select_map_area_at_coordinates(
+    driver,
+    *,
+    center_lat: float,
+    center_lng: float,
+    zoom: int = 15,
+    half_delta: float = 0.0012,
+    selector: str = "#visor-map",
+) -> None:
+    """Selecciona un rectángulo usando coordenadas rurales exactas."""
     zoom_map_to_detail(driver)
     map_element = css(driver, selector)
     width, height = driver.execute_script(
@@ -136,12 +205,20 @@ def select_map_area_near_center(driver, selector: str = "#visor-map") -> None:
         """,
         map_element,
     )
-    center_x = max(80, width // 2)
-    center_y = max(80, height // 2)
-    for x_pos, y_pos in (
-        (center_x - 12, center_y - 12),
-        (center_x + 12, center_y + 12),
-    ):
+    points = (
+        (center_lat - half_delta, center_lng - half_delta),
+        (center_lat + half_delta, center_lng + half_delta),
+    )
+    for lat, lng in points:
+        x_pos, y_pos = _map_pixel_for_lat_lng(
+            lat=lat,
+            lng=lng,
+            center_lat=center_lat,
+            center_lng=center_lng,
+            zoom=zoom,
+            width=width,
+            height=height,
+        )
         _dispatch_map_click(driver, map_element, x_pos, y_pos)
 
 
@@ -181,6 +258,48 @@ def wait_for_grid_ready(driver, timeout: int = 12) -> None:
             "#download-list",
         ).text
     )
+
+
+def wait_for_zone_status(
+    driver,
+    status: str,
+    timeout: int = 12,
+) -> None:
+    """Espera a que una colección muestre el estado indicado."""
+    wait = wait_class()(driver, timeout)
+    wait.until(
+        lambda web_driver: any(
+            element.get_attribute("data-zone-status") == status
+            for element in web_driver.find_elements(
+                by_css(),
+                "[data-zone-state]",
+            )
+        )
+    )
+
+
+def complete_pending_collection_photos(app) -> int:
+    """Completa teselas pendientes para simular el worker en Selenium."""
+    from trazasytrazadas.collection_store import (
+        claim_pending_photos,
+        mark_photo_completed,
+        save_photo_traces_result,
+    )
+
+    processed = 0
+    with app.app_context():
+        while True:
+            photos = claim_pending_photos(limit=32)
+            if not photos:
+                break
+            for photo in photos:
+                traces_path = save_photo_traces_result(
+                    photo,
+                    {"xs": [1, 4, 8], "ys": [2, 5, 9]},
+                )
+                mark_photo_completed(photo["foto_id"], traces_path)
+                processed += 1
+    return processed
 
 
 def wait_for_download(
