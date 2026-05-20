@@ -17,6 +17,7 @@ import shutil
 import socket
 import threading
 import time
+from types import MethodType
 import urllib.error
 import urllib.request
 
@@ -46,6 +47,16 @@ def pytest_addoption(parser):
         "--selenium-browser-binary",
         default=os.environ.get("SELENIUM_BROWSER_BINARY", ""),
         help="Ruta opcional al binario de Chrome o Chromium.",
+    )
+    group.addoption(
+        "--selenium-slow-ms",
+        default=os.environ.get("SELENIUM_SLOW_MS", "0"),
+        help="Milisegundos de pausa tras cada comando del navegador.",
+    )
+    group.addoption(
+        "--selenium-final-wait",
+        default=os.environ.get("SELENIUM_FINAL_WAIT", "0"),
+        help="Segundos de espera antes de cerrar el navegador.",
     )
 
 
@@ -104,6 +115,47 @@ def live_server(app):
     server.stop()
     server.join(timeout=3)
 
+    with app.app_context():
+        from trazasytrazadas.db import db
+
+        db.session.remove()
+        db.engine.dispose()
+
+
+
+def _option_float(config, name: str, default: float = 0.0) -> float:
+    """Convierte una opción numérica de pytest a float segura."""
+    raw_value = config.getoption(name)
+    try:
+        return max(default, float(raw_value))
+    except (TypeError, ValueError):
+        return default
+
+
+def _option_int(config, name: str, default: int = 0) -> int:
+    """Convierte una opción numérica de pytest a entero seguro."""
+    raw_value = config.getoption(name)
+    try:
+        return max(default, int(raw_value))
+    except (TypeError, ValueError):
+        return default
+
+
+def _apply_slow_motion(driver, delay_seconds: float) -> None:
+    """Añade una pausa tras cada comando WebDriver si se configura."""
+    if delay_seconds <= 0:
+        return
+
+    original_execute = driver.execute
+
+    def slowed_execute(self, command, params=None):
+        """Ejecuta un comando WebDriver y espera para verlo en pantalla."""
+        result = original_execute(command, params)
+        time.sleep(delay_seconds)
+        return result
+
+    driver.execute = MethodType(slowed_execute, driver)
+
 
 def _browser_binary(config) -> str | None:
     """Localiza un binario de Chrome o Chromium disponible."""
@@ -127,7 +179,7 @@ def _driver_path() -> str | None:
 
 
 @pytest.fixture
-def browser(request):
+def browser(request, tmp_path):
     """Crea un WebDriver Chrome y lo cierra al terminar."""
     pytest.importorskip("selenium")
     from selenium import webdriver
@@ -147,6 +199,18 @@ def browser(request):
     options.add_argument("--window-size=1440,1000")
     options.add_argument("--lang=es")
 
+    download_dir = tmp_path / "selenium_downloads"
+    download_dir.mkdir(parents=True, exist_ok=True)
+    options.add_experimental_option(
+        "prefs",
+        {
+            "download.default_directory": str(download_dir),
+            "download.prompt_for_download": False,
+            "download.directory_upgrade": True,
+            "safebrowsing.enabled": True,
+        },
+    )
+
     driver_path = _driver_path()
     allow_manager = os.environ.get("SELENIUM_USE_MANAGER", "1") == "1"
 
@@ -156,7 +220,9 @@ def browser(request):
         service = Service()
     else:
         pytest.skip(
-            "No se encontró chromedriver."
+            "No se encontró chromedriver. Instálalo o usa "
+            "SELENIUM_USE_MANAGER=1 si Selenium Manager funciona en "
+            "tu entorno."
         )
 
     try:
@@ -164,7 +230,15 @@ def browser(request):
     except Exception as exc:
         pytest.skip(f"No se pudo iniciar Chrome/Chromium: {exc}")
 
+    slow_ms = _option_int(request.config, "--selenium-slow-ms")
+    final_wait = _option_float(request.config, "--selenium-final-wait")
+    _apply_slow_motion(driver, slow_ms / 1000)
+
+    driver.selenium_download_dir = download_dir
     driver.set_page_load_timeout(15)
     driver.implicitly_wait(0)
     yield driver
+
+    if final_wait > 0:
+        time.sleep(final_wait)
     driver.quit()

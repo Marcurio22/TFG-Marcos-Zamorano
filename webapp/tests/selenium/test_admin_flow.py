@@ -27,8 +27,22 @@ from tests.selenium.helpers import (
 pytestmark = pytest.mark.selenium
 
 
-def test_admin_users_search_and_models_upload_modal(browser, live_server, app):
-    """El admin busca usuarios y abre el modal de nuevo modelo."""
+def test_admin_users_search_and_model_upload_modal(
+    browser,
+    live_server,
+    app,
+    monkeypatch,
+    tmp_path,
+):
+    """El admin busca usuarios y sube un modelo pendiente desde el modal."""
+    from trazasytrazadas import admin as admin_module
+
+    monkeypatch.setattr(
+        admin_module,
+        "_start_model_validation_task",
+        lambda *_args, **_kwargs: None,
+    )
+
     create_user(
         app,
         username="selenium_admin",
@@ -60,7 +74,22 @@ def test_admin_users_search_and_models_upload_modal(browser, live_server, app):
     wait = wait_class()(browser, 8)
     wait.until(lambda _driver: modal.get_attribute("open") is not None)
     wait_for_text(browser, "Añadir modelo")
-    assert visible_css(
+    visible_css(
         browser,
         "#upload-fold-modal input[name='fold_name']",
-    ).is_displayed()
+    ).send_keys("modelo_malo_selenium.pt")
+
+    bad_model = tmp_path / "modelo_malo_selenium.pt"
+    bad_model.write_bytes(b"modelo no valido")
+    css(
+        browser,
+        "#upload-fold-modal input[type='file']",
+    ).send_keys(str(bad_model))
+    css(
+        browser,
+        "#upload-fold-form button[type='submit']",
+    ).click()
+
+    wait_for_text(browser, "Modelo añadido correctamente")
+    wait_for_text(browser, "modelo_malo_selenium.pt")
+    wait_for_text(browser, "Pendiente")
