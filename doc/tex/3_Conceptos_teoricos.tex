@@ -6,9 +6,7 @@ Este capítulo presenta el marco teórico que sustenta el desarrollo del proyect
 
 La Visión por Computador es la rama de la Inteligencia Artificial que estudia cómo dotar a un sistema de la capacidad de interpretar imágenes y vídeo, de modo que una matriz de píxeles se transforme en información estructurada y accionable sobre el entorno, como categorías, localizaciones, contornos u otras magnitudes geométricas relevantes. 
 
-Esta disciplina se apoya, por un lado, en la modelización del proceso de formación de imagen y de la geometría de proyección, lo cual permite relacionar el mundo tridimensional con el plano imagen. Por otro lado, operacionaliza ese conocimiento mediante un \textit{pipeline} de procesamiento que convierte progresivamente la señal visual en representaciones más informativas, encadenando transformaciones que filtran, realzan y reorganizan la información hasta hacerla útil para una tarea concreta, como se aprecia en la Figura~\ref{fig:Image_processing_pipeline}.
-
-\imagen{Image_processing_pipeline}{Ejemplo de \textit{pipeline} de procesamiento de imagen, donde la entrada se transforma mediante etapas sucesivas. Fuente: Nzebro12, licencia CC BY-SA 4.0.}{1} 
+Esta disciplina se apoya, por un lado, en la modelización del proceso de formación de imagen y de la geometría de proyección, lo cual permite relacionar el mundo tridimensional con el plano imagen. Por otro lado, operacionaliza ese conocimiento mediante un \textit{pipeline} de procesamiento que convierte progresivamente la señal visual en representaciones más informativas, encadenando transformaciones que filtran, realzan y reorganizan la información hasta hacerla útil para una tarea concreta.
 
 Sobre estas representaciones, el sistema ejecuta tareas como clasificación, detección o segmentación, y en particular la segmentación semántica permite asignar una etiqueta a cada región de la imagen preservando estructura espacial, tal y como ejemplifica el proceso de la Figura~\ref{fig:segmentation-example-pair}, conectando de forma natural con los fundamentos que se desarrollan en las secciones posteriores.
 
@@ -86,7 +84,7 @@ En el decodificador, el \textit{stride} es esencial para las operaciones de \tex
 \subsubsection{Transformer}
 La arquitectura del \textit{Transformer} es un modelo de procesamiento de secuencias basado íntegramente en mecanismos de autoatención, eliminando la necesidad de recurrencia o convoluciones para capturar dependencias~\cite{vaswani2017attention, khan2022transformersvision}. A diferencia de las redes recurrentes que procesan elementos de forma secuencial, el \textit{Transformer} permite el procesamiento en paralelo de toda la secuencia, lo que facilita el modelado de relaciones de largo alcance y mejora significativamente la escalabilidad en grandes conjuntos de datos~\cite{khan2022transformersvision, mamba2023linear}. 
 
-Su estructura estándar se compone de un codificador y un decodificador que apilan múltiples bloques idénticos, cada uno equipado con capas de atención de múltiples cabezales y redes de alimentación \textit{feed-forward}~\cite{vaswani2017attention, bala2025visiontranscoder}.
+Su estructura estándar se compone de un codificador y un decodificador que apilan múltiples bloques idénticos, cada uno equipado con capas de atención de múltiples cabezales y redes neuronales~\cite{vaswani2017attention, bala2025visiontranscoder}.
 
 \subsubsection{Mecanismos residuales}
 
@@ -115,33 +113,6 @@ El propósito central de esta operación es doble: por un lado, aliviar la carga
 El mecanismo principal para lograr el submuestreo es la operación de \textit{max-pooling}, que es el núcleo del \textit{downsampling} y se utiliza para disminuir el tamaño del mapa de características~\cite{ji2022automation, ronneberger2015unet}. Lo que hace para llevarlo a cabo es dividir dicho mapa de entrada en pequeñas regiones o ventanas. Tras ello, extrae el valor máximo dentro de una de las ventanas, utilizándolo como el único valor representativo para esa área en el nuevo mapa de características reducido. Finalmente, la ventana se desliza a lo largo de la entrada con un \textit{stride} predefinido, permitiendo que cada píxel resultante abarque un contexto de imagen de entrada más amplio a medida que se reduce la resolución~\cite{zhang2022constructionautomation, ji2022automation, badrinarayanan2016segnet}. 
 
 Aunque las sucesivas capas de \textit{max-pooling} y submuestreo pueden lograr una mayor invarianza para una clasificación robusta, la contraparte es una pérdida progresiva de la resolución espacial en los mapas de características. Esta pérdida resulta en una representación cada vez más inexacta en cuanto al detalle de los límites de los objetos, lo cual es perjudicial para tareas de predicción densa, como la segmentación, donde la delineación precisa es vital~\cite{badrinarayanan2016segnet, bala2025visiontranscoder}. Sin embargo, el \textit{downsampling} tiene un beneficio inherente: logra que cada píxel en el mapa de características posterior abarque un contexto de imagen de entrada más grande.
-
-
-\subsubsection{Red Neuronal Convolucional (CNN)}
-Una Red Neuronal Convolucional es una arquitectura de aprendizaje profundo que se ha convertido en el enfoque dominante para el reconocimiento visual de objetos~\cite{huang2018densenet, he2016resnet}. Implementa sesgos inductivos inherentes, como la covarianza traslacional, para la extracción eficiente de características jerárquicas, integrando naturalmente características de nivel bajo, medio y alto~\cite{liu2022convnext}. En un contexto de predicción densa, como la segmentación semántica, la CNN se extiende típicamente en un marco de codificador-decodificador para realizar una clasificación a nivel de píxel~\cite{zhang2022constructionautomation, ji2022automation, badrinarayanan2016segnet}.
-
-El funcionamiento en la segmentación se basa en este marco bifásico de codificación y decodificación:
-
-\begin{enumerate}
-\item \textbf{Capas Convolucionales (Convolutional Layers)}
-
-Las capas convolucionales son el núcleo de la CNN y componen la ruta principal del codificador~\cite{ji2022automation, badrinarayanan2016segnet}. En estas, se realiza la operación de convolución, que utiliza un conjunto de \textit{kernels} con pesos entrenables para convertir los datos de entrada en mapas de características~\cite{ji2022automation}. 
-
-El \textit{kernel} se desliza sobre la entrada con un \textit{stride} para producir la salida espacial~\cite{he2016resnet}. Mediante este proceso de \textit{downsampling} codifica la información de entrada en una representación de características de alto nivel submuestreada~\cite{ji2022automation, badrinarayanan2016segnet}.
-
-\item \textbf{Capas Deconvolucionales (Deconvolutional Layers)}
-
-Las capas deconvolucionales son el mecanismo de \textit{upsampling} más común utilizado en la ruta del decodificador~\cite{zhang2022constructionautomation, badrinarayanan2016segnet}. Mediante el uso de esta técnica, también referida como convolución transpuesta, consiguen mapear los mapas de características comprimidos de baja resolución a mapas de características densos que se aproximan a la resolución de entrada original para la clasificación por elemento~\cite{badrinarayanan2016segnet, ji2022automation}. 
-
-El desafío al que se deben enfrentar estas capas es que la red puede tender a ignorar los detalles debido a la naturaleza de la amplificación, lo que conlleva una salida insatisfactoria~\cite{ji2022automation}.
-
-\item \textbf{Capa de Concatenación (Concatenation Layer)}
-
-La capa de concatenación es un componente de fusión de características utilizado en el decodificador para mejorar la precisión espacial~\cite{ ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}. Para lograr este objetivo, fusiona las características de salida de las capas convolucionales del codificador con las características de las capas deconvolucionales del decodificador.
-
-Dicha fusión se logra a través del uso de \textit{skip connections}, que copian los mapas de características de alta resolución y bajo nivel semántico desde el codificador hacia el decodificador~\cite{ ronneberger2015unet, badrinarayanan2016segnet, ji2022automation}. La concatenación expande estos mapas y, al combinar las características espaciales detalladas con las características semánticas restauradas, asegura una delineación precisa de los límites en la predicción final~\cite{ ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}.
-
-\end{enumerate}
 
 \subsubsection{Vision Transformer (ViT)}
 La arquitectura del \textit{Vision Transformer (ViT)} se erige como el paradigma dominante después de las CNN en tareas de reconocimiento visual~\cite{liu2022convnext, khan2022transformersvision, bala2025visiontranscoder}. Opera al inicio con una fase de tokenización no superpuesta, donde la imagen de entrada es segmentada en parches, aplanados, y proyectados linealmente mediante una transformación a un espacio embebido~\cite{bala2025visiontranscoder}. A estos \textit{embeddings} se les adjuntan codificaciones posicionales para conservar la información espacial~\cite{bala2025visiontranscoder}.
@@ -180,11 +151,6 @@ En el contexto de la segmentación semántica, la función \textit{Softmax} se a
 
 \subsection{Consideraciones de generalización y propiedades espaciales}
 En esta subsección se agrupan conceptos que determinan hasta qué punto un modelo de segmentación es fiable fuera del conjunto de entrenamiento y cómo conserva la estructura geométrica de la escena al producir predicciones densas. Por un lado, se revisa el \textit{overfitting} como riesgo central de generalización en aprendizaje profundo y las estrategias habituales para controlarlo durante el entrenamiento. Por otro lado, se introducen propiedades espaciales clave en visión por computador, en particular la invarianza y la equivarianza traslacional, que describen cómo debe comportarse el modelo ante desplazamientos en la imagen y explican por qué ciertas arquitecturas resultan especialmente adecuadas para mantener coherencia espacial en tareas de segmentación semántica~\cite{Goodfellow-et-al-2016, dumoulin2018guide, khan2022transformersvision}.
-
-\subsubsection{Overfitting} 
-El sobreajuste, comúnmente denominado \textit{overfitting}, es un fenómeno estadístico indeseado donde el modelo de aprendizaje profundo memoriza el ruido y los detalles específicos de los datos de entrenamiento en detrimento de su capacidad de generalización ante nuevas muestras~\cite{Goodfellow-et-al-2016, srivastava2014dropout}.
-
-Este comportamiento se manifiesta cuando la red neuronal alcanza un rendimiento excepcionalmente alto en el conjunto de entrenamiento pero falla al procesar datos de validación o prueba. Para mitigar este efecto en arquitecturas de codificador-decodificador, se emplean técnicas de regularización como el abandono de neuronas y operaciones de reducción de dimensionalidad como el \textit{max-pooling}, las cuales fuerzan a la red a aprender características más robustas y abstractas~\cite{ji2022automation, bala2025visiontranscoder}.
 
 \subsubsection{Invarianza traslacional}
 La invarianza traslacional describe la capacidad de un modelo de visión por computador para reconocer una misma característica u objeto aunque aparezca desplazado a distintas posiciones dentro de la imagen. En el contexto de las redes neuronales convolucionales, esta propiedad permite que ciertos patrones visuales como bordes, texturas o estructuras se identifiquen de forma consistente con independencia de su localización exacta en la escena~\cite{ji2022automation}.
@@ -243,45 +209,6 @@ Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo 
 Desde un punto de vista práctico, el espacio latente aprendido por el \textit{autoencoder} recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
 
 Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los \textit{autoencoders} variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
-
-\subsubsection{Resumen de encoders empleados}
-
-\begin{table}[H]
-	\centering
-	\footnotesize
-	\setlength{\tabcolsep}{4pt}
-	\renewcommand{\arraystretch}{1.15}
-	
-	\begin{tabularx}{\textwidth}{
-			@{}
-			>{\raggedright\arraybackslash}p{0.20\textwidth}
-			>{\centering\arraybackslash}p{0.09\textwidth}
-			X
-			>{\raggedright\arraybackslash}p{0.12\textwidth}
-			@{}}
-		\toprule
-		\textbf{Encoder} & \textbf{Params (M)} & \textbf{Descripción} & \textbf{Ref.} \\
-		\midrule
-		ConvNeXt (Small) & 50 & CNN modernizada con decisiones inspiradas en Transformers para mejorar precisión manteniendo eficiencia. & \cite{liu2022convnext, Chang2024UNeXt} \\
-		EfficientViT-B3 & 12 & Codificador eficiente para predicción densa que combina extracción local con atención ligera para capturar contexto global. & \cite{cai2023efficientvit, LIAO2024102401} \\
-		EfficientNet-B7 & 63 & CNN escalada por \textit{compound scaling} basada en MBConv y Squeeze-and-Excitation. & \cite{tan2019efficientnet} \\
-		MambaOut (Base) & 85 & Arquitectura jerárquica que evalúa la necesidad de SSM en visión; diseño moderno sin núcleo SSM para simplicidad y rendimiento. & \cite{yu2024mambaoutreallyneedmamba} \\
-		MobileNetV3 (Large) & 15 & CNN orientada a baja latencia en móviles, con bloques eficientes y activaciones optimizadas. & \cite{howard2019mobilenetv3, MobileNetV3_Summary} \\
-		SAM 2 Hiera (Large) & 224 & Codificador Hiera-L del modelo SAM 2, con representaciones multiescala y memoria para segmentación. & \cite{ravi2024sam2segmentimages} \\
-		DenseNet-161 & 26 & CNN con conectividad densa por concatenación; reutilización de características y mejor flujo de gradiente en redes profundas. & \cite{huang2018densenet, bdcc8100135} \\
-		Inception-v4 & 41 & CNN multiescala basada en módulos Inception y bloques de reducción; explota factorización eficiente de convoluciones. & \cite{szegedy2016} \\
-		MiT-B5 (SegFormer) & 81 & \textit{Mix Transformer} jerárquico multiescala con autoatención eficiente e info local implícita. & \cite{xie2021segformer, Elmessery2024Semantic} \\
-		MobileOne-S4 & 12 & CNN reparametrizable: varias ramas en entrenamiento y colapso a una secuencia simple de convoluciones en inferencia. & \cite{vasu2023} \\
-		ResNet-34 & 21 & CNN residual con bloques $3\times3$ y conexiones de identidad; equilibrio entre coste y estabilidad de entrenamiento. & \cite{he2016resnet, shadecoder2026resnet34} \\
-		Xception-71 & 20 & CNN con convoluciones separables en profundidad; separación espacial/canal y profundización mediante \textit{middle flow}. & \cite{chollet2017} \\
-		VGG-16 & 14 & Arquitectura clásica con convoluciones $3\times3$ y \textit{pooling}; extractor robusto con alto coste computacional. & \cite{SUN2024108458} \\
-		VGG-19 & 20 & Variante más profunda de VGG con la misma filosofía; mayor capacidad a costa de mayor coste computacional. & \cite{SUN2024108458} \\
-		\bottomrule
-	\end{tabularx}
-	
-	\caption{Resumen de encoders empleados: descripción breve, número de parámetros (en millones) y referencia.}
-	\label{tab:encoders-resumen}
-\end{table}
 
 \subsection{Evaluación experimental de la segmentación semántica}
 En esta subsección se formaliza la evaluación experimental de un sistema de segmentación semántica, estableciendo un marco común para medir su rendimiento de manera reproducible y comparable~\cite{minaee2022segmentationSurvey,TahaHanbury2015}.

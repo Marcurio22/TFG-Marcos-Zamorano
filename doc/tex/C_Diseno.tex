@@ -2,6 +2,8 @@
 
 \section{Introducción}
 
+En este apéndice se presenta la especificación de diseño de la aplicación desarrollada, describiendo las decisiones estructurales que permiten transformar los requisitos definidos previamente en una solución software concreta. Para ello, se abordan de forma complementaria el diseño de datos, donde se modela la información persistente mediante los esquemas entidad--relación y relacional; el diseño procedimental, centrado en los principales flujos de interacción entre el usuario y el sistema; el diseño arquitectónico, orientado a explicar la organización general de la aplicación web monolítica modular basada en Flask y SQLite; y el diseño web, donde se recogen los \textit{mockups} que guían la construcción de la interfaz. El objetivo es justificar cómo se ha organizado el sistema para garantizar coherencia, trazabilidad y mantenibilidad, conectando los requisitos funcionales y no funcionales con las decisiones técnicas adoptadas durante el desarrollo.
+
 
 \section{Diseño de datos}
 El diseño de datos define la estructura de persistencia que soporta el funcionamiento de la aplicación, garantizando que la información se almacene de forma coherente, trazable y escalable. En este apartado se presenta el esquema lógico de la base de datos, con el objetivo de justificar las entidades principales del dominio, sus relaciones y las restricciones de integridad que permiten mantener consistencia entre usuarios, parcelas, imágenes procesadas y resultados generados por el sistema.
@@ -17,7 +19,7 @@ El diseño de datos define la estructura de persistencia que soporta el funciona
 		trim=0 515 0 0,
 		clip
 		]{img/Diagrama_E-R.pdf}
-		\caption[Diagrama E-R de la base de datos]{Diagrama E-R de la base de datos.}
+		\caption[Diagrama entidad-relación de la base de datos]{Diagrama entidad-relación de la base de datos.}
 		\label{fig:esquemaerbbdd}
 	\end{figure}
 \end{landscape}
@@ -490,6 +492,8 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 
 \section{Diseño procedimental}
 
+En esta sección se describe el comportamiento dinámico de la aplicación a través de los principales flujos de interacción entre el usuario y el sistema. Para ello, se emplean diagramas de secuencia que permiten representar, de forma ordenada, las peticiones realizadas desde el navegador, la respuesta del servidor Flask, el acceso a la persistencia y la generación o visualización de resultados.
+
 \begin{figure}
 	\centering
 	\includegraphics[width=1.5\linewidth]{img/diagrama_secuencia}
@@ -827,7 +831,7 @@ La Figura~\ref{fig:mockupweb14} muestra la pantalla de \textit{Gestión de usuar
 
 En dicha tabla se incluyen campos identificativos y de contacto, junto con el rol asignado y la fecha de registro, incorporando además mecanismos habituales de explotación de listados, como búsqueda, paginación y exportación de resultados. Finalmente, se contempla una acción de eliminación por usuario, destinada a operaciones de mantenimiento y control del sistema, manteniendo la coherencia con el modelo de permisos, de modo que solo el administrador pueda ejecutar modificaciones sobre el conjunto global de cuentas.
 
-\subsection{Gestión de \textit{folds}}
+\subsection{Gestión de modelos}
 
 \begin{figure}[tbp]
 	\centering
@@ -837,13 +841,13 @@ En dicha tabla se incluyen campos identificativos y de contacto, junto con el ro
 	clip,
 	page=5
 	]{../assets/mockup/Mockup_web_usuarios.pdf}
-	\caption[Mockup de la web: Gestión de folds]{Mockup de la web: Gestión de folds.}
+	\caption[Mockup de la web: Gestión de modelos]{Mockup de la web: Gestión de modelos.}
 	\label{fig:mockupweb15}
 \end{figure}
 
-La Figura~\ref{fig:mockupweb15} muestra la pantalla de \textit{Gestión de folds}, concebida como una funcionalidad exclusiva del rol de administrador para supervisar y ajustar el modelo de inferencia empleado por el sistema. En esta vista se incluye un selector que lista los distintos \textit{folds} disponibles e indica explícitamente cuál se encuentra activo, permitiendo seleccionar un \textit{fold} alternativo para su comparación.
+La Figura~\ref{fig:mockupweb15} muestra la pantalla de \textit{Gestión de modelos}, concebida como una funcionalidad exclusiva del rol de administrador para supervisar y ajustar el modelo de inferencia empleado por el sistema. En esta vista se incluye un selector que lista los distintos archivos disponibles e indica explícitamente cuál se encuentra activo, permitiendo seleccionar un modelo alternativo para su comparación.
 
-A continuación, se habilita un área de carga de imagen destinada a pruebas controladas, de modo que la misma entrada pueda procesarse con el \textit{fold} activo y con el \textit{fold} seleccionado, mostrando ambos resultados en paralelo para facilitar una inspección cualitativa de diferencias de segmentación. Finalmente, se incorpora un botón para establecer el \textit{fold} seleccionado como predeterminado, actualizando la configuración del sistema de forma persistente para futuras ejecuciones.
+A continuación, se habilita un área de carga de imagen destinada a pruebas controladas, de modo que la misma entrada pueda procesarse con el modelo activo y con el modelo seleccionado, mostrando ambos resultados en paralelo para facilitar una inspección cualitativa de diferencias de segmentación. Finalmente, se incorpora un botón para establecer el modelo seleccionado como predeterminado, actualizando la configuración del sistema de forma persistente para futuras ejecuciones.
 
 \subsection{Gestión de cuenta}
 
