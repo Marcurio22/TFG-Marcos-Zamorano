@@ -67,6 +67,43 @@
 \usepackage{makecell}
 \usepackage{ragged2e}
 
+\usepackage[most]{tcolorbox}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{xurl}
+
+\hypersetup{
+	colorlinks=true,
+	urlcolor=red
+}
+
+\newtcolorbox{githubbox}[1]{
+	enhanced,
+	width=\textwidth,
+	colback=green!5!white,
+	colframe=green!45!black,
+	frame style={left color=green!45!black,right color=green!25!white},
+	boxrule=1.2pt,
+	arc=2mm,
+	outer arc=2mm,
+	left=6mm,
+	right=6mm,
+	top=3mm,
+	bottom=3mm,
+	title={#1},
+	fonttitle=\bfseries\large,
+	coltitle=white,
+	colbacktitle=green!45!black,
+	title style={left color=green!45!black,right color=green!25!white},
+	toptitle=1mm,
+	bottomtitle=1mm,
+	lefttitle=6mm
+}
+
+\usepackage{fvextra}
+\usepackage{caption}
+\usepackage{dirtree}
+
 \newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
 % El comando \figura nos permite insertar figuras comodamente, y utilizando

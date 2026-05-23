@@ -530,7 +530,7 @@ Con el fin de representar esta estructura desde distintos niveles de abstracció
 	\label{fig:diagramahexagonal}
 \end{figure}
 
-La Figura~\ref{fig:diagramahexagonal} muestra una interpretación conceptual de la arquitectura mediante un esquema hexagonal. Esta vista no pretende representar una implementación estricta basada en puertos e interfaces formales, sino explicar la separación lógica entre el dominio del problema, los casos de uso de la aplicación y los adaptadores técnicos que permiten ejecutar dichos casos sobre tecnologías concretas.
+La Figura~\ref{fig:diagramahexagonal} muestra una interpretación conceptual de la arquitectura mediante un esquema hexagonal~\cite{salguero2020hexagonal}. Esta vista no pretende representar una implementación estricta basada en puertos e interfaces formales, sino explicar la separación lógica entre el dominio del problema, los casos de uso de la aplicación y los adaptadores técnicos que permiten ejecutar dichos casos sobre tecnologías concretas.
 
 En el centro se sitúan las entidades principales del sistema, como los usuarios, las imágenes, las parcelas, los modelos, las trazas y los estados de procesamiento. Alrededor de este núcleo se encuentran las operaciones que el sistema permite realizar, entre ellas el procesamiento de imágenes, el acceso al visor cartográfico, la gestión de cuentas, la administración de usuarios y la administración de modelos. Finalmente, la parte externa agrupa la infraestructura que conecta la aplicación con el navegador, la base de datos, el sistema de ficheros, los servicios cartográficos y el motor de inferencia.
 
@@ -577,10 +577,10 @@ La base de datos almacena el estado lógico de la aplicación, mientras que el s
 
 \subsection{Diagrama de despliegue}
 
-\begin{figure}[tbp]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[
-	width=\textwidth,
+	width=0.65\textwidth,
 	trim=0 230 0 0,
 	clip
 	]{img/Diagrama_despliegue.pdf}

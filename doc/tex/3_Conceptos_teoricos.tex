@@ -173,37 +173,7 @@ La red neuronal convolucional \textit{U-Net} constituye un paradigma fundamental
 
 El componente diferencial de este modelo reside en la implementación de conexiones de salto que concatenan mapas de características de alta resolución del codificador con las capas correspondientes del decodificador~\cite{ronneberger2015unet, diezpastora2025trails}. Dicho mecanismo permite la preservación de detalles espaciales que se degradan habitualmente durante el submuestreo, garantizando una localización precisa de los límites de los objetos en tareas críticas como la imagen médica o la teledetección~\cite{Dimitrovski2024}.
 
-\subsubsection{Feature Pyramid Network}
-La arquitectura \textit{Feature Pyramid Network} constituye un extractor de características de propósito general diseñado para explotar la jerarquía piramidal inherente a las redes neuronales convolucionales profundas~\cite{lin2017fpn}. Este \textit{framework} implementa una ruta descendente con conexiones laterales que permite la propagación de información semántica de alto nivel hacia mapas de características de mayor resolución espacial~\cite{lin2017fpn, ji2022automation}. 
-
-Operacionalmente, el sistema fusiona representaciones semánticamente robustas provenientes de capas profundas con mapas de características semánticamente débiles pero espacialmente precisos de etapas tempranas~\cite{lin2017fpn, xiao2018upernet}. La importancia de este diseño radica en su capacidad para generar una representación multiescala donde todos los niveles poseen una fuerte carga semántica, facilitando la detección y segmentación de objetos en un rango extenso de escalas sin incurrir en costes computacionales significativos~\cite{lin2017fpn}.
-
-
-\subsubsection{UPerNet}
-El modelo \textit{Unified Perceptual Parsing Network}, denominado \textit{UPerNet}, se erige sobre la arquitectura de redes de pirámide de características para resolver la segmentación de múltiples conceptos visuales de forma simultánea~\cite{xiao2018upernet}. Este diseño estructural adopta el esquema de una \textit{Feature Pyramid Network} y lo potencia mediante la integración de un \textit{Pyramid Pooling Module} sobre la capa de características más profunda del codificador~\cite{xiao2018upernet, zhao2017pspnet}. El funcionamiento del sistema se basa en la fusión jerárquica de representaciones provenientes de diversas etapas de la red, donde los mapas de niveles superiores aportan información semántica global y los niveles inferiores proporcionan detalles geométricos finos~\cite{xiao2018upernet, lin2017fpn}. 
-
-Mediante la interpolación bilineal y la concatenación de estos mapas de características multiescala, \textit{UPerNet} logra una proyección no lineal eficiente hacia un espacio de alta dimensionalidad que captura relaciones espaciales complejas~\cite{xiao2018upernet}. Su importancia en el estado del arte radica en la capacidad para generar mapas de segmentación semánticamente ricos sin incurrir en la elevada carga computacional de las convoluciones dilatadas tradicionales, permitiendo la identificación de objetos, sus partes y materiales bajo un único proceso de inferencia unificado~\cite{xiao2018upernet, lin2017fpn}.
-
-\subsubsection{SegFormer}
-\textit{SegFormer} representa un paradigma avanzado de segmentación semántica que unifica codificadores basados en transformadores jerárquicos con decodificadores ligeros de perceptrón multicapa~\cite{xie2021segformer, Dimitrovski2024}. A diferencia de los \textit{Vision Transformers} convencionales, esta arquitectura introduce un codificador libre de codificaciones posicionales mediante el uso de convoluciones superpuestas, lo que permite inferir sobre resoluciones de imagen variables sin degradación del rendimiento~\cite{xie2021segformer, cai2023efficientvit}. 
-
-El funcionamiento del sistema se fundamenta en la generación de características multiescala que capturan simultáneamente dependencias de largo alcance y detalles locales, enviando estas representaciones a un decodificador \textit{All-MLP} que agrega eficientemente la información contextual~\cite{xie2021segformer, Dimitrovski2024}. La relevancia de \textit{SegFormer} en el estado del arte se debe a su alta eficiencia computacional y robustez, logrando resultados competitivos en tareas de predicción densa de alta resolución al mitigar la complejidad cuadrática inherente a los mecanismos de autoatención estándar~\cite{xie2021segformer, cai2023efficientvit}.
-
-\subsubsection{PSPNet (Pyramid Scene Parsing Network)}
-El \textit{framework Pyramid Scene Parsing Network} constituye un avance fundamental en la segmentación de escenas complejas al introducir mecanismos para la explotación exhaustiva de la información de contexto global~\cite{zhao2017pspnet}. 
-
-Esta arquitectura surge como respuesta a la limitación intrínseca de las redes completamente convolucionales tradicionales, donde el campo receptivo empírico resulta insuficiente para capturar dependencias espaciales de largo alcance en capas profundas~\cite{zhao2017pspnet, xiao2018upernet}. La pieza central del modelo es el \textit{Pyramid Pooling Module} (PPM), el cual recolecta representaciones de subregiones en múltiples escalas para construir una jerarquía de prioridades globales que guían la clasificación a nivel de píxel~\cite{zhao2017pspnet}.
-
-Operacionalmente, el PPM divide el mapa de características generado por un codificador basado en bloques residuales en cuatro niveles de granularidad distintos, aplicando operaciones de \textit{pooling} con tamaños de bin de $1\times 1$, $2\times 2$, $3\times 3$ y $6\times 6$~\cite{zhao2017pspnet, he2016resnet}. A continuación, cada nivel se somete a una convolución de $1\times 1$ para realizar una reducción de dimensionalidad y se remuestrea mediante interpolación bilineal hasta alcanzar la resolución original de la etapa~\cite{zhao2017pspnet, lin2017fpn}. Estos mapas enriquecidos se concatenan con el flujo de información original para formar una representación final que encapsula tanto el detalle geométrico local como la coherencia semántica global, mitigando errores comunes en la identificación de objetos con apariencias similares pero contextos dispares~\cite{zhao2017pspnet, diezpastora2025trails}.
-
-Para garantizar la viabilidad de la optimización en estructuras ultra-profundas, el entrenamiento de \textit{PSPNet} se apoya en una estrategia de aprendizaje profundamente supervisado mediante el uso de una pérdida auxiliar~\cite{zhao2017pspnet}. Este mecanismo aplica una función de coste adicional en etapas intermedias del codificador, típicamente tras el cuarto bloque residual, lo que facilita la propagación del gradiente y actúa como un regularizador durante la fase de convergencia~\cite{zhao2017pspnet, he2016resnet}.
-
-\subsection{Tipos de Encoder}
-A continuación, se describen los principales tipos de \textit{encoder} considerados en el trabajo~\cite{diezpastora2025trails}, entendiendo el codificador como el componente encargado de transformar la imagen de entrada en una jerarquía de representaciones cada vez más abstractas, ricas semánticamente y, por lo general, de menor resolución espacial. 
-
-La elección del \textit{encoder} resulta determinante en segmentación semántica, ya que condiciona tanto la capacidad del modelo para capturar contexto global como su sensibilidad para preservar detalles locales, factores críticos cuando se pretende delimitar estructuras estrechas o de baja visibilidad. Por ello, se revisan arquitecturas representativas de distintos paradigmas de diseño, incluyendo enfoques no supervisados como los \textit{autoencoders}, redes convolucionales modernizadas con decisiones inspiradas en \textit{Transformers}, modelos eficientes orientados a baja latencia y codificadores jerárquicos basados en atención, con el objetivo de disponer de un marco comparativo que justifique su uso como extractores de características en \textit{pipelines} de segmentación.
-
-\subsubsection{Autoencoder}
+\subsection{Autoencoder}
 Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo objetivo es aprender una representación compacta de los datos de entrada sin utilizar etiquetas. La red se compone de dos partes claramente diferenciadas: un codificador, que transforma la entrada original de alta dimensionalidad en una representación latente de menor dimensión, y un decodificador, que reconstruye la entrada a partir de dicha representación minimizando el error de reconstrucción. Este esquema de compresión y reconstrucción obliga al modelo a retener la información más relevante de los datos, eliminando redundancias y atenuando el ruido~\cite{neloy2024autoencoders}.
 
 Desde un punto de vista práctico, el espacio latente aprendido por el \textit{autoencoder} recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
@@ -221,27 +191,7 @@ Para analizar el comportamiento de un modelo de segmentación semántica no bast
 
 En este contexto, resulta habitual combinar métricas de solapamiento, que miden la coincidencia entre máscaras binarias, con medidas derivadas de la geometría de la predicción.
 
-Adicionalmente, la evaluación puede formularse en términos de la matriz de confusión, descomponiendo la comparación entre predicción y referencia en cuatro conteos básicos~\cite{sokolova2009systematic,powers2020}:
-
-\begin{enumerate}
-	\item \textbf{Verdadero positivo (TP)}
-	 
-	Corresponde a un píxel que pertenece a una traza en la referencia y que el modelo segmenta correctamente como traza. En términos prácticos, representa porciones de senda correctamente identificadas.
-	
-	\item \textbf{Falso positivo (FP)}
-	  
-	Se produce cuando el modelo segmenta como traza un píxel que en la referencia es fondo. En este problema suele interpretarse como ruido.
-	
-	\item \textbf{Falso negativo (FN)} 
-	
-	Un píxel que sí pertenece a una traza en la referencia pero el modelo lo clasifica como fondo. En la práctica representa omisiones, segmentos de traza no detectados.
-	
-	\item \textbf{Verdadero negativo (TN)}
-	 
-	Un píxel que es fondo en la referencia y que el modelo predice correctamente como fondo.
-\end{enumerate}
-
-En esta segmentación binaria, la clase positiva corresponde a píxeles pertenecientes a la traza de herbivoría, mientras que la clase negativa representa el suelo sin traza, que he denominado como fondo.
+Adicionalmente, la evaluación puede formularse en términos de la matriz de confusión, donde la clase positiva corresponde a píxeles pertenecientes a la traza de herbivoría, mientras que la clase negativa representa el suelo sin traza.
 
 En la comparación realizada entre rutas de inferencia, las métricas de solapamiento se calculan entre la máscara obtenida al cargar el modelo mediante \texttt{pickle} y la adquirida al ejecutar la versión exportada a \textit{TorchScript}, sin emplear anotación externa~\cite{paszke2019pytorch}.
 

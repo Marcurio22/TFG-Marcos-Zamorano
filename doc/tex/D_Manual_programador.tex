@@ -2,7 +2,121 @@
 
 \section{Introducción}
 
+En esta sección se recoge la documentación técnica asociada al desarrollo de la aplicación, con el objetivo de facilitar la comprensión interna del proyecto y servir como punto de partida para futuros desarrolladores que deban mantenerlo, ampliarlo o desplegarlo. Para ello, se describe la organización de los directorios principales, el contenido más relevante de cada uno de ellos y la función que desempeñan dentro del sistema. 
+
+Además, se incluye una guía introductoria para la puesta en marcha del entorno de desarrollo, junto con las indicaciones necesarias para instalar las dependencias, ejecutar la aplicación y comprender el flujo básico de trabajo. Finalmente, se documentan las pruebas realizadas para validar el comportamiento del sistema, prestando especial atención a aquellas funcionalidades críticas relacionadas con la carga de imágenes, la inferencia, la persistencia de resultados y la interacción entre los distintos módulos de la aplicación.
+
+\noindent
+\begin{githubbox}{Repositorio GitHub}
+	{\ttfamily\large\url{https://github.com/Marcurio22/TFG-Marcos-Zamorano}}
+\end{githubbox}
+
 \section{Estructura de directorios}
+
+La estructura del repositorio se ha organizado con el objetivo de separar el código fuente de la aplicación, la configuración del entorno, la documentación auxiliar, los datos locales generados durante la ejecución y la batería de pruebas. Esta organización facilita que un desarrollador que se incorpore al proyecto pueda identificar rápidamente dónde se encuentra cada recurso y qué papel desempeña dentro del sistema.
+
+Antes de describir los ficheros principales del repositorio, conviene presentar la organización general de directorios sobre la que se estructura la aplicación:
+
+\begin{figure}[H]
+	\centering
+	\footnotesize
+	\renewcommand*\DTstyle{\ttfamily}
+	
+	\begin{minipage}{0.95\textwidth}
+		\dirtree{%
+			.1 /.
+			.2 \textbf{assets}: recursos gráficos y materiales auxiliares.
+			.3 \textbf{mockup}: prototipos visuales de la interfaz.
+			.2 \textbf{doc}: documentación técnica y memoria del proyecto.
+			.3 \textbf{img}: imágenes utilizadas en la documentación.
+			.3 \textbf{tex}: ficheros \LaTeX{} de la memoria.
+			.2 \textbf{htmlcov}: informe HTML de cobertura generado.
+			.2 \textbf{prototipos}: pruebas preliminares del sistema.
+			.2 \textbf{tests}: pruebas automáticas del proyecto.
+			.3 \textbf{selenium}: pruebas funcionales en navegador.
+			.2 \textbf{webapp}: aplicación web principal en Flask.
+		}
+	\end{minipage}
+	
+	\caption{Estructura principal de directorios del proyecto.}
+	\label{fig:estructura_directorios_proyecto}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\scriptsize
+	\renewcommand*\DTstyle{\ttfamily}
+	\DTsetlength{0.2em}{1.8em}{0.45em}{0.4pt}{1.6pt}
+	
+	\begin{minipage}{0.95\textwidth}
+		\dirtree{%
+			.1 \textbf{webapp}: aplicación web desarrollada con Flask.
+			.2 \textbf{instance}: recursos locales y base de datos SQLite.
+			.2 \textbf{scripts}: scripts auxiliares de mantenimiento.
+			.2 \textbf{trazasytrazadas}: paquete principal de la aplicación.
+			.3 \textbf{model}: modelos de segmentación y recursos asociados.
+			.3 \textbf{seed}: datos iniciales y carga de demostración.
+			.3 \textbf{static}: ficheros estáticos de la interfaz.
+			.4 \textbf{img}: imágenes, fondos y recursos gráficos.
+			.5 \textbf{flags}: banderas para el selector de idioma.
+			.4 \textbf{js}: ficheros JavaScript de la aplicación.
+			.3 \textbf{templates}: plantillas HTML Jinja2.
+			.4 \textbf{admin}: plantillas del panel de administración.
+			.3 \textbf{translations}: catálogos de traducción por idioma.
+			.3 \textbf{seed\_data.py}: carga de datos iniciales.
+		}
+	\end{minipage}
+	
+	\caption{Estructura principal de directorios de la aplicación web.}
+	\label{fig:estructura_directorios_web}
+\end{figure}
+
+Los ficheros principales que se encuentran al nivel raíz del proyecto son:
+
+\begin{itemize}
+	\item \textbf{\texttt{webapp/}:} directorio raíz de la aplicación web.
+	Contiene el punto de entrada de Flask, el código fuente, los recursos
+	estáticos, las plantillas y los ficheros propios de ejecución de la
+	aplicación.
+	
+	\item \textbf{\texttt{tests/}:} directorio que contiene la suite de
+	pruebas automáticas del sistema. Incluye pruebas funcionales, de
+	regresión, de integración y pruebas de navegador con Selenium.
+	
+	\item \textbf{\texttt{htmlcov/}:} informe HTML generado por
+	\textit{coverage}. No forma parte del código fuente de la aplicación,
+	sino que es un artefacto generado durante la validación.
+	
+	\item \textbf{\texttt{pytest.ini}:} fichero de configuración de
+	\textit{pytest}. Define las rutas de búsqueda, el \textit{pythonpath}
+	del proyecto y los marcadores específicos utilizados en la suite.
+	
+	\item \textbf{\texttt{.coveragerc}:} fichero de configuración de
+	\textit{coverage}, utilizado para medir la cobertura sobre el paquete
+	principal de la aplicación.
+\end{itemize}
+
+Dentro de \texttt{webapp/} se encuentran los ficheros propios de la
+aplicación, entre los que destacan:
+
+\begin{itemize}
+	\item \textbf{\texttt{run.py}:} punto de entrada de la aplicación Flask.
+	
+	\item \textbf{\texttt{requirements.txt}:} listado principal de
+	dependencias necesarias para instalar y ejecutar la aplicación.
+	
+	\item \textbf{\texttt{requirements-selenium.txt}:} dependencias
+	opcionales necesarias para ejecutar las pruebas Selenium.
+	
+	\item \textbf{\texttt{babel.cfg}:} configuración utilizada por
+	Flask-Babel para localizar y extraer textos traducibles.
+	
+	\item \textbf{\texttt{messages.pot}:} plantilla base de traducciones
+	generada a partir de los textos extraídos.
+	
+	\item \textbf{\texttt{trazasytrazadas/}:} paquete principal de código
+	fuente de la aplicación.
+\end{itemize}
 
 \section{Manual del programador}
 

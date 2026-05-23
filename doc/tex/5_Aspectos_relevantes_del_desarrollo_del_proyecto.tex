@@ -14,7 +14,7 @@ Para comparar ambos enfoques se midieron dos aspectos:
 \end{itemize}
 
 \subsubsection{Resultados principales}
-La Tabla~\ref{tab:pickle_torch_comp} recoge los resultados por \textit{fold}. En términos de equivalencia, los valores de Dice se sitúan aproximadamente entre 0.96 y 0.98, e IoU alrededor de 0.92 y 0.96. Esto indica que ambos \textit{pipelines} producen máscaras muy parecidas, pero no idénticas, existiendo discrepancias localizadas, como los bordes finos o algunas trazas débiles, que en este problema pueden ser relevantes.
+La Tabla~\ref{tab:pickle_torch_comp} recoge los resultados por \textit{fold}. En términos de equivalencia, los valores de \textit{Dice} se sitúan aproximadamente entre 0.96 y 0.98, e IoU alrededor de 0.92 y 0.96. Conviene destacar que, en este caso, \textit{IoU} y \textit{Dice} no evalúan la segmentación frente a una anotación, sino que cuantifican el solapamiento entre las dos máscaras predichas: la generada por el modelo cargado con \texttt{pickle} y la generada por el modelo en TorchScript. Estos resultados indican que ambos \textit{pipelines} producen máscaras muy parecidas, pero no idénticas, existiendo discrepancias localizadas, como bordes finos o algunas trazas débiles, que en este problema pueden ser relevantes.
 
 En rendimiento, TorchScript presenta en general tiempos de carga inferiores a \texttt{pickle} en la mayoría de \textit{folds}. Sin embargo, la carga se ejecuta una vez al inicializar el sistema, mientras que la inferencia se repite para cada imagen. En esta, los tiempos medios (\texttt{infer\_ms\_mean}) resultan comparables entre ambos enfoques y no muestran una ventaja suficiente como para justificar sacrificar calidad de segmentación. Además, la dispersión (\texttt{infer\_ms\_std}) es similar, lo que sugiere estabilidad de tiempos en ambos casos.
 
@@ -22,28 +22,36 @@ En rendimiento, TorchScript presenta en general tiempos de carga inferiores a \t
 	\centering
 	\small
 	
-	\begin{tabularx}{\textwidth}{c *{6}{>{\centering\arraybackslash}X}}
+	\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}
+			c
+			S[table-format=5.0]
+			S[table-format=4.0]
+			S[table-format=5.0]
+			S[table-format=5.0]
+			S[table-format=1.4]
+			S[table-format=1.4]
+			@{}}
 		\toprule
-		\textbf{Fold} &
-		\textbf{Pickle load (ms)} &
-		\textbf{Torch load (ms)} &
-		\textbf{Pickle infer (ms)} &
-		\textbf{Torch infer (ms)} &
-		\textbf{IoU} &
-		\textbf{Dice} \\
+		\multicolumn{1}{c}{\textbf{Fold}} &
+		\multicolumn{1}{c}{\makecell[c]{\textbf{Pickle}\\\textbf{load (ms)}}} &
+		\multicolumn{1}{c}{\makecell[c]{\textbf{Torch}\\\textbf{load (ms)}}} &
+		\multicolumn{1}{c}{\makecell[c]{\textbf{Pickle}\\\textbf{infer (ms)}}} &
+		\multicolumn{1}{c}{\makecell[c]{\textbf{Torch}\\\textbf{infer (ms)}}} &
+		\multicolumn{1}{c}{\textbf{IoU}} &
+		\multicolumn{1}{c}{\textbf{Dice}} \\
 		\midrule
-		0 & 9688.9270  & 2582.6926 & 11670.0951 & 12658.1951 & 0.945666 & 0.972074 \\
-		1 & 11911.6754 & 2176.9102 & 12172.7896 & 12020.8829 & 0.940291 & 0.969227 \\
-		2 & 16182.8596 & 2024.9250 & 11427.5817 & 11189.1397 & 0.924445 & 0.960739 \\
-		3 & 3221.0618  & 1850.6266 & 11992.3462 & 9148.1268  & 0.940161 & 0.969158 \\
-		4 & 5671.4902  & 2121.5244 & 10151.6132 & 9505.4485  & 0.952786 & 0.975822 \\
-		5 & 30966.5718 & 1421.3755 & 9687.6544  & 9396.5609  & 0.958196 & 0.978652 \\
-		6 & 3187.9480  & 2110.0493 & 9057.2319  & 9505.2108  & 0.950798 & 0.974779 \\
-		7 & 3185.9841  & 1702.9395 & 9748.7258  & 9443.2960  & 0.956938 & 0.977995 \\
-		8 & 3655.5882  & 2171.1234 & 9378.9382  & 9542.1774  & 0.953381 & 0.976134 \\
-		9 & 3552.2571  & 1612.6552 & 9099.5181  & 9268.7714  & 0.949663 & 0.974182 \\
+		0 & 9688  & 2582 & 11670 & 12658 & 0.9456 & 0.9720 \\
+		1 & 11911 & 2176 & 12172 & 12020 & 0.9402 & 0.9692 \\
+		2 & 16182 & 2024 & 11427 & 11189 & 0.9244 & 0.9607 \\
+		3 & 3221  & 1850 & 11992 & 9148  & 0.9401 & 0.9691 \\
+		4 & 5671  & 2121 & 10151 & 9505  & 0.9527 & 0.9758 \\
+		5 & 30966 & 1421 & 9687  & 9396  & 0.9581 & 0.9786 \\
+		6 & 3187  & 2110 & 9057  & 9505  & 0.9507 & 0.9747 \\
+		7 & 3185  & 1702 & 9748  & 9443  & 0.9569 & 0.9779 \\
+		8 & 3655  & 2171 & 9378  & 9542  & 0.9533 & 0.9761 \\
+		9 & 3552  & 1612 & 9099  & 9268  & 0.9496 & 0.9741 \\
 		\bottomrule
-	\end{tabularx}
+	\end{tabular*}
 	
 	\caption{Comparativa por \textit{fold} entre carga e inferencia usando modelos serializados con \texttt{pickle} y exportados a TorchScript.}
 	\label{tab:pickle_torch_comp}
@@ -76,7 +84,7 @@ Como consecuencia, se optó por un enfoque alternativo que garantizase seguridad
 
 Otra decisión relevante del desarrollo ha sido separar determinadas operaciones pesadas del ciclo inmediato de petición y respuesta HTTP. En una aplicación web, mantener al usuario esperando mientras el servidor completa tareas de larga duración perjudica la experiencia de uso, incrementa el riesgo de \textit{timeout} y bloquea recursos que deberían quedar disponibles para atender nuevas solicitudes. 
 
-Por este motivo, el sistema incorpora un \textit{worker} de trazas que permite desacoplar la creación de una colección geoespacial del procesamiento completo de sus teselas. Cuando el usuario define una zona en el visor, el sistema registra la parcela y sus fotos asociadas en estado \texttt{pending}; posteriormente, el \textit{worker} reclama cada imagen, la marca como \texttt{processing}, materializa la tesela si es necesario, ejecuta la inferencia con PyTorch, guarda el fichero JSON de trazas y actualiza el estado final a \texttt{completed} o \texttt{failed}. De este modo, la aplicación puede responder rápidamente a la acción inicial y mostrar la colección creada, mientras el avance se consulta de forma progresiva mediante los estados persistidos.
+Por este motivo, el sistema incorpora un \textit{worker} de trazas que permite desacoplar la creación de una colección geoespacial del procesamiento completo de sus teselas. Cuando el usuario define una zona en el visor, el sistema registra la parcela y sus fotos asociadas en estado \texttt{pending}; posteriormente, el \textit{worker} reclama cada imagen, la marca como \texttt{processing}, materializa la tesela si es necesario, ejecuta la inferencia con PyTorch, guarda el fichero JSON de trazas y actualiza el estado final a \texttt{completed} o \texttt{failed}. De este modo, la aplicación puede responder rápidamente a la acción inicial y mostrar la colección creada, mientras el avance se consulta de forma progresiva mediante los estados persistidos. Asimismo, se incorporó un mecanismo de pausa del procesamiento, accesible desde la interfaz, para permitir detener temporalmente la segmentación de teselas sin finalizar de forma abrupta los procesos de la aplicación ni comprometer la consistencia de los estados almacenados.
 
 El segundo proceso asíncrono corresponde a la validación de modelos desde el panel de administración. Cuando se incorpora un nuevo modelo, el sistema no lo habilita de forma inmediata, sino que lo registra inicialmente como pendiente y lanza una tarea de validación en segundo plano. Esta tarea comprueba que el archivo puede cargarse correctamente, que es compatible con el flujo de inferencia y que supera una prueba funcional antes de marcarlo como validado. Si la validación falla, el sistema elimina el artefacto, descarta el registro asociado y deja constancia del error para informar al administrador. Esta estrategia evita que la subida de modelos bloquee el proceso web, mejora la robustez ante ficheros incompatibles y permite mantener un control explícito sobre qué modelos pueden utilizarse para generar trazas. 
 
