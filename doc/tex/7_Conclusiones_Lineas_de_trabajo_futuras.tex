@@ -1,4 +1,45 @@
 \capitulo{7}{Conclusiones y Líneas de trabajo futuras}
 
-Todo proyecto debe incluir las conclusiones que se derivan de su desarrollo. Éstas pueden ser de diferente índole, dependiendo de la tipología del proyecto, pero normalmente van a estar presentes un conjunto de conclusiones relacionadas con los resultados del proyecto y un conjunto de conclusiones técnicas. 
-Además, resulta muy útil realizar un informe crítico indicando cómo se puede mejorar el proyecto, o cómo se puede continuar trabajando en la línea del proyecto realizado. 
+En este capítulo se recogen las conclusiones obtenidas tras la finalización del proyecto, valorando el grado de cumplimiento de los objetivos planteados, las principales decisiones tomadas durante el desarrollo y el aprendizaje técnico adquirido a lo largo del proceso. Asimismo, se incluyen posibles líneas de trabajo futuras, orientadas a ampliar las funcionalidades del sistema y mejorar su aplicabilidad en escenarios reales de análisis geoespacial.
+
+\section{Conclusiones}
+
+A continuación se sintetizan las principales conclusiones extraídas tras la finalización del proyecto:
+
+\begin{itemize}
+	\item Se han cumplido los objetivos establecidos inicialmente, trasladando la segmentación semántica de trazas de herbivoría a una aplicación web funcional. La solución permite cargar imágenes, ejecutar la detección, visualizar los resultados y gestionar flujos asociados a usuarios, colecciones geoespaciales y modelos.
+	
+	\item Se ha desarrollado una aplicación web monolítica modular con Flask, separando responsabilidades entre interfaz, lógica de aplicación, persistencia, procesamiento de imágenes e inferencia. Además del análisis de imágenes individuales, se ha incorporado soporte para visor cartográfico, generación de teselas, colecciones persistentes y procesamiento en segundo plano.
+	
+	\item Se ha diseñado un sistema extensible para la gestión de modelos, evitando que la aplicación dependa de un único artefacto fijo. Los administradores pueden incorporar modelos, validarlos antes de su uso y seleccionar cuál debe actuar como modelo activo, facilitando así la evolución futura del sistema.
+	
+	\item Ha sido necesario estudiar en profundidad tanto el artículo base~\cite{diezpastora2025trails} como el algoritmo proporcionado, analizando el flujo de preparación de imágenes, carga de modelos, ejecución de predicciones y generación de máscaras antes de adaptarlo a una aplicación con interacción real de usuario.
+	
+	\item Se han aplicado conocimientos adquiridos en distintas asignaturas del Grado en Ingeniería Informática, especialmente en \textit{Bases de Datos}, \textit{Análisis y Diseño de Sistemas}, \textit{Interacción Hombre-Máquina}, \textit{Gestión de Proyectos}, \textit{Estructuras de Datos}, \textit{Algoritmia}, \textit{Sistemas Inteligentes}, \textit{Minería de Datos} y \textit{Sistemas Distribuidos}.
+	
+	\item El proyecto también ha requerido adquirir nuevos conocimientos, principalmente en desarrollo web, peticiones y respuestas HTTP, gestión de sesiones, autenticación, autorización, formularios, renderizado con plantillas, comunicación mediante JSON, JavaScript, HTML, CSS y herramientas modernas de desarrollo.
+	
+	\item Uno de los retos principales ha sido transformar un entorno experimental, basado en un \textit{notebook} de inferencia, en una aplicación funcional capaz de gestionar errores, estados intermedios, usuarios, ficheros, modelos, permisos, procesos asíncronos y persistencia de resultados.
+	
+	\item Finalmente, se ha completado la documentación asociada al proyecto, incluyendo la memoria y los anexos. Esta tarea ha permitido justificar decisiones, ordenar conceptos, explicar alternativas y dejar constancia suficiente para facilitar la evaluación, mantenimiento y posible continuación del sistema.
+\end{itemize}
+
+\section{Líneas de trabajo futuras}
+
+A partir del trabajo realizado, las líneas de mejora halladas son:
+
+\begin{itemize}
+	\item Una línea de mejora prioritaria sería estudiar la obtención de una licencia o autorización específica que permitiese integrar Google Earth Engine o fuentes de imaginería equivalentes bajo condiciones compatibles con el análisis automático. Esto permitiría trabajar con imágenes más próximas a aquellas utilizadas durante el entrenamiento del modelo original y, por tanto, mejorar la coherencia entre el dominio de entrenamiento y el dominio real de explotación.
+	
+	\item En la gestión de modelos, resultaría interesante incorporar un sistema de comparación visual entre predicciones generadas por las distintas opciones cargadas. Además de mostrar ambas segmentaciones sobre una misma imagen, podría añadirse una máscara de diferencias que resaltase los píxeles que cambian de un modelo a otro, facilitando así una decisión más informada sobre qué modelo debe configurarse como activo.
+	
+	\item En el visor cartográfico, una mejora útil consistiría en implementar un buscador por zona o localización. De esta forma, el usuario podría introducir un municipio, una coordenada o una referencia geográfica y desplazarse automáticamente a esa región del mapa, agilizando la selección de áreas de interés y mejorando la usabilidad del flujo geoespacial.
+	
+	\item También se plantea como trabajo futuro la incorporación de un sistema de notificaciones por correo electrónico. Este mecanismo permitiría avisar al usuario cuando finalice el procesamiento de una colección, especialmente en casos donde la segmentación de todas las teselas requiera varios minutos. Con ello se mejoraría la retroalimentación del sistema y se evitaría que el usuario tuviera que permanecer consultando manualmente el estado del proceso.
+	
+	\item Otra posible ampliación sería enriquecer el sistema de descarga de resultados, permitiendo exportar no solo las imágenes y los ficheros JSON de trazas, sino también informes automáticos en PDF o CSV con estadísticas agregadas de la colección, como número de teselas procesadas, longitud aproximada de trazas, área segmentada, errores detectados y modelo utilizado.
+	
+	\item Desde el punto de vista algorítmico, sería conveniente incorporar un módulo de evaluación asistida que permitiese comparar las trazas generadas con anotaciones manuales de referencia. Esto permitiría calcular métricas como \textit{IoU}, \textit{Dice}, precisión, \textit{recall} o $F_1$ sobre imágenes concretas, facilitando la validación de nuevos modelos y el análisis cuantitativo de su rendimiento en escenarios reales.
+	
+	\item Finalmente, se podría evolucionar el sistema hacia una arquitectura más robusta para procesamiento intensivo, sustituyendo el \textit{worker} ligero actual por una cola de tareas más especializada. Herramientas de este tipo permitirían gestionar mejor trabajos concurrentes, reintentos, prioridades, cancelaciones y monitorización, haciendo que la aplicación fuese más adecuada para escenarios con mayor número de usuarios o colecciones de gran tamaño.
+\end{itemize}
