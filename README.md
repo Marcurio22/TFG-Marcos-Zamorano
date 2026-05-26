@@ -26,23 +26,32 @@ Aplicación Flask monolítica modularizada para subir imágenes, calcular trazas
 trabajar con visor cartográfico, generar colecciones de teselas y administrar
 usuarios y modelos de segmentación.
 
+<p align="center">
+  <a href="./doc"><strong>Documentación »</strong></a>
+</p>
+
 </div>
 
 ---
 
-## Contenido
+<details>
+  <summary><strong>Contenido</strong></summary>
 
-- [Descripción](#descripción)
-- [Características principales](#características-principales)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Tecnologías](#tecnologías)
-- [Instalación](#instalación)
-- [Ejecución de la aplicación](#ejecución-de-la-aplicación)
-- [Usuarios de demostración](#usuarios-de-demostración)
-- [Pruebas](#pruebas)
-- [Internacionalización](#internacionalización)
-- [Notas para desarrollo](#notas-para-desarrollo)
-- [Autor](#autor)
+  <ol>
+    <li><a href="#descripción">Descripción</a></li>
+    <li><a href="#características-principales">Características principales</a></li>
+    <li><a href="#estructura-del-repositorio">Estructura del repositorio</a></li>
+    <li><a href="#tecnologías">Tecnologías</a></li>
+    <li><a href="#instalación">Instalación</a></li>
+    <li><a href="#ejecución-de-la-aplicación">Ejecución de la aplicación</a></li>
+    <li><a href="#usuarios-de-demostración">Usuarios de demostración</a></li>
+    <li><a href="#pruebas">Pruebas</a></li>
+    <li><a href="#internacionalización">Internacionalización</a></li>
+    <li><a href="#notas-para-desarrollo">Notas para desarrollo</a></li>
+    <li><a href="#autor">Autor</a></li>
+  </ol>
+
+</details>
 
 ---
 
@@ -60,6 +69,9 @@ procesamiento de cada zona.
 La aplicación también incluye autenticación, perfil de usuario, imagen de
 perfil, administración de usuarios, gestión de modelos de segmentación,
 internacionalización y una suite amplia de pruebas automáticas.
+
+La memoria y documentación técnica del proyecto se encuentra disponible en el
+directorio [`doc`](./doc).
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
 
@@ -310,5 +322,14 @@ mediante objetos globales como:
 **Marcos Zamorano Lasso**
 
 Trabajo Fin de Grado — Aplicación web para análisis de trazas de herbívoros.
+
+<br />
+
+<div align="center">
+  <p><strong>Trabajo realizado en la Universidad de Burgos</strong></p>
+  <img src="./assets/universidad-burgos.png"
+       alt="Universidad de Burgos"
+       width="380">
+</div>
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
