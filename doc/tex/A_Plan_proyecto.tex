@@ -631,6 +631,209 @@ Como se aprecia en la Figura~\ref{fig:brsprint18}, el \textit{burndown} muestra 
 
 \subsection{Viabilidad económica}
 
+En este apartado se realiza una estimación económica del proyecto, considerando los principales recursos necesarios para su desarrollo, puesta en marcha y mantenimiento básico. Aunque el trabajo se ha realizado en un contexto académico y no persigue una explotación comercial inmediata, resulta conveniente valorar su coste aproximado como si fuese desarrollado dentro de un entorno profesional. Para ello, se tienen en cuenta los costes de personal, hardware, software, despliegue, mantenimiento e indirectos, así como los beneficios no económicos derivados de la aplicación.
+
+La duración total del proyecto ha sido de aproximadamente siete meses y medio. Para el escenario base se toma como referencia un perfil de desarrollador \textit{full-stack} junior avanzado, con conocimientos de Python, Flask, pruebas automáticas e integración de modelos de inferencia. Se considera un salario bruto anual de 30.000 €, situado entre las referencias salariales de un perfil junior Python y un perfil Python/Django en España, y ajustado al tipo de responsabilidades asumidas durante el desarrollo.
+
+\subsubsection{Costes de personal}
+
+El coste de personal constituye la partida principal del proyecto, ya que la mayor parte del esfuerzo se ha concentrado en el análisis del problema, el estudio del algoritmo base, el desarrollo de la aplicación web, la integración de la inferencia, la implementación del visor cartográfico, la gestión de usuarios y modelos, las pruebas y la documentación.
+
+Para el cálculo del coste por hora se emplean las siguientes expresiones:
+
+\begin{equation}
+	\text{Coste bruto por hora} =
+	\frac{\text{Salario bruto anual}}{1.760}
+\end{equation}
+
+\begin{equation}
+	\text{Coste empresa por hora} =
+	\text{Coste bruto por hora} \times (1 + 0{,}3057)
+\end{equation}
+
+\begin{equation}
+	\text{Coste de desarrollo} =
+	\text{Horas dedicadas} \times \text{Coste empresa por hora}
+\end{equation}
+
+El factor \(0{,}3057\) representa una aproximación a las cotizaciones empresariales a la Seguridad Social, considerando contingencias comunes, desempleo, FOGASA, formación profesional y MEI.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{l r}
+		\toprule
+		\textbf{Concepto} & \textbf{Porcentaje} \\
+		\midrule
+		Contingencias comunes & 23,60\% \\
+		Desempleo & 5,50\% \\
+		FOGASA & 0,20\% \\
+		Formación profesional & 0,60\% \\
+		MEI & 0,67\% \\
+		\midrule
+		\textbf{Total aproximado} & \textbf{30,57\%} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Cotizaciones empresariales consideradas para el cálculo del coste de personal.}
+	\label{tab:cotizaciones_empresa}
+\end{table}
+
+En el caso del desarrollador principal, se estima una dedicación aproximada de 900 horas. Para la labor de supervisión se considera una dedicación de 30 horas por cada tutor, asociada a reuniones, revisión de avances, orientación técnica y seguimiento del proyecto.
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{p{4.2cm} p{3.2cm} r r r}
+		\toprule
+		\textbf{Persona} & \textbf{Rol} & \textbf{Horas} & \textbf{Coste empresa/h} & \textbf{Coste} \\
+		\midrule
+		Marcos Zamorano Lasso & Desarrollador & 900 & 22,26 € & 20.030,63 € \\
+		Álvar Arnaiz González & Supervisor & 30 & 33,38 € & 1.001,53 € \\
+		David Martínez Acha & Supervisor & 30 & 33,38 € & 1.001,53 € \\
+		\midrule
+		\textbf{Total} & & \textbf{960} & & \textbf{22.033,69 €} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Estimación de costes de personal del proyecto.}
+	\label{tab:costes_personal}
+\end{table}
+
+\subsubsection{Costes de hardware}
+
+Para el desarrollo del proyecto se ha utilizado un equipo portátil personal, suficiente para implementar la aplicación, ejecutar el entorno Flask, realizar pruebas locales y llevar a cabo inferencias de validación. Aunque no ha sido necesario adquirir hardware específico, se imputa una parte proporcional del coste del equipo en función de su vida útil estimada.
+
+El coste de hardware se calcula mediante la expresión:
+
+\begin{equation}
+	\text{Coste hardware} =
+	\frac{\text{Precio del equipo}}{\text{Vida útil}} \times
+	\frac{\text{Meses del proyecto}}{12}
+\end{equation}
+
+Considerando un equipo valorado en 1.200 €, una vida útil de 5 años y una duración del proyecto de 7,5 meses, se obtiene:
+
+\begin{equation}
+	\text{Coste hardware} =
+	\frac{1.200}{5} \times \frac{7{,}5}{12}
+	= 150{,}00\text{ €}
+\end{equation}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{l r r r}
+		\toprule
+		\textbf{Elemento} & \textbf{Precio} & \textbf{Vida útil} & \textbf{Coste imputado} \\
+		\midrule
+		Equipo portátil de desarrollo & 1.200 € & 5 años & 150,00 € \\
+		\midrule
+		\textbf{Total} & & & \textbf{150,00 €} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Costes de hardware imputados al proyecto.}
+	\label{tab:costes_hardware}
+\end{table}
+
+\subsubsection{Costes de software}
+
+En cuanto al software, se ha priorizado el uso de herramientas gratuitas, de código abierto o disponibles sin coste adicional para el desarrollo académico. Esto incluye el lenguaje Python, el \textit{framework} Flask, SQLite, SQLAlchemy, PyTorch, Tailwind CSS, DaisyUI, Leaflet, Git, GitHub, Visual Studio Code, \textit{diagrams.net}, TeXstudio, MiKTeX y Jupyter Notebook, entre otras herramientas utilizadas durante el desarrollo y la documentación.
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{p{4cm} p{7cm} r}
+		\toprule
+		\textbf{Software} & \textbf{Uso principal} & \textbf{Coste} \\
+		\midrule
+		Python, Flask y extensiones & Desarrollo de la aplicación web y backend & 0,00 € \\
+		PyTorch y librerías de inferencia & Ejecución de modelos de segmentación & 0,00 € \\
+		SQLite y SQLAlchemy & Persistencia y acceso a datos & 0,00 € \\
+		Tailwind CSS, DaisyUI y Leaflet & Interfaz web y visor cartográfico & 0,00 € \\
+		Git, GitHub y Zube & Control de versiones y gestión del proyecto & 0,00 € \\
+		TeXstudio, MiKTeX y diagrams.net & Documentación y diagramas & 0,00 € \\
+		Visual Studio Code y Jupyter Notebook & Desarrollo, pruebas y análisis del algoritmo & 0,00 € \\
+		\midrule
+		\textbf{Total} & & \textbf{0,00 €} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Costes de software considerados en el proyecto.}
+	\label{tab:costes_software}
+\end{table}
+
+Por tanto, el coste directo de software se considera nulo. No obstante, esta estimación no implica que el software carezca de valor, sino que las herramientas utilizadas no han requerido pagos adicionales durante el desarrollo del TFG.
+
+\subsubsection{Costes de despliegue y mantenimiento}
+
+Aunque la aplicación puede ejecutarse en local durante el desarrollo y se despliega en una infraestructura universitaria, se estima un escenario de referencia basado en un despliegue básico en un servidor privado virtual. Este escenario permite aproximar el coste que tendría mantener la aplicación disponible durante el periodo equivalente al desarrollo.
+
+Además del alojamiento, debe considerarse una dedicación mensual de mantenimiento para tareas como actualización de dependencias, revisión de logs, copias de seguridad, limpieza de ficheros generados y supervisión del servicio mediante Gunicorn. Se estima una dedicación media de 1,5 horas mensuales durante 7,5 meses.
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{p{5cm} r r r}
+		\toprule
+		\textbf{Concepto} & \textbf{Coste unitario} & \textbf{Periodo} & \textbf{Coste} \\
+		\midrule
+		Servidor VPS básico & 12,00 €/mes & 7,5 meses & 90,00 € \\
+		Dominio web & 12,00 €/año & 7,5 meses & 7,50 € \\
+		Almacenamiento y copias de seguridad & 5,00 €/mes & 7,5 meses & 37,50 € \\
+		Mantenimiento técnico & 22,26 €/h & 11,25 h & 250,38 € \\
+		\midrule
+		\textbf{Total} & & & \textbf{385,38 €} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Estimación de costes de despliegue y mantenimiento.}
+	\label{tab:costes_despliegue}
+\end{table}
+
+\subsubsection{Costes indirectos}
+
+Además de los costes directos, se consideran costes indirectos asociados al desarrollo del proyecto. En esta categoría se incluyen gastos como electricidad, conexión a internet, infraestructura doméstica o universitaria, material auxiliar y otros recursos de apoyo no imputados de forma individual.
+
+Siguiendo una estimación habitual en este tipo de estudios, se aplica un 15\% sobre el total de costes directos:
+
+\begin{equation}
+	\text{Costes indirectos} =
+	\text{Costes directos} \times 0{,}15
+\end{equation}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{l r}
+		\toprule
+		\textbf{Tipo de coste} & \textbf{Importe} \\
+		\midrule
+		Costes de personal & 22.033,69 € \\
+		Costes de hardware & 150,00 € \\
+		Costes de software & 0,00 € \\
+		Costes de despliegue y mantenimiento & 385,38 € \\
+		\midrule
+		\textbf{Costes directos} & \textbf{22.569,07 €} \\
+		Costes indirectos, 15\% & 3.385,36 € \\
+		\midrule
+		\textbf{Coste total estimado} & \textbf{25.954,43 €} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Resumen de costes económicos del proyecto.}
+	\label{tab:costes_totales}
+\end{table}
+
+\subsubsection{Beneficios}
+
+No se esperan ingresos comerciales directos derivados del proyecto, ya que su finalidad es puramente académica e investigadora. La aplicación se ha concebido como un prototipo funcional orientado a demostrar la viabilidad de integrar modelos de segmentación semántica en un entorno web accesible, no como un producto comercial cerrado.
+
+No obstante, sí existen beneficios intangibles relevantes. En primer lugar, el sistema puede servir como apoyo a investigaciones relacionadas con el análisis de trazas de herbivoría y presión ecológica. Adicionalmente, automatiza parcialmente una tarea que, de forma manual, resultaría costosa, lenta y difícil de escalar.
+
+\subsubsection{Conclusión}
+
+Desde el punto de vista económico, el proyecto resulta viable en un contexto académico, principalmente porque se ha apoyado en herramientas gratuitas, bibliotecas de código abierto y recursos hardware ya disponibles. La partida más relevante corresponde al coste de personal, algo esperable en un proyecto software donde el mayor valor se encuentra en el análisis, diseño, implementación, pruebas y documentación.
+
+El coste total estimado asciende a 25.954,43 €, considerando personal, hardware, software, despliegue, mantenimiento e indirectos. Aunque no se prevén beneficios comerciales directos, el proyecto aporta valor investigador, académico y técnico, además de constituir una base sólida para futuras líneas de desarrollo relacionadas con la monitorización ecológica mediante imágenes aéreas y modelos de visión por computador.
+
 \subsection{Viabilidad legal}
 
 
