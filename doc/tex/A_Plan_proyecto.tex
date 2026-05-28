@@ -628,12 +628,13 @@ Finalmente, aunque la tarea de \textit{Redactar el apartado de arquitecturas} es
 Como se aprecia en la Figura~\ref{fig:brsprint18}, el \textit{burndown} muestra un inicio prácticamente plano, ya que varias tareas dependían de resolver primero el bloqueo asociado a la BBDD y de consolidar cambios estructurales antes de poder cerrar \textit{issues}. Una vez resueltas esas dependencias, el cierre de tareas se aceleró de forma clara en la segunda mitad del \textit{sprint}, completándose el conjunto de trabajo el 14 de mayo.
 
 \section{Estudio de viabilidad}
+En este apartado se analiza la viabilidad del proyecto desde una doble perspectiva: económica, valorando los costes asociados a su desarrollo, despliegue y mantenimiento; y legal, revisando las licencias, condiciones de uso y obligaciones normativas que afectan a las tecnologías, datos y recursos empleados.
 
 \subsection{Viabilidad económica}
 
 En este apartado se realiza una estimación económica del proyecto, considerando los principales recursos necesarios para su desarrollo, puesta en marcha y mantenimiento básico. Aunque el trabajo se ha realizado en un contexto académico y no persigue una explotación comercial inmediata, resulta conveniente valorar su coste aproximado como si fuese desarrollado dentro de un entorno profesional. Para ello, se tienen en cuenta los costes de personal, hardware, software, despliegue, mantenimiento e indirectos, así como los beneficios no económicos derivados de la aplicación.
 
-La duración total del proyecto ha sido de aproximadamente siete meses y medio. Para el escenario base se toma como referencia un perfil de desarrollador \textit{full-stack} junior avanzado, con conocimientos de Python, Flask, pruebas automáticas e integración de modelos de inferencia. Se considera un salario bruto anual de 30.000 €, situado entre las referencias salariales de un perfil junior Python y un perfil Python/Django en España, y ajustado al tipo de responsabilidades asumidas durante el desarrollo.
+La duración total del proyecto ha sido de aproximadamente siete meses y medio. Para el escenario base se toma como referencia un perfil de desarrollador \textit{full-stack} junior avanzado, con conocimientos de Python, Flask, pruebas automáticas e integración de modelos de inferencia. Se considera un salario bruto anual de \num{30000}\,€, situado entre las referencias salariales de un perfil junior Python y un perfil Python/Django en España, y ajustado al tipo de responsabilidades asumidas durante el desarrollo~\cite{glassdoor_python_developer_spain_2026}.
 
 \subsubsection{Costes de personal}
 
@@ -643,12 +644,12 @@ Para el cálculo del coste por hora se emplean las siguientes expresiones:
 
 \begin{equation}
 	\text{Coste bruto por hora} =
-	\frac{\text{Salario bruto anual}}{1.760}
+	\frac{\text{Salario bruto anual}}{\num{1760}}
 \end{equation}
 
 \begin{equation}
 	\text{Coste empresa por hora} =
-	\text{Coste bruto por hora} \times (1 + 0{,}3057)
+	\text{Coste bruto por hora} \times (1 + \num{0.3057})
 \end{equation}
 
 \begin{equation}
@@ -656,29 +657,35 @@ Para el cálculo del coste por hora se emplean las siguientes expresiones:
 	\text{Horas dedicadas} \times \text{Coste empresa por hora}
 \end{equation}
 
-El factor \(0{,}3057\) representa una aproximación a las cotizaciones empresariales a la Seguridad Social, considerando contingencias comunes, desempleo, FOGASA, formación profesional y MEI.
+El factor \num{0.3057} representa una aproximación a las cotizaciones empresariales a la Seguridad Social, considerando contingencias comunes, desempleo, FOGASA, formación profesional y MEI~\cite{seguridad_social_bases_tipos_cotizacion_2026}.
+
+En la tabla~\ref{tab:cotizaciones_empresa} se resumen los porcentajes considerados para estimar el sobrecoste empresarial aplicado al salario bruto.
 
 \begin{table}[H]
 	\centering
 	\renewcommand{\arraystretch}{1.25}
+	
 	\begin{tabular}{l r}
 		\toprule
 		\textbf{Concepto} & \textbf{Porcentaje} \\
 		\midrule
-		Contingencias comunes & 23,60\% \\
-		Desempleo & 5,50\% \\
-		FOGASA & 0,20\% \\
-		Formación profesional & 0,60\% \\
-		MEI & 0,67\% \\
+		Contingencias comunes & \qty{23.60}{\percent} \\
+		Desempleo & \qty{5.50}{\percent} \\
+		FOGASA & \qty{0.20}{\percent} \\
+		Formación profesional & \qty{0.60}{\percent} \\
+		MEI & \qty{0.67}{\percent} \\
 		\midrule
-		\textbf{Total aproximado} & \textbf{30,57\%} \\
+		\textbf{Total aproximado} & \textbf{\qty{30.57}{\percent}} \\
 		\bottomrule
 	\end{tabular}
-	\caption{Cotizaciones empresariales consideradas para el cálculo del coste de personal.}
+	
+	\caption{Distribución aproximada de cotizaciones empresariales aplicadas al coste de personal.}
 	\label{tab:cotizaciones_empresa}
 \end{table}
 
-En el caso del desarrollador principal, se estima una dedicación aproximada de 900 horas. Para la labor de supervisión se considera una dedicación de 30 horas por cada tutor, asociada a reuniones, revisión de avances, orientación técnica y seguimiento del proyecto.
+En el caso del desarrollador principal, se estima una dedicación aproximada de \num{21} semanas, con una media de \num{23} horas semanales, lo que supone un total de \num{483} horas de trabajo. Para la labor de supervisión se considera una dedicación de \num{30} horas por cada tutor, asociada a reuniones, revisión de avances, orientación técnica y seguimiento del proyecto.
+
+La Tabla~\ref{tab:costes_personal} recoge la estimación de horas y costes asociados al desarrollador principal y a las labores de supervisión del proyecto.
 
 \begin{table}[H]
 	\centering
@@ -688,16 +695,17 @@ En el caso del desarrollador principal, se estima una dedicación aproximada de 
 		\toprule
 		\textbf{Persona} & \textbf{Rol} & \textbf{Horas} & \textbf{Coste empresa/h} & \textbf{Coste} \\
 		\midrule
-		Marcos Zamorano Lasso & Desarrollador & 900 & 22,26 € & 20.030,63 € \\
-		Álvar Arnaiz González & Supervisor & 30 & 33,38 € & 1.001,53 € \\
-		David Martínez Acha & Supervisor & 30 & 33,38 € & 1.001,53 € \\
+		Marcos Zamorano Lasso & Desarrollador & \num{483} & \num{22.26}\,€ & \num{10749.77}\,€ \\
+		Álvar Arnaiz González & Supervisor & \num{30} & \num{33.38}\,€ & \num{1001.53}\,€ \\
+		David Martínez Acha & Supervisor & \num{30} & \num{33.38}\,€ & \num{1001.53}\,€ \\
 		\midrule
-		\textbf{Total} & & \textbf{960} & & \textbf{22.033,69 €} \\
+		\textbf{Total} & & \textbf{\num{543}} & & \textbf{\num{12752.83}\,€} \\
 		\bottomrule
 	\end{tabular}
 	\caption{Estimación de costes de personal del proyecto.}
 	\label{tab:costes_personal}
 \end{table}
+
 
 \subsubsection{Costes de hardware}
 
@@ -708,16 +716,18 @@ El coste de hardware se calcula mediante la expresión:
 \begin{equation}
 	\text{Coste hardware} =
 	\frac{\text{Precio del equipo}}{\text{Vida útil}} \times
-	\frac{\text{Meses del proyecto}}{12}
+	\frac{\text{Meses del proyecto}}{\num{12}}
 \end{equation}
 
-Considerando un equipo valorado en 1.200 €, una vida útil de 5 años y una duración del proyecto de 7,5 meses, se obtiene:
+Considerando un equipo valorado en \num{1200}\,€, una vida útil de \num{5} años y una duración del proyecto de \num{7.5} meses, se obtiene:
 
 \begin{equation}
 	\text{Coste hardware} =
-	\frac{1.200}{5} \times \frac{7{,}5}{12}
-	= 150{,}00\text{ €}
+	\frac{\num{1200}}{\num{5}} \times \frac{\num{7.5}}{\num{12}}
+	= \num{150.00}\,\text{€}
 \end{equation}
+
+La tabla~\ref{tab:costes_hardware} muestra el coste de hardware imputado al proyecto según el criterio de amortización descrito.
 
 \begin{table}[H]
 	\centering
@@ -726,9 +736,9 @@ Considerando un equipo valorado en 1.200 €, una vida útil de 5 años y una du
 		\toprule
 		\textbf{Elemento} & \textbf{Precio} & \textbf{Vida útil} & \textbf{Coste imputado} \\
 		\midrule
-		Equipo portátil de desarrollo & 1.200 € & 5 años & 150,00 € \\
+		Equipo portátil de desarrollo & \num{1200}\,€ & \num{5} años & \num{150.00}\,€ \\
 		\midrule
-		\textbf{Total} & & & \textbf{150,00 €} \\
+		\textbf{Total} & & & \textbf{\num{150.00}\,€} \\
 		\bottomrule
 	\end{tabular}
 	\caption{Costes de hardware imputados al proyecto.}
@@ -739,6 +749,10 @@ Considerando un equipo valorado en 1.200 €, una vida útil de 5 años y una du
 
 En cuanto al software, se ha priorizado el uso de herramientas gratuitas, de código abierto o disponibles sin coste adicional para el desarrollo académico. Esto incluye el lenguaje Python, el \textit{framework} Flask, SQLite, SQLAlchemy, PyTorch, Tailwind CSS, DaisyUI, Leaflet, Git, GitHub, Visual Studio Code, \textit{diagrams.net}, TeXstudio, MiKTeX y Jupyter Notebook, entre otras herramientas utilizadas durante el desarrollo y la documentación.
 
+No obstante, sí que se imputa un coste estimado de licencia Windows, tomando como referencia el coste habitual de una licencia de sistema operativo de escritorio. Este valor podría variar según el tipo de licencia, canal de compra o inclusión previa en el equipo~\cite{xataka_windows10_licencias_precios_2020}.
+
+La tabla~\ref{tab:costes_software} recoge los costes de software considerados en el proyecto.
+
 \begin{table}[H]
 	\centering
 	\small
@@ -747,28 +761,31 @@ En cuanto al software, se ha priorizado el uso de herramientas gratuitas, de có
 		\toprule
 		\textbf{Software} & \textbf{Uso principal} & \textbf{Coste} \\
 		\midrule
-		Python, Flask y extensiones & Desarrollo de la aplicación web y backend & 0,00 € \\
-		PyTorch y librerías de inferencia & Ejecución de modelos de segmentación & 0,00 € \\
-		SQLite y SQLAlchemy & Persistencia y acceso a datos & 0,00 € \\
-		Tailwind CSS, DaisyUI y Leaflet & Interfaz web y visor cartográfico & 0,00 € \\
-		Git, GitHub y Zube & Control de versiones y gestión del proyecto & 0,00 € \\
-		TeXstudio, MiKTeX y diagrams.net & Documentación y diagramas & 0,00 € \\
-		Visual Studio Code y Jupyter Notebook & Desarrollo, pruebas y análisis del algoritmo & 0,00 € \\
+		Python, Flask y extensiones & Desarrollo de la aplicación web y backend & \num{0.00}\,€ \\
+		PyTorch y librerías de inferencia & Ejecución de modelos de segmentación & \num{0.00}\,€ \\
+		SQLite y SQLAlchemy & Persistencia y acceso a datos & \num{0.00}\,€ \\
+		Tailwind CSS, DaisyUI y Leaflet & Interfaz web y visor cartográfico & \num{0.00}\,€ \\
+		Git, GitHub y Zube & Control de versiones y gestión del proyecto & \num{0.00}\,€ \\
+		TeXstudio, MiKTeX y diagrams.net & Documentación y diagramas & \num{0.00}\,€ \\
+		Visual Studio Code y Jupyter Notebook & Desarrollo, pruebas y análisis del algoritmo & \num{0.00}\,€ \\
+		Licencia Windows & Sistema operativo utilizado durante el desarrollo & \num{145.00}\,€ \\
 		\midrule
-		\textbf{Total} & & \textbf{0,00 €} \\
+		\textbf{Total} & & \textbf{\num{145.00}\,€} \\
 		\bottomrule
 	\end{tabular}
 	\caption{Costes de software considerados en el proyecto.}
 	\label{tab:costes_software}
 \end{table}
 
-Por tanto, el coste directo de software se considera nulo. No obstante, esta estimación no implica que el software carezca de valor, sino que las herramientas utilizadas no han requerido pagos adicionales durante el desarrollo del TFG.
+Por tanto, el coste directo de software asciende a \num{145.00}\,€. La mayor parte de las herramientas utilizadas no han requerido pagos adicionales durante el desarrollo del TFG, al tratarse de tecnologías gratuitas, libres o disponibles sin coste para un uso académico.
 
 \subsubsection{Costes de despliegue y mantenimiento}
 
-Aunque la aplicación puede ejecutarse en local durante el desarrollo y se despliega en una infraestructura universitaria, se estima un escenario de referencia basado en un despliegue básico en un servidor privado virtual. Este escenario permite aproximar el coste que tendría mantener la aplicación disponible durante el periodo equivalente al desarrollo.
+Aunque la aplicación puede ejecutarse en local durante el desarrollo y se despliega en una infraestructura universitaria, se estima un escenario de referencia basado en un despliegue básico en un servidor privado virtual, tomando como referencia precios habituales de proveedores de servidores cloud~\cite{hetzner_cloud_cx_plans_2024}. Este escenario permite aproximar el coste que tendría mantener la aplicación disponible durante el periodo equivalente al desarrollo.
 
-Además del alojamiento, debe considerarse una dedicación mensual de mantenimiento para tareas como actualización de dependencias, revisión de logs, copias de seguridad, limpieza de ficheros generados y supervisión del servicio mediante Gunicorn. Se estima una dedicación media de 1,5 horas mensuales durante 7,5 meses.
+Además del alojamiento, debe considerarse una dedicación mensual de mantenimiento para tareas como actualización de dependencias, revisión de logs, copias de seguridad, limpieza de ficheros generados y supervisión del servicio mediante Gunicorn. Se estima una dedicación media de \num{1.5} horas mensuales durante \num{7.5} meses.
+
+En la tabla~\ref{tab:costes_despliegue} se recoge una estimación de estos costes descritos.
 
 \begin{table}[H]
 	\centering
@@ -777,12 +794,12 @@ Además del alojamiento, debe considerarse una dedicación mensual de mantenimie
 		\toprule
 		\textbf{Concepto} & \textbf{Coste unitario} & \textbf{Periodo} & \textbf{Coste} \\
 		\midrule
-		Servidor VPS básico & 12,00 €/mes & 7,5 meses & 90,00 € \\
-		Dominio web & 12,00 €/año & 7,5 meses & 7,50 € \\
-		Almacenamiento y copias de seguridad & 5,00 €/mes & 7,5 meses & 37,50 € \\
-		Mantenimiento técnico & 22,26 €/h & 11,25 h & 250,38 € \\
+		Servidor VPS básico & \num{12.00}\,€/mes & \num{7.5} meses & \num{90.00}\,€ \\
+		Dominio web & \num{12.00}\,€/año & \num{7.5} meses & \num{7.50}\,€ \\
+		Almacenamiento y copias de seguridad & \num{5.00}\,€/mes & \num{7.5} meses & \num{37.50}\,€ \\
+		Mantenimiento técnico & \num{22.26}\,€/h & \num{11.25} h & \num{250.38}\,€ \\
 		\midrule
-		\textbf{Total} & & & \textbf{385,38 €} \\
+		\textbf{Total} & & & \textbf{\num{385.38}\,€} \\
 		\bottomrule
 	\end{tabular}
 	\caption{Estimación de costes de despliegue y mantenimiento.}
@@ -793,12 +810,14 @@ Además del alojamiento, debe considerarse una dedicación mensual de mantenimie
 
 Además de los costes directos, se consideran costes indirectos asociados al desarrollo del proyecto. En esta categoría se incluyen gastos como electricidad, conexión a internet, infraestructura doméstica o universitaria, material auxiliar y otros recursos de apoyo no imputados de forma individual.
 
-Siguiendo una estimación habitual en este tipo de estudios, se aplica un 15\% sobre el total de costes directos:
+Siguiendo una estimación habitual en este tipo de estudios, se aplica un \qty{15}{\percent} sobre el total de costes directos:
 
 \begin{equation}
 	\text{Costes indirectos} =
-	\text{Costes directos} \times 0{,}15
+	\text{Costes directos} \times \num{0.15}
 \end{equation}
+
+La Tabla~\ref{tab:costes_totales} resume el coste económico total estimado del proyecto, incorporando tanto costes directos como costes indirectos.
 
 \begin{table}[H]
 	\centering
@@ -807,15 +826,15 @@ Siguiendo una estimación habitual en este tipo de estudios, se aplica un 15\% s
 		\toprule
 		\textbf{Tipo de coste} & \textbf{Importe} \\
 		\midrule
-		Costes de personal & 22.033,69 € \\
-		Costes de hardware & 150,00 € \\
-		Costes de software & 0,00 € \\
-		Costes de despliegue y mantenimiento & 385,38 € \\
+		Costes de personal & \num{12752.83}\,€ \\
+		Costes de hardware & \num{150.00}\,€ \\
+		Costes de software & \num{145.00}\,€ \\
+		Costes de despliegue y mantenimiento & \num{385.38}\,€ \\
 		\midrule
-		\textbf{Costes directos} & \textbf{22.569,07 €} \\
-		Costes indirectos, 15\% & 3.385,36 € \\
+		\textbf{Costes directos} & \textbf{\num{13433.21}\,€} \\
+		Costes indirectos, \qty{15}{\percent} & \num{2014.98}\,€ \\
 		\midrule
-		\textbf{Coste total estimado} & \textbf{25.954,43 €} \\
+		\textbf{Coste total estimado} & \textbf{\num{15448.19}\,€} \\
 		\bottomrule
 	\end{tabular}
 	\caption{Resumen de costes económicos del proyecto.}
@@ -832,8 +851,111 @@ No obstante, sí existen beneficios intangibles relevantes. En primer lugar, el 
 
 Desde el punto de vista económico, el proyecto resulta viable en un contexto académico, principalmente porque se ha apoyado en herramientas gratuitas, bibliotecas de código abierto y recursos hardware ya disponibles. La partida más relevante corresponde al coste de personal, algo esperable en un proyecto software donde el mayor valor se encuentra en el análisis, diseño, implementación, pruebas y documentación.
 
-El coste total estimado asciende a 25.954,43 €, considerando personal, hardware, software, despliegue, mantenimiento e indirectos. Aunque no se prevén beneficios comerciales directos, el proyecto aporta valor investigador, académico y técnico, además de constituir una base sólida para futuras líneas de desarrollo relacionadas con la monitorización ecológica mediante imágenes aéreas y modelos de visión por computador.
+El coste total estimado asciende a \num{15448.19}\,€, considerando personal, hardware, software, despliegue, mantenimiento e indirectos. Aunque no se prevén beneficios comerciales directos, el proyecto aporta valor investigador, académico y técnico, además de constituir una base sólida para futuras líneas de desarrollo relacionadas con la monitorización ecológica mediante imágenes aéreas y modelos de visión por computador.
 
 \subsection{Viabilidad legal}
+
+En este apartado se analiza la viabilidad legal del proyecto, atendiendo a los aspectos que condicionan su desarrollo, uso y despliegue en un entorno universitario. Para ello, se revisan las licencias del software empleado, las condiciones de uso de las fuentes cartográficas, la situación específica de Google Earth Engine, el tratamiento de datos personales, la gestión de imágenes subidas por los usuarios, la incorporación de modelos de segmentación y las obligaciones básicas de accesibilidad. 
+
+El objetivo de este estudio no es realizar una auditoría jurídica exhaustiva, sino identificar los principales riesgos legales y comprobar que la solución planteada puede utilizarse en un contexto académico siempre que se respeten las condiciones de uso aplicables.
+
+\subsubsection{Licencias de software}
+
+La aplicación se ha desarrollado principalmente mediante herramientas, bibliotecas y \textit{frameworks} de código abierto. En general, las licencias utilizadas son de carácter permisivo, como MIT, BSD o Apache-2.0, lo que permite su uso, modificación y redistribución en proyectos académicos y de investigación, siempre que se conserven los avisos de copyright y licencia correspondientes.
+
+La Tabla~\ref{tab:licencias_software} recoge las principales dependencias y herramientas utilizadas, junto con la licencia asociada a cada una de ellas.
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.15}
+	
+	\begin{tabularx}{\textwidth}{@{}
+			>{\RaggedRight\arraybackslash}X
+			c
+			>{\RaggedRight\arraybackslash}X
+			@{}}
+		\toprule
+		\textbf{Librería} & \textbf{Versión} & \textbf{Licencia} \\
+		\midrule
+		\textit{Python} & 3.12 & PSF \\
+		\textit{Flask} & 3.1.2 & BSD-3 \\
+		\textit{SQLAlchemy} & 2.0.49 & MIT \\
+		\textit{SQLite} & 3.45.0 & Dominio público \\
+		\textit{Jinja2} & 3.1.6 & BSD-3 \\
+		\textit{Tailwind CSS} & 3.4.17 & MIT \\
+		\textit{DaisyUI} & 4.12.24 & MIT \\
+		\textit{Selenium} & 4.38.0 & Apache-2.0 \\
+		\textit{Pytest} & 9.0.1 & MIT \\
+		\textit{Coverage.py} & 7.13.5 & Apache-2.0 \\
+		\textit{PyTorch} & 2.10.0 & BSD-style \\
+		\textit{Segmentation Models PyTorch} & 0.5.0 & MIT \\
+		\textit{Timm} & 1.0.24 & Apache-2.0 \\
+		\textit{Hugging Face Hub} & 1.3.4 & Apache-2.0 \\
+		\textit{ReportLab} & 4.5.0 & BSD \\
+		\textit{Gunicorn} & 23.0.0 & MIT \\
+		\textit{SonarQube Community Build} & 25.4 & LGPLv3 / SSAL v1.0 \\
+		\bottomrule
+	\end{tabularx}
+	
+	\caption{Bibliotecas usadas, versiones y licencias.}
+	\label{tab:licencias_software}
+\end{table}
+
+
+A partir de esta revisión, no se aprecian incompatibilidades relevantes para el desarrollo del TFG. No obstante, si el proyecto evolucionase hacia una distribución pública o comercial, sería necesario conservar los textos de licencia de las dependencias y revisar de nuevo aquellas bibliotecas que incorporen modelos, pesos o recursos externos con condiciones particulares.
+
+\subsubsection{Licencias de datos cartográficos}
+
+La aplicación contempla el uso de ortofotografía aérea procedente del Plan Nacional de Ortofotografía Aérea, gestionado por el IGN y el CNIG. Este tipo de datos puede utilizarse de forma libre y gratuita bajo una licencia compatible con CC-BY 4.0, siempre que se reconozca adecuadamente el origen y la propiedad de la información geográfica~\cite{cnig_pnoa_maxima_actualidad,pnoa_ign}.
+
+Por tanto, el uso de PNOA resulta legalmente adecuado, siempre que se incluya una atribución clara a IGN, CNIG y PNOA en la documentación, en la memoria y, también, en la interfaz de usuario cuando se muestren capas o imágenes procedentes de dichos servicios. Esta atribución permite cumplir con las condiciones de reconocimiento de autoría y refuerza la trazabilidad de los datos utilizados.
+
+\subsubsection{Google Earth Engine}
+
+Google Earth Engine sería la plataforma más adecuada para el análisis geoespacial de este proyecto, pero actualmente no se dispone de una licencia o acceso formal integrado en el mismo. Por este motivo, no debe presentarse como una dependencia actual del sistema ni utilizarse en producción sin autorización adecuada~\cite{googleearthengine_terms}.
+
+En caso de que en el futuro la Universidad de Burgos obtuviera acceso institucional, Google Earth Engine podría incorporarse como una mejora relevante del sistema, especialmente para acceder a fuentes de imaginería más próximas a aquellas empleadas durante el entrenamiento del modelo. Sin embargo, dicha integración debería respetar estrictamente sus términos de uso, incluyendo el empleo de una cuenta institucional, la finalidad académica o no comercial cuando corresponda y la revisión periódica del acceso por parte de Google~\cite{googleearthengine_terms}.
+
+Además, si el uso evolucionase hacia un contexto comercial, operacional o de explotación sostenida, habría que considerar los planes de pago disponibles. Según la información de precios de Google Cloud, los planes comerciales de Earth Engine incluyen cuotas mensuales de 500 USD para el plan Basic y 2.000 USD para el plan Professional~\cite{googleearthengine_pricing}. Por ello, cualquier uso futuro deberá analizarse tanto desde la perspectiva técnica como desde la económica y contractual.
+
+\subsubsection{Protección de datos personales}
+
+La aplicación trata datos personales de los usuarios, como nombre de usuario, correo electrónico, teléfono, contraseña hasheada, rol, fecha de alta, imagen de perfil, imágenes subidas y colecciones geoespaciales asociadas a una cuenta. En consecuencia, el sistema debe ajustarse al Reglamento General de Protección de Datos y a la Ley Orgánica 3/2018 de Protección de Datos Personales y garantía de los derechos digitales~\cite{rgpd_2016,lopdgdd_2018}.
+
+Desde el punto de vista del diseño, se deben aplicar principios como minimización de datos, limitación de finalidad, control de acceso y seguridad por defecto. La aplicación ya incorpora autenticación, roles de usuario y separación de permisos, lo que contribuye a restringir el acceso a la información. Asimismo, las contraseñas no deben almacenarse en texto plano, sino mediante funciones de \textit{hash} seguras, como las proporcionadas por Werkzeug.
+
+También deben contemplarse los derechos de las personas usuarias, especialmente acceso, rectificación y supresión de sus datos. En la práctica, esto implica que el sistema debería permitir consultar la información asociada a la cuenta, modificar datos básicos del perfil y eliminar, cuando proceda, imágenes, colecciones o recursos vinculados al usuario. Al desplegar el sistema en servidores de la Universidad de Burgos, se aplican además las políticas internas de seguridad, alojamiento, copias de seguridad y conservación de datos.
+
+\subsubsection{Imágenes subidas por usuarios}
+
+Las imágenes subidas por los usuarios pueden contener información sensible o estar sujetas a derechos de terceros. Por ello, la aplicación debe asumir que el usuario es responsable de disponer de los derechos necesarios para cargar y procesar dichas imágenes. El sistema debe limitar su uso a la finalidad prevista, es decir, calcular trazas, generar resultados asociados y permitir su visualización o descarga dentro del flujo de la aplicación.
+
+Además, resulta conveniente que la aplicación permita borrar las imágenes y resultados generados, de forma que el usuario pueda retirar del sistema aquellos recursos que ya no desee mantener. Al no guardar la imagen en el sistema hasta que no se pulsa el botón de \textit{Calcular trazas}, evitamos que se guarde una imagen que el usuario haya introducido erróneamente, pudiendo borrarla en cualquier momento sin mayor repercusión.
+
+\subsubsection{Modelos de segmentación}
+
+Los modelos de segmentación y pesos incorporados al sistema pueden estar sujetos a licencias propias. Esto es especialmente relevante cuando se emplean modelos descargados desde repositorios externos, plataformas como Hugging Face o implementaciones que dependan de arquitecturas concretas. Aunque el código de muchas bibliotecas utilizadas sea permisivo, los pesos, \textit{checkpoints} o conjuntos de datos empleados para entrenarlos pueden imponer restricciones adicionales~\cite{huggingface_hub_license}.
+
+Por este motivo, antes de distribuir la aplicación junto con modelos entrenados, o antes de permitir su uso en un entorno más amplio, debe verificarse la licencia de cada artefacto. En el caso de modelos subidos por administradores, el sistema puede validar su compatibilidad técnica, pero la compatibilidad legal debe comprobarse previamente por la persona responsable de su incorporación.
+
+\subsubsection{Despliegue en servidor}
+
+El despliegue en un servidor de la Universidad de Burgos resulta viable desde el punto de vista legal siempre que se respeten las condiciones de uso de las tecnologías empleadas, las licencias de los datos cartográficos y la normativa de protección de datos. Al tratarse de un entorno institucional, la aplicación se ajusta a las políticas de seguridad, acceso, almacenamiento y copias de seguridad establecidas por la universidad.
+
+Asimismo, el despliegue deberá evitar el uso de servicios externos sin licencia adecuada, especialmente en lo relativo a Google Earth Engine o a fuentes cartográficas sujetas a restricciones. En caso de utilizar PNOA como fuente de ortofotografía, será necesario mantener la atribución correspondiente a IGN/CNIG/PNOA y garantizar que las imágenes obtenidas se emplean conforme a sus condiciones de reutilización.
+
+\subsubsection{Accesibilidad}
+
+Al publicarse la aplicación en un entorno universitario o si se integra como servicio accesible desde infraestructura pública, resulta conveniente considerar el Real Decreto 1112/2018, relativo a la accesibilidad de los sitios web y aplicaciones para dispositivos móviles del sector público~\cite{rd1112_2018}. Aunque el proyecto se ha desarrollado como TFG y no como servicio administrativo final, tener en cuenta estos criterios desde el diseño facilita su posible evolución futura.
+
+En este sentido, la aplicación debería procurar una interfaz clara, formularios etiquetados, contraste suficiente, navegación comprensible, textos alternativos cuando proceda y compatibilidad razonable con tecnologías de apoyo. Estas medidas no solo tienen relevancia legal, sino que también mejoran la usabilidad general del sistema para todos los usuarios.
+
+\subsubsection{Conclusión}
+
+Desde el punto de vista legal, el proyecto resulta viable en un entorno académico siempre que se respeten las licencias de las bibliotecas utilizadas, se mantenga la atribución correspondiente a los datos cartográficos del IGN/CNIG/PNOA, se cumpla la normativa de protección de datos y no se utilice Google Earth Engine sin acceso o licencia adecuada.
+
+En conjunto, la solución también es coherente con la viabilidad económica analizada previamente, ya que se apoya en herramientas de bajo coste directo, tecnologías abiertas y un posible despliegue en infraestructura universitaria. No obstante, cualquier evolución hacia un uso público estable, comercial u operacional deberá revisar de nuevo las condiciones de licenciamiento, privacidad, accesibilidad y explotación de datos o modelos.
+
 
 
