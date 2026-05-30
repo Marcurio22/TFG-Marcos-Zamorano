@@ -17,12 +17,20 @@ La estructura del repositorio se ha organizado con el objetivo de separar el có
 
 Antes de describir los ficheros principales del repositorio, conviene presentar la organización general de directorios sobre la que se estructura la aplicación:
 
+\begingroup
+\setlength{\intextsep}{6pt}
+\setlength{\textfloatsep}{6pt}
+\setlength{\floatsep}{6pt}
+\setlength{\abovecaptionskip}{3pt}
+\setlength{\belowcaptionskip}{0pt}
+
 \begin{figure}[H]
 	\centering
+	\vspace{-0.5cm}
 	\footnotesize
 	\renewcommand*\DTstyle{\ttfamily}
 	
-	\begin{minipage}{0.95\textwidth}
+	\begin{minipage}{0.80\textwidth}
 		\dirtree{%
 			.1 /.
 			.2 \textbf{assets}: recursos gráficos y materiales auxiliares.
@@ -42,13 +50,15 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 	\label{fig:estructura_directorios_proyecto}
 \end{figure}
 
+\vspace{-0.4cm}
+
 \begin{figure}[H]
 	\centering
 	\scriptsize
 	\renewcommand*\DTstyle{\ttfamily}
 	\DTsetlength{0.2em}{1.8em}{0.45em}{0.4pt}{1.6pt}
 	
-	\begin{minipage}{0.95\textwidth}
+	\begin{minipage}{0.82\textwidth}
 		\dirtree{%
 			.1 \textbf{webapp}: aplicación web desarrollada con Flask.
 			.2 \textbf{instance}: recursos locales y base de datos SQLite.
@@ -63,13 +73,15 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 			.3 \textbf{templates}: plantillas HTML Jinja2.
 			.4 \textbf{admin}: plantillas del panel de administración.
 			.3 \textbf{translations}: catálogos de traducción por idioma.
-			.3 \textbf{seed\_data.py}: carga de datos iniciales.
+			.3 \textbf{seed\_data}: carga de datos iniciales.
 		}
 	\end{minipage}
 	
 	\caption{Estructura principal de directorios de la aplicación web.}
 	\label{fig:estructura_directorios_web}
 \end{figure}
+
+\endgroup
 
 Los ficheros principales que se encuentran al nivel raíz del proyecto son:
 
@@ -118,8 +130,740 @@ aplicación, entre los que destacan:
 	fuente de la aplicación.
 \end{itemize}
 
-\section{Manual del programador}
+\section{Manual del programador} 
+
+El objetivo de este apartado es proporcionar una visión técnica del funcionamiento interno de la aplicación, de forma que un futuro desarrollador pueda comprender su estructura, mantenerla y ampliarla sin necesidad de reconstruir todo el razonamiento realizado durante el desarrollo. 
+
+\subsection{Inferencia: \textit{pickle}, PyTorch y modelos por \textit{fold}} 
+
+La aplicación trabaja con modelos de segmentación semántica procedentes del trabajo base sobre detección de trazas de herbivoría~\cite{diezpastora2025trails}. Durante el desarrollo se analizaron dos rutas principales para integrar dichos modelos en la aplicación web, como ya se comentó en el apartado de \textit{Aspectos relevantes del desarrollo del proyecto} de la memoria.
+
+Esta decisión no se tomó únicamente por rendimiento, sino principalmente por fidelidad respecto al comportamiento del \textit{pipeline} original. El objetivo era conservar la mayor coherencia posible con los resultados esperados del modelo base, evitando introducir variaciones en la segmentación derivadas del cambio de formato de despliegue. No obstante, esta elección tiene implicaciones importantes para futuros desarrolladores.
+
+Los ficheros \texttt{pickle} deben tratarse como artefactos sensibles y cargarse únicamente desde ubicaciones controladas por la aplicación. No deben aceptarse modelos arbitrarios procedentes de usuarios sin permisos de administración, ya que la carga de este tipo de ficheros puede ejecutar estructuras internas no deseadas si no se controla adecuadamente el origen. Por ello, cualquier funcionalidad relacionada con subida, validación o activación de modelos debe mantenerse restringida al panel de administración. 
+
+También debe tenerse en cuenta que cualquier cambio en el formato del modelo exige repetir las pruebas de equivalencia de inferencia. Si se sustituye \texttt{pickle} por TorchScript, \texttt{safetensors} u otro formato, no basta con comprobar que el modelo carga correctamente: es necesario comparar las máscaras generadas y verificar que las diferencias no afectan al resultado funcional. Del mismo modo, actualizaciones de PyTorch, \texttt{segmentation-models-pytorch}, \texttt{timm} u otras dependencias relacionadas con la inferencia pueden modificar el comportamiento del modelo y deben validarse cuidadosamente. 
+
+Finalmente, un programador que modifique esta parte debe prestar especial atención al preprocesado de la imagen. Cambios en la normalización, el tamaño de entrada, el orden de canales, el umbral de binarización o el postprocesado de la máscara pueden alterar las trazas detectadas, incluso cuando el modelo utilizado sea el mismo. Por ello, cualquier cambio en la inferencia debe acompañarse de pruebas con imágenes representativas y resultados esperados. 
+
+\subsection{Worker asíncrono de procesamiento de trazas} 
+
+Uno de los componentes más relevantes del sistema es el \textit{worker} asíncrono de procesamiento de trazas, implementado en torno a \texttt{trace\_worker.py}. Su función es procesar las teselas pendientes de las colecciones geoespaciales sin bloquear la petición HTTP del usuario.
+
+El flujo general comienza cuando el usuario genera una zona desde el visor cartográfico. En ese momento, la aplicación crea una parcela o colección y registra sus teselas asociadas como fotos pendientes de procesamiento. En lugar de calcular todas las trazas dentro de la misma petición del visor, el sistema deja esas fotos en estado pendiente y el \textit{worker} las reclama progresivamente. Cada tesela pasa entonces a estado de procesamiento, se ejecuta la inferencia, se guardan los resultados y finalmente se marca como completada o como fallida en caso de error. Este diseño permite que la aplicación responda rápidamente a la acción inicial del usuario y que el avance del procesamiento pueda consultarse desde la interfaz. 
+
+La base de datos actúa como una cola ligera de trabajo, almacenando los estados de cada foto y de la colección asociada. De esta forma, la galería puede reflejar si las teselas están pendientes, en procesamiento, completadas o con error, sin que el usuario tenga que esperar a que finalice todo el lote en una única petición. La pausa y reanudación del procesamiento también se gestiona mediante este enfoque cooperativo. La pausa se controla a través del campo \texttt{estado} de la entidad \texttt{Parcela}, utilizando el valor \texttt{paused}. No debe añadirse una columna nueva exclusivamente para pausar colecciones, ya que el estado global de la parcela cumple esa función dentro del modelo actual. 
+
+Cuando una colección se pausa, el \textit{worker} no debe reclamar nuevas teselas asociadas a ella y, si procede, las teselas que estuvieran en procesamiento pueden volver a quedar pendientes para retomarse posteriormente. Es importante entender que esta pausa afecta únicamente a la parcela o colección seleccionada, no al conjunto completo del sistema. Por tanto, un futuro desarrollador no debería detener hilos globales, matar procesos ni bloquear el servicio completo para pausar una colección concreta. El mecanismo esperado es cooperativo: el \textit{worker} consulta el estado de las parcelas y evita continuar con aquellas que estén marcadas como pausadas. Asimismo, una colección ya completada no debería poder pausarse, puesto que no existe procesamiento pendiente que detener. 
+
+\subsection{Worker asíncrono de validación de modelos}
+
+El segundo proceso asíncrono relevante está asociado a la validación de modelos subidos desde el panel de administración. Cuando un administrador incorpora un nuevo modelo, el sistema no debe asumir automáticamente que dicho artefacto es válido ni bloquear la interfaz hasta completar todas las comprobaciones. Por ello, el modelo puede registrarse inicialmente como pendiente y validarse en segundo plano.
+
+El flujo general consiste en que el administrador sube un fichero de modelo, el sistema lo registra como pendiente y se lanza una tarea de validación. Si la comprobación finaliza correctamente, el modelo pasa a estado validado y queda disponible para su posible activación. En caso contrario, el modelo no debe quedar disponible para inferencia y debe eliminarse. La interfaz de administración debe informar al usuario administrador del resultado cuando proceda. 
+
+Por tanto, no basta con comprobar que el fichero existe: debe verificarse que el modelo puede cargarse, que admite una entrada compatible, que produce una salida válida y que no genera errores durante una inferencia básica. Cualquier modificación de esta parte debe probar, como mínimo, la subida de modelos, el estado pendiente, la validación correcta, la validación fallida, la activación posterior, la ausencia de bloqueo de la interfaz y la restricción de permisos a usuarios administradores. 
+
+\subsection{Gestión de modelos desde administración}
+
+La aplicación incorpora una sección de administración de modelos que permite al administrador consultar los modelos disponibles, subir nuevos artefactos, renombrarlos, comprobar su estado, activarlos y revisar su fecha de creación. Esta funcionalidad tiene como objetivo evitar que el sistema quede ligado de forma rígida a un único modelo de segmentación, facilitando su evolución a medida que existan nuevas versiones o modelos.
+
+La regla de negocio actual establece que solo debe existir un modelo activo para inferencia. Si en el futuro se decide permitir varios modelos activos, modelos por usuario o selección manual en cada ejecución, será necesario revisar de forma coordinada la lógica de \texttt{model\_store.py}, las rutas de administración, el componente de inferencia y los tests asociados.
+
+También debe mantenerse la trazabilidad entre modelos e imágenes procesadas. Cuando una foto se procesa con un modelo concreto, conviene conservar la referencia al modelo utilizado, de forma que posteriormente pueda conocerse qué versión generó las trazas.
+
+\subsection{Seguridad y permisos}
+
+La seguridad del sistema depende en gran medida de mantener una separación clara entre usuarios normales y administradores. Las rutas de administración deben requerir siempre rol de administrador, y los usuarios sin dichos permisos no deben poder acceder a la gestión de usuarios ni a la gestión de modelos. Esta restricción debe aplicarse tanto en la interfaz como en las rutas del servidor, ya que ocultar botones en el frontend no es suficiente para proteger una operación sensible. 
+
+Las colecciones, imágenes y resultados deben comprobar siempre la propiedad o los permisos antes de mostrarse o descargarse. Un usuario normal solo debería acceder a sus propios recursos, salvo que se defina explícitamente otro comportamiento. Del mismo modo, las imágenes de perfil deben tratarse como datos personales y gestionarse con cuidado, evitando exponer rutas internas o permitir acceso directo a ficheros privados sin validación. 
+
+Los modelos subidos al sistema son ficheros especialmente sensibles. En particular, los modelos serializados mediante \texttt{pickle} no deben cargarse desde fuentes no controladas ni desde usuarios sin privilegios. La carga de modelos debe considerarse una operación de confianza restringida a administradores. Además, no deben exponerse rutas directas a modelos, imágenes subidas, bases de datos, resultados JSON o ficheros internos sin pasar por los mecanismos de autorización de la aplicación.
+
+\subsection{Recomendaciones de mantenimiento}
+
+Para mantener la aplicación de forma segura y sostenible, se recomienda no reescribir la arquitectura sin una necesidad clara. La estructura actual basada en Flask, \textit{Application Factory}, \textit{blueprints}, plantillas Jinja y módulos separados por responsabilidad permite evolucionar el sistema de forma incremental sin introducir una complejidad excesiva. 
+
+Antes de modificar la inferencia, se deberían preparar pruebas con imágenes representativas y máscaras esperadas, prestando atención a posibles cambios en bordes, trazas finas y regiones de baja visibilidad. Antes de modificar los \textit{workers}, conviene comprobar todos los estados relevantes: pendiente, en procesamiento, pausado, completado y fallido. Del mismo modo, cualquier cambio en la gestión de modelos debe validar subida, fallo de validación, validación correcta, activación y permisos de administración. 
+
+En la parte de interfaz, los cambios en JavaScript deben revisar que no se rompe la inyección de configuración desde Jinja. La aplicación utiliza objetos globales para pasar URLs, textos traducidos y datos iniciales a los scripts del navegador, por lo que cualquier modificación debe respetar ese contrato entre servidor y cliente. Asimismo, cuando se añadan nuevos textos visibles, deben actualizarse las traducciones correspondientes. 
+
+Finalmente, es importante mantener actualizados los tests de \texttt{pytest} y Selenium conforme evolucione la aplicación. También debe prestarse especial atención a las actualizaciones de PyTorch, \texttt{segmentation-models-pytorch}, \texttt{timm} y bibliotecas relacionadas con modelos, ya que pequeñas variaciones de versión pueden afectar a la carga, validación o salida de inferencia.
 
 \section{Compilación, instalación y ejecución del proyecto}
 
+En este apartado se describen los pasos necesarios para preparar el entorno de desarrollo, instalar las dependencias y ejecutar la aplicación. Al tratarse de un proyecto desarrollado con Python y Flask, no existe una fase de compilación clásica como ocurre en lenguajes compilados. En este caso, la preparación consiste en crear un entorno virtual, instalar las dependencias, preparar los recursos locales de la aplicación, compilar los catálogos de traducción si procede y arrancar el servidor web.
+
+\subsection{Requisitos previos}
+
+Para poder instalar y ejecutar correctamente el proyecto es necesario disponer de una serie de herramientas básicas en el equipo de desarrollo. En primer lugar, se requiere una versión de Python 3 compatible con el proyecto, junto con \texttt{pip} para la instalación de dependencias. También es necesario contar con Git para obtener el código fuente desde el repositorio y con un navegador web para acceder a la aplicación una vez iniciada.
+
+Además, se recomienda trabajar siempre dentro de un entorno virtual de Python, de forma que las dependencias del proyecto queden aisladas del resto del sistema. El proyecto puede ejecutarse tanto en Windows como en sistemas Linux o macOS, aunque para un despliegue en servidor se recomienda un entorno Linux con Gunicorn como servidor WSGI.
+
+De forma complementaria, el proyecto incluye pruebas de navegador basadas en Selenium. No obstante, la instalación y ejecución de dichas pruebas se documenta en el apartado específico de pruebas del sistema.
+
+\subsection{Obtención del proyecto}
+
+El primer paso consiste en clonar o descargar el repositorio completo del Trabajo de Fin de Grado. Una vez obtenido, se debe acceder a la raíz del proyecto, desde donde se realizarán las tareas generales de instalación y prueba.
+
+\begin{verbatim}
+	git clone https://github.com/Marcurio22/TFG-Marcos-Zamorano
+	cd TFG-Marcos-Zamorano
+\end{verbatim}
+
+En caso de recibir el proyecto como un archivo comprimido, bastará con descomprimirlo y situarse en la carpeta raíz equivalente.
+
+\subsection{Creación del entorno virtual}
+
+Para evitar conflictos con otras instalaciones de Python, se debe crear un entorno virtual específico para el proyecto. En Windows, utilizando PowerShell, puede hacerse mediante los siguientes comandos:
+
+\begin{verbatim}
+	python -m venv TFG_env
+	.\TFG_env\Scripts\Activate.ps1
+\end{verbatim}
+
+En Linux o macOS, el procedimiento equivalente es:
+
+\begin{verbatim}
+	python -m venv TFG_env
+	source TFG_env/bin/activate
+\end{verbatim}
+
+Todos los comandos posteriores de instalación, ejecución y prueba deben realizarse con el entorno virtual activado. De este modo, las bibliotecas se instalarán dentro del entorno del proyecto y no en la instalación global del sistema.
+
+\subsection{Instalación de dependencias}
+
+Las dependencias principales del proyecto se encuentran definidas en el fichero \texttt{requirements.txt}, ubicado dentro del directorio \texttt{webapp}. Por tanto, desde la raíz del repositorio, la instalación se realiza con el siguiente comando:
+
+\begin{verbatim}
+	pip install -r webapp/requirements.txt
+\end{verbatim}
+
+Este fichero incluye las bibliotecas necesarias para ejecutar la aplicación Flask, acceder a la base de datos, gestionar formularios, realizar inferencia, generar informes y ejecutar las pruebas básicas del sistema.
+
+\subsection{Configuración de rutas de Python}
+
+El paquete principal de la aplicación se encuentra dentro de \texttt{webapp/trazasytrazadas}, mientras que la suite de pruebas se encuentra en el directorio \texttt{tests}, situado fuera de \texttt{webapp}. Para que las pruebas puedan localizar correctamente el paquete de la aplicación, el fichero \texttt{pytest.ini} incluye la siguiente configuración:
+
+\begin{verbatim}
+	pythonpath = webapp
+\end{verbatim}
+
+Gracias a esta configuración, no es necesario definir manualmente la variable \texttt{PYTHONPATH} si los comandos de prueba se ejecutan desde la raíz del repositorio y el fichero \texttt{pytest.ini} se mantiene en su ubicación correspondiente.
+
+\subsection{Preparación de la base de datos y datos iniciales}
+
+La aplicación utiliza SQLite como sistema gestor de base de datos y SQLAlchemy como capa de acceso y modelado. Los datos locales de instancia, como la base de datos SQLite y otros recursos generados durante la ejecución, se almacenan dentro del directorio \texttt{webapp/instance}.
+
+Antes de ejecutar la aplicación debe comprobarse que el directorio \texttt{instance} existe y que el usuario que lanza el servidor dispone de permisos de lectura y escritura sobre él. En esta ubicación se guardan datos locales, ficheros generados y recursos necesarios para el funcionamiento de la aplicación.
+
+El proyecto incorpora un comando CLI de Flask para inicializar la base de datos y cargar los datos iniciales de demostración. Para ejecutarlo, la terminal debe situarse en el directorio \texttt{webapp} y lanzar el siguiente comando:
+
+\begin{verbatim}
+	cd webapp
+	flask --app run init-db
+\end{verbatim}
+
+Tras su ejecución, la aplicación confirma la operación mostrando el siguiente mensaje:
+
+\begin{verbatim}
+	Base de datos inicializada.
+\end{verbatim}
+
+Este proceso crea la estructura necesaria de la base de datos y carga una serie de datos iniciales que permiten probar la aplicación sin tener que registrar manualmente nuevos usuarios ni generar colecciones desde cero. Entre estos datos se incluyen usuarios de prueba, roles de administración y parcelas o colecciones asociadas a algunos usuarios.
+
+La Tabla~\ref{tab:usuarios_demostracion} muestra las cuentas de demostración disponibles tras la inicialización.
+
+\begin{table}[H]
+	\centering
+	\small
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{p{4cm} p{3cm} p{5cm}}
+		\toprule
+		\textbf{Usuario} & \textbf{Rol} & \textbf{Contraseña} \\
+		\midrule
+		\texttt{JavierGarcia} & Usuario &
+		\texttt{JuanjoElMejor2@} \\
+		\texttt{MarcosZ} & Administrador &
+		\texttt{Administrador.22} \\
+		\texttt{Vindi222} & Administrador &
+		\texttt{Administrador.11} \\
+		\texttt{Nickyer.25} & Usuario &
+		\texttt{Usuario.1} \\
+		\texttt{MCasadó} & Usuario &
+		\texttt{Usuario.2} \\
+		\bottomrule
+	\end{tabular}
+	\caption{Usuarios de demostración cargados durante la inicialización.}
+	\label{tab:usuarios_demostracion}
+\end{table}
+
+Además de las cuentas anteriores, el proceso de inicialización incorpora parcelas y colecciones de ejemplo asociadas a distintos usuarios. Estas colecciones permiten comprobar el funcionamiento de la galería, la descarga de teselas, la visualización de trazas y los estados de procesamiento sin tener que generar previamente una zona desde el visor cartográfico.
+
+Para realizar una revisión completa de las funcionalidades administrativas y de colección resulta especialmente útil iniciar sesión con el usuario \texttt{Vindi222}, ya que dispone de permisos de administrador y cuenta con contenido de demostración asociado.
+
+\subsection{Internacionalización}
+
+La aplicación utiliza Flask-Babel y catálogos \texttt{gettext} para gestionar la internacionalización de los textos visibles. Cuando se modifican textos traducibles en las plantillas o en el código Python, el flujo habitual consiste en extraer los mensajes, actualizar los catálogos de traducción y compilar los ficheros finales.
+
+Desde el directorio \texttt{webapp}, el proceso es el siguiente:
+
+\begin{verbatim}
+	cd webapp
+	pybabel extract -F babel.cfg -o messages.pot .
+	pybabel update -i messages.pot -d trazasytrazadas/translations
+	pybabel compile -d trazasytrazadas/translations
+\end{verbatim}
+
+Si únicamente se desea ejecutar la aplicación y los catálogos ya se encuentran actualizados, puede bastar con recompilar las traducciones:
+
+\begin{verbatim}
+	cd webapp
+	pybabel compile -d trazasytrazadas/translations
+\end{verbatim}
+
+Los textos traducibles deben envolverse mediante \texttt{\_()} en las plantillas o en el código Python. En el caso de los textos utilizados por JavaScript, no se debe insertar Jinja directamente dentro de ficheros \texttt{.js}. En su lugar, la aplicación inyecta desde las plantillas objetos globales con las cadenas ya traducidas y la configuración necesaria para cada vista.
+
+\subsection{Ejecución local de la aplicación}
+
+Una vez instalado el entorno y preparadas las dependencias, la aplicación puede ejecutarse localmente desde el directorio \texttt{webapp}. La forma recomendada mediante el fichero de arranque es:
+
+\begin{verbatim}
+	cd webapp
+	python run.py
+\end{verbatim}
+
+Tras iniciar el servidor, la aplicación estará disponible en la siguiente dirección:
+
+\begin{verbatim}
+	http://127.0.0.1:5000
+\end{verbatim}
+
+Desde esta URL se puede acceder a la interfaz principal de la aplicación, cargar imágenes, iniciar sesión, utilizar el visor cartográfico y acceder al resto de funcionalidades disponibles según el rol del usuario.
+
+\subsection{Ejecución en modo desarrollo}
+
+Durante la fase de desarrollo puede resultar útil ejecutar Flask en modo depuración, ya que permite recargar automáticamente el servidor ante cambios en el código y mostrar información detallada de errores. Para ello puede utilizarse el siguiente comando:
+
+\begin{verbatim}
+	flask --app run --debug run
+\end{verbatim}
+
+Este modo debe utilizarse únicamente en entornos locales de desarrollo. No debe activarse en un servidor de producción ni en el de la Universidad de Burgos, ya que puede exponer información interna de la aplicación y comprometer su seguridad.
+
+\subsection{Ejecución en servidor con Gunicorn}
+
+% Rellenar
+
+\subsection{Ejecución de pruebas básicas}
+
+Las pruebas automáticas básicas del proyecto pueden ejecutarse desde la raíz del repositorio mediante \texttt{pytest}. Gracias a la configuración incluida en \texttt{pytest.ini}, las rutas del paquete principal se resuelven automáticamente.
+
+Para ejecutar la suite de pruebas de forma resumida se utiliza:
+
+\begin{verbatim}
+	pytest -q
+\end{verbatim}
+
+Para obtener información de cobertura de código puede ejecutarse:
+
+\begin{verbatim}
+	pytest --cov=trazasytrazadas --cov-report=term-missing
+\end{verbatim}
+
+Si se desea generar informes adicionales en formato HTML y XML, puede utilizarse:
+
+\begin{verbatim}
+	pytest --cov=trazasytrazadas \
+	--cov-report=term-missing \
+	--cov-report=html \
+	--cov-report=xml
+\end{verbatim}
+
+El informe HTML de cobertura se genera en el directorio:
+
+\begin{verbatim}
+	htmlcov/index.html
+\end{verbatim}
+
+Este directorio es un artefacto generado por las pruebas y no es necesario para ejecutar la aplicación, pero sirve como comprobación para validar toda la cobertura de los tests sobre el código real.
+
+\subsection{Problemas frecuentes}
+
+Durante la instalación o ejecución pueden aparecer algunos problemas habituales:
+
+\begin{itemize}
+	\item \textbf{\texttt{ModuleNotFoundError: No module named 'trazasytrazadas'.}} Este error suele indicar que las pruebas se han ejecutado desde una ubicación incorrecta o que no se está aplicando la configuración de \texttt{pytest.ini}. Debe comprobarse que se ejecuta desde la raíz del repositorio y que existe la línea \texttt{pythonpath = webapp}.
+	
+	\item \textbf{No se encuentra Flask o alguna dependencia.} Normalmente se debe a que el entorno virtual no está activado o a que no se han instalado las dependencias. Debe activarse el entorno y ejecutar \texttt{pip install -r webapp/requirements.txt}.
+	
+	\item \textbf{No se crean ficheros en \texttt{instance}.} Este problema suele estar relacionado con permisos de escritura. Debe comprobarse que el directorio existe y que el usuario que ejecuta la aplicación puede escribir en él.
+	
+	\item \textbf{Las traducciones no aparecen actualizadas.} En este caso conviene recompilar los catálogos mediante \texttt{pybabel compile -d trazasytrazadas/translations} desde el directorio \texttt{webapp}.
+	
+	\item \textbf{Error al arrancar Gunicorn.} Debe comprobarse que el comando se ejecuta desde \texttt{webapp} o que la ruta de Python incluye dicho directorio. También debe verificarse que Gunicorn tiene acceso al paquete \texttt{trazasytrazadas} y que el directorio \texttt{instance} dispone de permisos adecuados.
+\end{itemize}
+
 \section{Pruebas del sistema}
+
+En esta sección se recogen las pruebas funcionales realizadas sobre la aplicación mediante casos de prueba derivados de los principales flujos de usuario. Estas pruebas se han validado sobre la versión final de la suite Selenium, por lo que todos los casos descritos presentan estado de ejecución satisfactorio. El objetivo de este apartado es documentar, de forma estructurada, qué funcionalidad se comprueba en cada caso, qué condiciones deben cumplirse antes de ejecutarlo y qué resultado se obtiene tras cada paso.
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP1 \\
+		\textbf{Prioridad} & Muy alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar el registro, inicio de sesión y cierre de sesión de un usuario. \\
+		\textbf{Precondiciones} & Sin usuario con sesión iniciada. \\
+		\textbf{Postcondiciones} & Usuario registrado y sesión cerrada correctamente. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & URL raíz de la aplicación. & Se muestra la página principal. & Se muestra la página principal. & Éxito \\
+		2 & Botón de menú y enlace \textit{Registrarse}. & Se muestra el formulario de registro. & Se muestra el formulario de registro. & Éxito \\
+		3 & Nombre de usuario, correo y contraseña válidos. & Los datos quedan introducidos en el formulario. & Los datos quedan introducidos en el formulario. & Éxito \\
+		4 & Botón de envío. & El usuario queda registrado y autenticado. & El usuario queda registrado y autenticado. & Éxito \\
+		5 & Opción de cierre de sesión. & La sesión finaliza y vuelve a mostrarse el acceso a inicio de sesión. & La sesión finaliza y vuelve a mostrarse el acceso a inicio de sesión. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 1: registro, inicio y cierre de sesión.}
+	\label{tab:cp1}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP2 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la modificación de la información del perfil de usuario. \\
+		\textbf{Precondiciones} & Usuario registrado con sesión iniciada. \\
+		\textbf{Postcondiciones} & Los datos visibles del perfil quedan actualizados. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & URL raíz de la aplicación. & Se muestra la página principal con el usuario autenticado. & Se muestra la página principal con el usuario autenticado. & Éxito \\
+		2 & Opción \textit{Perfil} del menú de usuario. & Se muestra la pantalla de perfil. & Se muestra la pantalla de perfil. & Éxito \\
+		3 & Botón \textit{Editar información}. & Se muestra el formulario de edición del perfil. & Se muestra el formulario de edición del perfil. & Éxito \\
+		4 & Nuevo nombre, correo o teléfono. & Los nuevos datos quedan introducidos. & Los nuevos datos quedan introducidos. & Éxito \\
+		5 & Botón \textit{Guardar cambios}. & El perfil muestra los datos actualizados. & El perfil muestra los datos actualizados. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 2: modificación de información del perfil.}
+	\label{tab:cp2}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP3 \\
+		\textbf{Prioridad} & Media \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar el cambio y confirmación de imagen de perfil. \\
+		\textbf{Precondiciones} & Usuario registrado con sesión iniciada. \\
+		\textbf{Postcondiciones} & La imagen de perfil queda actualizada. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Opción \textit{Perfil}. & Se muestra la página de perfil. & Se muestra la página de perfil. & Éxito \\
+		2 & Fichero de imagen válido. & Se muestra la pantalla de confirmación. & Se muestra la pantalla de confirmación. & Éxito \\
+		3 & Botón de confirmación. & La imagen queda asociada al usuario. & La imagen queda asociada al usuario. & Éxito \\
+		4 & Redirección posterior. & La nueva imagen aparece en el perfil. & La nueva imagen aparece en el perfil. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 3: cambio de imagen de perfil.}
+	\label{tab:cp3}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP4 \\
+		\textbf{Prioridad} & Muy alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar el cálculo de trazas sobre una imagen individual. \\
+		\textbf{Precondiciones} & Aplicación disponible y modelo de segmentación preparado o simulado para la prueba. \\
+		\textbf{Postcondiciones} & Resultados de trazas generados para la imagen. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & URL raíz de la aplicación. & Se muestra el formulario de subida de imagen. & Se muestra el formulario de subida de imagen. & Éxito \\
+		2 & Fichero de imagen válido. & La imagen queda cargada en el formulario. & La imagen queda cargada en el formulario. & Éxito \\
+		3 & Botón de cálculo. & La aplicación procesa la imagen. & La aplicación procesa la imagen. & Éxito \\
+		4 & Resultado generado. & Se habilitan opciones de visualización y descarga. & Se habilitan opciones de visualización y descarga. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 4: cálculo de trazas sobre imagen individual.}
+	\label{tab:cp4}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP5 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la descarga del ZIP de resultados de una imagen individual. \\
+		\textbf{Precondiciones} & Imagen individual procesada correctamente. \\
+		\textbf{Postcondiciones} & Archivo ZIP descargado. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Imagen ya procesada. & Se muestra el botón de descarga. & Se muestra el botón de descarga. & Éxito \\
+		2 & Botón de descarga de resultados. & Se inicia la descarga del archivo ZIP. & Se inicia la descarga del archivo ZIP. & Éxito \\
+		3 & Carpeta de descargas del navegador. & Existe un archivo ZIP con los resultados. & Existe un archivo ZIP con los resultados. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 5: descarga del ZIP de una imagen individual.}
+	\label{tab:cp5}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP6 \\
+		\textbf{Prioridad} & Media \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la apertura del modal de generación del visor y el control de reinicio. \\
+		\textbf{Precondiciones} & Sin precondiciones. \\
+		\textbf{Postcondiciones} & Modal mostrado correctamente. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Ruta del visor. & Se muestra el mapa y los controles superiores. & Se muestra el mapa y los controles superiores. & Éxito \\
+		2 & Botón \textit{Generar}. & Se abre el modal de generación de cuadrícula. & Se abre el modal de generación de cuadrícula. & Éxito \\
+		3 & Controles del visor. & El botón \textit{Reiniciar selección} aparece fuera del modal. & El botón \textit{Reiniciar selección} aparece fuera del modal. & Éxito \\
+		4 & Tooltip del botón de reinicio. & El tooltip indica que borra la selección. & El tooltip indica que borra la selección. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 6: modal de generación y reinicio del visor.}
+	\label{tab:cp6}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP7 \\
+		\textbf{Prioridad} & Muy alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la generación de una zona desde el visor y su apertura en la colección. \\
+		\textbf{Precondiciones} & Usuario autenticado y visor cartográfico disponible. \\
+		\textbf{Postcondiciones} & Colección generada y accesible desde la aplicación. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Ruta del visor. & Se muestra el mapa. & Se muestra el mapa. & Éxito \\
+		2 & Dos puntos sobre una zona rural válida. & Se marca un área rectangular en el mapa. & Se marca un área rectangular en el mapa. & Éxito \\
+		3 & Botón \textit{Generar}. & Se muestra el modal con la resolución objetivo. & Se muestra el modal con la resolución objetivo. & Éxito \\
+		4 & Botón \textit{Generar cuadrícula}. & Se crea la zona y sus teselas. & Se crea la zona y sus teselas. & Éxito \\
+		5 & Botón \textit{Abrir colección}. & Se accede a la colección asociada a la zona. & Se accede a la colección asociada a la zona. & Éxito \\
+		6 & Colección generada. & Las teselas aparecen procesadas o completadas según la simulación del test. & Las teselas aparecen procesadas o completadas según la simulación del test. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 7: generación de zona y apertura de colección.}
+	\label{tab:cp7}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP8 \\
+		\textbf{Prioridad} & Media \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar el reinicio de la selección en el visor cartográfico. \\
+		\textbf{Precondiciones} & Visor abierto con una zona seleccionada. \\
+		\textbf{Postcondiciones} & Selección eliminada del mapa. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Ruta del visor. & Se muestra el mapa. & Se muestra el mapa. & Éxito \\
+		2 & Dos clics sobre el mapa. & Aparecen los marcadores de selección. & Aparecen los marcadores de selección. & Éxito \\
+		3 & Botón de reinicio. & Los marcadores y el área seleccionada desaparecen. & Los marcadores y el área seleccionada desaparecen. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 8: reinicio de selección en el visor.}
+	\label{tab:cp8}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP9 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la pausa y reanudación del procesamiento de una colección. \\
+		\textbf{Precondiciones} & Usuario autenticado y colección con teselas pendientes. \\
+		\textbf{Postcondiciones} & La colección vuelve a quedar en estado de procesamiento. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Ruta de colección. & Se muestra la colección con teselas pendientes. & Se muestra la colección con teselas pendientes. & Éxito \\
+		2 & Botón con icono de pausa. & La colección queda pausada. & La colección queda pausada. & Éxito \\
+		3 & Estado de la colección. & El botón cambia a icono de reanudación. & El botón cambia a icono de reanudación. & Éxito \\
+		4 & Botón con icono de reanudación. & La colección vuelve a estar disponible para procesarse. & La colección vuelve a estar disponible para procesarse. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 9: pausa y reanudación del procesamiento.}
+	\label{tab:cp9}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP10 \\
+		\textbf{Prioridad} & Media \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar el renombrado de una colección desde su galería. \\
+		\textbf{Precondiciones} & Usuario autenticado y colección existente. \\
+		\textbf{Postcondiciones} & La colección queda renombrada. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Botón \textit{Ver galería}. & Se muestra la galería de teselas. & Se muestra la galería de teselas. & Éxito \\
+		2 & Control de edición del nombre. & Se muestra el formulario de renombrado. & Se muestra el formulario de renombrado. & Éxito \\
+		3 & Nuevo nombre de colección. & El nuevo nombre queda introducido. & El nuevo nombre queda introducido. & Éxito \\
+		4 & Botón de guardado. & La galería muestra el nuevo nombre. & La galería muestra el nuevo nombre. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 10: renombrado de colección.}
+	\label{tab:cp10}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP11 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la visualización ampliada de teselas y trazas en galería. \\
+		\textbf{Precondiciones} & Colección con teselas procesadas. \\
+		\textbf{Postcondiciones} & La tesela ampliada muestra la información de trazas. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Colección con teselas. & Se muestra el listado visual de teselas. & Se muestra el listado visual de teselas. & Éxito \\
+		2 & Vista previa de tesela. & Se muestra la tesela ampliada. & Se muestra la tesela ampliada. & Éxito \\
+		3 & Tesela completada. & Se visualizan las trazas asociadas a la tesela. & Se visualizan las trazas asociadas a la tesela. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 11: visualización ampliada de teselas y trazas.}
+	\label{tab:cp11}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP12 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la descarga del ZIP de una colección. \\
+		\textbf{Precondiciones} & Colección existente con teselas descargables. \\
+		\textbf{Postcondiciones} & Archivo ZIP de colección descargado. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Colección generada. & Se muestra el botón de descarga. & Se muestra el botón de descarga. & Éxito \\
+		2 & Botón de descarga ZIP. & Se inicia la descarga del archivo ZIP. & Se inicia la descarga del archivo ZIP. & Éxito \\
+		3 & Carpeta de descargas del navegador. & Existe un archivo ZIP de la colección. & Existe un archivo ZIP de la colección. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 12: descarga del ZIP de una colección.}
+	\label{tab:cp12}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP13 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la subida de un modelo desde el panel de administración. \\
+		\textbf{Precondiciones} & Administrador con sesión iniciada. \\
+		\textbf{Postcondiciones} & Modelo añadido en estado pendiente. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Usuario administrador. & Se muestra la administración. & Se muestra la administración. & Éxito \\
+		2 & Enlace de modelos. & Se muestra la tabla de modelos. & Se muestra la tabla de modelos. & Éxito \\
+		3 & Botón de añadir modelo. & Se muestra el formulario de subida. & Se muestra el formulario de subida. & Éxito \\
+		4 & Fichero de modelo a cargar. & El fichero queda seleccionado. & El fichero queda seleccionado. & Éxito \\
+		5 & Botón de envío. & El modelo aparece en la tabla como pendiente. & El modelo aparece en la tabla como pendiente. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 13: subida de modelo desde administración.}
+	\label{tab:cp13}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP14 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la edición de un usuario desde el panel de administración. \\
+		\textbf{Precondiciones} & Administrador con sesión iniciada y usuario normal existente. \\
+		\textbf{Postcondiciones} & Datos del usuario modificados. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Panel de administración. & Se muestra la tabla de usuarios. & Se muestra la tabla de usuarios. & Éxito \\
+		2 & Botón \textit{Editar}. & Se muestra la pantalla de edición del usuario. & Se muestra la pantalla de edición del usuario. & Éxito \\
+		3 & Nuevo nombre, correo, teléfono o rol. & Los datos quedan introducidos. & Los datos quedan introducidos. & Éxito \\
+		4 & Botón \textit{Guardar cambios}. & Los datos del usuario quedan actualizados. & Los datos del usuario quedan actualizados. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 14: edición de usuario desde administración.}
+	\label{tab:cp14}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP15 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la eliminación de un usuario desde el panel de administración. \\
+		\textbf{Precondiciones} & Administrador con sesión iniciada y usuario normal existente. \\
+		\textbf{Postcondiciones} & El usuario queda eliminado del sistema. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Panel de administración. & Se muestra la tabla de usuarios. & Se muestra la tabla de usuarios. & Éxito \\
+		2 & Botón \textit{Eliminar}. & Se muestra el modal de confirmación. & Se muestra el modal de confirmación. & Éxito \\
+		3 & Botón \textit{Eliminar} del modal. & El usuario se elimina. & El usuario se elimina. & Éxito \\
+		4 & Tabla de usuarios. & El usuario eliminado ya no aparece. & El usuario eliminado ya no aparece. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 15: eliminación de usuario desde administración.}
+	\label{tab:cp15}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP16 \\
+		\textbf{Prioridad} & Media \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar el renombrado de un modelo desde administración. \\
+		\textbf{Precondiciones} & Administrador con sesión iniciada y modelo existente. \\
+		\textbf{Postcondiciones} & El modelo queda renombrado. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Panel de administración. & Se muestra la tabla de modelos. & Se muestra la tabla de modelos. & Éxito \\
+		2 & Botón de renombrado del modelo. & Se muestra el modal correspondiente. & Se muestra el modal correspondiente. & Éxito \\
+		3 & Nuevo nombre del modelo. & El nombre queda introducido. & El nombre queda introducido. & Éxito \\
+		4 & Botón de confirmación. & La tabla muestra el nuevo nombre del modelo. & La tabla muestra el nuevo nombre del modelo. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 16: renombrado de modelo desde administración.}
+	\label{tab:cp16}
+\end{table}
+
+\begin{table}[H]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP17 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la activación de un modelo desde administración. \\
+		\textbf{Precondiciones} & Administrador con sesión iniciada y modelo validado existente. \\
+		\textbf{Postcondiciones} & El modelo seleccionado queda activo. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Panel de administración. & Se muestra la tabla de modelos. & Se muestra la tabla de modelos. & Éxito \\
+		2 & Botón de activación del modelo. & Se muestra el modal de confirmación. & Se muestra el modal de confirmación. & Éxito \\
+		3 & Botón de confirmación del modal. & El modelo queda marcado como activo. & El modelo queda marcado como activo. & Éxito \\
+		4 & Tabla de modelos. & La tabla indica que el modelo está activo. & La tabla indica que el modelo está activo. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 17: activación de modelo desde administración.}
+	\label{tab:cp17}
+\end{table}
