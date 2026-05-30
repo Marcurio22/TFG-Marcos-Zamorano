@@ -12,6 +12,8 @@ Versión: 0.1
 
 from __future__ import annotations
 
+import os
+
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash
 
@@ -21,6 +23,28 @@ from tests.auth_helpers import (
     _disable_csrf,
     _login_payload,
 )
+
+
+def _store_image_workflow_session(app, client):
+    """Crea artefactos de imagen/trazas y los guarda en sesión."""
+    upload_name = "imagen_anterior.jpg"
+    traces_name = "imagen_anterior_traces.json"
+    upload_path = os.path.join(app.config["UPLOAD_FOLDER"], upload_name)
+    traces_path = os.path.join(app.config["OUTPUT_FOLDER"], traces_name)
+
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
+
+    with open(upload_path, "wb") as image_file:
+        image_file.write(b"imagen anterior")
+    with open(traces_path, "w", encoding="utf-8") as traces_file:
+        traces_file.write("{\"xs\": [], \"ys\": []}")
+
+    with client.session_transaction() as session:
+        session["image_filename"] = upload_name
+        session["traces_file"] = traces_name
+
+    return upload_path, traces_path
 
 
 def test_login_page_renders(app, client):
@@ -56,6 +80,36 @@ def test_login_authenticates_user_and_stores_session(app, client):
     with client.session_transaction() as session:
         assert session.get("_user_id") == str(user_id)
         assert session.get("_fresh") is True
+
+
+def test_login_clears_previous_image_workflow_session(app, client):
+    """El login no hereda imagen ni trazas de una sesión anterior."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="Pepe1234",
+        email="pepe1234@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+    upload_path, traces_path = _store_image_workflow_session(app, client)
+
+    response = client.post(
+        "/login",
+        data=_login_payload(),
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Has iniciado sesi" in html
+
+    with client.session_transaction() as session:
+        assert session.get("_user_id") == str(user_id)
+        assert "image_filename" not in session
+        assert "traces_file" not in session
+
+    assert not os.path.exists(upload_path)
+    assert not os.path.exists(traces_path)
 
 
 def test_login_rejects_wrong_password(app, client):
@@ -183,6 +237,33 @@ def test_logout_clears_session_and_redirects_home(app, client):
 
     with client.session_transaction() as session:
         assert "_user_id" not in session
+
+
+def test_logout_clears_image_workflow_session(app, client):
+    """Logout descarta imagen y trazas ligadas a la sesión cerrada."""
+    user_id = _create_user(
+        app,
+        username="usuario_logout_estado",
+        email="logout_estado@example.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+    upload_path, traces_path = _store_image_workflow_session(app, client)
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.post("/logout", follow_redirects=True)
+
+    assert response.status_code == 200
+
+    with client.session_transaction() as session:
+        assert "_user_id" not in session
+        assert "image_filename" not in session
+        assert "traces_file" not in session
+
+    assert not os.path.exists(upload_path)
+    assert not os.path.exists(traces_path)
 
 
 def test_logout_requires_authenticated_user(client):

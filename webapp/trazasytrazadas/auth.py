@@ -98,6 +98,10 @@ def _format_user_joined_at(value) -> str:
 _PROFILE_IMAGE_ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 _PROFILE_IMAGE_SIZE = (512, 512)
 _PROFILE_IMAGE_SESSION_KEY = "profile_image_preview_path"
+_TRACE_SESSION_ARTIFACTS = (
+    ("image_filename", "UPLOAD_FOLDER"),
+    ("traces_file", "OUTPUT_FOLDER"),
+)
 
 try:
     _IMAGE_RESAMPLING = Image.Resampling.LANCZOS
@@ -140,10 +144,61 @@ def _delete_profile_image_file(relative_path: str | None) -> None:
             )
 
 
+def _delete_session_artifact(filename: str | None, folder_key: str) -> None:
+    """Borra un artefacto de sesión dentro de la carpeta configurada."""
+    if not filename:
+        return
+
+    folder = current_app.config.get(folder_key)
+    if not folder:
+        return
+
+    root = os.path.abspath(folder)
+    absolute_path = os.path.abspath(os.path.join(root, filename))
+
+    try:
+        is_safe = os.path.commonpath([root, absolute_path]) == root
+    except ValueError:
+        is_safe = False
+
+    if not is_safe:
+        current_app.logger.warning(
+            "Ruta de artefacto de sesión fuera de %s: %s.",
+            folder_key,
+            filename,
+        )
+        return
+
+    if not os.path.exists(absolute_path):
+        return
+
+    try:
+        os.remove(absolute_path)
+    except OSError:
+        current_app.logger.warning(
+            "No se pudo eliminar el artefacto de sesión %s.",
+            filename,
+            exc_info=True,
+        )
+
+
+def _clear_image_workflow_session() -> None:
+    """Elimina imagen y trazas temporales de la sesión actual."""
+    for session_key, folder_key in _TRACE_SESSION_ARTIFACTS:
+        filename = session.pop(session_key, None)
+        _delete_session_artifact(filename, folder_key)
+
+
 def _clear_pending_profile_image() -> None:
     """Elimina la previsualización temporal pendiente, si existe."""
     pending_path = session.pop(_PROFILE_IMAGE_SESSION_KEY, None)
     _delete_profile_image_file(pending_path)
+
+
+def _clear_user_switch_session_state() -> None:
+    """Limpia estado temporal que no debe heredarse entre usuarios."""
+    _clear_image_workflow_session()
+    _clear_pending_profile_image()
 
 
 def _profile_image_extension(filename: str | None) -> str:
@@ -307,6 +362,7 @@ def register_auth_routes(bp) -> None:
             ):
                 flash(_("Usuario o contraseña incorrectos."), "error")
             else:
+                _clear_user_switch_session_state()
                 login_user(user)
                 flash(_("Has iniciado sesión correctamente."), "success")
                 return redirect(url_for("trazas.index"))
@@ -316,7 +372,8 @@ def register_auth_routes(bp) -> None:
     @bp.route("/logout", methods=["POST"])
     @login_required
     def logout():
-        """Cierra la sesión activa y vuelve a la portada."""
+        """Cierra la sesión activa y descarta estado temporal."""
+        _clear_user_switch_session_state()
         logout_user()
         flash(_("Has cerrado sesión correctamente."), "success")
         return redirect(url_for("trazas.index"))
