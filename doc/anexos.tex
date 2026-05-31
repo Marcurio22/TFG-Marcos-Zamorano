@@ -107,15 +107,99 @@
 	lefttitle=6mm
 }
 
-\usepackage{fvextra}
+% Cajas para comandos de terminal
+
+\tcbset{
+	terminalbase/.style={
+		enhanced,
+		breakable,
+		listing only,
+		listing engine=listings,
+		width=\textwidth,
+		boxrule=0.9pt,
+		arc=1.5mm,
+		outer arc=1.5mm,
+		boxsep=0pt,
+		left=4mm,
+		right=2mm,
+		top=1.2mm,
+		bottom=1.2mm,
+		toptitle=1.4mm,
+		bottomtitle=1.4mm,
+		lefttitle=4mm,
+		fonttitle=\bfseries,
+		coltitle=white,
+		before skip=6pt,
+		after skip=6pt,
+		listing options={
+			basicstyle=\ttfamily\small,
+			breaklines=true,
+			columns=fullflexible,
+			keepspaces=true,
+			showstringspaces=false,
+			aboveskip=0pt,
+			belowskip=0pt,
+			xleftmargin=0pt,
+			framexleftmargin=0pt
+		}
+	}
+}
+
+\newtcblisting{gitbox}[1]{
+	terminalbase,
+	title={#1},
+	colback=green!3!white,
+	colframe=green!45!black,
+	colbacktitle=green!45!black
+}
+
+\newtcblisting{windowsbox}[1]{
+	terminalbase,
+	title={#1},
+	colback=violet!3!white,
+	colframe=violet!55!black,
+	colbacktitle=violet!55!black
+}
+
+\newtcblisting{linuxbox}[1]{
+	terminalbase,
+	title={#1},
+	colback=blue!3!white,
+	colframe=blue!55!black,
+	colbacktitle=blue!55!black
+}
+
+\newtcblisting{pythonbox}[1]{
+	terminalbase,
+	title={#1},
+	colback=yellow!6!white,
+	colframe=orange!75!black,
+	colbacktitle=orange!85!black
+}
+
+\newtcblisting{infocmdbox}[1]{
+	terminalbase,
+	title={#1},
+	colback=gray!6!white,
+	colframe=gray!60!black,
+	colbacktitle=gray!70!black
+}
+
+\newtcblisting{testbox}[1]{
+	terminalbase,
+	title={#1},
+	colback=purple!4!white,
+	colframe=purple!60!black,
+	colbacktitle=purple!70!black
+}
+
 \usepackage{caption}
 \usepackage{dirtree}
 
-\captionsetup[figure]{skip=4pt}
-
 \newcommand{\punto}{\textrm{.}}
 
-\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}m{#1}}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}m{#1}}
 
 % El comando \figura nos permite insertar figuras comodamente, y utilizando
 % siempre el mismo formato. Los parametros son:

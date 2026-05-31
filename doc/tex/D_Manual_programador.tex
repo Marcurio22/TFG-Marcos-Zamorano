@@ -206,10 +206,10 @@ De forma complementaria, el proyecto incluye pruebas de navegador basadas en Sel
 
 El primer paso consiste en clonar o descargar el repositorio completo del Trabajo de Fin de Grado. Una vez obtenido, se debe acceder a la raíz del proyecto, desde donde se realizarán las tareas generales de instalación y prueba.
 
-\begin{verbatim}
-	git clone https://github.com/Marcurio22/TFG-Marcos-Zamorano
-	cd TFG-Marcos-Zamorano
-\end{verbatim}
+\begin{gitbox}{Obtención del proyecto}
+git clone https://github.com/Marcurio22/TFG-Marcos-Zamorano
+cd TFG-Marcos-Zamorano
+\end{gitbox}
 
 En caso de recibir el proyecto como un archivo comprimido, bastará con descomprimirlo y situarse en la carpeta raíz equivalente.
 
@@ -217,17 +217,17 @@ En caso de recibir el proyecto como un archivo comprimido, bastará con descompr
 
 Para evitar conflictos con otras instalaciones de Python, se debe crear un entorno virtual específico para el proyecto. En Windows, utilizando PowerShell, puede hacerse mediante los siguientes comandos:
 
-\begin{verbatim}
-	python -m venv TFG_env
-	.\TFG_env\Scripts\Activate.ps1
-\end{verbatim}
+\begin{windowsbox}{Creación del entorno virtual en Windows}
+python -m venv TFG_env
+.\TFG_env\Scripts\Activate.ps1
+\end{windowsbox}
 
 En Linux o macOS, el procedimiento equivalente es:
 
-\begin{verbatim}
-	python -m venv TFG_env
-	source TFG_env/bin/activate
-\end{verbatim}
+\begin{linuxbox}{Creación del entorno virtual en Linux o macOS}
+python -m venv TFG_env
+source TFG_env/bin/activate
+\end{linuxbox}
 
 Todos los comandos posteriores de instalación, ejecución y prueba deben realizarse con el entorno virtual activado. De este modo, las bibliotecas se instalarán dentro del entorno del proyecto y no en la instalación global del sistema.
 
@@ -235,9 +235,9 @@ Todos los comandos posteriores de instalación, ejecución y prueba deben realiz
 
 Las dependencias principales del proyecto se encuentran definidas en el fichero \texttt{requirements.txt}, ubicado dentro del directorio \texttt{webapp}. Por tanto, desde la raíz del repositorio, la instalación se realiza con el siguiente comando:
 
-\begin{verbatim}
-	pip install -r webapp/requirements.txt
-\end{verbatim}
+\begin{pythonbox}{Instalación de dependencias}
+pip install -r webapp/requirements.txt
+\end{pythonbox}
 
 Este fichero incluye las bibliotecas necesarias para ejecutar la aplicación Flask, acceder a la base de datos, gestionar formularios, realizar inferencia, generar informes y ejecutar las pruebas básicas del sistema.
 
@@ -245,9 +245,9 @@ Este fichero incluye las bibliotecas necesarias para ejecutar la aplicación Fla
 
 El paquete principal de la aplicación se encuentra dentro de \texttt{webapp/trazasytrazadas}, mientras que la suite de pruebas se encuentra en el directorio \texttt{tests}, situado fuera de \texttt{webapp}. Para que las pruebas puedan localizar correctamente el paquete de la aplicación, el fichero \texttt{pytest.ini} incluye la siguiente configuración:
 
-\begin{verbatim}
-	pythonpath = webapp
-\end{verbatim}
+\begin{infocmdbox}{Configuración de rutas de Python}
+pythonpath = webapp
+\end{infocmdbox}
 
 Gracias a esta configuración, no es necesario definir manualmente la variable \texttt{PYTHONPATH} si los comandos de prueba se ejecutan desde la raíz del repositorio y el fichero \texttt{pytest.ini} se mantiene en su ubicación correspondiente.
 
@@ -259,16 +259,16 @@ Antes de ejecutar la aplicación debe comprobarse que el directorio \texttt{inst
 
 El proyecto incorpora un comando CLI de Flask para inicializar la base de datos y cargar los datos iniciales de demostración. Para ejecutarlo, la terminal debe situarse en el directorio \texttt{webapp} y lanzar el siguiente comando:
 
-\begin{verbatim}
-	cd webapp
-	flask --app run init-db
-\end{verbatim}
+\begin{pythonbox}{Inicialización de la base de datos}
+cd webapp
+flask --app run init-db
+\end{pythonbox}
 
 Tras su ejecución, la aplicación confirma la operación mostrando el siguiente mensaje:
 
-\begin{verbatim}
-	Base de datos inicializada.
-\end{verbatim}
+\begin{infocmdbox}{Mensaje de confirmación}
+Base de datos inicializada.
+\end{infocmdbox}
 
 Este proceso crea la estructura necesaria de la base de datos y carga una serie de datos iniciales que permiten probar la aplicación sin tener que registrar manualmente nuevos usuarios ni generar colecciones desde cero. Entre estos datos se incluyen usuarios de prueba, roles de administración y parcelas o colecciones asociadas a algunos usuarios.
 
@@ -308,19 +308,19 @@ La aplicación utiliza Flask-Babel y catálogos \texttt{gettext} para gestionar 
 
 Desde el directorio \texttt{webapp}, el proceso es el siguiente:
 
-\begin{verbatim}
-	cd webapp
-	pybabel extract -F babel.cfg -o messages.pot .
-	pybabel update -i messages.pot -d trazasytrazadas/translations
-	pybabel compile -d trazasytrazadas/translations
-\end{verbatim}
+\begin{pythonbox}{Internacionalización}
+cd webapp
+pybabel extract -F babel.cfg -o messages.pot .
+pybabel update -i messages.pot -d trazasytrazadas/translations
+pybabel compile -d trazasytrazadas/translations
+\end{pythonbox}
 
 Si únicamente se desea ejecutar la aplicación y los catálogos ya se encuentran actualizados, puede bastar con recompilar las traducciones:
 
-\begin{verbatim}
-	cd webapp
-	pybabel compile -d trazasytrazadas/translations
-\end{verbatim}
+\begin{pythonbox}{Compilación de traducciones}
+cd webapp
+pybabel compile -d trazasytrazadas/translations
+\end{pythonbox}
 
 Los textos traducibles deben envolverse mediante \texttt{\_()} en las plantillas o en el código Python. En el caso de los textos utilizados por JavaScript, no se debe insertar Jinja directamente dentro de ficheros \texttt{.js}. En su lugar, la aplicación inyecta desde las plantillas objetos globales con las cadenas ya traducidas y la configuración necesaria para cada vista.
 
@@ -328,16 +328,15 @@ Los textos traducibles deben envolverse mediante \texttt{\_()} en las plantillas
 
 Una vez instalado el entorno y preparadas las dependencias, la aplicación puede ejecutarse localmente desde el directorio \texttt{webapp}. La forma recomendada mediante el fichero de arranque es:
 
-\begin{verbatim}
-	cd webapp
-	python run.py
-\end{verbatim}
+\begin{pythonbox}{Ejecución local de la aplicación}
+cd webapp
+python run.py
+\end{pythonbox}
 
 Tras iniciar el servidor, la aplicación estará disponible en la siguiente dirección:
 
-\begin{verbatim}
-	http://127.0.0.1:5000
-\end{verbatim}
+\begin{infocmdbox}{Dirección local de la aplicación}	http://127.0.0.1:5000
+\end{infocmdbox}
 
 Desde esta URL se puede acceder a la interfaz principal de la aplicación, cargar imágenes, iniciar sesión, utilizar el visor cartográfico y acceder al resto de funcionalidades disponibles según el rol del usuario.
 
@@ -345,9 +344,9 @@ Desde esta URL se puede acceder a la interfaz principal de la aplicación, carga
 
 Durante la fase de desarrollo puede resultar útil ejecutar Flask en modo depuración, ya que permite recargar automáticamente el servidor ante cambios en el código y mostrar información detallada de errores. Para ello puede utilizarse el siguiente comando:
 
-\begin{verbatim}
-	flask --app run --debug run
-\end{verbatim}
+\begin{pythonbox}{Ejecución en modo desarrollo}
+flask --app run --debug run
+\end{pythonbox}
 
 Este modo debe utilizarse únicamente en entornos locales de desarrollo. No debe activarse en un servidor de producción ni en el de la Universidad de Burgos, ya que puede exponer información interna de la aplicación y comprometer su seguridad.
 
@@ -361,30 +360,30 @@ Las pruebas automáticas básicas del proyecto pueden ejecutarse desde la raíz 
 
 Para ejecutar la suite de pruebas de forma resumida se utiliza:
 
-\begin{verbatim}
-	pytest -q
-\end{verbatim}
+\begin{testbox}{Ejecución resumida de pruebas}
+pytest -q
+\end{testbox}
 
 Para obtener información de cobertura de código puede ejecutarse:
 
-\begin{verbatim}
-	pytest --cov=trazasytrazadas --cov-report=term-missing
-\end{verbatim}
+\begin{testbox}{Ejecución de pruebas con cobertura}
+pytest --cov=trazasytrazadas --cov-report=term-missing
+\end{testbox}
 
 Si se desea generar informes adicionales en formato HTML y XML, puede utilizarse:
 
-\begin{verbatim}
-	pytest --cov=trazasytrazadas \
-	--cov-report=term-missing \
-	--cov-report=html \
-	--cov-report=xml
-\end{verbatim}
+\begin{testbox}{Generación de informes de cobertura}
+pytest --cov=trazasytrazadas \
+--cov-report=term-missing \
+--cov-report=html \
+--cov-report=xml
+\end{testbox}
 
 El informe HTML de cobertura se genera en el directorio:
 
-\begin{verbatim}
-	htmlcov/index.html
-\end{verbatim}
+\begin{infocmdbox}{Informe HTML de cobertura}
+htmlcov/index.html
+\end{infocmdbox}
 
 Este directorio es un artefacto generado por las pruebas y no es necesario para ejecutar la aplicación, pero sirve como comprobación para validar toda la cobertura de los tests sobre el código real.
 
@@ -407,6 +406,34 @@ Durante la instalación o ejecución pueden aparecer algunos problemas habituale
 \section{Pruebas del sistema}
 
 En esta sección se recogen las pruebas funcionales realizadas sobre la aplicación mediante casos de prueba derivados de los principales flujos de usuario. Estas pruebas se han validado sobre la versión final de la suite Selenium, por lo que todos los casos descritos presentan estado de ejecución satisfactorio. El objetivo de este apartado es documentar, de forma estructurada, qué funcionalidad se comprueba en cada caso, qué condiciones deben cumplirse antes de ejecutarlo y qué resultado se obtiene tras cada paso.
+
+\subsection{Pruebas con Selenium}
+
+Para la validación funcional de la aplicación se ha utilizado \textit{Selenium WebDriver} integrado con \texttt{pytest}. No se ha empleado Selenium IDE como herramienta principal, sino una suite automatizada de pruebas de navegador ubicada en el directorio \texttt{tests/selenium}. Estas pruebas se ejecutan desde la raíz del repositorio, donde se encuentra el fichero \texttt{pytest.ini}, encargado de registrar el marcador \texttt{selenium} y de añadir \texttt{webapp} al \texttt{pythonpath}, permitiendo localizar correctamente la aplicación Flask.
+
+La suite utiliza \textit{fixtures} de \texttt{pytest} para preparar el entorno de prueba: arranca la aplicación en un servidor aislado, inicializa una base de datos independiente, lanza el navegador mediante Selenium Manager y limpia los recursos generados tras la ejecución. Gracias a Selenium Manager, en condiciones normales no es necesario descargar manualmente \texttt{ChromeDriver}, ya que el propio entorno resuelve el controlador adecuado para el navegador.
+
+Las pruebas Selenium pueden ejecutarse con el navegador en segundo plano mediante el siguiente comando:
+
+\begin{testbox}{Ejecución de pruebas Selenium en segundo plano}
+pytest tests/selenium --selenium -q
+\end{testbox}
+
+Si se desea visualizar la ejecución en el navegador, puede añadirse la opción \texttt{--selenium-headed}:
+
+\begin{testbox}{Ejecución de pruebas Selenium con navegador visible}
+pytest tests/selenium --selenium --selenium-headed -q
+\end{testbox}
+
+También existe la posibilidad de ralentizar la ejecución para facilitar la inspección visual de los pasos, por ejemplo:
+
+\begin{testbox}{Ejecución de pruebas Selenium ralentizada}
+pytest tests/selenium --selenium --selenium-headed --selenium-slow-ms=350 -q
+\end{testbox}
+
+\subsection{Casos de prueba}
+
+A continuación, los flujos validados con este entorno se documentan mediante tarjetas de casos de prueba.
 
 \begin{table}[H]
 	\centering
