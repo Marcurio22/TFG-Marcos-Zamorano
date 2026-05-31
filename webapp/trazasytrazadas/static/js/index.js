@@ -166,6 +166,49 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  /**
+   * Indica si las trazas calculadas deben seguir visibles en el canvas.
+   *
+   * El cambio de tamaño del canvas borra su contenido interno. Por eso, tras
+   * una redimensión de ventana o zoom del navegador, hay que volver a pintar
+   * las últimas trazas si el usuario mantiene activado el checkbox.
+   *
+   * @returns {boolean} true si procede redibujar la superposición.
+   */
+  function shouldRedrawVisibleTraces() {
+    return !!(
+      lastTraces &&
+      tracesCheckbox &&
+      tracesCheckbox.checked &&
+      img &&
+      img.complete &&
+      img.naturalWidth > 0
+    );
+  }
+
+  /**
+   * Redimensiona el canvas y repinta las trazas visibles si procede.
+   */
+  function resizeCanvasAndRedrawTraces() {
+    resizeCanvas();
+    if (!shouldRedrawVisibleTraces()) return;
+    canvas.classList.remove("hidden");
+    drawTracesFromData(lastTraces.xs, lastTraces.ys);
+  }
+
+  let resizeRedrawFrame = null;
+
+  /**
+   * Agrupa redimensiones sucesivas y repinta una sola vez por frame.
+   */
+  function scheduleCanvasResizeAndRedraw() {
+    if (resizeRedrawFrame) cancelAnimationFrame(resizeRedrawFrame);
+    resizeRedrawFrame = requestAnimationFrame(() => {
+      resizeRedrawFrame = null;
+      resizeCanvasAndRedrawTraces();
+    });
+  }
+
   function drawTracesFromData(xs, ys) {
     if (!img || !canvas) return;
 
@@ -206,8 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (img && canvas) {
-    img.addEventListener("load", resizeCanvas);
-    window.addEventListener("resize", resizeCanvas);
+    img.addEventListener("load", scheduleCanvasResizeAndRedraw);
+    window.addEventListener("resize", scheduleCanvasResizeAndRedraw);
     resizeCanvas();
   }
 
