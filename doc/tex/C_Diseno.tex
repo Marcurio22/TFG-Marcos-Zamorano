@@ -494,22 +494,33 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 
 En esta sección se describe el comportamiento dinámico de la aplicación a través de los principales flujos de interacción entre el usuario y el sistema. Para ello, se emplean diagramas de secuencia que permiten representar, de forma ordenada, las peticiones realizadas desde el navegador, la respuesta del servidor Flask, el acceso a la persistencia y la generación o visualización de resultados.
 
-\begin{figure}
+\begin{figure}[p]
 	\centering
-	\includegraphics[width=1.5\linewidth]{img/diagrama_secuencia}
-	\caption[Diagrama de Secuencia de la aplicación]{}
-	\label{fig:diagramasecuencia}
+	\includegraphics[
+	width=0.98\textwidth,
+	trim=0 1600 0 0,
+	clip
+	]{img/Diagrama_secuencia_general.pdf}
+	\caption[Diagrama general de secuencia de la aplicación]{Diagrama general de secuencia de la aplicación, parte superior.}
+	\label{fig:diagramasecuenciageneral}
 \end{figure}
 
-La Figura \ref{fig:diagramasecuencia} describe de forma cronológica el flujo de interacción entre el usuario, el navegador, el servidor Flask y el sistema de almacenamiento, permitiendo comprender el comportamiento dinámico de la aplicación.
+\begin{figure}[p]
+	\centering
+	\ContinuedFloat
+	\includegraphics[
+	width=0.98\textwidth,
+	trim=0 0 0 1600,
+	clip
+	]{img/Diagrama_secuencia_general.pdf}
+	\caption[]{Diagrama general de secuencia de la aplicación, parte inferior.}
+\end{figure}
 
-El proceso se inicia cuando el usuario selecciona una imagen desde la interfaz. El navegador envía dicha imagen al servidor mediante una petición \textit{POST upload}, tras lo cual Flask la persiste en disco y actualiza el estado de la sesión. A continuación, el servidor responde con una redirección que provoca la recarga de la página principal, mostrando la imagen cargada.
+La Figura~\ref{fig:diagramasecuenciageneral} muestra una visión general del comportamiento dinámico de la aplicación, recogiendo los principales intercambios entre el usuario, el navegador, el servidor Flask y los componentes internos o externos que intervienen en cada flujo. El diagrama no pretende detallar cada operación de bajo nivel, sino representar la secuencia completa de uso desde que el usuario accede a la aplicación hasta que obtiene, visualiza o descarga los resultados generados.
 
-Posteriormente, cuando el usuario solicita el cálculo de trazas, el servidor ejecuta la lógica correspondiente, genera los resultados en formato JSON y los almacena en el sistema de ficheros, actualizando de nuevo la sesión para reflejar el nuevo estado. La respuesta se materializa en una recarga de la interfaz que incluye un modal de confirmación.
+De forma resumida, el diagrama recoge dos caminos principales. El primero corresponde al flujo de imagen individual, en el que el usuario carga una imagen, solicita el cálculo de trazas, el servidor ejecuta la inferencia con el modelo activo, guarda los resultados y permite posteriormente visualizar, descargar o eliminar los ficheros generados. El segundo camino corresponde al flujo cartográfico, donde el usuario selecciona una zona en el visor, la aplicación consulta la fuente cartográfica, calcula la cuadrícula de teselas, registra la colección y deja el procesamiento en segundo plano para que las teselas puedan consultarse después desde la galería.
 
-Una vez cerrado el modal, el navegador solicita explícitamente los resultados mediante una petición \textit{GET traces}. El servidor lee el fichero JSON previamente generado y lo devuelve al cliente, donde el código JavaScript se encarga de dibujar las trazas sobre el \textit{canvas} y reflejar visualmente el estado de la aplicación.
-
-Finalmente, si el usuario decide eliminar la imagen, se envía una petición del tipo \textit{post} a la ruta \textit{delete} del sistema. El servidor elimina tanto la imagen como los resultados asociados, limpia la información de la sesión y devuelve la aplicación a su estado inicial mediante una nueva recarga de la página.
+También se representa la relación con la persistencia y los recursos externos. La base de datos mantiene la información estructurada y los estados de procesamiento, mientras que el sistema de ficheros almacena imágenes, trazas y resultados descargables. Por su parte, el servicio cartográfico proporciona las imágenes necesarias para las teselas y el motor de inferencia genera las máscaras de traza. Finalmente, el navegador se encarga de interpretar las respuestas recibidas y dibujar las trazas sobre la imagen o sobre el mapa cuando los resultados están disponibles.
 
 \section{Diseño arquitectónico}
 
