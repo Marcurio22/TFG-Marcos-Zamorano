@@ -522,6 +522,31 @@ De forma resumida, el diagrama recoge dos caminos principales. El primero corres
 
 También se representa la relación con la persistencia y los recursos externos. La base de datos mantiene la información estructurada y los estados de procesamiento, mientras que el sistema de ficheros almacena imágenes, trazas y resultados descargables. Por su parte, el servicio cartográfico proporciona las imágenes necesarias para las teselas y el motor de inferencia genera las máscaras de traza. Finalmente, el navegador se encarga de interpretar las respuestas recibidas y dibujar las trazas sobre la imagen o sobre el mapa cuando los resultados están disponibles.
 
+\begin{figure}[p]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	height=0.85\textheight,
+	keepaspectratio
+	]{img/Diagrama_secuencia_admin.pdf}
+	\caption[Diagrama de secuencia del administrador]{Diagrama de secuencia del administrador.}
+	\label{fig:diagramasecuenciaadmin}
+\end{figure}
+
+La Figura~\ref{fig:diagramasecuenciaadmin} resume la interacción del administrador con las funcionalidades de gestión de usuarios y modelos. Esta interacción puede resumirse en:
+
+\begin{enumerate}
+	\item El administrador accede al panel de administración y el servidor comprueba que el usuario dispone del rol adecuado antes de permitir el acceso.
+	
+	\item Desde el panel, el administrador puede entrar en la gestión de usuarios, donde el servidor consulta la base de datos y devuelve el listado actualizado de cuentas registradas.
+	
+	\item El administrador también puede acceder a la gestión de modelos, donde la aplicación recupera los modelos disponibles y muestra su estado, validación y posibilidad de activación.
+	
+	\item Cuando se sube un nuevo modelo, el navegador envía el fichero al servidor, que registra el modelo como pendiente y almacena la información necesaria para su gestión.
+	
+	\item Finalmente, el sistema valida el modelo mediante los recursos del servidor y el sistema de ficheros. Si la validación es correcta, el modelo queda registrado y disponible para su posterior activación desde el panel de administración.
+\end{enumerate}
+
 \section{Diseño arquitectónico}
 
 En esta sección se describe la arquitectura general de la aplicación, presentando la organización de los principales módulos software y de las relaciones que se establecen entre ellos. El sistema desarrollado corresponde a una aplicación web monolítica modular, implementada con Flask y Python.
