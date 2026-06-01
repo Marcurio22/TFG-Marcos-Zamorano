@@ -18,6 +18,7 @@ from pathlib import Path
 from werkzeug.security import generate_password_hash
 
 import trazasytrazadas.admin as admin_module
+import trazasytrazadas.model_store as model_store
 from trazasytrazadas.db import db
 from trazasytrazadas.models import Modelo
 from tests.auth_helpers import (
@@ -219,9 +220,11 @@ def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Modelo añadido correctamente." in html
+    assert "Modelo recibido." in html
     assert "modelo nuevo" in html
+    assert "Subiendo..." in html
     assert "Pendiente" in html
+    assert "const hasRefreshingModels = true;" in html
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
@@ -229,6 +232,7 @@ def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
         model = db.session.execute(
             db.select(Modelo).where(Modelo.nombre_modelo == "modelo nuevo")
         ).scalar_one()
+        assert model.estado == "subiendo"
         assert model.validacion == "pendiente"
 
 
@@ -271,7 +275,7 @@ def test_admin_upload_stores_invalid_model_as_pending(
     )
 
     assert response.status_code == 200
-    assert "Modelo añadido correctamente." in response.get_data(as_text=True)
+    assert "Modelo recibido." in response.get_data(as_text=True)
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
@@ -281,6 +285,7 @@ def test_admin_upload_stores_invalid_model_as_pending(
         model = db.session.execute(
             db.select(Modelo).where(Modelo.nombre_modelo == "modelo pendiente")
         ).scalar_one()
+        assert model.estado == "subiendo"
         assert model.validacion == "pendiente"
 
 
@@ -369,8 +374,9 @@ def test_admin_can_upload_torchscript_infer_model_as_pending(
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Modelo añadido correctamente." in html
+    assert "Modelo recibido." in html
     assert "torchscript infer" in html
+    assert "Subiendo..." in html
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
@@ -380,7 +386,57 @@ def test_admin_can_upload_torchscript_infer_model_as_pending(
                 Modelo.nombre_modelo == "torchscript infer"
             )
         ).scalar_one()
+        assert model.estado == "subiendo"
         assert model.validacion == "pendiente"
+
+
+def test_admin_folds_page_reports_failed_pending_upload(app, client):
+    """La pantalla muestra el fallo automático y retira el modelo."""
+    admin_id = _create_user(
+        app,
+        username="admin_failed_pending_model",
+        email="admin_failed_pending_model@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        (models_dir / "modelo fallido").write_bytes(b"bad")
+        db.session.add(
+            Modelo(
+                nombre_modelo="modelo fallido",
+                estado="subiendo",
+                validacion="pendiente",
+            )
+        )
+        db.session.commit()
+
+        model_store.mark_fold_validation_failed(
+            "modelo fallido",
+            "boom",
+            models_dir=models_dir,
+        )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/folds/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "ha fallado y se ha eliminado" in html
+    assert 'data-model-name="modelo fallido"' not in html
+    assert "const hasRefreshingModels = false;" in html
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert not (models_dir / "modelo fallido").exists()
+        model = db.session.execute(
+            db.select(Modelo).where(Modelo.nombre_modelo == "modelo fallido")
+        ).scalar_one_or_none()
+        assert model is None
 
 
 def test_admin_can_delete_non_active_fold(app, client):

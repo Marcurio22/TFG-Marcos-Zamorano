@@ -333,6 +333,10 @@ def test_add_fold_file_validations_metadata_and_cleanup(app):
             .validacion
             == "pendiente"
         )
+        pending_model = db.session.execute(
+            db.select(Modelo).where(Modelo.nombre_modelo == "pending")
+        ).scalar_one()
+        assert pending_model.estado == "subiendo"
 
 
 def test_validation_success_and_failure_transitions(app):
@@ -347,7 +351,7 @@ def test_validation_success_and_failure_transitions(app):
         db.session.add(
             Modelo(
                 nombre_modelo="pending",
-                estado="no_activo",
+                estado="subiendo",
                 validacion="pendiente",
             )
         )
@@ -361,6 +365,7 @@ def test_validation_success_and_failure_transitions(app):
         model = db.session.execute(
             db.select(Modelo).where(Modelo.nombre_modelo == "pending")
         ).scalar_one()
+        assert model.estado == "activo"
         assert model.validacion == "validado"
         assert (
             model_store.read_fold_metadata("pending", models_dir=models_dir)[
@@ -384,7 +389,7 @@ def test_validation_success_and_failure_transitions(app):
         )
         db.session.add(
             Modelo(
-                nombre_modelo="bad", estado="no_activo", validacion="pendiente"
+                nombre_modelo="bad", estado="subiendo", validacion="pendiente"
             )
         )
         db.session.commit()

@@ -106,7 +106,8 @@ def _flash_model_validation_events() -> None:
         if event.get("status") == "success":
             flash(
                 _(
-                    "Validación completada. El modelo «%(name)s» ya está disponible.",
+                    "Validación completada. El modelo «%(name)s» "
+                    "ya está disponible.",
                     name=model_name,
                 ),
                 "success",
@@ -116,7 +117,8 @@ def _flash_model_validation_events() -> None:
         if event.get("status") == "error":
             flash(
                 _(
-                    "La validación del modelo «%(name)s» ha fallado y se ha eliminado de la lista.",
+                    "La validación del modelo «%(name)s» ha "
+                    "fallado y se ha eliminado de la lista.",
                     name=model_name,
                 ),
                 "error",
@@ -154,7 +156,8 @@ def _validate_model_file_in_background(
                 metadata,
                 models_dir=models_dir,
             )
-        except Exception as exc:  # pragma: no cover - depende del modelo subido
+        # La excepción concreta depende del formato del modelo subido.
+        except Exception as exc:  # pragma: no cover
             mark_fold_validation_failed(
                 fold_name,
                 str(exc),
@@ -162,7 +165,10 @@ def _validate_model_file_in_background(
             )
 
 
-def _start_model_validation_task(fold_name: str, source_filename: str | None) -> None:
+def _start_model_validation_task(
+    fold_name: str,
+    source_filename: str | None,
+) -> None:
     """Arranca la validación de modelo sin bloquear la petición actual."""
     app = current_app._get_current_object()
     thread = threading.Thread(
@@ -691,11 +697,17 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
                 row.get("creado_en")
             )
         active_name = get_active_fold_name()
+        has_refreshing_models = any(
+            row.get("estado") == "subiendo"
+            or row.get("validacion") == "pendiente"
+            for row in rows
+        )
 
         return self.render(
             "admin/folds.html",
             fold_rows=rows,
             active_fold_name=active_name,
+            has_refreshing_models=has_refreshing_models,
             action_form=AdminActionForm(),
             rename_form=AdminFoldRenameForm(),
             upload_form=AdminFoldUploadForm(),
@@ -800,10 +812,10 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
             )
             flash(
                 _(
-                    "Modelo añadido correctamente. "
-                    "La validación se ejecutará en segundo plano."
+                    "Modelo recibido. Aparecerá como subiendo "
+                    "mientras se valida en segundo plano."
                 ),
-                "success",
+                "info",
             )
 
         return redirect(url_for("admin_folds.index"))

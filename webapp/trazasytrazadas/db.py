@@ -93,6 +93,54 @@ def _ensure_parcela_paused_status() -> None:
         connection.exec_driver_sql("PRAGMA foreign_keys=ON")
 
 
+def _ensure_modelo_uploading_status() -> None:
+    """Amplía el CHECK de modelo.estado para aceptar subiendo."""
+    if db.engine.dialect.name != "sqlite":
+        return
+
+    table_sql = db.session.execute(
+        text(
+            "SELECT sql FROM sqlite_master "
+            "WHERE type = 'table' AND name = 'modelo'"
+        )
+    ).scalar_one_or_none()
+    if not table_sql or "'subiendo'" in table_sql:
+        return
+
+    db.session.commit()
+    with db.engine.begin() as connection:
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.exec_driver_sql("PRAGMA legacy_alter_table=ON")
+        connection.exec_driver_sql("ALTER TABLE modelo RENAME TO modelo_old")
+        connection.exec_driver_sql(
+            "CREATE TABLE modelo ("
+            "modelo_id INTEGER NOT NULL, "
+            "nombre_modelo VARCHAR(100) NOT NULL, "
+            "estado VARCHAR(20) DEFAULT 'no_activo' NOT NULL, "
+            "validacion VARCHAR(20) DEFAULT 'pendiente' NOT NULL, "
+            "creado_en DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, "
+            "actualizado_en DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, "
+            "PRIMARY KEY (modelo_id), "
+            "CONSTRAINT ck_modelo_estado CHECK "
+            "(estado IN ('activo', 'no_activo', 'subiendo')), "
+            "CONSTRAINT ck_modelo_validacion CHECK "
+            "(validacion IN ('pendiente', 'validado')), "
+            "CONSTRAINT uq_modelo_nombre_modelo UNIQUE (nombre_modelo)"
+            ")"
+        )
+        connection.exec_driver_sql(
+            "INSERT INTO modelo ("
+            "modelo_id, nombre_modelo, estado, validacion, "
+            "creado_en, actualizado_en"
+            ") SELECT "
+            "modelo_id, nombre_modelo, estado, validacion, "
+            "creado_en, actualizado_en FROM modelo_old"
+        )
+        connection.exec_driver_sql("DROP TABLE modelo_old")
+        connection.exec_driver_sql("PRAGMA legacy_alter_table=OFF")
+        connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+
+
 def _ensure_system_user() -> None:
     """Garantiza que exista el usuario técnico por defecto."""
     from .models import Usuario
@@ -134,6 +182,7 @@ def init_db() -> None:
 
     db.create_all()
     _ensure_parcela_paused_status()
+    _ensure_modelo_uploading_status()
 
     _ensure_system_user()
     sync_models_from_files()

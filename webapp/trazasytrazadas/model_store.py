@@ -241,7 +241,9 @@ def list_fold_files(models_dir: str | Path | None = None) -> list[dict]:
     folds.sort(
         key=lambda item: (
             item["index"] is None,
-            item["index"] if item["index"] is not None else item["name"].lower(),
+            item["index"]
+            if item["index"] is not None
+            else item["name"].lower(),
         )
     )
     return folds
@@ -577,12 +579,20 @@ def add_fold_file(
             )
 
         if has_app_context():
-            final_validation_status = "validado" if validator is not None else validation_status
+            final_validation_status = (
+                "validado" if validator is not None else validation_status
+            )
             if final_validation_status not in {"pendiente", "validado"}:
                 final_validation_status = "pendiente"
+
+            model_state = (
+                "subiendo"
+                if final_validation_status == "pendiente"
+                else "no_activo"
+            )
             model = Modelo(
                 nombre_modelo=normalized_name,
-                estado="no_activo",
+                estado=model_state,
                 validacion=final_validation_status,
             )
             db.session.add(model)
@@ -627,15 +637,17 @@ def mark_fold_validation_succeeded(
         db.session.add(model)
     else:
         model.validacion = "validado"
+        if model.estado == "subiendo":
+            model.estado = "no_activo"
         model.actualizado_en = func.now()
 
-        db.session.commit()
-        record_fold_validation_event(
-            normalized_name,
-            "success",
-            models_dir=models_dir,
-        )
-        _ensure_active_model(models_dir=models_dir)
+    db.session.commit()
+    record_fold_validation_event(
+        normalized_name,
+        "success",
+        models_dir=models_dir,
+    )
+    _ensure_active_model(models_dir=models_dir)
 
 
 def mark_fold_validation_failed(

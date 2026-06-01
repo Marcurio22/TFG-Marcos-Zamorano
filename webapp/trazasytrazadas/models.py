@@ -22,7 +22,7 @@ class Modelo(db.Model):
     __tablename__ = "modelo"
     __table_args__ = (
         db.CheckConstraint(
-            "estado IN ('activo', 'no_activo')",
+            "estado IN ('activo', 'no_activo', 'subiendo')",
             name="ck_modelo_estado",
         ),
         db.CheckConstraint(

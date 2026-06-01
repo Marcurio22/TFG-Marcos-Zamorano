@@ -80,7 +80,11 @@
                             </thead>
                             <tbody>
                                 {% for row in fold_rows %}
-                                    <tr>
+                                    {% set row_locked = row.estado == "subiendo" or row.validacion != "validado" %}
+                                    <tr data-model-row
+                                        data-model-name="{{ row.name }}"
+                                        data-model-state="{{ row.estado }}"
+                                        data-model-validation="{{ row.validacion }}">
                                         <td class="font-bold text-base-content/75">#{{ row.modelo_id }}</td>
                                         <td class="font-semibold">{{ row.name }}</td>
                                         <td>
@@ -88,6 +92,11 @@
                                                 <div class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
                                                     <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
                                                     <span>{{ _("Activo") }}</span>
+                                                </div>
+                                            {% elif row.estado == "subiendo" %}
+                                                <div class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-sky-700">
+                                                    <span class="loading loading-spinner loading-xs"></span>
+                                                    <span>{{ _("Subiendo...") }}</span>
                                                 </div>
                                             {% else %}
                                                 <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">
@@ -112,7 +121,7 @@
                                         <td class="text-sm text-base-content/75">{{ row.created_label }}</td>
                                         <td>
                                             <div class="flex flex-wrap justify-end gap-2">
-                                                {% if not row.is_active and row.validacion == "validado" and row.file_exists %}
+                                                {% if not row.is_active and not row_locked and row.file_exists %}
                                                     <button type="button"
                                                             class="btn btn-xs btn-primary"
                                                             data-activate-fold-button
@@ -126,6 +135,9 @@
                                                 {% elif not row.file_exists %}
                                                     <span class="badge badge-outline badge-error badge-sm"
                                                           title="{{ _("El archivo físico del modelo no existe en la carpeta de modelos.") }}">{{ _("Sin fichero") }}</span>
+                                                {% elif row.estado == "subiendo" %}
+                                                    <span class="badge badge-outline badge-info badge-sm"
+                                                          title="{{ _("Este modelo se está subiendo y validando en segundo plano.") }}">{{ _("Subiendo...") }}</span>
                                                 {% else %}
                                                     <span class="badge badge-outline badge-warning badge-sm"
                                                           title="{{ _("Este modelo se está validando en segundo plano y todavía no puede activarse.") }}">{{ _("Pendiente") }}</span>
@@ -134,15 +146,16 @@
                                                         class="btn btn-xs btn-outline btn-primary"
                                                         data-rename-fold-button
                                                         data-current-name="{{ row.name }}"
-                                                        title="{{ _("Renombra este modelo.") }}">
+                                                        title="{% if row_locked %}{{ _("Espera a que termine la validación para renombrar este modelo.") }}{% else %}{{ _("Renombra este modelo.") }}{% endif %}"
+                                                        {% if row_locked %}disabled{% endif %}>
                                                     {{ _("Renombrar") }}
                                                 </button>
                                                 <button type="button"
                                                         class="btn btn-xs btn-outline btn-error"
                                                         data-delete-fold-button
                                                         data-fold-name="{{ row.name }}"
-                                                        title="{% if row.is_active %}{{ _("No se puede eliminar el modelo activo.") }}{% else %}{{ _("Abre la confirmación para eliminar este modelo.") }}{% endif %}"
-                                                        {% if row.is_active %}disabled{% endif %}>
+                                                        title="{% if row.is_active %}{{ _("No se puede eliminar el modelo activo.") }}{% elif row_locked %}{{ _("Espera a que termine la validación para eliminar este modelo.") }}{% else %}{{ _("Abre la confirmación para eliminar este modelo.") }}{% endif %}"
+                                                        {% if row.is_active or row_locked %}disabled{% endif %}>
                                                     {{ _("Eliminar") }}
                                                 </button>
                                             </div>
@@ -310,7 +323,7 @@
                         <span class="label-text">{{ _("Archivo del modelo") }}</span>
                     </label>
                     {{ upload_form.model_file(class="file-input file-input-bordered w-full", title=_("Selecciona el archivo serializado del modelo que se va a validar.") ) }}
-                    <p class="mt-2 text-xs text-base-content/70">{{ _("Se guardará como pendiente y se validará en segundo plano.") }}</p>
+                    <p class="mt-2 text-xs text-base-content/70">{{ _("Aparecerá como subiendo y se validará en segundo plano.") }}</p>
                 </div>
                 <div class="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning-content">
                     <p class="font-bold">{{ _("Validación en segundo plano") }}</p>
@@ -339,9 +352,9 @@
     </dialog>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const hasPendingModels = {{ "true" if fold_rows|selectattr("validacion", "equalto", "pendiente")|list else "false" }};
+        const hasRefreshingModels = {{ "true" if has_refreshing_models else "false" }};
 
-        if (hasPendingModels) {
+        if (hasRefreshingModels) {
             window.setInterval(() => {
             const openDialog = document.querySelector("dialog[open]");
             if (!openDialog) {
