@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# Trazas y Trazadas
+![# Trazas y Trazadas](https://i.imgur.com/1EEMTcr.png)
 
 ### Aplicación web para el análisis de trazas de herbívoros sobre imágenes y zonas cartográficas
 
@@ -19,6 +19,25 @@
 ![Selenium](https://img.shields.io/badge/Selenium-E2E-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
 
 <br />
+
+---
+
+## Autor
+
+**Marcos Zamorano Lasso**
+
+Trabajo Fin de Grado — Aplicación web para el cálculo de trazas de herbivoría mediante visión por computador.
+
+<br />
+
+<div align="center">
+  <p><strong>Trabajo realizado en la Universidad de Burgos</strong></p>
+  <img src="./assets/universidad-burgos.jpg"
+       alt="Universidad de Burgos"
+       width="380">
+</div>
+
+---
 
 **Trabajo Fin de Grado — Marcos Zamorano Lasso**
 
@@ -217,7 +236,7 @@ de despliegue deberían cambiarse o eliminarse.
 | `MarcosZ` | Administrador | `Administrador.22` |
 | `Vindi222` | Administrador | `Administrador.11` |
 | `JavierGarcia` | Usuario | `JuanjoElMejor2@` |
-| `Nickyer.25` | Usuario | `Usuario.1` |
+| `Nickyer25` | Usuario | `Usuario.1` |
 | `MCasadó` | Usuario | `Usuario.2` |
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
@@ -312,24 +331,5 @@ mediante objetos globales como:
   imágenes de perfil e inferencia.
 - No versionar artefactos generados localmente, bases de datos, cachés ni
   resultados temporales.
-
-<p align="right">(<a href="#readme-top">volver al principio</a>)</p>
-
----
-
-## Autor
-
-**Marcos Zamorano Lasso**
-
-Trabajo Fin de Grado — Aplicación web para análisis de trazas de herbívoros.
-
-<br />
-
-<div align="center">
-  <p><strong>Trabajo realizado en la Universidad de Burgos</strong></p>
-  <img src="./assets/universidad-burgos.png"
-       alt="Universidad de Burgos"
-       width="380">
-</div>
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
