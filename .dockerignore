@@ -1,0 +1,34 @@
+.git
+.gitignore
+.env
+*.zip
+*.tar
+*.tar.gz
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+venv/
+.venv/
+env/
+ENV/
+
+instance/
+webapp/instance/
+webapp/.coverage
+webapp/coverage.xml
+
+# La imagen no necesita tests ni salidas locales de desarrollo.
+tests/
+
+# Evita meter pesos o datos generados en la imagen.
+webapp/trazasytrazadas/model/*
+webapp/trazasytrazadas/seed/collection_storage/*

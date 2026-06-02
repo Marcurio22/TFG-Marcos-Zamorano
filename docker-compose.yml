@@ -1,0 +1,25 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: trazasytrazadas-web:latest
+    container_name: trazasytrazadas-web
+    env_file:
+      - .env
+    init: true
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    volumes:
+      - ./instance:/app/instance
+    restart: unless-stopped
+    shm_size: "1gb"
+    stop_grace_period: 60s
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fsS http://127.0.0.1:8000/ >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
