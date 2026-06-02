@@ -627,6 +627,81 @@ Finalmente, aunque la tarea de \textit{Redactar el apartado de arquitecturas} es
 
 Como se aprecia en la Figura~\ref{fig:brsprint18}, el \textit{burndown} muestra un inicio prácticamente plano, ya que varias tareas dependían de resolver primero el bloqueo asociado a la BBDD y de consolidar cambios estructurales antes de poder cerrar \textit{issues}. Una vez resueltas esas dependencias, el cierre de tareas se aceleró de forma clara en la segunda mitad del \textit{sprint}, completándose el conjunto de trabajo el 14 de mayo.
 
+\subsection{Sprint 19 - Manual del programador y diagramas de soporte}
+El \textit{Sprint 19} se desarrolló del 15 al 22 de mayo. Para este \textit{sprint} estimé inicialmente una dedicación de 16~horas, aunque finalmente invertí aproximadamente 19~horas. El objetivo principal era avanzar en documentación técnica pendiente, comenzar a consolidar los primeros \textit{tests} con Selenium y cerrar algunos ajustes funcionales de la interfaz. No obstante, durante el desarrollo surgió un \textit{bug} relacionado con los \textit{tests} de Selenium que alteró la planificación prevista.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Realizar los primeros \textit{tests} de HTML y JavaScript con Selenium.
+	\item Redactar el apartado de arquitecturas.
+	\item Redactar el \textit{abstract} y las \textit{keywords} en castellano.
+	\item Redactar el \textit{abstract} y las \textit{keywords} en inglés.
+	\item Crear un diccionario de campos.
+	\item Realizar arreglos puntuales en la interfaz web.
+	\item Parar el flujo de trazas cuando fuese necesario.
+	\item Resolver un \textit{bug} relacionado con Selenium (surgió al final del sprint).
+	\item Redactar el manual del programador.
+	\item Crear el diagrama de secuencia general de la aplicación.
+\end{itemize}
+
+En primer lugar, cerré la redacción del apartado de arquitecturas, que había quedado pendiente del \textit{sprint} anterior. Esta tarea requería ordenar correctamente la explicación de la arquitectura del sistema y relacionarla con los diagramas ya generados, por lo que fue necesario dedicarle tiempo adicional para que el texto quedase coherente con el diseño real de la aplicación.
+
+A continuación, avancé en tareas de documentación de la memoria, redactando el \textit{abstract} y las \textit{keywords} tanto en castellano como en inglés. También elaboré un diccionario de campos, con el objetivo de dejar descritos de forma clara los principales elementos utilizados en la aplicación y en la base de datos, facilitando así la comprensión del sistema desde un punto de vista técnico.
+
+En paralelo, llevé a cabo algunos arreglos en la interfaz web y añadí una mejora para poder parar el flujo de trazas cuando fuese necesario. Esta parte resultó útil para evitar comportamientos no deseados durante el procesamiento.
+
+Otro bloque importante del \textit{sprint} fue la introducción de pruebas con Selenium. Comencé a crear los primeros \textit{tests} orientados a HTML y JavaScript, con el objetivo de validar comportamientos de la interfaz que no podían comprobarse únicamente con pruebas unitarias del \textit{backend}. Sin embargo, el 20 de mayo surgió una nueva \textit{issue} asociada a un \textit{bug} de Selenium, estimada en 2~horas, que fue necesario resolver dentro del propio \textit{sprint}. Aunque pude arreglarla, esta incidencia consumió el margen que tenía previsto para cerrar otras tareas.
+
+Como consecuencia, no llegué a finalizar dos tareas que ya había comenzado: la redacción del manual del programador y la creación del diagrama de secuencia general de la aplicación. Ambas quedaron aplazadas al \textit{sprint} siguiente, no por falta de avance inicial, sino porque el tiempo dedicado a resolver el problema de Selenium impidió cerrarlas con el nivel de detalle necesario.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint19}
+	\caption[Burndown Report del Sprint 19]{Burndown Report del Sprint 19.}
+	\label{fig:brsprint19}
+\end{figure}
+
+Como se observa en la Figura~\ref{fig:brsprint19}, el avance del \textit{sprint} fue irregular. Comencé adelantando a la línea ideal, pero se mantuvo firme un buen tiempo, ya que me encontraba en periodo de exámenes y me volvió a superar. Más adelante, sí que logré ponerme más al día y, en la parte final se aprecia un descenso más pronunciado, coincidiendo con el cierre de los ajustes principales y la resolución del \textit{bug} de Selenium, aunque algunas tareas importantes tuvieron que trasladarse al \textit{sprint} siguiente.
+
+\subsection{Sprint 20 - Cierre de la memoria y bugs}
+El \textit{Sprint 20} se desarrolló del 23 de mayo al 1 de junio. Para este \textit{sprint} estimé una dedicación inicial de 27~horas, aunque finalmente invertí aproximadamente 29~horas y 30~minutos. El objetivo principal de esta iteración fue avanzar de forma decidida hacia el cierre de la memoria y de los anexos, al mismo tiempo que se resolvían varios \textit{bugs} detectados en la aplicación. A diferencia de otros \textit{sprints}, en este caso conseguí cerrar todas las \textit{issues} dentro del periodo planificado.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Redactar el manual del usuario.
+	\item Redactar el estudio de viabilidad económica.
+	\item Redactar la viabilidad legal.
+	\item Redactar el manual del programador.
+	\item Redactar la conclusión y las líneas futuras.
+	\item Crear el diagrama de interacción general de la aplicación.
+	\item Crear el diagrama de secuencia del administrador.
+	\item Arreglar la gestión de modelos.
+	\item Crear un fichero \texttt{README.md} con un formato más profesional.
+	\item Corregir un \textit{bug} de imagen persistente entre diferentes \textit{logins} de sesión.
+	\item Realizar ajustes generales en memoria y anexos.
+	\item Corregir un \textit{bug} de reescalado y dibujado de trazas (surgió a mitad de sprint).
+	\item Arreglar el manual del programador en anexos.
+\end{itemize}
+
+En primer lugar, retomé dos tareas que venían parcialmente iniciadas del \textit{sprint} anterior: la redacción del manual del programador y la creación del diagrama de interacción general de la aplicación. En esta iteración ya pude cerrarlas correctamente, al disponer de una versión mucho más estable del sistema y de una visión más clara de los flujos principales. Además, creé el diagrama de secuencia del administrador, con el objetivo de documentar de forma específica las interacciones asociadas a las funcionalidades de gestión.
+
+Una parte importante del \textit{sprint} estuvo dedicada a la redacción de documentación final. Elaboré el manual del usuario, orientado a explicar el funcionamiento de la aplicación desde una perspectiva práctica, y redacté también el estudio de viabilidad económica y la viabilidad legal. Estos apartados eran necesarios para completar la memoria con una visión más global del proyecto, no solo desde el punto de vista técnico, sino también desde su posible uso, mantenimiento y encaje normativo. Asimismo, redacté la conclusión y las líneas futuras, sintetizando el trabajo realizado y dejando planteadas posibles mejoras o ampliaciones posteriores.
+
+En paralelo, realicé varios ajustes en memoria y anexos para mantener la coherencia entre la documentación y el estado real de la aplicación. Dentro de esta revisión, corregí también aspectos del manual del programador en anexos, afinando su estructura y completando explicaciones que habían quedado demasiado esquemáticas.
+
+En cuanto a la aplicación, resolví distintos \textit{bugs} y mejoras funcionales. Por un lado, corregí un problema de imagen persistente entre distintas sesiones, que podía provocar que se mostrase información visual asociada a un usuario anterior. Por otro, solucioné un \textit{bug} relacionado con el reescalado y el dibujado de trazas, ya que afectaba a la correcta representación de los resultados sobre la imagen. Este apareció a mitad de sprint, por lo que es un añadido. Además, arreglé la gestión de modelos, reforzando el comportamiento del panel correspondiente y evitando inconsistencias en su uso.
+
+Finalmente, creé un fichero \texttt{README.md} con un formato más profesional, incorporando una presentación más clara del proyecto, sus funcionalidades principales y la forma de ponerlo en marcha. Con ello, el repositorio quedó más preparado para ser revisado o utilizado por terceros.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint20}
+	\caption[Burndown Report del Sprint 20]{Burndown Report del Sprint 20.}
+	\label{fig:brsprint20}
+\end{figure}
+
+Como se observa en la Figura~\ref{fig:brsprint20}, el \textit{burndown} muestra un avance progresivo durante todo el \textit{sprint}. Aunque en los primeros días la línea de \textit{open points} se mantuvo algo por encima de la ideal, debido a que varias tareas de documentación requerían trabajo acumulado antes de poder cerrarse, el descenso se fue estabilizando conforme se completaron los principales apartados de memoria y anexos. En la parte final del \textit{sprint} se aprecia una bajada más marcada, coincidiendo con los días en los que acabé los exámenes finales, hasta completar todas las \textit{issues} el 1 de junio.
+
 \section{Estudio de viabilidad}
 En este apartado se analiza la viabilidad del proyecto desde una doble perspectiva: económica, valorando los costes asociados a su desarrollo, despliegue y mantenimiento; y legal, revisando las licencias, condiciones de uso y obligaciones normativas que afectan a las tecnologías, datos y recursos empleados.
 
