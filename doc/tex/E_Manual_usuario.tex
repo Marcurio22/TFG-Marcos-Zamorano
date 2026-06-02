@@ -33,7 +33,7 @@ Este manual será utilizado por aquellos usuarios que accedan de forma anónima 
 
 La página principal constituye el flujo más básico de la aplicación. Desde esta pantalla el usuario puede seleccionar una imagen aérea, ejecutar el cálculo de trazas de herbivoría y visualizar el resultado directamente sobre la imagen original.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Home_sin_imagen}
 	\caption[Página principal sin imagen cargada]{Página principal de la aplicación antes de seleccionar una imagen.}
@@ -42,7 +42,7 @@ La página principal constituye el flujo más básico de la aplicación. Desde e
 
 Al acceder a la página, la aplicación muestra un área central vacía destinada a la previsualización de la imagen, como se observa en la Figura~\ref{fig:manual_home_sin_imagen}. Para cargar una imagen, el usuario puede pulsar el botón \textit{Elegir archivo} o hacer clic sobre el cuadro grande situado en la zona central de la pantalla. Los formatos admitidos son \texttt{.jpg}, \texttt{.jpeg} y \texttt{.png}. En este primer paso la imagen solo se muestra en la interfaz para que el usuario pueda comprobar que ha seleccionado el fichero correcto. Cabe aclarar que, dicha imagen, no se guarda todavía en el sistema por si hubiese habido algún fallo a la hora de ser seleccionada.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Home_con_imagen}
 	\caption[Página principal con imagen cargada]{Página principal tras seleccionar una imagen aérea para su análisis.}
@@ -51,7 +51,7 @@ Al acceder a la página, la aplicación muestra un área central vacía destinad
 
 Una vez seleccionada la imagen, esta aparece en el área de previsualización, tal y como se muestra en la Figura~\ref{fig:manual_home_con_imagen}, y se habilita el flujo de cálculo. Para iniciar el procesamiento, el usuario debe pulsar el botón \textit{Calcular trazas}. En ese momento, la aplicación guarda la imagen y comienza el análisis. Mientras se realiza el cálculo, se muestra un modal informativo con el mensaje de cálculo de trazas y un icono de carga, indicando que el sistema está trabajando y que el usuario debe esperar a que finalice el proceso.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Home_con_trazas}
 	\caption[Página principal con trazas calculadas]{Visualización de la imagen con las trazas calculadas y superpuestas en rojo.}
@@ -68,7 +68,7 @@ Si el usuario intenta calcular trazas o borrar una imagen sin haber cargado prev
 
 La aplicación permite trabajar tanto como usuario anónimo, como con una cuenta registrada. El uso como visitante permite acceder al flujo básico de carga de imágenes y cálculo de trazas, mientras que el registro habilita funcionalidades asociadas a una cuenta, como la gestión del perfil, el acceso al visor cartográfico, la consulta de colecciones persistentes y, en función del rol, las opciones de administración.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_log_in}
 	\caption[Página de inicio de sesión]{Página de inicio de sesión de la aplicación.}
@@ -77,7 +77,7 @@ La aplicación permite trabajar tanto como usuario anónimo, como con una cuenta
 
 La pantalla de inicio de sesión, mostrada en la Figura~\ref{fig:manual_login}, permite acceder a la aplicación mediante un nombre de usuario y una contraseña. En esta misma vista se ofrece también la posibilidad de continuar como visitante, opción pensada para usuarios que desean probar el funcionamiento básico de la herramienta sin crear una cuenta. Además, desde esta pantalla se puede acceder al formulario de registro mediante el enlace \textit{Registrarse}.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_registro}
 	\caption[Página de registro]{Formulario de creación de una nueva cuenta de usuario.}
@@ -88,7 +88,7 @@ Para crear una cuenta nueva, el usuario debe completar el formulario de registro
 
 Una vez creada la cuenta, el usuario puede iniciar sesión desde la pantalla anterior introduciendo sus credenciales. Si los datos son correctos, la aplicación carga la interfaz principal asociada al usuario autenticado. A partir de ese momento, el menú lateral cambia para mostrar las opciones disponibles según el tipo de usuario.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/usuario_visitante}
 	\caption[Menú de usuario visitante]{Menú lateral mostrado cuando se accede como usuario visitante.}
@@ -97,7 +97,7 @@ Una vez creada la cuenta, el usuario puede iniciar sesión desde la pantalla ant
 
 Cuando se trabaja como un usuario anónimo, tal y como se observa en la Figura~\ref{fig:manual_usuario_visitante}, el menú lateral muestra las opciones básicas de navegación y mantiene disponible el acceso a inicio de sesión. Este modo permite utilizar la funcionalidad principal de la aplicación sin asociar los resultados a una cuenta persistente, por lo que no se dispone de perfil propio ni de gestión de colecciones personales.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_usuario}
 	\caption[Menú de usuario registrado]{Menú lateral mostrado para un usuario registrado.}
@@ -106,7 +106,7 @@ Cuando se trabaja como un usuario anónimo, tal y como se observa en la Figura~\
 
 En el caso de un usuario registrado, el menú lateral incorpora el nombre y la imagen de perfil del usuario, además de las opciones de navegación propias de una cuenta autenticada. Como se aprecia en la Figura~\ref{fig:manual_usuario_registrado}, desde este menú se puede acceder a la página principal, al visor cartográfico, a la colección de imágenes y al perfil. También se incluye la opción \textit{Cerrar sesión}, que finaliza la sesión activa y devuelve al usuario al estado no autenticado.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_administrador}
 	\caption[Menú de administrador]{Menú lateral mostrado para un usuario con permisos de administración.}
@@ -121,7 +121,7 @@ Para cerrar sesión, el usuario debe abrir el menú lateral y pulsar la opción 
 
 El perfil de usuario permite consultar la información asociada a la cuenta y modificar algunos de sus datos personales. A esta pantalla se accede desde el menú lateral, mediante la opción \textit{Perfil}, disponible para usuarios registrados. En ella se muestran el nombre de usuario, el correo electrónico, el teléfono, la fecha de alta y la imagen de perfil, además de accesos rápidos al visor, a la colección de imágenes y, en el caso de los administradores, a las secciones de gestión correspondientes.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_perfil}
 	\caption[Página de perfil de usuario]{Página de perfil con la información principal de la cuenta.}
@@ -132,7 +132,7 @@ Como se observa en la Figura~\ref{fig:manual_perfil}, la pantalla de perfil cent
 
 Para modificar los datos personales, el usuario debe pulsar el botón \textit{Editar información}. Al hacerlo, se despliega un formulario en el que pueden cambiarse campos como el nombre de usuario, el correo electrónico o el teléfono, tal y como se muestra en la Figura~\ref{fig:manual_editar_perfil}. Una vez introducidos los nuevos valores, el usuario debe pulsar \textit{Guardar cambios} para actualizar la información de la cuenta.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Editar_información}
 	\caption[Edición de información del perfil]{Formulario de edición de los datos personales del usuario.}
@@ -141,7 +141,7 @@ Para modificar los datos personales, el usuario debe pulsar el botón \textit{Ed
 
 La aplicación también permite cambiar la imagen asociada al perfil. Para ello, el usuario selecciona una nueva imagen desde la pantalla de perfil. Antes de guardarla definitivamente, el sistema muestra una pantalla de confirmación, representada en la Figura~\ref{fig:manual_confirmar_imagen_perfil}. Esta vista permite comprobar que la imagen se visualiza correctamente y que el recorte circular del avatar es adecuado antes de aplicar el cambio.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Cambio_img_perfil}
 	\caption[Confirmación de imagen de perfil]{Pantalla de confirmación previa al guardado de una nueva imagen de perfil.}
@@ -154,7 +154,7 @@ Esta confirmación evita que se guarden imágenes incorrectas o mal encuadradas 
 
 El visor cartográfico permite seleccionar una zona sobre el mapa para generar una cuadrícula de teselas que posteriormente podrá procesarse como una colección de imágenes. Esta funcionalidad está pensada para trabajar con áreas geográficas completas, de forma que el usuario pueda delimitar una región de interés y dejar que la aplicación genere automáticamente las imágenes necesarias para su análisis.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_visor}
 	\caption[Visor cartográfico]{Vista inicial del visor cartográfico con controles de generación, resolución y ayuda.}
@@ -167,7 +167,7 @@ El flujo de uso comienza seleccionando dos puntos sobre el mapa. Estos puntos de
 
 En la parte superior del visor se encuentra el botón \textit{Generar}, el selector de resolución objetivo y un botón de ayuda identificado con un signo de interrogación. Este último, junto con las etiquetas informativas de la interfaz, orienta al usuario sobre los pasos necesarios para completar correctamente la selección y generación de la zona.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Generar_cuadrícula_visor}
 	\caption[Modal de generación de cuadrícula]{Modal de generación de cuadrícula a partir de la zona seleccionada en el visor.}
@@ -178,7 +178,7 @@ Una vez marcada una zona válida, el usuario debe pulsar el botón \textit{Gener
 
 La zona seleccionada debe ser válida para que el proceso pueda completarse. En particular, no debe situarse fuera de los límites admitidos ni corresponder a áreas no adecuadas para el análisis, como zonas marítimas. Si la selección no cumple las condiciones necesarias, la aplicación informará del problema y solicitará al usuario que modifique el área antes de continuar.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/cuadrícula_generada}
 	\caption[Cuadrícula generada desde el visor]{Zona registrada correctamente y listado de teselas generadas para la colección.}
@@ -193,7 +193,7 @@ El tiempo de generación puede variar en función del tamaño de la zona selecci
 
 La sección de colección de imágenes muestra las zonas generadas previamente desde el visor cartográfico y permite consultar el estado de procesamiento de sus teselas. Desde esta pantalla el usuario puede revisar sus colecciones, acceder a la galería de imágenes, volver a visualizar una zona sobre el mapa, descargar resultados y gestionar las colecciones creadas.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_colección}
 	\caption[Colección de imágenes]{Listado de colecciones generadas desde el visor cartográfico.}
@@ -204,7 +204,7 @@ Como se observa en la Figura~\ref{fig:manual_coleccion}, cada colección aparece
 
 Cada fila de la tabla incorpora un indicador de estado. Una colección puede encontrarse en estado pendiente, cuando todavía no se ha iniciado el procesamiento; procesando, cuando sus teselas se están calculando; completada, cuando todas las imágenes han terminado correctamente; pausada, cuando el usuario ha detenido temporalmente el procesamiento; o error, cuando alguna operación no se ha podido completar. Además, se muestra el número de teselas completadas respecto al total, lo que permite conocer el avance sin necesidad de entrar en la galería.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Vista_previa}
 	\caption[Vista previa de una colección]{Vista previa de la zona asociada a una colección.}
@@ -215,7 +215,7 @@ La opción de vista previa permite comprobar visualmente la zona asociada a una 
 
 Desde la columna de acciones, el usuario puede abrir la galería mediante el botón \textit{Ver galería}. Esta vista muestra las teselas individuales generadas para la colección y permite revisar su estado de forma más detallada. También se incluye el botón \textit{Ver en el mapa}, que devuelve al visor cartográfico mostrando la zona seleccionada. Si todas las trazas de la colección ya están calculadas, se habilita un control \textit{Dibujar trazas}, que, al activarlo, representa las trazas directamente sobre la zona descargada.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Trazas_mapa}
 	\caption[Trazas dibujadas sobre el mapa]{Visualización de las trazas de una colección sobre el visor cartográfico.}
@@ -244,7 +244,7 @@ Por último, esta pantalla permite gestionar las colecciones ya creadas. El usua
 
 La galería de una colección permite revisar de forma individual las teselas generadas para una zona concreta. Desde esta pantalla el usuario puede consultar la información general de la colección, visualizar cada imagen, comprobar el estado de sus trazas, descargar resultados y ejecutar acciones de recalculado cuando sea necesario.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Página_galería}
 	\caption[Galería de una colección]{Galería de teselas asociadas a una colección generada desde el visor.}
@@ -257,7 +257,7 @@ Cada tesela aparece representada mediante una tarjeta con su imagen, nombre de a
 
 Desde cada tarjeta se puede abrir una vista ampliada de la tesela, descargar únicamente los resultados asociados a esa imagen o recalcular sus trazas. La opción de recalculado individual se habilita pasado un breve margen de tiempo desde el inicio del procesamiento y permite volver a ejecutar el cálculo incluso si la tesela ya estaba completada, lo que resulta útil cuando se desea comprobar de nuevo una imagen concreta.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Vista_ampliada}
 	\caption[Vista ampliada de una tesela]{Vista ampliada de una tesela con sus trazas calculadas.}
@@ -278,7 +278,7 @@ Por último, la galería mantiene acciones de gestión de la colección, como el
 
 La aplicación dispone de soporte multidioma mediante un selector de idioma visible en la interfaz. Este selector permite cambiar los textos principales de la aplicación sin modificar el flujo de uso ni abandonar la pantalla en la que se encuentra el usuario.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/Cambio_idioma}
 	\caption[Selector de idioma en la interfaz]{Ubicación del selector de idioma en el menú lateral de la aplicación.}
@@ -287,7 +287,7 @@ La aplicación dispone de soporte multidioma mediante un selector de idioma visi
 
 Como se muestra en la Figura~\ref{fig:manual_cambio_idioma}, el selector se encuentra visible en la parte superior de la interfaz, dentro del menú lateral o de la zona de navegación según la pantalla en la que se encuentre el usuario. Al pulsarlo, se despliega una lista con los idiomas disponibles.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.35\textwidth]{img/Selector_idioma}
 	\caption[Idiomas disponibles]{Lista de idiomas disponibles en el selector de la aplicación.}
@@ -296,7 +296,7 @@ Como se muestra en la Figura~\ref{fig:manual_cambio_idioma}, el selector se encu
 
 En la Figura~\ref{fig:manual_selector_idioma} se observa el desplegable de idiomas. Desde esta lista el usuario puede seleccionar el idioma deseado, por ejemplo español, inglés, francés, italiano o alemán. El idioma actualmente activo aparece marcado, lo que permite identificar rápidamente la configuración aplicada en ese momento.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/imagen_inglés}
 	\caption[Interfaz en inglés]{Página principal de la aplicación tras seleccionar el idioma inglés.}
@@ -309,7 +309,7 @@ Cuando se cambia el idioma, los textos visibles de la aplicación pasan a mostra
 
 La aplicación informa al usuario mediante mensajes de validación, avisos y modales cuando una operación no puede completarse, cuando requiere confirmación o cuando finaliza correctamente. Estos mensajes aparecen de forma visible en la interfaz y permiten comprender rápidamente qué ha ocurrido y qué acción debe realizarse a continuación.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.75\textwidth]{img/Warning_selección}
 	\caption[Aviso de selección activa]{Aviso mostrado cuando ya existe una selección activa en el visor.}
@@ -318,7 +318,7 @@ La aplicación informa al usuario mediante mensajes de validación, avisos y mod
 
 Los avisos se utilizan para situaciones en las que la acción no es necesariamente un error, pero el usuario debe modificar el flujo antes de continuar. Por ejemplo, si ya existe una selección activa en el visor, la aplicación muestra un mensaje como el de la Figura~\ref{fig:manual_warning_seleccion}, indicando que debe utilizarse la opción \textit{Reiniciar selección} antes de comenzar una nueva.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.75\textwidth]{img/error_img_individual}
 	\caption[Error al calcular trazas sin imagen]{Mensaje de error mostrado al intentar calcular trazas sin haber cargado una imagen.}
@@ -327,7 +327,7 @@ Los avisos se utilizan para situaciones en las que la acción no es necesariamen
 
 Los errores aparecen cuando una operación no puede ejecutarse correctamente. En el flujo de imagen individual, por ejemplo, si el usuario pulsa \textit{Calcular trazas} sin haber seleccionado antes una imagen, la aplicación muestra un mensaje de error como el de la Figura~\ref{fig:manual_error_img_individual}. También pueden aparecer errores si el fichero seleccionado no tiene un formato válido, si supera el tamaño permitido o si se produce algún problema durante el procesamiento.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.8\textwidth]{img/error_visor}
 	\caption[Error en el visor cartográfico]{Mensaje de error mostrado cuando no existe cobertura cartográfica adecuada para la zona seleccionada.}
@@ -338,7 +338,7 @@ En el visor cartográfico, los mensajes de error se emplean para informar de pro
 
 Además de los errores de imagen y visor, la aplicación también valida otros flujos de uso. Si las credenciales introducidas en el inicio de sesión son incorrectas, se informa al usuario para que revise el nombre de usuario y la contraseña. En la gestión de modelos, si un modelo subido no supera la validación, no queda disponible para su uso y se muestra el mensaje correspondiente al administrador. Asimismo, si una colección no contiene datos disponibles o no tiene resultados calculados, la interfaz lo comunica para evitar que el usuario intente visualizar o descargar información inexistente.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.8\textwidth]{img/Confirmación_borrado}
 	\caption[Confirmación de borrado de una colección]{Modal de confirmación para validar la eliminación de una entrada de la colección.}
@@ -347,7 +347,7 @@ Además de los errores de imagen y visor, la aplicación también valida otros f
 
 Algunas acciones requieren confirmación previa, especialmente aquellas que eliminan información, como se puede ver en la Figura~\ref{fig:conf_borrado}. Por ejemplo, al borrar una imagen, una colección o un usuario desde administración, la aplicación puede mostrar un modal de confirmación antes de ejecutar la operación definitiva. Este comportamiento evita borrados accidentales y permite al usuario cancelar la acción si no está seguro.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.45\textwidth]{img/modal_borrado_img_satisfactorio_inglés}
 	\caption[Mensaje de operación completada]{Mensaje de confirmación mostrado tras completar correctamente una acción.}
@@ -364,7 +364,7 @@ En este apartado se describen las funcionalidades reservadas a los usuarios con 
 
 Los usuarios con rol administrador pueden acceder a un panel de gestión desde el que consultar, editar y eliminar las cuentas registradas en la aplicación. Esta sección solo aparece disponible para administradores, tanto desde el menú lateral como desde el perfil de usuario, evitando que los usuarios normales puedan acceder a operaciones de mantenimiento del sistema.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/página_gest_usu}
 	\caption[Panel de gestión de usuarios]{Panel de administración para la gestión de usuarios registrados.}
@@ -377,7 +377,7 @@ La tabla incorpora un buscador que permite filtrar usuarios por distintos campos
 
 Desde la columna de acciones, el administrador puede ver el detalle de un usuario, editar su información o iniciar el proceso de eliminación. La opción \textit{Ver} permite acceder a una pantalla específica con la información completa de la cuenta seleccionada.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/ver_usu}
 	\caption[Detalle de usuario]{Vista de detalle de un usuario registrado desde el panel de administración.}
@@ -386,7 +386,7 @@ Desde la columna de acciones, el administrador puede ver el detalle de un usuari
 
 En la Figura~\ref{fig:manual_ver_usuario} se muestra la vista de detalle de un usuario. Desde esta pantalla el administrador puede consultar la imagen de perfil, el identificador, correo electrónico, teléfono, fecha de alta, rol y número de parcelas asociadas. También se incluyen accesos para volver al listado, editar el usuario o eliminar la cuenta.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/editar_usu}
 	\caption[Edición de usuario]{Formulario de edición de usuario desde el panel de administración.}
@@ -401,7 +401,7 @@ La eliminación de usuarios se realiza mediante una acción específica de borra
 
 La gestión de modelos permite controlar qué modelos de segmentación están disponibles en la aplicación y cuál de ellos se utilizará para realizar las inferencias. Esta funcionalidad está reservada exclusivamente a usuarios con rol administrador, ya que afecta directamente al comportamiento del sistema durante el cálculo de trazas.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=\textwidth]{img/página_gest_modelo}
 	\caption[Panel de gestión de modelos]{Panel de administración para la gestión de modelos de segmentación.}
@@ -412,7 +412,7 @@ Como se observa en la Figura~\ref{fig:manual_gestion_modelos}, esta pantalla mue
 
 El modelo marcado como activo es el que utiliza la aplicación para realizar nuevas inferencias, tanto sobre imágenes individuales como sobre teselas generadas desde el visor cartográfico. Por este motivo, solo debe activarse un modelo que haya sido validado correctamente. Desde la columna de acciones, el administrador puede activar un modelo, renombrarlo o eliminarlo, siempre que la operación esté permitida por el estado actual del modelo.
 
-\begin{figure}[H]
+\begin{figure}[]
 	\centering
 	\includegraphics[width=0.65\textwidth]{img/añadir_modelo}
 	\caption[Formulario para añadir modelo]{Formulario de subida de un nuevo modelo de segmentación.}
