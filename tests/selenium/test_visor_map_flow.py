@@ -20,12 +20,14 @@ from tests.selenium.helpers import (
     complete_pending_collection_photos,
     configure_visor_map_start,
     create_user,
+    css,
     login_through_ui,
     open_visor_controls_modal,
     select_map_area_at_coordinates,
     visible_css,
     wait_class,
     wait_for_map_selection,
+    wait_for_map_traces_drawn,
     wait_for_text,
     wait_for_url_contains,
     wait_for_zone_status,
@@ -45,7 +47,7 @@ def test_visor_map_selection_generates_grid(
     app,
     monkeypatch,
 ):
-    """El visor genera una zona, la abre y ve sus trazas completadas."""
+    """El visor genera una zona y dibuja sus trazas en el mapa."""
     from trazasytrazadas import visor as visor_module
 
     create_user(
@@ -92,6 +94,24 @@ def test_visor_map_selection_generates_grid(
     wait_for_url_contains(browser, "/coleccion")
     wait_for_text(browser, "Colección de imágenes")
     wait_for_zone_status(browser, "completed")
+
+    clickable(browser, "a[href*='/galeria']").click()
+    wait_for_text(browser, "Galería")
+    clickable(browser, "a[href*='/visor'][href*='parcel_id=']").click()
+
+    wait_for_url_contains(browser, "/visor")
+    wait_for_text(browser, "Dibujar trazas")
+    trace_toggle = css(browser, "#map-traces-checkbox")
+    wait = wait_class()(browser, 8)
+    wait.until(lambda _driver: trace_toggle.is_enabled())
+
+    if trace_toggle.is_selected():
+        trace_toggle.click()
+
+    trace_toggle.click()
+    wait_for_text(browser, "Trazas dibujadas en el mapa.", timeout=30)
+    assert trace_toggle.is_selected()
+    wait_for_map_traces_drawn(browser)
 
 
 def test_visor_reset_button_clears_selected_area(browser, live_server, app):

@@ -278,6 +278,22 @@ def wait_for_zone_status(
     )
 
 
+def _visible_selenium_traces(photo: dict) -> dict:
+    """Genera una traza diagonal visible para pruebas Selenium."""
+    width = int(photo.get("ancho") or 256)
+    height = int(photo.get("alto") or 256)
+    limit = max(1, min(width, height) - 20)
+    points = list(range(20, limit, 2))
+
+    if not points:
+        points = [1, 2, 3]
+
+    return {
+        "xs": points,
+        "ys": points,
+    }
+
+
 def complete_pending_collection_photos(app) -> int:
     """Completa teselas pendientes para simular el worker en Selenium."""
     from trazasytrazadas.collection_store import (
@@ -292,13 +308,15 @@ def complete_pending_collection_photos(app) -> int:
             photos = claim_pending_photos(limit=32)
             if not photos:
                 break
+
             for photo in photos:
                 traces_path = save_photo_traces_result(
                     photo,
-                    {"xs": [1, 4, 8], "ys": [2, 5, 9]},
+                    _visible_selenium_traces(photo),
                 )
                 mark_photo_completed(photo["foto_id"], traces_path)
                 processed += 1
+
     return processed
 
 
@@ -563,3 +581,40 @@ def create_demo_model(
             )
         )
         db.session.commit()
+
+
+def wait_for_map_traces_drawn(driver, timeout: int = 12) -> None:
+    """Espera a que el visor pinte trazas como capa Leaflet."""
+    wait = wait_class()(driver, timeout)
+    wait.until(
+        lambda web_driver: len(
+            web_driver.find_elements(
+                by_css(),
+                "img.leaflet-image-layer[src^='data:image/png']",
+            )
+        ) > 0
+    )
+
+
+def wait_for_model_validation_state(
+    driver,
+    model_name: str,
+    validation: str,
+    timeout: int = 25,
+):
+    """Refresca modelos hasta ver el estado de validación esperado."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        rows = driver.find_elements(by_css(), "[data-model-row]")
+        for row in rows:
+            if row.get_attribute("data-model-name") != model_name:
+                continue
+            if row.get_attribute("data-model-validation") == validation:
+                return row
+
+        time.sleep(0.5)
+        driver.refresh()
+
+    raise AssertionError(
+        f"El modelo {model_name!r} no alcanzó validación {validation!r}."
+    )

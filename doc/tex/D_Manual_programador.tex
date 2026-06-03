@@ -607,9 +607,9 @@ A continuación, los flujos validados con este entorno se documentan mediante ta
 		\textbf{Identificador} & CP7 \\
 		\textbf{Prioridad} & Muy alta \\
 		\textbf{Fecha de ejecución} & 21/05/2026 \\
-		\textbf{Objetivo} & Probar la generación de una zona desde el visor y su apertura en la colección. \\
+		\textbf{Objetivo} & Probar la generación de una zona, su galería y el dibujado de trazas en el mapa. \\
 		\textbf{Precondiciones} & Usuario autenticado y visor cartográfico disponible. \\
-		\textbf{Postcondiciones} & Colección generada y accesible desde la aplicación. \\
+		\textbf{Postcondiciones} & Colección generada, galería accesible y trazas visibles en el mapa. \\
 		\midrule
 	\end{tabularx}
 	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
@@ -620,10 +620,13 @@ A continuación, los flujos validados con este entorno se documentan mediante ta
 		3 & Botón \textit{Generar}. & Se muestra el modal con la resolución objetivo. & Se muestra el modal con la resolución objetivo. & Éxito \\
 		4 & Botón \textit{Generar cuadrícula}. & Se crea la zona y sus teselas. & Se crea la zona y sus teselas. & Éxito \\
 		5 & Botón \textit{Abrir colección}. & Se accede a la colección asociada a la zona. & Se accede a la colección asociada a la zona. & Éxito \\
-		6 & Colección generada. & Las teselas aparecen procesadas o completadas según la simulación del test. & Las teselas aparecen procesadas o completadas según la simulación del test. & Éxito \\
+		6 & Colección generada. & Las teselas aparecen completadas. & Las teselas aparecen completadas. & Éxito \\
+		7 & Botón \textit{Ver galería}. & Se abre la galería de teselas de la colección. & Se abre la galería de teselas de la colección. & Éxito \\
+		8 & Botón \textit{Ver en el mapa}. & Se recupera la zona en el visor cartográfico. & Se recupera la zona en el visor cartográfico. & Éxito \\
+		9 & Control \textit{Dibujar trazas}. & Las trazas calculadas se pintan sobre el mapa. & Las trazas calculadas se pintan sobre el mapa. & Éxito \\
 		\bottomrule
 	\end{tabularx}
-	\caption{Caso de prueba 7: generación de zona y apertura de colección.}
+	\caption{Caso de prueba 7: generación de zona y trazas en el mapa.}
 	\label{tab:cp7}
 \end{table}
 
@@ -893,4 +896,33 @@ A continuación, los flujos validados con este entorno se documentan mediante ta
 	\end{tabularx}
 	\caption{Caso de prueba 17: activación de modelo desde administración.}
 	\label{tab:cp17}
+\end{table}
+\begin{table}[]
+	\centering
+	\footnotesize
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{p{3.2cm} X}
+		\toprule
+		\textbf{Identificador} & CP18 \\
+		\textbf{Prioridad} & Alta \\
+		\textbf{Fecha de ejecución} & 21/05/2026 \\
+		\textbf{Objetivo} & Probar la subida y validación de un modelo desde administración. \\
+		\textbf{Precondiciones} & Administrador con sesión iniciada y fichero de modelo compatible. \\
+		\textbf{Postcondiciones} & El modelo queda validado y disponible para activarse. \\
+		\midrule
+	\end{tabularx}
+	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
+		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
+		\midrule
+		1 & Panel de administración. & Se muestra la gestión de modelos. & Se muestra la gestión de modelos. & Éxito \\
+		2 & Botón de añadir modelo. & Se abre el modal de subida y validación. & Se abre el modal de subida y validación. & Éxito \\
+		3 & Nombre y fichero de modelo compatible. & El fichero queda seleccionado en el formulario. & El fichero queda seleccionado en el formulario. & Éxito \\
+		4 & Botón \textit{Guardar y validar modelo}. & El modelo queda registrado inicialmente. & El modelo queda registrado inicialmente. & Éxito \\
+		5 & Refresco de la página de modelos. & La validación en segundo plano finaliza correctamente. & La validación en segundo plano finaliza correctamente. & Éxito \\
+		6 & Tabla de modelos. & El modelo aparece como \textit{Validado}. & El modelo aparece como \textit{Validado}. & Éxito \\
+		7 & Acciones del modelo. & La opción de activación queda disponible. & La opción de activación queda disponible. & Éxito \\
+		\bottomrule
+	\end{tabularx}
+	\caption{Caso de prueba 18: subida y validación de modelo.}
+	\label{tab:cp18}
 \end{table}

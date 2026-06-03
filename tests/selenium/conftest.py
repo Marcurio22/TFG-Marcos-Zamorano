@@ -179,7 +179,7 @@ def _driver_path() -> str | None:
 
 
 @pytest.fixture
-def browser(request, tmp_path):
+def browser(request, tmp_path, live_server):
     """Crea un WebDriver Chrome y lo cierra al terminar."""
     pytest.importorskip("selenium")
     from selenium import webdriver
@@ -241,4 +241,8 @@ def browser(request, tmp_path):
 
     if final_wait > 0:
         time.sleep(final_wait)
-    driver.quit()
+
+    try:
+        driver.get("about:blank")
+    finally:
+        driver.quit()
