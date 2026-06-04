@@ -14,6 +14,7 @@ services:
       - ./instance:/app/instance
       - ./instance:/app/webapp/instance
     environment:
+      AUTO_START_TRACE_WORKER: "false"
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
     deploy:
@@ -35,3 +36,38 @@ services:
       timeout: 10s
       retries: 5
       start_period: 90s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: trazasytrazadas-web:latest
+    env_file:
+      - .env
+    init: true
+    depends_on:
+      web:
+        condition: service_healthy
+    volumes:
+      - ./instance:/app/instance
+      - ./instance:/app/webapp/instance
+    environment:
+      AUTO_START_TRACE_WORKER: "false"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    command:
+      - flask
+      - --app
+      - run:app
+      - traces-worker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+    restart: unless-stopped
+    shm_size: "1gb"
+    stop_grace_period: 60s

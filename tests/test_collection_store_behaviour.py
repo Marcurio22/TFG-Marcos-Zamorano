@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -409,3 +410,167 @@ def test_mark_refresh_retry_and_remove_paths(app, tmp_path, monkeypatch):
         photo.ruta_trazas = relative_trace_path
         db.session.commit()
         assert store.retry_zone_pending_and_failed(parcel_id) >= 1
+
+
+def test_atomic_claims_do_not_duplicate_photos(app):
+    """Dos workers no deben reclamar la misma tesela."""
+    _parcel_id, photo_ids = _create_parcel_with_photos(
+        app,
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+    )
+    barrier = threading.Barrier(2)
+    results: list[list[int]] = []
+    errors: list[BaseException] = []
+
+    def _claim() -> None:
+        """Ejecuta una reclamación desde un contexto independiente."""
+        try:
+            with app.app_context():
+                barrier.wait(timeout=5)
+                claimed = store.claim_pending_photos(limit=3)
+                results.append([int(photo["foto_id"]) for photo in claimed])
+        except BaseException as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=_claim) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    assert errors == []
+    flattened = [photo_id for group in results for photo_id in group]
+    assert sorted(flattened) == sorted(photo_ids)
+    assert len(flattened) == len(set(flattened))
+
+    with app.app_context():
+        attempts = db.session.execute(
+            db.select(Foto.numero_intentos).where(Foto.foto_id.in_(photo_ids))
+        ).scalars().all()
+        assert sorted(attempts) == [1, 1, 1, 1, 1, 1]
+
+
+def test_claim_rotates_between_collections_after_touching_status(app):
+    """La reclamación reparte trabajo entre colecciones pendientes."""
+    first_parcel_id, first_photo_ids = _create_parcel_with_photos(
+        app, "pending", "pending"
+    )
+    second_parcel_id, second_photo_ids = _create_parcel_with_photos(
+        app, "pending", "pending"
+    )
+
+    with app.app_context():
+        first = db.session.get(Parcela, first_parcel_id)
+        second = db.session.get(Parcela, second_parcel_id)
+        first.actualizado_en = "2026-01-01 00:00:00"
+        second.actualizado_en = "2026-01-01 00:00:01"
+        db.session.commit()
+
+        first_claim = store.claim_pending_photos(limit=1)
+        second_claim = store.claim_pending_photos(limit=1)
+
+    assert [photo["foto_id"] for photo in first_claim] == [
+        first_photo_ids[0]
+    ]
+    assert [photo["foto_id"] for photo in second_claim] == [
+        second_photo_ids[0]
+    ]
+
+
+def test_claim_skips_paused_zone_and_resume_allows_claim(app):
+    """Una colección pausada no se reclama hasta reanudarse."""
+    parcel_id, photo_ids = _create_parcel_with_photos(app, "pending")
+
+    with app.test_request_context("/"):
+        parcel = db.session.get(Parcela, parcel_id)
+        parcel.estado = "paused"
+        db.session.commit()
+
+        assert store.claim_pending_photos(limit=1) == []
+
+        payload = store.toggle_zone_processing(parcel_id)
+        assert payload["estado"] == "pending"
+
+        claimed = store.claim_pending_photos(limit=1)
+        assert [photo["foto_id"] for photo in claimed] == photo_ids
+
+
+def test_pause_resets_processing_photos_to_pending(app):
+    """Pausar una colección devuelve sus teselas processing a pending."""
+    parcel_id, photo_ids = _create_parcel_with_photos(
+        app, "processing", "pending"
+    )
+
+    with app.test_request_context("/"):
+        payload = store.toggle_zone_processing(parcel_id)
+        assert payload["estado"] == "paused"
+        assert payload["paused"] is True
+
+        statuses = db.session.execute(
+            db.select(Foto.estado)
+            .where(Foto.foto_id.in_(photo_ids))
+            .order_by(Foto.foto_id.asc())
+        ).scalars().all()
+        assert statuses == ["pending", "pending"]
+
+
+def test_completed_collection_cannot_be_paused(app):
+    """Una colección completada no debe poder pausarse."""
+    parcel_id, _photo_ids = _create_parcel_with_photos(app, "completed")
+
+    with app.test_request_context("/"):
+        payload = store.toggle_zone_processing(parcel_id)
+        parcel = db.session.get(Parcela, parcel_id)
+
+        assert payload["toggle_blocked"] is True
+        assert parcel.estado == "completed"
+
+
+def test_completion_after_pause_returns_photo_to_pending(app, tmp_path):
+    """Un resultado tardío no completa teselas de una colección pausada."""
+    parcel_id, photo_ids = _create_parcel_with_photos(app, "processing")
+    trace_path = tmp_path / "late.json"
+    trace_path.write_text("{}", encoding="utf-8")
+
+    with app.app_context():
+        app.config["COLLECTION_STORAGE_ROOT"] = str(tmp_path)
+        parcel = db.session.get(Parcela, parcel_id)
+        parcel.estado = "paused"
+        db.session.commit()
+
+        relative_trace_path = store._relative_storage_path(str(trace_path))
+        store.mark_photo_completed(photo_ids[0], relative_trace_path)
+
+        photo = db.session.get(Foto, photo_ids[0])
+        assert photo.estado == "pending"
+        assert photo.trazas == 0
+        assert photo.ruta_trazas is None
+        assert not trace_path.exists()
+
+
+def test_stale_processing_photo_is_reclaimed(app):
+    """Una tesela processing antigua debe recuperarse como trabajo."""
+    old_started_at = (
+        datetime.now(timezone.utc) - timedelta(seconds=120)
+    ).strftime("%Y-%m-%d %H:%M:%S")
+    parcel_id, photo_ids = _create_parcel_with_photos(app, "processing")
+
+    with app.app_context():
+        app.config["TRACE_WORKER_STALE_SECONDS"] = 10
+        photo = db.session.get(Foto, photo_ids[0])
+        photo.iniciado_en = old_started_at
+        photo.numero_intentos = 2
+        db.session.commit()
+
+        claimed = store.claim_pending_photos(limit=1)
+        refreshed = db.session.get(Foto, photo_ids[0])
+
+        assert [photo["foto_id"] for photo in claimed] == photo_ids
+        assert refreshed.estado == "processing"
+        assert refreshed.numero_intentos == 3
+        assert db.session.get(Parcela, parcel_id).estado == "processing"

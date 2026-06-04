@@ -106,6 +106,7 @@ def create_app(test_config=None):
         COLLECTION_STORAGE_ROOT=os.path.join(app.instance_path, "collection"),
         TRACE_WORKER_POLL_SECONDS=2.0,
         TRACE_WORKER_BATCH_SIZE=1,
+        TRACE_WORKER_CONCURRENCY=1,
         AUTO_START_TRACE_WORKER=True,
         TRACE_WORKER_STALE_SECONDS=600,
         COLLECTION_PHOTO_RETRY_ENABLE_SECONDS=120,

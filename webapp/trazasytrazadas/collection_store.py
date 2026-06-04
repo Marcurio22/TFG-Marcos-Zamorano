@@ -24,7 +24,7 @@ from uuid import uuid4
 from flask import current_app, has_request_context, url_for
 from flask_babel import gettext as _
 from flask_login import current_user
-from sqlalchemy import String, cast, func, or_, select
+from sqlalchemy import String, bindparam, cast, func, or_, select, text
 
 from .db import db
 from .model_store import get_active_model
@@ -1128,54 +1128,127 @@ def materialize_photo_tile(photo: dict) -> str:
     return absolute_path
 
 
+def _atomic_claim_photo_ids(
+    *,
+    limit: int,
+    stale_cutoff: str,
+    now_label: str,
+) -> list[int]:
+    """Reclama IDs de fotos con una transacción corta y atómica."""
+    candidate_sql = text(
+        "SELECT f.foto_id, f.parcela_id "
+        "FROM foto AS f "
+        "JOIN parcela AS p ON p.parcela_id = f.parcela_id "
+        "WHERE p.estado != 'paused' "
+        "AND ("
+        "f.estado = 'pending' "
+        "OR ("
+        "f.estado = 'processing' "
+        "AND f.iniciado_en IS NOT NULL "
+        "AND f.iniciado_en <= :stale_cutoff"
+        ")"
+        ") "
+        "ORDER BY "
+        "CASE WHEN f.estado = 'processing' THEN 0 ELSE 1 END, "
+        "p.actualizado_en ASC, "
+        "p.parcela_id ASC, "
+        "f.foto_id ASC "
+        "LIMIT :limit"
+    )
+    claim_sql = text(
+        "UPDATE foto "
+        "SET estado = 'processing', "
+        "iniciado_en = :now_label, "
+        "finalizado_en = NULL, "
+        "mensaje_error = NULL, "
+        "numero_intentos = COALESCE(numero_intentos, 0) + 1 "
+        "WHERE foto_id = :photo_id "
+        "AND ("
+        "estado = 'pending' "
+        "OR ("
+        "estado = 'processing' "
+        "AND iniciado_en IS NOT NULL "
+        "AND iniciado_en <= :stale_cutoff"
+        ")"
+        ") "
+        "AND EXISTS ("
+        "SELECT 1 FROM parcela AS p "
+        "WHERE p.parcela_id = foto.parcela_id "
+        "AND p.estado != 'paused'"
+        ")"
+    )
+    touch_parcels_sql = text(
+        "UPDATE parcela "
+        "SET estado = 'processing', actualizado_en = :now_label "
+        "WHERE parcela_id IN :parcel_ids "
+        "AND estado != 'paused'"
+    ).bindparams(bindparam("parcel_ids", expanding=True))
+
+    connection = db.engine.connect()
+    claimed_ids: list[int] = []
+    claimed_parcel_ids: set[int] = set()
+
+    try:
+        if db.engine.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        else:
+            connection.begin()
+
+        rows = connection.execute(
+            candidate_sql,
+            {"limit": limit, "stale_cutoff": stale_cutoff},
+        ).mappings().all()
+
+        for row in rows:
+            result = connection.execute(
+                claim_sql,
+                {
+                    "photo_id": int(row["foto_id"]),
+                    "stale_cutoff": stale_cutoff,
+                    "now_label": now_label,
+                },
+            )
+            if result.rowcount == 1:
+                claimed_ids.append(int(row["foto_id"]))
+                claimed_parcel_ids.add(int(row["parcela_id"]))
+
+        if claimed_parcel_ids:
+            connection.execute(
+                touch_parcels_sql,
+                {
+                    "parcel_ids": sorted(claimed_parcel_ids),
+                    "now_label": now_label,
+                },
+            )
+
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+    db.session.expire_all()
+    return claimed_ids
+
+
 def claim_pending_photos(*, limit: int = 1) -> list[dict]:
     """
     Reclama fotos pendientes o processing stale y las marca como processing.
 
-    Así se recuperan automáticamente teselas que se hubieran quedado colgadas
-    tras un reinicio, corte del proceso o inferencia interrumpida.
+    La reclamación usa una transacción SQLite breve con BEGIN IMMEDIATE para
+    que dos workers no puedan seleccionar y marcar la misma tesela a la vez.
+    La inferencia se ejecuta después del commit, fuera de cualquier bloqueo.
     """
     limit = max(1, int(limit))
     stale_cutoff = _stale_cutoff_string()
-
-    photos = db.session.execute(
-        select(Foto)
-        .join(Parcela)
-        .where(
-            Parcela.estado != "paused",
-            or_(
-                Foto.estado == "pending",
-                (Foto.estado == "processing")
-                & (Foto.iniciado_en.is_not(None))
-                & (Foto.iniciado_en <= stale_cutoff),
-            ),
-        )
-        .order_by(
-            (Foto.estado == "processing").desc(),
-            Foto.foto_id.asc(),
-        )
-        .limit(limit)
-    ).scalars().all()
-
-    if not photos:
-        return []
-
     now_label = _now_db_string()
-    parcel_ids = set()
-    photo_ids = []
-    for photo in photos:
-        photo.estado = "processing"
-        photo.iniciado_en = now_label
-        photo.finalizado_en = None
-        photo.mensaje_error = None
-        photo.numero_intentos = int(photo.numero_intentos or 0) + 1
-        parcel_ids.add(int(photo.parcela_id))
-        photo_ids.append(int(photo.foto_id))
 
-    db.session.commit()
-
-    for parcel_id in parcel_ids:
-        refresh_parcel_status(parcel_id)
+    photo_ids = _atomic_claim_photo_ids(
+        limit=limit,
+        stale_cutoff=stale_cutoff,
+        now_label=now_label,
+    )
 
     return [
         photo for photo_id in photo_ids
