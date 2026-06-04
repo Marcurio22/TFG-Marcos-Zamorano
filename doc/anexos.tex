@@ -84,37 +84,18 @@
 	urlcolor=red
 }
 
-\newtcolorbox{githubbox}[1]{
-	enhanced,
-	width=\textwidth,
-	colback=green!5!white,
-	colframe=green!45!black,
-	frame style={left color=green!45!black,right color=green!25!white},
-	boxrule=1.2pt,
-	arc=2mm,
-	outer arc=2mm,
-	left=6mm,
-	right=6mm,
-	top=3mm,
-	bottom=3mm,
-	title={#1},
-	fonttitle=\bfseries\large,
-	coltitle=white,
-	colbacktitle=green!45!black,
-	title style={left color=green!45!black,right color=green!25!white},
-	toptitle=1mm,
-	bottomtitle=1mm,
-	lefttitle=6mm
-}
 
-% Cajas para comandos de terminal
+% Cajas flotantes para comandos, rutas, logs y repositorios.
+
+\usepackage{float}
+
+\floatstyle{plain}
+\newfloat{listado}{htbp}{lol}[chapter]
+\floatname{listado}{Listado}
 
 \tcbset{
-	terminalbase/.style={
+	cajabase/.style={
 		enhanced,
-		breakable,
-		listing only,
-		listing engine=listings,
 		width=\textwidth,
 		boxrule=0.9pt,
 		arc=1.5mm,
@@ -122,15 +103,20 @@
 		boxsep=0pt,
 		left=4mm,
 		right=2mm,
-		top=1.2mm,
-		bottom=1.2mm,
+		top=1.1mm,
+		bottom=1.1mm,
 		toptitle=1.4mm,
 		bottomtitle=1.4mm,
 		lefttitle=4mm,
 		fonttitle=\bfseries,
 		coltitle=white,
-		before skip=6pt,
-		after skip=6pt,
+		before skip=0pt,
+		after skip=0pt
+	},
+	terminalbase/.style={
+		cajabase,
+		listing only,
+		listing engine=listings,
 		listing options={
 			basicstyle=\ttfamily\small,
 			breaklines=true,
@@ -145,60 +131,92 @@
 	}
 }
 
+% Repositorio GitHub
+\newtcolorbox{githubbox}[1]{
+	cajabase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
+	title={#1},
+	colback=green!5!white,
+	colframe=green!45!black,
+	colbacktitle=green!45!black
+}
+
+% Git
 \newtcblisting{gitbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=green!3!white,
 	colframe=green!45!black,
 	colbacktitle=green!45!black
 }
 
+% Windows / PowerShell
 \newtcblisting{windowsbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=violet!3!white,
 	colframe=violet!55!black,
 	colbacktitle=violet!55!black
 }
 
+% Linux / macOS
 \newtcblisting{linuxbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=blue!3!white,
 	colframe=blue!55!black,
 	colbacktitle=blue!55!black
 }
 
+% Python / Flask / instalación
 \newtcblisting{pythonbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=yellow!6!white,
 	colframe=orange!75!black,
 	colbacktitle=orange!85!black
 }
 
+% Información, rutas o salidas esperadas
 \newtcblisting{infocmdbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=gray!6!white,
 	colframe=gray!60!black,
 	colbacktitle=gray!70!black
 }
 
+% Pruebas
 \newtcblisting{testbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=purple!4!white,
 	colframe=purple!60!black,
 	colbacktitle=purple!70!black
 }
 
+% Logs JSON
 \newtcblisting{jsonlogbox}[1]{
 	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
 	title={#1},
-	colback=blue!3!white,
-	colframe=blue!45!black,
-	colbacktitle=blue!55!black
+	colback=cyan!4!white,
+	colframe=cyan!60!black,
+	colbacktitle=cyan!70!black
 }
 
 \usepackage{caption}
@@ -270,7 +288,7 @@
 
 %
 %Para el float H de tablaSmallSinColores
-\usepackage{float}
+% El paquete float se carga arriba para las cajas flotantes y las tablas [H].
 
 %
 % Nuevo comando para tablas pequeñas (menos de una página).
