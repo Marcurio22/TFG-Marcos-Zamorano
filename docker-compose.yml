@@ -13,6 +13,17 @@ services:
     volumes:
       - ./instance:/app/instance
       - ./instance:/app/webapp/instance
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
     restart: unless-stopped
     shm_size: "1gb"
     stop_grace_period: 60s

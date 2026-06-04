@@ -28,7 +28,13 @@ WORKDIR /app
 COPY webapp/requirements.txt /app/webapp/requirements.txt
 
 RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install -r /app/webapp/requirements.txt
+    && python -m pip install \
+        torch==2.7.1 \
+        torchvision==0.22.1 \
+        --index-url https://download.pytorch.org/whl/cu118 \
+    && grep -vE '^(torch|torchvision|torchaudio)==' \
+        /app/webapp/requirements.txt > /tmp/requirements-no-torch.txt \
+    && python -m pip install -r /tmp/requirements-no-torch.txt
 
 COPY webapp /app/webapp
 COPY docker /app/docker
