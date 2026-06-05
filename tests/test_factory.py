@@ -10,6 +10,7 @@ Versión: 0.1
 """
 
 from datetime import timedelta
+from pathlib import Path
 
 from trazasytrazadas import create_app
 from trazasytrazadas.db import db
@@ -44,3 +45,30 @@ def test_session_lifetime_is_24_hours():
         assert app.config["SESSION_REFRESH_EACH_REQUEST"] is False
     finally:
         _dispose_app(app)
+
+
+def test_instance_path_can_be_configured_from_environment(
+    monkeypatch,
+    tmp_path,
+):
+    """Comprueba que Docker puede fijar instance_path por entorno."""
+    instance_dir = tmp_path / "docker-instance"
+    monkeypatch.setenv("FLASK_INSTANCE_PATH", str(instance_dir))
+
+    app = create_app(
+        {
+            "TESTING": True,
+            "LOAD_DEMO_DATA": False,
+            "AUTO_START_TRACE_WORKER": False,
+        }
+    )
+
+    try:
+        assert Path(app.instance_path) == instance_dir
+        assert app.config["DATABASE"] == str(
+            instance_dir / "trazasytrazadas.sqlite"
+        )
+        assert app.config["SEG_MODELS_DIR"] == str(instance_dir / "model")
+    finally:
+        _dispose_app(app)
+

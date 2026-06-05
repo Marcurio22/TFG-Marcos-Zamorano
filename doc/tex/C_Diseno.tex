@@ -579,18 +579,17 @@ Las flechas del diagrama representan el sentido principal de comunicación entre
 	\centering
 	\includegraphics[
 	width=\textwidth,
-	trim=0 550 0 0,
 	clip
 	]{img/Diagrama_Capas.pdf}
 	\caption[Arquitectura por capas del sistema]{Arquitectura por capas del sistema.}
 	\label{fig:diagramacapas}
 \end{figure}
 
-En la Figura~\ref{fig:diagramacapas} se representa la aplicación desde una perspectiva de capas. Esta vista permite observar la separación entre la capa de presentación, la capa de negocio, la capa de datos y los servicios externos. La capa de presentación se corresponde con el cliente web, compuesto por las páginas renderizadas desde Flask, las plantillas Jinja2, el código JavaScript y los elementos interactivos de la interfaz, como el visor cartográfico o la visualización de trazas.
+En la Figura~\ref{fig:diagramacapas} se representa la aplicación desde una perspectiva de capas. Esta vista permite observar la separación entre la capa de presentación, la capa de negocio, la capa de datos y los servicios externos, indicando además qué componentes quedan alojados dentro del servidor. La capa de presentación se corresponde con el cliente web, desde el que el usuario interactúa con las páginas renderizadas por la aplicación, el código JavaScript y los elementos interactivos de la interfaz, como el visor cartográfico o la visualización de trazas.
 
-La capa de negocio está formada por la lógica implementada en Python dentro de la aplicación Flask. En ella se encuentran las rutas, los servicios internos, la gestión de sesiones, la autenticación, la administración, la generación de colecciones, el control de estados y la coordinación del proceso de inferencia. Esta capa actúa como núcleo operativo del sistema, recibiendo peticiones desde el navegador y transformándolas en operaciones sobre datos, ficheros, modelos o servicios externos.
+La capa de negocio se encuentra desplegada en el servidor y está formada por la lógica implementada en Python dentro de la aplicación Flask. En ella se incluyen las rutas, los servicios internos, la gestión de sesiones, la autenticación, la administración, la generación de colecciones, el control de estados y la coordinación del proceso de inferencia. Esta capa actúa como núcleo operativo del sistema, recibiendo peticiones desde el navegador mediante el protocolo HTTP y transformándolas en operaciones sobre datos, ficheros, modelos o servicios externos.
 
-La capa de datos combina dos mecanismos de persistencia. La información estructurada se almacena en SQLite mediante SQLAlchemy, incluyendo usuarios, parcelas, fotos, modelos y estados. En cambio, los recursos de mayor tamaño se conservan en el sistema de ficheros, como las imágenes subidas, las teselas generadas, los resultados en formato JSON y los modelos entrenados. Por último, los servicios externos proporcionan la información cartográfica necesaria para el flujo basado en visor, principalmente a través de peticiones WMS sobre ortofotografía del PNOA.
+La capa de datos también se sitúa dentro del servidor y se apoya en SQLite mediante SQLAlchemy para almacenar la información estructurada de la aplicación, como usuarios, parcelas, fotos, modelos y estados de procesamiento. Además, la aplicación utiliza el sistema de ficheros para conservar recursos de mayor tamaño, como imágenes subidas, teselas generadas, resultados en formato JSON y modelos entrenados. Por último, los servicios externos proporcionan la información cartográfica necesaria para el flujo basado en visor, principalmente a través de peticiones HTTP/WMS sobre ortofotografía del PNOA.
 
 \subsection{Diagrama de componentes}
 

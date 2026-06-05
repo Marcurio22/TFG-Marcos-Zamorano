@@ -6,15 +6,19 @@ if [ -z "${SECRET_KEY:-}" ]; then
     exit 1
 fi
 
-mkdir -p \
-    /app/instance/uploads \
-    /app/instance/outputs \
-    /app/instance/profile_images \
-    /app/instance/collection \
-    /app/instance/model
+INSTANCE_DIR="${FLASK_INSTANCE_PATH:-${TRAZAS_INSTANCE_PATH:-/app/instance}}"
+export FLASK_INSTANCE_PATH="$INSTANCE_DIR"
+export TRAZAS_INSTANCE_PATH="$INSTANCE_DIR"
 
-if [ ! -f /app/instance/config.py ]; then
-    cat > /app/instance/config.py <<'PYCONFIG'
+mkdir -p \
+    "$INSTANCE_DIR/uploads" \
+    "$INSTANCE_DIR/outputs" \
+    "$INSTANCE_DIR/profile_images" \
+    "$INSTANCE_DIR/collection" \
+    "$INSTANCE_DIR/model"
+
+if [ ! -f "$INSTANCE_DIR/config.py" ]; then
+    cat > "$INSTANCE_DIR/config.py" <<'PYCONFIG'
 """Configuración Docker generada para trazasytrazadas."""
 
 from __future__ import annotations
@@ -24,7 +28,10 @@ from pathlib import Path
 
 
 BASE_INSTANCE_DIR = Path(
-    os.environ.get("TRAZAS_INSTANCE_PATH", "/app/instance")
+    os.environ.get(
+        "FLASK_INSTANCE_PATH",
+        os.environ.get("TRAZAS_INSTANCE_PATH", "/app/instance"),
+    )
 )
 
 
@@ -141,6 +148,6 @@ SESSION_COOKIE_SECURE = _bool_from_env("SESSION_COOKIE_SECURE", False)
 PYCONFIG
 fi
 
-chown -R appuser:appuser /app/instance
+chown -R appuser:appuser "$INSTANCE_DIR"
 
 exec gosu appuser "$@"

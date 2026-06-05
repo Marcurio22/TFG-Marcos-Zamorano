@@ -219,6 +219,34 @@
 	colbacktitle=cyan!70!black
 }
 
+% Docker / Docker Compose
+\newtcblisting{dockerbox}[1]{
+	terminalbase,
+	before={\begin{listado}[!htbp]\centering},
+		after={\caption{#1}\end{listado}},
+	title={#1},
+	colback=brown!4!white,
+	colframe=brown!60!black,
+	colbacktitle=brown!70!black
+}
+
+% Docker dentro de listas itemize
+\newtcblisting{dockerboxnf}[1]{
+	terminalbase,
+	title={#1},
+	colback=brown!4!white,
+	colframe=brown!60!black,
+	colbacktitle=brown!70!black
+}
+
+\newtcblisting{infocmdboxnf}[1]{
+	terminalbase,
+	title={#1},
+	colback=gray!6!white,
+	colframe=gray!60!black,
+	colbacktitle=gray!70!black
+}
+
 \usepackage{caption}
 \usepackage{dirtree}
 

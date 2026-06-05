@@ -76,7 +76,13 @@ def create_app(test_config=None):
         Flask: Instancia de la aplicación ya configurada.
     """
 
-    app = Flask(__name__, instance_relative_config=True)
+    app_kwargs = {"instance_relative_config": True}
+    instance_path = os.environ.get("FLASK_INSTANCE_PATH")
+
+    if instance_path:
+        app_kwargs["instance_path"] = instance_path
+
+    app = Flask(__name__, **app_kwargs)
 
     # Configuración por defecto.
     seg_model_template = (
@@ -112,8 +118,8 @@ def create_app(test_config=None):
         COLLECTION_PHOTO_RETRY_ENABLE_SECONDS=120,
 
         # ------------------ Configuración ML ------------------
-        # Carpeta donde van los pesos por fold.
-        SEG_MODELS_DIR=os.path.join(app.root_path, "model"),
+        # Carpeta donde van los modelos de inferencia.
+        SEG_MODELS_DIR=os.path.join(app.instance_path, "model"),
 
         # Template de pesos por fold.
         SEG_MODEL_TEMPLATE=seg_model_template,

@@ -13,7 +13,7 @@ Además, se incluye una guía introductoria para la puesta en marcha del entorno
 
 \section{Estructura de directorios}
 
-La estructura del repositorio se ha organizado con el objetivo de separar el código fuente de la aplicación, la configuración del entorno, la documentación auxiliar, los datos locales generados durante la ejecución y la batería de pruebas. Esta organización facilita que un desarrollador que se incorpore al proyecto pueda identificar rápidamente dónde se encuentra cada recurso y qué papel desempeña dentro del sistema.
+La estructura del repositorio se ha organizado con el objetivo de separar el código fuente de la aplicación, la configuración del entorno, la documentación auxiliar, los datos locales generados durante la ejecución, la batería de pruebas y los ficheros necesarios para el despliegue con Docker. Esta organización facilita que un desarrollador que se incorpore al proyecto pueda identificar rápidamente dónde se encuentra cada recurso y qué papel desempeña dentro del sistema.
 
 Antes de describir los ficheros principales del repositorio, conviene presentar la organización general de directorios sobre la que se estructura la aplicación:
 
@@ -30,7 +30,7 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 	\footnotesize
 	\renewcommand*\DTstyle{\ttfamily}
 	
-	\begin{minipage}{0.80\textwidth}
+	\begin{minipage}{0.88\textwidth}
 		\dirtree{%
 			.1 /.
 			.2 \textbf{assets}: recursos gráficos y materiales auxiliares.
@@ -38,7 +38,16 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 			.2 \textbf{doc}: documentación técnica y memoria del proyecto.
 			.3 \textbf{img}: imágenes utilizadas en la documentación.
 			.3 \textbf{tex}: ficheros \LaTeX{} de la memoria.
+			.2 \textbf{docker}: configuración auxiliar para el despliegue.
+			.3 \textbf{entrypoint.sh}: script de arranque de los contenedores.
+			.3 \textbf{gunicorn.conf.py}: configuración del servidor Gunicorn.
 			.2 \textbf{htmlcov}: informe HTML de cobertura generado.
+			.2 \textbf{instance}: volumen persistente con datos de ejecución.
+			.3 \textbf{model}: modelos de inferencia.
+			.3 \textbf{collection}: colecciones, teselas y resultados.
+			.3 \textbf{profile\_images}: imágenes de perfil de usuarios.
+			.3 \textbf{uploads}: imágenes subidas por el usuario.
+			.3 \textbf{outputs}: resultados generados.
 			.2 \textbf{prototipos}: pruebas preliminares del sistema.
 			.2 \textbf{tests}: pruebas automáticas del proyecto.
 			.3 \textbf{selenium}: pruebas funcionales en navegador.
@@ -61,10 +70,9 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 	\begin{minipage}{0.82\textwidth}
 		\dirtree{%
 			.1 \textbf{webapp}: aplicación web desarrollada con Flask.
-			.2 \textbf{instance}: recursos locales y base de datos SQLite.
+			.2 \textbf{instance}: instancia local para ejecución fuera de Docker.
 			.2 \textbf{scripts}: scripts auxiliares de mantenimiento.
 			.2 \textbf{trazasytrazadas}: paquete principal de la aplicación.
-			.3 \textbf{model}: modelos de segmentación y recursos asociados.
 			.3 \textbf{seed}: datos iniciales y carga de demostración.
 			.3 \textbf{static}: ficheros estáticos de la interfaz.
 			.4 \textbf{img}: imágenes, fondos y recursos gráficos.
@@ -83,7 +91,7 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 
 \endgroup
 
-Los ficheros principales que se encuentran al nivel raíz del proyecto son:
+Los ficheros y directorios principales que se encuentran al nivel raíz del proyecto son:
 
 \begin{itemize}
 	\item \textbf{\texttt{webapp/}:} directorio raíz de la aplicación web.
@@ -94,6 +102,22 @@ Los ficheros principales que se encuentran al nivel raíz del proyecto son:
 	\item \textbf{\texttt{tests/}:} directorio que contiene la suite de
 	pruebas automáticas del sistema. Incluye pruebas funcionales, de
 	regresión, de integración y pruebas de navegador con Selenium.
+	
+	\item \textbf{\texttt{docker/}:} carpeta de soporte al despliegue. Incluye el script \texttt{entrypoint.sh}, encargado de preparar las carpetas necesarias y lanzar el comando final del contenedor, y el fichero \texttt{gunicorn.conf.py}, donde se define la configuración del servidor Gunicorn.
+	
+	\item \textbf{\texttt{instance/}:} directorio persistente de la aplicación. Contiene la base de datos SQLite, los modelos de inferencia, las colecciones, las imágenes subidas, las imágenes de perfil y los resultados generados. 
+	
+	\item \textbf{\texttt{Dockerfile}:} fichero que define la imagen Docker de la aplicación.
+	
+	\item \textbf{\texttt{docker-compose.yml}:} fichero de orquestación del
+	despliegue. Define los servicios principales.
+	
+	\item \textbf{\texttt{.dockerignore}:} fichero utilizado para evitar que
+	ciertos recursos entren dentro de la imagen Docker. Excluye entornos
+	virtuales, cachés, informes de cobertura, datos persistentes, modelos,
+	bases de datos y otros archivos generados.
+	
+	\item \textbf{\texttt{.env.example}:} plantilla de configuración de entorno.
 	
 	\item \textbf{\texttt{htmlcov/}:} informe HTML generado por
 	\textit{coverage}. No forma parte del código fuente de la aplicación,
@@ -117,6 +141,9 @@ aplicación, entre los que destacan:
 	\item \textbf{\texttt{requirements.txt}:} listado principal de
 	dependencias necesarias para instalar y ejecutar la aplicación.
 	
+	\item \textbf{\texttt{requirements.freeze.txt}:} listado congelado de
+	dependencias del entorno, útil para reproducir instalaciones concretas.
+	
 	\item \textbf{\texttt{requirements-selenium.txt}:} dependencias
 	opcionales necesarias para ejecutar las pruebas Selenium.
 	
@@ -127,8 +154,12 @@ aplicación, entre los que destacan:
 	generada a partir de los textos extraídos.
 	
 	\item \textbf{\texttt{trazasytrazadas/}:} paquete principal de código
-	fuente de la aplicación.
+	fuente de la aplicación. Contiene la factoría de aplicación, los
+	\textit{blueprints}, modelos, formularios, lógica de colección, visor,
+	inferencia, administración y procesamiento de trazas.
 \end{itemize}
+
+Los modelos de inferencia se almacenan en \texttt{instance/model}, de forma que quedan separados del código fuente y pueden persistir entre reconstrucciones de la imagen Docker. Esta decisión evita que los modelos queden embebidos dentro de la imagen y permite actualizarlos o sustituirlos sin reconstruir toda la aplicación.
 
 \section{Manual del programador} 
 
@@ -144,17 +175,31 @@ Los ficheros \texttt{pickle} deben tratarse como artefactos sensibles y cargarse
 
 También debe tenerse en cuenta que cualquier cambio en el formato del modelo exige repetir las pruebas de equivalencia de inferencia. Si se sustituye \texttt{pickle} por TorchScript, \texttt{safetensors} u otro formato, no basta con comprobar que el modelo carga correctamente: es necesario comparar las máscaras generadas y verificar que las diferencias no afectan al resultado funcional. Del mismo modo, actualizaciones de PyTorch, \texttt{segmentation-models-pytorch}, \texttt{timm} u otras dependencias relacionadas con la inferencia pueden modificar el comportamiento del modelo y deben validarse cuidadosamente. 
 
-Finalmente, un programador que modifique esta parte debe prestar especial atención al preprocesado de la imagen. Cambios en la normalización, el tamaño de entrada, el orden de canales, el umbral de binarización o el postprocesado de la máscara pueden alterar las trazas detectadas, incluso cuando el modelo utilizado sea el mismo. Por ello, cualquier cambio en la inferencia debe acompañarse de pruebas con imágenes representativas y resultados esperados. 
+Finalmente, un programador que modifique esta parte debe prestar especial atención al preprocesado de la imagen. Cambios en la normalización, el tamaño de entrada, el orden de canales, el umbral de binarización o el postprocesado de la máscara pueden alterar las trazas detectadas, incluso cuando el modelo utilizado sea el mismo. Por ello, cualquier cambio en la inferencia debe acompañarse de pruebas con imágenes representativas y resultados esperados.
+
+\subsubsection{Compatibilidad de PyTorch con GPU en despliegue}
+
+Además de la compatibilidad funcional del modelo, debe revisarse la compatibilidad entre PyTorch, CUDA y el hardware disponible en el entorno de despliegue. El entorno local o general del proyecto puede mantener las versiones fijadas en \texttt{requirements.txt}, pero el \texttt{Dockerfile} de producción puede requerir una \textit{build} específica de PyTorch para ajustarse a las GPU del servidor. En el servidor Gamma se detectaron GPU NVIDIA TITAN Xp, cuya capacidad CUDA es \texttt{sm\_61}. La \textit{build} inicial \texttt{torch 2.10.0+cu128} no resultaba adecuada, ya que soportaba arquitecturas a partir de \texttt{sm\_70}; por ello, se sustituyó en el contenedor de despliegue por \texttt{torch 2.7.1+cu118} y \texttt{torchvision 0.22.1+cu118}.
+
+Un futuro desarrollador no debería actualizar las versiones de PyTorch o CUDA sin repetir pruebas reales de inferencia. No basta con comprobar que \texttt{torch.cuda.is\_available()} devuelve \texttt{True}, especialmente si PyTorch muestra advertencias de arquitectura. Debe verificarse también el número de dispositivos mediante \texttt{torch.cuda.device\_count()}, revisar el estado del sistema con \texttt{nvidia-smi} y ejecutar al menos una operación real en GPU antes de considerar válido el entorno. Del mismo modo, cualquier cambio de versión debe probar la carga del modelo activo y una inferencia completa sobre una imagen representativa, ya que la compatibilidad del \textit{runtime} forma parte de la reproducibilidad del sistema.
 
 \subsection{Worker asíncrono de procesamiento de trazas} 
 
-Uno de los componentes más relevantes del sistema es el \textit{worker} asíncrono de procesamiento de trazas, implementado en torno a \texttt{trace\_worker.py}. Su función es procesar las teselas pendientes de las colecciones geoespaciales sin bloquear la petición HTTP del usuario.
+Uno de los componentes más relevantes del sistema es el \textit{worker} asíncrono de procesamiento de trazas, implementado en torno a \texttt{trace\_worker.py}. Su función es procesar las teselas pendientes de las colecciones geoespaciales sin bloquear la petición HTTP del usuario. De este modo, cuando el usuario genera una zona desde el visor cartográfico, la aplicación puede responder de forma rápida registrando la colección y dejando el cálculo de trazas para un procesamiento posterior en segundo plano.
 
-El flujo general comienza cuando el usuario genera una zona desde el visor cartográfico. En ese momento, la aplicación crea una parcela o colección y registra sus teselas asociadas como fotos pendientes de procesamiento. En lugar de calcular todas las trazas dentro de la misma petición del visor, el sistema deja esas fotos en estado pendiente y el \textit{worker} las reclama progresivamente. Cada tesela pasa entonces a estado de procesamiento, se ejecuta la inferencia, se guardan los resultados y finalmente se marca como completada o como fallida en caso de error. Este diseño permite que la aplicación responda rápidamente a la acción inicial del usuario y que el avance del procesamiento pueda consultarse desde la interfaz. 
+En este flujo, la entidad \texttt{Parcela} representa una colección generada desde el visor, mientras que cada registro de \texttt{Foto} representa una tesela concreta dentro de dicha colección. Cada tesela puede encontrarse en distintos estados de procesamiento, principalmente \texttt{pending}, \texttt{processing}, \texttt{completed} o \texttt{failed}. La base de datos SQLite actúa así como una cola persistente de trabajo, almacenando qué imágenes están pendientes, cuáles están siendo procesadas, cuáles han terminado correctamente y cuáles han fallado. Esta decisión permite que el estado del procesamiento sobreviva entre peticiones y que la interfaz pueda consultar el avance de la colección sin depender de una tarea HTTP de larga duración.
 
-La base de datos actúa como una cola ligera de trabajo, almacenando los estados de cada foto y de la colección asociada. De esta forma, la galería puede reflejar si las teselas están pendientes, en procesamiento, completadas o con error, sin que el usuario tenga que esperar a que finalice todo el lote en una única petición. La pausa y reanudación del procesamiento también se gestiona mediante este enfoque cooperativo. La pausa se controla a través del campo \texttt{estado} de la entidad \texttt{Parcela}, utilizando el valor \texttt{paused}. No debe añadirse una columna nueva exclusivamente para pausar colecciones, ya que el estado global de la parcela cumple esa función dentro del modelo actual. 
+El flujo general comienza cuando el usuario define una zona en el visor cartográfico. En ese momento, la aplicación crea la parcela o colección y registra sus teselas asociadas como fotos pendientes de procesamiento. Posteriormente, uno o varios \textit{workers} reclaman progresivamente esas teselas, las marcan como \texttt{processing}, ejecutan la inferencia, guardan los resultados y actualizan su estado final a \texttt{completed} o \texttt{failed}. Esta arquitectura permite procesamiento concurrente controlado, manteniendo al mismo tiempo trazabilidad sobre cada tesela y sobre el estado global de la colección.
 
-Cuando una colección se pausa, el \textit{worker} no debe reclamar nuevas teselas asociadas a ella y, si procede, las teselas que estuvieran en procesamiento pueden volver a quedar pendientes para retomarse posteriormente. Es importante entender que esta pausa afecta únicamente a la parcela o colección seleccionada, no al conjunto completo del sistema. Por tanto, un futuro desarrollador no debería detener hilos globales, matar procesos ni bloquear el servicio completo para pausar una colección concreta. El mecanismo esperado es cooperativo: el \textit{worker} consulta el estado de las parcelas y evita continuar con aquellas que estén marcadas como pausadas. Asimismo, una colección ya completada no debería poder pausarse, puesto que no existe procesamiento pendiente que detener. 
+Para evitar que dos \textit{workers} procesen simultáneamente la misma tesela, la reclamación de trabajo se realiza de forma atómica. La función de \textit{claim} abre una transacción corta en SQLite mediante \texttt{BEGIN IMMEDIATE}, selecciona candidatas que no pertenezcan a parcelas pausadas y que se encuentren en estado \texttt{pending} o en \texttt{processing} antiguo, y actualiza condicionalmente su estado a \texttt{processing}. En esa misma operación se incrementa el campo \texttt{numero\_intentos} y se confirma la transacción inmediatamente. La inferencia se ejecuta después, fuera de la transacción, para no mantener bloqueada la base de datos durante operaciones costosas como la carga de imagen, el cálculo con PyTorch o la escritura de resultados.
+
+Este diseño es importante porque combina concurrencia y consistencia. Por un lado, permite ejecutar varios \textit{workers} en paralelo, cuyo número puede configurarse desde el fichero \texttt{.env}. Por otro lado, evita que una misma tesela sea reclamada dos veces y reduce el tiempo durante el cual SQLite permanece bloqueado. La base de datos se utiliza únicamente para coordinar estados y asignar trabajo, mientras que el procesamiento pesado se realiza fuera de la transacción. De esta forma, el sistema mantiene una cola persistente sencilla, pero suficientemente robusta para el flujo de colecciones implementado.
+
+También se contempla la recuperación de teselas bloqueadas en estado \texttt{processing}. Si un \textit{worker} se detiene de forma inesperada, una foto podría quedar marcada como en procesamiento sin llegar a finalizar. Para evitar que quede indefinidamente en ese estado, el sistema utiliza el parámetro \texttt{TRACE\_WORKER\_STALE\_SECONDS}, que permite considerar antigua una tesela en \texttt{processing} y volver a reclamarla. Este valor no debe configurarse demasiado bajo, ya que una inferencia lenta podría interpretarse erróneamente como bloqueada y provocar reintentos innecesarios.
+
+La pausa y reanudación del procesamiento se gestiona mediante el estado global de la colección. La pausa se representa con \texttt{Parcela.estado = "paused"}, sin añadir una columna adicional específica para esta operación. Cuando una colección se pausa, los \textit{workers} no deben reclamar nuevas teselas asociadas a ella y, si procede, las fotos que estuvieran en \texttt{processing} pueden volver a \texttt{pending} para ser retomadas posteriormente. Esta pausa afecta únicamente a la parcela o colección seleccionada, no al sistema completo, por lo que no deben detenerse hilos globales ni bloquearse todos los procesos de la aplicación.
+
+Finalmente, el \textit{worker} debe revalidar el estado de la parcela antes de guardar un resultado. Si una tesela termina su procesamiento mientras la colección ha sido pausada, el resultado no debe marcarse indebidamente como completado dentro de un flujo ya detenido por el usuario. Del mismo modo, una colección ya completada no debe poder pausarse, ya que no existe trabajo pendiente que interrumpir. Estos invariantes son importantes para mantener la coherencia entre la interfaz, la base de datos y los resultados generados en el sistema de ficheros.
 
 \subsection{Worker asíncrono de validación de modelos}
 
@@ -179,6 +224,22 @@ La seguridad del sistema depende en gran medida de mantener una separación clar
 Las colecciones, imágenes y resultados deben comprobar siempre la propiedad o los permisos antes de mostrarse o descargarse. Un usuario normal solo debería acceder a sus propios recursos, salvo que se defina explícitamente otro comportamiento. Del mismo modo, las imágenes de perfil deben tratarse como datos personales y gestionarse con cuidado, evitando exponer rutas internas o permitir acceso directo a ficheros privados sin validación. 
 
 Los modelos subidos al sistema son ficheros especialmente sensibles. En particular, los modelos serializados mediante \texttt{pickle} no deben cargarse desde fuentes no controladas ni desde usuarios sin privilegios. La carga de modelos debe considerarse una operación de confianza restringida a administradores. Además, no deben exponerse rutas directas a modelos, imágenes subidas, bases de datos, resultados JSON o ficheros internos sin pasar por los mecanismos de autorización de la aplicación.
+
+\subsection{Ejecución separada de web y \textit{worker} en Docker}
+
+En el despliegue contenedorizado se separa la ejecución de la aplicación web y del procesamiento de trazas en servicios distintos. El servicio \texttt{web} ejecuta la aplicación Flask mediante Gunicorn y atiende las peticiones HTTP del navegador. Por su parte, el servicio \texttt{worker} ejecuta explícitamente el proceso de trazas mediante el comando \texttt{flask --app run:app traces-worker}, sin publicar puertos ni atender tráfico web. Esta separación permite que la interfaz y el procesamiento en segundo plano evolucionen de forma independiente, manteniendo responsabilidades claras dentro del despliegue.
+
+Para evitar duplicidades, el servicio \texttt{web} debe tener desactivado el arranque automático del \textit{worker}, configurando \texttt{AUTO\_START\_TRACE\_WORKER=false}. El procesamiento debe iniciarse únicamente desde el servicio \texttt{worker} definido en Docker. Ambos contenedores deben montar los mismos volúmenes de datos, de forma que compartan la base de datos SQLite, las imágenes, las teselas, los resultados JSON y los modelos almacenados en el sistema de ficheros. En este esquema, los modelos no deben copiarse dentro de la imagen Docker, sino mantenerse en volúmenes externos, facilitando su actualización y evitando reconstrucciones innecesarias de la imagen.
+
+La arquitectura permite escalar el procesamiento lanzando varios contenedores de tipo \texttt{worker}. Por ejemplo, puede aumentarse el número de procesos de trazas mediante el siguiente comando:
+
+\begin{pythonbox}{Ejecución de contenedores con Docker Compose}
+	docker compose up -d --scale worker=2
+\end{pythonbox}
+
+La concurrencia total del sistema viene determinada por el número de contenedores \texttt{worker} multiplicado por el valor de \texttt{TRACE\_WORKER\_CONCURRENCY}. Por tanto, si se ejecutan dos contenedores \texttt{worker} y cada uno tiene una concurrencia interna de dos, el sistema podrá procesar hasta cuatro tareas de forma concurrente, siempre dentro de los límites impuestos por la base de datos, la GPU y el sistema de ficheros.
+
+Un futuro desarrollador debe tener especial cuidado al modificar estos parámetros. No conviene aumentar \texttt{WEB\_CONCURRENCY} sin revisar previamente el comportamiento de SQLite, ya que incrementar el número de procesos web puede aumentar la presión sobre la base de datos. Tampoco debe mezclarse el arranque automático del \textit{worker} dentro del servicio \texttt{web} con un servicio \texttt{worker} independiente, porque se crearían procesos duplicados y sería más difícil razonar sobre la concurrencia real. La separación recomendada es mantener \texttt{web} para HTTP y \texttt{worker} para procesamiento de trazas.
 
 \subsection{Recomendaciones de mantenimiento}
 
@@ -352,7 +413,208 @@ Este modo debe utilizarse únicamente en entornos locales de desarrollo. No debe
 
 \subsection{Ejecución en servidor con Gunicorn}
 
-% Rellenar
+Durante el desarrollo local la aplicación puede ejecutarse mediante el servidor integrado de Flask, ya que resulta suficiente para depuración y pruebas rápidas. Sin embargo, en un entorno de producción no debe utilizarse dicho servidor ni activarse el modo \textit{debug}. Para el despliegue se emplea Gunicorn, que actúa como servidor WSGI entre la aplicación Flask y la infraestructura del servidor. El punto de entrada de la aplicación es \texttt{run:app}, y la configuración específica del despliegue se encuentra en el fichero \texttt{docker/gunicorn.conf.py}.
+
+Conceptualmente, la aplicación podría arrancarse con el siguiente comando:
+
+\begin{dockerbox}{Arranque conceptual de Gunicorn}
+	gunicorn --config /app/docker/gunicorn.conf.py run:app
+\end{dockerbox}
+
+No obstante, en el despliegue normal este comando no se ejecuta manualmente, sino que lo lanza el contenedor \texttt{web} definido en Docker Compose. Este servicio se encarga de atender las peticiones HTTP de la aplicación, pero no debe procesar directamente colecciones pesadas. Para mantener un comportamiento estable con SQLite, se conserva \texttt{WEB\_CONCURRENCY=1}, mientras que la concurrencia HTTP ligera se gestiona mediante \textit{threads} configurados en Gunicorn.
+
+\subsection{Despliegue con Docker Compose}
+
+El despliegue con Docker Compose permite levantar la aplicación de forma reproducible, separando el servicio web del servicio encargado del procesamiento de trazas. El primer paso consiste en copiar la carpeta completa del proyecto al servidor o entregarla al evaluador. La estructura esperada en la raíz del proyecto debe incluir, al menos, los siguientes elementos:
+
+\begin{infocmdbox}{Estructura mínima esperada en la raíz del proyecto}
+	Dockerfile
+	docker-compose.yml
+	.env.example
+	docker/
+	webapp/
+	instance/
+\end{infocmdbox}
+
+A continuación, debe crearse el fichero de variables de entorno a partir de la plantilla proporcionada:
+
+\begin{dockerbox}{Creación del fichero de variables de entorno}
+	cp .env.example .env
+\end{dockerbox}
+
+También debe generarse una clave secreta para la aplicación:
+
+\begin{pythonbox}{Generación de clave secreta}
+	python3 -c "import secrets; print(secrets.token_urlsafe(48))"
+\end{pythonbox}
+
+El valor generado debe copiarse en la variable correspondiente del fichero \texttt{.env}:
+
+\begin{infocmdbox}{Variable de clave secreta}
+	SECRET_KEY=...
+\end{infocmdbox}
+
+Antes de arrancar los servicios debe comprobarse la existencia del directorio \texttt{instance}. Si se desea partir de un entorno vacío, puede crearse mediante:
+
+\begin{dockerbox}{Creación del directorio de instancia}
+	mkdir -p instance
+\end{dockerbox}
+
+Si se entrega un directorio \texttt{instance} ya preparado con datos de demostración, modelos y recursos asociados, no debe sobrescribirse, ya que contiene la base de datos y los ficheros persistentes necesarios para la ejecución.
+
+Una vez preparada la configuración, los servicios se levantan desde la raíz del proyecto con:
+
+\begin{dockerbox}{Construcción y arranque de servicios}
+	docker compose up -d --build
+\end{dockerbox}
+
+El estado de los contenedores puede comprobarse mediante:
+
+\begin{dockerbox}{Comprobación del estado de contenedores}
+	docker compose ps
+\end{dockerbox}
+
+Para revisar los registros de ejecución, pueden consultarse los logs del servicio web y del servicio de procesamiento:
+
+\begin{dockerbox}{Consulta de logs de los servicios}
+	docker compose logs -f web
+	docker compose logs -f worker
+\end{dockerbox}
+
+En un despliegue local, la aplicación queda accesible normalmente en:
+
+\begin{infocmdbox}{Dirección de acceso en despliegue local}
+	http://localhost:8000
+\end{infocmdbox}
+
+En el servidor Gamma, la dirección de acceso utilizada es:
+
+\begin{infocmdbox}{Dirección de acceso en el servidor Gamma}
+	http://10.168.168.34:8000
+\end{infocmdbox}
+
+El acceso externo dependerá de la red de la universidad, de la disponibilidad del servidor y de que los contenedores estén correctamente levantados.
+
+\subsection{Preparación de datos persistentes}
+
+El directorio \texttt{instance} contiene los datos persistentes de la aplicación. Este directorio no debe formar parte de la imagen Docker, sino montarse como volumen para que la información sobreviva a reconstrucciones de la imagen o reinicios de los contenedores. La estructura esperada es la siguiente:
+
+\begin{infocmdbox}{Estructura esperada del directorio de instancia}
+	instance/
+	|-- trazasytrazadas.sqlite
+	|-- model/
+	|   |-- fold.0
+	|   |-- fold.1
+	|   `-- fold.2
+	|-- collection/
+	|-- profile_images/
+	|-- uploads/
+	`-- outputs/
+\end{infocmdbox}
+
+La base de datos \texttt{trazasytrazadas.sqlite} almacena usuarios, modelos registrados, colecciones, teselas y estados de procesamiento. Los modelos reales deben situarse en \texttt{instance/model}, las colecciones y resultados generados se almacenan en \texttt{instance/collection}, las imágenes de perfil en \texttt{instance/profile\_images} y los ficheros asociados a subidas y salidas en \texttt{uploads} y \texttt{outputs}. Para la evaluación del proyecto puede entregarse un directorio \texttt{instance} de demostración ya preparado, evitando que el tribunal tenga que generar usuarios, modelos o colecciones desde cero.
+
+Antes de realizar copias de seguridad es recomendable detener los servicios, especialmente para evitar copiar la base de datos SQLite mientras está siendo escrita:
+
+\begin{dockerbox}{Copia de seguridad del directorio de instancia}
+	docker compose down
+	cp -a instance "instance.backup.$(date +%Y%m%d-%H%M%S)"
+	docker compose up -d
+\end{dockerbox}
+
+De esta forma se conserva una copia completa del estado persistente de la aplicación, incluyendo base de datos, modelos, imágenes, colecciones y resultados.
+
+\subsection{Variables de entorno principales}
+
+El fichero \texttt{.env} centraliza la configuración del despliegue. Una de las variables más importantes es:
+
+\begin{infocmdbox}{Ruta de instancia de Flask}
+	FLASK_INSTANCE_PATH=/app/instance
+\end{infocmdbox}
+
+Esta variable fija la ruta de instancia de Flask dentro del contenedor. Gracias a ella, la aplicación utiliza \texttt{/app/instance} como directorio persistente único, evitando depender de la ruta por defecto calculada por Flask a partir del paquete Python.
+
+Las variables principales del servicio web son:
+
+\begin{infocmdbox}{Variables principales del servicio web}
+	WEB_CONCURRENCY=1
+	GUNICORN_THREADS=4
+	HOST_PORT=8000
+	SESSION_COOKIE_SECURE=false
+	SESSION_COOKIE_SAMESITE=Lax
+\end{infocmdbox}
+
+\texttt{WEB\_CONCURRENCY=1} mantiene un único proceso Gunicorn, decisión adecuada para reducir conflictos con SQLite y evitar duplicar lógica de procesamiento. \texttt{GUNICORN\_THREADS=4} permite concurrencia HTTP ligera dentro del proceso web. \texttt{HOST\_PORT=8000} define el puerto expuesto por la aplicación y las variables de sesión controlan el comportamiento de las cookies en el entorno de despliegue.
+
+Las variables relacionadas con el procesamiento de trazas son:
+
+\begin{infocmdbox}{Variables de procesamiento de trazas}
+	AUTO_START_TRACE_WORKER=false
+	TRACE_WORKER_CONCURRENCY=1
+	TRACE_WORKER_BATCH_SIZE=1
+	TRACE_WORKER_STALE_SECONDS=600
+\end{infocmdbox}
+
+\texttt{AUTO\_START\_TRACE\_WORKER=false} indica que el servicio web no debe arrancar \textit{workers} internos en Docker. El procesamiento debe realizarse desde el servicio \texttt{worker}. \texttt{TRACE\_WORKER\_CONCURRENCY=1} establece el número de \textit{workers} lógicos dentro del servicio de procesamiento, manteniendo un modo conservador. \texttt{TRACE\_WORKER\_BATCH\_SIZE=1} hace que se reclamen pocas teselas por iteración, reduciendo la presión sobre SQLite y la GPU. Por último, \texttt{TRACE\_WORKER\_STALE\_SECONDS=600} permite recuperar teselas que hayan quedado atascadas en estado \texttt{processing}.
+
+Las variables principales de inferencia y modelos son:
+
+\begin{infocmdbox}{Variables principales de inferencia y modelos}
+	SEG_USE_GPU=true
+	MODEL_VALIDATION_USE_GPU=true
+	SEG_DEFAULT_ACTIVE_FOLD=fold.0
+	SEG_N_FOLDS=3
+\end{infocmdbox}
+
+\texttt{SEG\_USE\_GPU=true} habilita el uso de CUDA si PyTorch detecta una GPU compatible. \texttt{MODEL\_VALIDATION\_USE\_GPU=true} permite validar modelos utilizando GPU. \texttt{SEG\_DEFAULT\_ACTIVE\_FOLD=fold.0} define el modelo activo inicial y \texttt{SEG\_N\_FOLDS=3}, este último se ajustará en base al número de modelos recibidos.
+
+\subsection{Comprobación de GPU}
+
+En despliegues con aceleración por GPU es necesario comprobar que el servidor, Docker y PyTorch detectan correctamente el hardware disponible. En primer lugar, desde el propio servidor puede revisarse el estado de las GPU con:
+
+\begin{dockerbox}{Comprobación de GPU en el servidor}
+	nvidia-smi
+\end{dockerbox}
+
+Dentro del servicio \texttt{web}, la comprobación básica de PyTorch puede realizarse con:
+
+\begin{dockerbox}{Comprobación de PyTorch en el servicio web}
+	docker compose exec -T web python - <<'PY'
+	import torch
+	
+	print(torch.__version__)
+	print(torch.version.cuda)
+	print(torch.cuda.is_available())
+	print(torch.cuda.device_count())
+	PY
+\end{dockerbox}
+
+La misma comprobación puede realizarse dentro del servicio \texttt{worker}:
+
+\begin{dockerbox}{Comprobación de PyTorch en el servicio worker}
+	docker compose exec -T worker python - <<'PY'
+	import torch
+	
+	print(torch.__version__)
+	print(torch.version.cuda)
+	print(torch.cuda.is_available())
+	print(torch.cuda.device_count())
+	PY
+\end{dockerbox}
+
+Aunque \texttt{torch.cuda.is\_available()} indique que PyTorch detecta CUDA, esto no garantiza por sí solo que los \textit{kernels} se ejecuten correctamente en la GPU. Por ello, conviene ejecutar al menos una operación real en CUDA:
+
+\begin{dockerbox}{Prueba real de operación en CUDA}
+	docker compose exec -T web python - <<'PY'
+	import torch
+	
+	x = torch.randn((1024, 1024), device="cuda")
+	y = x @ x
+	print(y.mean().item())
+	PY
+\end{dockerbox}
+
+Esta prueba confirma que PyTorch no solo detecta CUDA, sino que puede ejecutar operaciones reales sobre GPU. Además, \texttt{nvidia-smi} permite observar el consumo de memoria y los procesos asociados durante la ejecución. En el servidor Gamma fue necesario utilizar versiones compatibles con las GPU NVIDIA TITAN Xp, concretamente \texttt{torch 2.7.1+cu118} y \texttt{torchvision 0.22.1+cu118}, ya que otras versiones más recientes con CUDA no ofrecían soporte adecuado para su arquitectura.
 
 \subsection{Ejecución de pruebas básicas}
 
@@ -389,18 +651,151 @@ Este directorio es un artefacto generado por las pruebas y no es necesario para 
 
 \subsection{Problemas frecuentes}
 
-Durante la instalación o ejecución pueden aparecer algunos problemas habituales:
+Durante la instalación, ejecución local o despliegue con Docker pueden aparecer algunos problemas habituales. A continuación se recogen los más relevantes y las comprobaciones recomendadas para diagnosticarlos.
 
 \begin{itemize}
 	\item \textbf{\texttt{ModuleNotFoundError: No module named 'trazasytrazadas'.}} Este error suele indicar que las pruebas se han ejecutado desde una ubicación incorrecta o que no se está aplicando la configuración de \texttt{pytest.ini}. Debe comprobarse que se ejecuta desde la raíz del repositorio y que existe la línea \texttt{pythonpath = webapp}.
 	
 	\item \textbf{No se encuentra Flask o alguna dependencia.} Normalmente se debe a que el entorno virtual no está activado o a que no se han instalado las dependencias. Debe activarse el entorno y ejecutar \texttt{pip install -r webapp/requirements.txt}.
 	
-	\item \textbf{No se crean ficheros en \texttt{instance}.} Este problema suele estar relacionado con permisos de escritura. Debe comprobarse que el directorio existe y que el usuario que ejecuta la aplicación puede escribir en él.
+	\item \textbf{Docker no encuentra \texttt{docker-compose.yml}.} Este problema aparece cuando se ejecuta \texttt{docker compose} desde una carpeta que no corresponde a la raíz del proyecto. La raíz debe contener, entre otros elementos, \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{webapp/} y \texttt{docker/}. Para comprobar el estado de los servicios debe situarse primero en dicha carpeta:
+	
+	\begin{dockerboxnf}{Comprobación de servicios Docker}
+		cd ~/trazasytrazadas
+		docker compose ps
+	\end{dockerboxnf}
+	
+	\item \textbf{Los modelos aparecen como ``sin fichero''.} Las causas más habituales son que los modelos no estén ubicados en \texttt{instance/model}, que \texttt{SEG\_MODELS\_DIR} no apunte a \texttt{/app/instance/model}, que no se haya definido \texttt{FLASK\_INSTANCE\_PATH=/app/instance}, que se haya copiado la base de datos SQLite pero no los ficheros físicos de modelo, o que \texttt{SEG\_N\_FOLDS} no coincida con los modelos entregados. Puede comprobarse la configuración real dentro del contenedor mediante:
+	
+	\begin{dockerboxnf}{Comprobación de rutas de modelos en el contenedor}
+		docker compose exec -T web python - <<'PY'
+		from trazasytrazadas import create_app
+		
+		app = create_app()
+		with app.app_context():
+		print(app.instance_path)
+		print(app.config["SEG_MODELS_DIR"])
+		PY
+	\end{dockerboxnf}
+	
+	El resultado esperado debe ser:
+	
+	\begin{infocmdboxnf}{Rutas esperadas de instancia y modelos}
+		/app/instance
+		/app/instance/model
+	\end{infocmdboxnf}
+	
+	También debe comprobarse que los ficheros existen físicamente:
+	
+	\begin{dockerboxnf}{Comprobación de ficheros de modelos}
+		docker compose exec web ls -lh /app/instance/model
+	\end{dockerboxnf}
+	
+	Solo se entregan tres modelos, por lo que, debe ajustarse la variable correspondiente:
+	
+	\begin{infocmdboxnf}{Número de modelos entregados}
+		SEG_N_FOLDS=3
+	\end{infocmdboxnf}
+	
+	\item \textbf{Las imágenes de perfil aparecen rotas.} Este problema puede deberse a que no se ha copiado el directorio \texttt{instance/profile\_images}, a que la base de datos referencia imágenes que no existen físicamente, a permisos incorrectos sobre \texttt{instance} o a que \texttt{PROFILE\_IMAGE\_FOLDER} no apunta a \texttt{/app/instance/profile\_images}. La ruta configurada puede comprobarse con:
+	
+	\begin{dockerboxnf}{Comprobación de ruta de imágenes de perfil}
+		docker compose exec -T web python - <<'PY'
+		from trazasytrazadas import create_app
+		
+		app = create_app()
+		with app.app_context():
+		print(app.config["PROFILE_IMAGE_FOLDER"])
+		PY
+	\end{dockerboxnf}
+	
+	Y los ficheros disponibles pueden revisarse mediante:
+	
+	\begin{dockerboxnf}{Listado de imágenes de perfil disponibles}
+		docker compose exec web find /app/instance/profile_images -maxdepth 4 -type f
+	\end{dockerboxnf}
+	
+	\item \textbf{\texttt{No space left on device}.} Este error suele producirse cuando se han incluido modelos dentro de la imagen Docker, cuando \texttt{.dockerignore} no excluye correctamente \texttt{instance}, cuando se copia un entorno virtual dentro de la imagen o cuando existen construcciones antiguas de Docker ocupando espacio. Debe revisarse el fichero \texttt{.dockerignore}, que debería excluir, al menos:
+	
+	\begin{infocmdboxnf}{Entradas recomendadas en .dockerignore}
+		instance/
+		webapp/instance/
+		venv/
+		.venv/
+		TFG_env/
+		.venv-test/
+		__pycache__/
+		.pytest_cache/
+		htmlcov/
+	\end{infocmdboxnf}
+	
+	Los modelos no deben copiarse dentro de la imagen, sino montarse mediante volúmenes. Para liberar espacio puede realizarse una limpieza prudente con:
+	
+	\begin{dockerboxnf}{Limpieza prudente de imágenes y caché Docker}
+		docker builder prune -af
+		docker image prune -af
+	\end{dockerboxnf}
+	
+	No se recomienda utilizar como primera opción \texttt{docker system prune --volumes}, ya que puede eliminar volúmenes persistentes si se están usando para almacenar datos de la aplicación.
+	
+	\item \textbf{No se crean ficheros en \texttt{instance}.} Este problema suele estar relacionado con permisos incorrectos, con la ausencia de \texttt{FLASK\_INSTANCE\_PATH}, con que el \texttt{entrypoint.sh} no haya creado las carpetas necesarias o con que el volumen no esté montado correctamente. Debe comprobarse que las rutas internas apuntan a \texttt{/app/instance/...}:
+	
+	\begin{dockerboxnf}{Comprobación de rutas internas de instancia}
+		docker compose exec -T web python - <<'PY'
+		from trazasytrazadas import create_app
+		
+		app = create_app()
+		with app.app_context():
+		print(app.instance_path)
+		print(app.config["DATABASE"])
+		print(app.config["UPLOAD_FOLDER"])
+		print(app.config["OUTPUT_FOLDER"])
+		PY
+	\end{dockerboxnf}
 	
 	\item \textbf{Las traducciones no aparecen actualizadas.} En este caso conviene recompilar los catálogos mediante \texttt{pybabel compile -d trazasytrazadas/translations} desde el directorio \texttt{webapp}.
 	
 	\item \textbf{Error al arrancar Gunicorn.} Debe comprobarse que el comando se ejecuta desde \texttt{webapp} o que la ruta de Python incluye dicho directorio. También debe verificarse que Gunicorn tiene acceso al paquete \texttt{trazasytrazadas} y que el directorio \texttt{instance} dispone de permisos adecuados.
+	
+	\item \textbf{La GPU no se utiliza en el despliegue.} Las causas habituales son que Docker no exponga la GPU al contenedor, que NVIDIA Container Toolkit no esté configurado, que la versión de PyTorch instalada sea solo CPU, que la \textit{build} CUDA no sea compatible con la GPU o que \texttt{SEG\_USE\_GPU} esté desactivado. En el servidor puede comprobarse la disponibilidad de GPU con:
+	
+	\begin{dockerboxnf}{Comprobación de GPU en el servidor}
+		nvidia-smi
+	\end{dockerboxnf}
+	
+	Dentro del contenedor puede verificarse PyTorch mediante:
+	
+	\begin{dockerboxnf}{Comprobación de CUDA y PyTorch dentro del contenedor}
+		docker compose exec -T web python - <<'PY'
+		import torch
+		print(torch.__version__)
+		print(torch.version.cuda)
+		print(torch.cuda.is_available())
+		print(torch.cuda.device_count())
+		PY
+	\end{dockerboxnf}
+	
+	Además, en el fichero \texttt{.env} debe comprobarse que estén activadas las opciones correspondientes:
+	
+	\begin{infocmdboxnf}{Activación de GPU en el fichero .env}
+		SEG_USE_GPU=true
+		MODEL_VALIDATION_USE_GPU=true
+	\end{infocmdboxnf}
+	
+	\item \textbf{Aparecen advertencias de compatibilidad \texttt{sm\_61}.} Las GPU NVIDIA TITAN Xp del servidor Gamma tienen capacidad CUDA \texttt{sm\_61}. Algunas versiones modernas de PyTorch con CUDA no incluyen soporte para esta arquitectura. En particular, \texttt{torch 2.10.0+cu128} podía detectar CUDA, pero mostraba advertencias de incompatibilidad de arquitectura, por lo que no era una configuración segura para inferencia real en ese servidor. La versión validada en Docker fue:
+	
+	\begin{infocmdboxnf}{Versiones validadas de PyTorch y Torchvision}
+		torch 2.7.1+cu118
+		torchvision 0.22.1+cu118
+	\end{infocmdboxnf}
+	
+	\item \textbf{El servicio web procesa colecciones aunque existe un servicio \textit{worker}.} Este comportamiento suele indicar que \texttt{AUTO\_START\_TRACE\_WORKER=true} está configurado en el servicio web. En un despliegue Docker de producción, el servicio \texttt{web} no debe arrancar automáticamente el procesamiento de trazas. La configuración esperada es:
+	
+	\begin{infocmdboxnf}{Configuración esperada del worker}
+		AUTO_START_TRACE_WORKER=false
+	\end{infocmdboxnf}
+	
+	El procesamiento debe quedar delegado al servicio \texttt{worker} definido en Docker Compose.
 \end{itemize}
 
 \section{Pruebas del sistema}
