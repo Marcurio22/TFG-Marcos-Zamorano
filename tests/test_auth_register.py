@@ -80,6 +80,25 @@ def test_register_persists_optional_phone_when_present(app, client):
         assert user.telefono == "+34600112233"
 
 
+def test_register_accepts_visual_phone_format(app, client):
+    """El registro acepta teléfonos en formato visual editable."""
+    _disable_csrf(app)
+
+    response = client.post(
+        "/registro",
+        data=_registration_payload(telefono="(+34) 600 11 22 33"),
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+
+    with app.app_context():
+        user = db.session.execute(
+            db.select(Usuario).filter_by(nombre_usuario="Pepe1234")
+        ).scalar_one()
+        assert user.telefono == "+34600112233"
+
+
 def test_register_rejects_duplicate_username(app, client):
     """No se puede registrar un nombre de usuario ya existente."""
     _disable_csrf(app)

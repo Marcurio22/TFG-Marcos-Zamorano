@@ -22,7 +22,6 @@ from flask import (
     flash,
     redirect,
     render_template,
-    request,
     send_from_directory,
     session,
     url_for,
@@ -35,7 +34,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -49,6 +48,7 @@ from .forms import (
     ProfileImageForm,
     RegistrationForm,
     format_phone_number_for_display,
+    format_phone_number_for_input,
 )
 from .models import Usuario
 
@@ -326,6 +326,11 @@ def register_auth_routes(bp) -> None:
                 )
                 return redirect(url_for("trazas.login"))
 
+        if form.telefono.data and not form.telefono.errors:
+            form.telefono.data = format_phone_number_for_input(
+                form.telefono.data
+            )
+
         return render_template("register.html", form=form)
 
     @bp.route("/login", methods=["GET", "POST"])
@@ -337,12 +342,18 @@ def register_auth_routes(bp) -> None:
         form = LoginForm()
 
         if form.validate_on_submit():
-            username = form.nombre_usuario.data
+            identifier = form.nombre_usuario.data
+            normalized_identifier = identifier.lower()
 
             try:
                 user = db.session.execute(
                     select(Usuario).where(
-                        func.lower(Usuario.nombre_usuario) == username.lower()
+                        or_(
+                            func.lower(Usuario.nombre_usuario)
+                            == normalized_identifier,
+                            func.lower(Usuario.correo_electronico)
+                            == normalized_identifier,
+                        )
                     )
                 ).scalar_one_or_none()
             except SQLAlchemyError:
@@ -385,7 +396,7 @@ def register_auth_routes(bp) -> None:
         form = ProfileForm(
             nombre_usuario=current_user.nombre_usuario,
             correo_electronico=current_user.correo_electronico,
-            telefono=current_user.telefono or "",
+            telefono=format_phone_number_for_input(current_user.telefono),
         )
         image_form = ProfileImageForm()
         return render_template(
@@ -397,7 +408,9 @@ def register_auth_routes(bp) -> None:
             ),
             open_edit_form=False,
             joined_label=_format_user_joined_at(current_user.fecha_alta),
-            phone_label=format_phone_number_for_display(current_user.telefono),
+            phone_label=format_phone_number_for_display(
+                current_user.telefono
+            ),
         )
 
     @bp.route("/perfil/editar", methods=["POST"])
@@ -426,6 +439,11 @@ def register_auth_routes(bp) -> None:
                 flash(_("Perfil actualizado correctamente."), "success")
                 return redirect(url_for("trazas.profile"))
 
+        if form.telefono.data and not form.telefono.errors:
+            form.telefono.data = format_phone_number_for_input(
+                form.telefono.data
+            )
+
         image_form = ProfileImageForm()
         return render_template(
             "profile.html",
@@ -436,13 +454,16 @@ def register_auth_routes(bp) -> None:
             ),
             open_edit_form=True,
             joined_label=_format_user_joined_at(current_user.fecha_alta),
-            phone_label=format_phone_number_for_display(current_user.telefono),
+            phone_label=format_phone_number_for_display(
+                current_user.telefono
+            ),
         )
 
     @bp.route("/perfil/imagen/previsualizar", methods=["POST"])
     @login_required
     def profile_image_preview():
-        """Recibe una imagen de perfil y muestra una pantalla de confirmación."""
+        """Recibe una imagen de perfil y muestra una pantalla 
+            de confirmación."""
         form = ProfileImageForm()
         if not form.validate_on_submit():
             flash(_("Selecciona una imagen de perfil."), "warning")

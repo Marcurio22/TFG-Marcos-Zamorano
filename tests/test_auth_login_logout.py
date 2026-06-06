@@ -82,6 +82,29 @@ def test_login_authenticates_user_and_stores_session(app, client):
         assert session.get("_fresh") is True
 
 
+def test_login_accepts_email_identifier(app, client):
+    """Un login válido admite correo electrónico como identificador."""
+    _disable_csrf(app)
+    user_id = _create_user(
+        app,
+        username="Pepe1234",
+        email="pepe1234@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+    )
+
+    response = client.post(
+        "/login",
+        data=_login_payload(nombre_usuario="pepe1234@gmail.com"),
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert "Has iniciado sesi" in response.get_data(as_text=True)
+
+    with client.session_transaction() as session:
+        assert session.get("_user_id") == str(user_id)
+
+
 def test_login_clears_previous_image_workflow_session(app, client):
     """El login no hereda imagen ni trazas de una sesión anterior."""
     _disable_csrf(app)
@@ -169,7 +192,7 @@ def test_login_rejects_missing_fields(app, client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "Introduce un nombre de usuario." in html
+    assert "Introduce tu usuario o correo" in html
     assert "Introduce una contrase" in html
 
 

@@ -53,6 +53,7 @@ from .forms import (
     AdminFoldUploadForm,
     AdminUserEditForm,
     format_phone_number_for_display,
+    format_phone_number_for_input,
 )
 from .model_store import (
     add_fold_file,
@@ -568,6 +569,10 @@ class UserAdminView(_AdminAccessMixin, BaseView):
                                     user_id=user_id))
 
         form = AdminUserEditForm(obj=user, user_id=user_id)
+        if request.method == "GET":
+            form.telefono.data = format_phone_number_for_input(
+                user.telefono
+            )
 
         if form.validate_on_submit():
             requested_role = form.rol.data
@@ -604,6 +609,11 @@ class UserAdminView(_AdminAccessMixin, BaseView):
                 return redirect(
                     url_for("admin_usuarios.detail_view", user_id=user_id)
                 )
+
+        if form.telefono.data and not form.telefono.errors:
+            form.telefono.data = format_phone_number_for_input(
+                form.telefono.data
+            )
 
         return self.render(
             "admin/user_edit.html",

@@ -41,6 +41,7 @@ from .models import Usuario
 
 _USERNAME_RE = r"^[A-Za-zÀ-ÿ0-9_.-]+$"
 _PHONE_PREFIX_RE = re.compile(r"^\+(\d{2})(.*)$")
+_PHONE_VISUAL_PREFIX_RE = re.compile(r"^\(\+(\d{2})\)\s*(.*)$")
 
 
 def normalize_phone_number(value: str | None) -> str | None:
@@ -50,7 +51,12 @@ def normalize_phone_number(value: str | None) -> str | None:
     if not raw:
         return None
 
-    if raw.startswith("+"):
+    visual_match = _PHONE_VISUAL_PREFIX_RE.match(raw)
+
+    if visual_match is not None:
+        country = visual_match.group(1)
+        rest = visual_match.group(2).strip()
+    elif raw.startswith("+"):
         match = _PHONE_PREFIX_RE.match(raw)
         if match is None:
             raise ValueError(
@@ -92,21 +98,10 @@ def normalize_phone_number(value: str | None) -> str | None:
     return normalized
 
 
-def format_phone_number_for_display(value: str | None) -> str:
-    """Formatea el teléfono para mostrarlo en perfil."""
-    if not value:
-        return _("No asociado")
-
-    try:
-        normalized = normalize_phone_number(value)
-    except ValueError:
-        return str(value)
-
-    if not normalized:
-        return _("No asociado")
-
-    country = normalized[1:3]
-    digits = normalized[3:]
+def _format_normalized_phone(value: str) -> str:
+    """Formatea un teléfono normalizado en grupos visuales."""
+    country = value[1:3]
+    digits = value[3:]
 
     if len(digits) == 9:
         groups = [
@@ -131,6 +126,28 @@ def format_phone_number_for_display(value: str | None) -> str:
             groups.append(remaining)
 
     return f"(+{country}) {' '.join(groups)}"
+
+
+def format_phone_number_for_input(value: str | None) -> str:
+    """Formatea el teléfono para editarlo en un campo de formulario."""
+    if not value:
+        return ""
+
+    try:
+        normalized = normalize_phone_number(value)
+    except ValueError:
+        return str(value)
+
+    if not normalized:
+        return ""
+
+    return _format_normalized_phone(normalized)
+
+
+def format_phone_number_for_display(value: str | None) -> str:
+    """Formatea el teléfono para mostrarlo en perfil."""
+    formatted = format_phone_number_for_input(value)
+    return formatted or _("No asociado")
 
 
 class RegistrationForm(FlaskForm):
@@ -272,13 +289,15 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     """Formulario de inicio de sesión."""
     nombre_usuario = StringField(
-        _l("Usuario"),
+        _l("Usuario o correo electrónico"),
         validators=[
-            DataRequired(message=_l("Introduce un nombre de usuario.")),
+            DataRequired(
+                message=_l("Introduce tu usuario o correo electrónico.")
+            ),
             Length(
                 max=50,
                 message=_l(
-                    "El nombre de usuario no puede superar "
+                    "El usuario o correo electrónico no puede superar "
                     "los 50 caracteres."
                 ),
             ),
@@ -293,12 +312,14 @@ class LoginForm(FlaskForm):
     submit = SubmitField(_l("Iniciar sesión"))
 
     def validate_nombre_usuario(self, field) -> None:
-        """Normaliza el nombre de usuario antes de validarlo."""
+        """Normaliza el identificador de acceso antes de validarlo."""
         normalized = " ".join((field.data or "").split()).strip()
         field.data = normalized
 
         if not normalized:
-            raise ValidationError(_("Introduce un nombre de usuario."))
+            raise ValidationError(
+                _("Introduce tu usuario o correo electrónico.")
+            )
 
 
 class ProfileForm(FlaskForm):

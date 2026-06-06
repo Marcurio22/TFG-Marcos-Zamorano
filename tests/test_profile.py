@@ -181,7 +181,7 @@ def test_profile_update_persists_changes(app, client):
         data={
             "nombre_usuario": "NicoupEditado",
             "correo_electronico": "nicoupeditado@gmail.com",
-            "telefono": "+34 660 36 46 51",
+            "telefono": "(+34) 660 36 46 51",
         },
         follow_redirects=True,
     )
@@ -316,6 +316,28 @@ def test_profile_page_formats_phone_for_display(app, client):
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     assert "(+34) 903 38 93 23" in html
+
+
+def test_profile_edit_form_prefills_visual_phone(app, client):
+    """El formulario de perfil precarga el teléfono en formato visual."""
+    user_id = _create_user(
+        app,
+        username="Pepe1234",
+        email="pepe1234@gmail.com",
+        password_hash=generate_password_hash("Password1!"),
+        phone="+34903389323",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/perfil")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'value="(+34) 903 38 93 23"' in html
+    assert 'data-phone-format="1"' in html
 
 
 def test_profile_update_rejects_too_short_phone(app, client):

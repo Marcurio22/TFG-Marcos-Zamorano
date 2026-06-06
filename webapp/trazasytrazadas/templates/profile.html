@@ -187,8 +187,10 @@
                                         <span>{{ _("Teléfono (opcional)") }}</span>
                                     </label>
                                     {{ form.telefono(class=input_class,
-                                                                        placeholder=_("Ej: +34 999 99 99 99") ,
+                                                                        placeholder=_("Ej: (+34) 999 99 99 99") ,
                                     autocomplete="tel",
+                                    inputmode="tel",
+                                    data_phone_format="1",
                                     title=_("Indica un teléfono de contacto opcional.")
                                     ) }}
                                     {% if form.telefono.errors %}

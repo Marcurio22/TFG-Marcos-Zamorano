@@ -184,7 +184,7 @@ def test_admin_can_edit_user_from_management(app, client):
         data={
             "nombre_usuario": "UsuarioEditado",
             "correo_electronico": "editado@example.com",
-            "telefono": "+34 900 30 02 00",
+            "telefono": "(+34) 900 30 02 00",
             "rol": "admin",
         },
         follow_redirects=True,
@@ -200,6 +200,36 @@ def test_admin_can_edit_user_from_management(app, client):
         assert user.correo_electronico == "editado@example.com"
         assert user.telefono == "+34900300200"
         assert user.rol == "admin"
+
+
+def test_admin_user_edit_prefills_visual_phone(app, client):
+    """El editor admin precarga el teléfono en formato visual."""
+    admin_id = _create_user(
+        app,
+        username="superadmin",
+        email="superadmin@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    managed_user_id = _create_user(
+        app,
+        username="UsuarioEditar",
+        email="editar@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        phone="+34903389323",
+        role="user",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get(f"/admin/usuarios/{managed_user_id}/editar")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'value="(+34) 903 38 93 23"' in html
+    assert 'data-phone-format="1"' in html
 
 
 def test_admin_can_delete_user_without_parcels(app, client):
