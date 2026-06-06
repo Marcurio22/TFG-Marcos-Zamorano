@@ -703,11 +703,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function ensureSelectionReady() {
+    if (selectionBounds) {
+      return true;
+    }
+
+    clearAlerts();
+    addAlert("alert-warning", I18N.selectionPending);
+    return false;
+  }
+
+  function openGridControls() {
+    if (!ensureSelectionReady()) {
+      return;
+    }
+
+    controlsModal?.showModal();
+  }
+
   async function generateGrid() {
+    if (!ensureSelectionReady()) {
+      if (controlsModal?.open) {
+        controlsModal.close();
+      }
+      return;
+    }
+
     const payload = buildPayload();
     if (!payload) {
-      clearAlerts();
-      addAlert("alert-warning", I18N.selectionPending);
       return;
     }
 
@@ -859,9 +882,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resetGridState();
   });
 
-  openControlsBtn?.addEventListener("click", () => {
-    controlsModal?.showModal();
-  });
+  openControlsBtn?.addEventListener("click", openGridControls);
 
   generateGridBtn.addEventListener("click", generateGrid);
   resetSelectionBtn.addEventListener("click", resetSelection);
