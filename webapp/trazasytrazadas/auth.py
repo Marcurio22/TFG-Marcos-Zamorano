@@ -37,8 +37,9 @@ from flask_login import (
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
-from PIL import Image, ImageOps, UnidentifiedImageError
+from werkzeug.exceptions import NotFound
+from werkzeug.utils import safe_join, secure_filename
+from PIL import Image, ImageOps
 
 from .db import db
 from .forms import (
@@ -116,18 +117,34 @@ def _profile_image_storage_root() -> str:
     return root
 
 
-def _profile_image_abspath(relative_path: str | None) -> str | None:
-    """Convierte una ruta relativa de perfil en ruta absoluta segura."""
+def _normalize_profile_image_path(relative_path: str | None) -> str | None:
+    """Normaliza una ruta relativa de imagen de perfil sin tocar disco."""
     if not relative_path:
         return None
 
-    root = os.path.abspath(_profile_image_storage_root())
-    absolute_path = os.path.abspath(os.path.join(root, relative_path))
-
-    if os.path.commonpath([root, absolute_path]) != root:
+    normalized = str(relative_path).strip().replace("\\", "/")
+    if not normalized or normalized.startswith("/"):
         return None
 
-    return absolute_path
+    parts = normalized.split("/")
+    if any(part in {"", ".", ".."} for part in parts):
+        return None
+
+    return "/".join(parts)
+
+
+def _profile_image_abspath(relative_path: str | None) -> str | None:
+    """Convierte una ruta relativa de perfil en ruta absoluta segura."""
+    normalized = _normalize_profile_image_path(relative_path)
+    if normalized is None:
+        return None
+
+    root = os.path.abspath(_profile_image_storage_root())
+    absolute_path = safe_join(root, normalized)
+    if absolute_path is None:
+        return None
+
+    return os.path.abspath(absolute_path)
 
 
 def _delete_profile_image_file(relative_path: str | None) -> None:
@@ -264,7 +281,7 @@ def _save_profile_image_preview(file_storage) -> str:
                 centering=(0.5, 0.5),
             )
             image.save(absolute_path, format="PNG", optimize=True)
-    except (UnidentifiedImageError, OSError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         _delete_profile_image_file(relative_path)
         raise ValueError(
             _("El archivo seleccionado no es una imagen válida.")) from exc
@@ -282,6 +299,67 @@ def _profile_image_url(relative_path: str | None) -> str | None:
     if not relative_path:
         return None
     return url_for("trazas.profile_image_file", filename=relative_path)
+
+
+def _current_user_can_view_profile_image(user_id: int) -> bool:
+    """Indica si el usuario actual puede ver la imagen solicitada."""
+    if int(user_id) == int(current_user.usuario_id):
+        return True
+    return getattr(current_user, "rol", None) == "admin"
+
+
+def _public_final_profile_image_path(normalized_path: str) -> str | None:
+    """Valida y reconstruye la ruta pública de un avatar definitivo."""
+    parts = normalized_path.split("/")
+    if len(parts) != 3 or parts[0] != "users" or parts[2] != "avatar.png":
+        return None
+
+    if not parts[1].isdigit():
+        return None
+
+    user_id = int(parts[1])
+    if not _current_user_can_view_profile_image(user_id):
+        abort(403)
+
+    return _final_profile_image_path(user_id)
+
+
+def _public_preview_profile_image_path(normalized_path: str) -> str | None:
+    """Valida y reconstruye la ruta pública de una previsualización."""
+    pending_path = _normalize_profile_image_path(
+        session.get(_PROFILE_IMAGE_SESSION_KEY)
+    )
+    if pending_path is None or normalized_path != pending_path:
+        return None
+
+    user_id = int(current_user.usuario_id)
+    prefix = f"tmp/user_{user_id}/preview_"
+    suffix = ".png"
+    if not normalized_path.startswith(prefix):
+        return None
+    if not normalized_path.endswith(suffix):
+        return None
+
+    token = normalized_path[len(prefix):-len(suffix)]
+    if len(token) != 32:
+        return None
+    if any(char not in "0123456789abcdef" for char in token.lower()):
+        return None
+
+    return f"{prefix}{token.lower()}{suffix}"
+
+
+def _public_profile_image_path(filename: str) -> str | None:
+    """Obtiene una ruta pública segura para servir una imagen de perfil."""
+    normalized_path = _normalize_profile_image_path(filename)
+    if normalized_path is None:
+        return None
+
+    final_path = _public_final_profile_image_path(normalized_path)
+    if final_path is not None:
+        return final_path
+
+    return _public_preview_profile_image_path(normalized_path)
 
 
 def register_auth_routes(bp) -> None:
@@ -462,7 +540,7 @@ def register_auth_routes(bp) -> None:
     @bp.route("/perfil/imagen/previsualizar", methods=["POST"])
     @login_required
     def profile_image_preview():
-        """Recibe una imagen de perfil y muestra una pantalla 
+        """Recibe una imagen de perfil y muestra una pantalla
             de confirmación."""
         form = ProfileImageForm()
         if not form.validate_on_submit():
@@ -495,8 +573,15 @@ def register_auth_routes(bp) -> None:
 
         preview_path = session.pop(_PROFILE_IMAGE_SESSION_KEY, None)
         preview_absolute_path = _profile_image_abspath(preview_path)
-        if not preview_path or not preview_absolute_path or not os.path.exists(preview_absolute_path):
-            flash(_("No hay ninguna imagen de perfil pendiente de confirmar."), "warning")
+        if (
+            not preview_path
+            or not preview_absolute_path
+            or not os.path.exists(preview_absolute_path)
+        ):
+            flash(
+                _("No hay ninguna imagen de perfil pendiente de confirmar."),
+                "warning",
+            )
             return redirect(url_for("trazas.profile"))
 
         final_path = _final_profile_image_path(current_user.usuario_id)
@@ -538,19 +623,14 @@ def register_auth_routes(bp) -> None:
     @login_required
     def profile_image_file(filename: str):
         """Sirve imágenes de perfil almacenadas en instance/profile_images."""
-        absolute_path = _profile_image_abspath(filename)
-        if absolute_path is None or not os.path.exists(absolute_path):
+        public_path = _public_profile_image_path(filename)
+        if public_path is None:
             abort(404)
 
-        normalized = filename.replace("\\", "/")
-        parts = normalized.split("/")
-        if (
-            len(parts) >= 3
-            and parts[0] == "users"
-            and parts[1].isdigit()
-            and int(parts[1]) != int(current_user.usuario_id)
-            and getattr(current_user, "rol", None) != "admin"
-        ):
-            abort(403)
-
-        return send_from_directory(_profile_image_storage_root(), normalized)
+        try:
+            return send_from_directory(
+                _profile_image_storage_root(),
+                public_path,
+            )
+        except NotFound:
+            abort(404)
