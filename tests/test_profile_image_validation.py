@@ -141,6 +141,34 @@ def test_profile_image_cancel_removes_pending_preview(
     assert not preview.exists()
 
 
+def test_profile_image_cancel_requires_valid_csrf(
+    client, app, force_login
+):
+    """La cancelación de imagen no borra la preview sin CSRF válido."""
+    user_id = force_login()
+    app.config["WTF_CSRF_ENABLED"] = True
+
+    root = Path(app.config["PROFILE_IMAGE_FOLDER"])
+    relative = f"tmp/user_{user_id}/preview.png"
+    preview = root / relative
+    preview.parent.mkdir(parents=True, exist_ok=True)
+    preview.write_bytes(b"x")
+
+    with client.session_transaction() as session:
+        session[auth_module._PROFILE_IMAGE_SESSION_KEY] = relative
+
+    response = client.post(
+        "/perfil/imagen/cancelar",
+        follow_redirects=False,
+    )
+
+    assert response.status_code in {302, 303, 400, 403}
+    assert preview.exists()
+
+    with client.session_transaction() as session:
+        assert session[auth_module._PROFILE_IMAGE_SESSION_KEY] == relative
+
+
 def test_profile_image_file_permissions(client, app, force_login):
     """Verifica la imagen de perfil en el caso previsto."""
     owner_id = force_login(username="owner", email="owner@example.com")

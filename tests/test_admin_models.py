@@ -236,6 +236,60 @@ def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
         assert model.validacion == "pendiente"
 
 
+def test_admin_upload_requires_valid_csrf(app, client, monkeypatch):
+    """La subida de modelos no guarda nada sin CSRF válido."""
+    app.config["WTF_CSRF_ENABLED"] = True
+
+    admin_id = _create_user(
+        app,
+        username="admin_upload_no_csrf",
+        email="admin_upload_no_csrf@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    def fail_if_validation_starts(fold_name, source_filename):
+        raise AssertionError(
+            "No debería arrancar la validación sin CSRF válido."
+        )
+
+    monkeypatch.setattr(
+        admin_module,
+        "_start_model_validation_task",
+        fail_if_validation_starts,
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/subir",
+        data={
+            "fold_name": "modelo sin csrf",
+            "model_file": (
+                BytesIO(_serialized_dummy_model()),
+                "modelo-validado.pkl",
+            ),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+
+    assert response.status_code in {200, 400, 403}
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        assert not (models_dir / "modelo sin csrf").exists()
+
+        model = db.session.execute(
+            db.select(Modelo).where(
+                Modelo.nombre_modelo == "modelo sin csrf"
+            )
+        ).scalar_one_or_none()
+        assert model is None
+
+
 def test_admin_upload_stores_invalid_model_as_pending(
     app, client, monkeypatch
 ):
