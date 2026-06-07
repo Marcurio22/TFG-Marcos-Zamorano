@@ -7,10 +7,12 @@
         <title>
             {% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}
         </title>
-        <link href="https://cdn.jsdelivr.net/npm/daisyui@5"
-              rel="stylesheet"
-              type="text/css" />
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='vendor/daisyui/daisyui-lite.css') }}">
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.16/dist/index.global.min.js"
+                integrity="sha384-hexzD4m33RNzdvbV2ZW2FJcYlGemNPAdBKQsEcc389OUSwlT9xpg4BeEtiCeylHY"
+                crossorigin="anonymous"
+                referrerpolicy="no-referrer"></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <link rel="icon"
               type="image/png"

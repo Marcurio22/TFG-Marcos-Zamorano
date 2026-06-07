@@ -15,7 +15,10 @@ mkdir -p \
     "$INSTANCE_DIR/outputs" \
     "$INSTANCE_DIR/profile_images" \
     "$INSTANCE_DIR/collection" \
-    "$INSTANCE_DIR/model"
+    "$INSTANCE_DIR/model" \
+    "$INSTANCE_DIR/gunicorn-tmp"
+
+chmod 700 "$INSTANCE_DIR/gunicorn-tmp"
 
 if [ ! -f "$INSTANCE_DIR/config.py" ]; then
     cat > "$INSTANCE_DIR/config.py" <<'PYCONFIG'

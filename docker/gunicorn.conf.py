@@ -42,7 +42,10 @@ loglevel = os.environ.get("GUNICORN_LOG_LEVEL", "info")
 capture_output = True
 
 preload_app = _bool_from_env("GUNICORN_PRELOAD", False)
-worker_tmp_dir = os.environ.get("GUNICORN_WORKER_TMP_DIR", "/dev/shm")
+worker_tmp_dir = os.environ.get(
+    "GUNICORN_WORKER_TMP_DIR",
+    "/app/instance/gunicorn-tmp",
+)
 
 max_requests = _int_from_env("GUNICORN_MAX_REQUESTS", 500)
 max_requests_jitter = _int_from_env("GUNICORN_MAX_REQUESTS_JITTER", 50)
