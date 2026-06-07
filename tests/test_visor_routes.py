@@ -239,7 +239,7 @@ def test_probe_resolution_select_and_build_tiles(monkeypatch, app):
             (0, 0, 1200, 800), 0.1
         )
         assert source["id"] == "low"
-        assert resolution == 0.5
+        assert resolution == pytest.approx(0.5)
         assert warnings[0]["code"] == "fallback_resolution"
 
         tiles, rows, cols = visor._visor_build_tiles(

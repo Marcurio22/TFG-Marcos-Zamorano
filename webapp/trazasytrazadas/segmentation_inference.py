@@ -592,7 +592,7 @@ def mask_to_traces_points(mask: np.ndarray) -> Dict[str, List[int]]:
     """
     Convierte una máscara binaria en listas de coordenadas xs e ys.
     """
-    ys, xs = np.where(mask > 0)
+    ys, xs = np.nonzero(mask > 0)
     if xs.size == 0:
         return {"xs": [], "ys": []}
     return {"xs": xs.astype(int).tolist(), "ys": ys.astype(int).tolist()}

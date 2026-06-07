@@ -70,14 +70,17 @@ def test_background_worker_target_runs_inside_app_context(app, monkeypatch):
 
     worker_module._background_worker_target(app)
 
-    assert observed == {"once": True, "batch_size": 5, "poll_seconds": 0.75}
+    assert observed["once"] is True
+    assert observed["batch_size"] == 5
+    assert observed["poll_seconds"] == pytest.approx(0.75)
 
 
 def test_trigger_trace_worker_starts_thread_when_enabled(app, monkeypatch):
     """Verifica que el worker de trazas arranca el caso previsto."""
     app.config["AUTO_START_TRACE_WORKER"] = True
     app.config["TESTING"] = False
-    started = []
+    created_threads = []
+    started_threads = []
 
     class FakeThread:
         def __init__(self, *, target, args, name, daemon):
@@ -86,7 +89,14 @@ def test_trigger_trace_worker_starts_thread_when_enabled(app, monkeypatch):
             self.args = args
             self.name = name
             self.daemon = daemon
-            started.append((target, args, name, daemon))
+            created_threads.append(
+                {
+                    "target": target,
+                    "args": args,
+                    "name": name,
+                    "daemon": daemon,
+                }
+            )
 
         def is_alive(self):
             """Indica si el hilo simulado está vivo."""
@@ -94,26 +104,41 @@ def test_trigger_trace_worker_starts_thread_when_enabled(app, monkeypatch):
 
         def start(self):
             """Registra el inicio del hilo simulado."""
-            started.append("started")
+            started_threads.append(self)
 
     monkeypatch.setattr(worker_module.threading, "Thread", FakeThread)
 
     assert worker_module.trigger_trace_worker(app) is True
-    assert started[0][2:] == ("trace-worker", True)
-    assert started[1] == "started"
+
+    assert len(created_threads) == 1
+    created_thread, = created_threads
+    assert created_thread["name"] == "trace-worker"
+    assert created_thread["daemon"] is True
+
+    assert len(started_threads) == 1
+    started_thread, = started_threads
+    assert started_thread.name == "trace-worker"
     assert app.extensions["trace_worker"]["thread"].name == "trace-worker"
 
 
 def test_ensure_background_worker_started_respects_flags(app, monkeypatch):
     """Verifica que el worker de trazas arranca el caso previsto."""
-    created = []
+    created_threads = []
+    started_threads = []
 
     class FakeThread:
         def __init__(self, *, target, args, name, daemon):
             """Inicializa el doble de prueba."""
             self.name = name
             self._alive = False
-            created.append((target, args, name, daemon))
+            created_threads.append(
+                {
+                    "target": target,
+                    "args": args,
+                    "name": name,
+                    "daemon": daemon,
+                }
+            )
 
         def is_alive(self):
             """Indica si el hilo simulado está vivo."""
@@ -121,7 +146,7 @@ def test_ensure_background_worker_started_respects_flags(app, monkeypatch):
 
         def start(self):
             """Registra el inicio del hilo simulado."""
-            created.append("started")
+            started_threads.append(self)
 
     class AliveThread:
         def is_alive(self):
@@ -132,12 +157,14 @@ def test_ensure_background_worker_started_respects_flags(app, monkeypatch):
 
     app.config["AUTO_START_TRACE_WORKER"] = False
     worker_module._ensure_background_worker_started(app)
-    assert created == []
+    assert created_threads == []
+    assert started_threads == []
 
     app.config["AUTO_START_TRACE_WORKER"] = True
     app.config["TESTING"] = True
     worker_module._ensure_background_worker_started(app)
-    assert created == []
+    assert created_threads == []
+    assert started_threads == []
 
     app.config["TESTING"] = False
     app.extensions["trace_worker"] = {
@@ -145,12 +172,20 @@ def test_ensure_background_worker_started_respects_flags(app, monkeypatch):
         "thread": AliveThread(),
     }
     worker_module._ensure_background_worker_started(app)
-    assert created == []
+    assert created_threads == []
+    assert started_threads == []
 
     app.extensions["trace_worker"] = {"lock": threading.Lock()}
     worker_module._ensure_background_worker_started(app)
-    assert created[0][2:] == ("trace-worker", True)
-    assert created[1] == "started"
+
+    assert len(created_threads) == 1
+    created_thread, = created_threads
+    assert created_thread["name"] == "trace-worker"
+    assert created_thread["daemon"] is True
+
+    assert len(started_threads) == 1
+    started_thread, = started_threads
+    assert started_thread.name == "trace-worker"
 
 
 def test_traces_worker_command_uses_default_poll_seconds(app, monkeypatch):
@@ -172,7 +207,9 @@ def test_traces_worker_command_uses_default_poll_seconds(app, monkeypatch):
     )
 
     assert result.exit_code == 0
-    assert observed == {"once": True, "batch_size": 2, "poll_seconds": 1.25}
+    assert observed["once"] is True
+    assert observed["batch_size"] == 2
+    assert observed["poll_seconds"] == pytest.approx(1.25)
     assert "Fotos procesadas: 4" in result.output
 
 
@@ -237,7 +274,7 @@ def test_traces_worker_command_uses_configured_concurrency(
     assert observed["app"] is app
     assert observed["once"] is True
     assert observed["batch_size"] == 1
-    assert observed["poll_seconds"] == 0.5
+    assert observed["poll_seconds"] == pytest.approx(0.5)
     assert observed["worker_count"] == 2
     assert "Fotos procesadas: 3" in result.output
 
