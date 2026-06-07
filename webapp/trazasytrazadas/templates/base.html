@@ -59,10 +59,11 @@ Versión: 0.1
           <div class="px-3 sm:px-4">
             <div class="relative py-3">
               <!-- Botón toggle drawer -->
-              <label for="app-drawer"
-                     class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
-                     role="button"
-                     aria-label="{{ _("Abrir menú") }}">
+              <button type="button"
+                      class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
+                      aria-label="{{ _("Abrir menú") }}"
+                      aria-controls="app-drawer"
+                      onclick="document.getElementById('app-drawer').checked = true;">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24"
                      fill="none"
@@ -75,7 +76,7 @@ Versión: 0.1
                   <path d="M4 12h16" />
                   <path d="M4 18h16" />
                 </svg>
-              </label>
+              </button>
               <!-- Título centrado -->
               <div class="max-w-5xl mx-auto flex items-center justify-center">
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm text-center">
@@ -178,9 +179,11 @@ Versión: 0.1
           <div class="flex items-center justify-between gap-3 px-5 py-5 border-b border-white/20">
             <div class="font-black tracking-wide text-2xl drop-shadow-sm">{{ _("Menú") }}</div>
             <div class="dropdown dropdown-end z-50">
-              <label tabindex="0"
-                     class="btn btn-xs sm:btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10"
-                     title="{{ _("Cambiar idioma") }}">
+              <button type="button"
+                      class="btn btn-xs sm:btn-sm btn-outline border-primary-content/25 text-primary-content hover:bg-primary/10"
+                      title="{{ _("Cambiar idioma") }}"
+                      aria-label="{{ _("Cambiar idioma") }}"
+                      aria-haspopup="true">
                 <span class="inline-flex items-center gap-2">
                   <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden bg-primary/15 grid place-items-center">
                     <img src="{{ url_for('static', filename=FLAG_FILES.get(current_lang, 'img/flags/es.svg') ) }}"
@@ -197,9 +200,8 @@ Versión: 0.1
                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.24 4.5a.75.75 0 0 1-1.08 0l-4.24-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                   </svg>
                 </span>
-              </label>
-              <ul tabindex="0"
-                  class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
+              </button>
+              <ul class="dropdown-content menu p-2 shadow bg-base-100 text-base-content rounded-box w-56">
                 <li class="menu-title">
                   <span>{{ _("Idioma") }}</span>
                 </li>
@@ -345,7 +347,7 @@ Versión: 0.1
                  onclick="document.getElementById('app-drawer').checked = false;">
                 {% if current_user.ruta_imagen_perfil %}
                   <img src="{{ url_for('trazas.profile_image_file', filename=current_user.ruta_imagen_perfil) }}"
-                       alt="{{ _("Imagen de perfil de %(username)s", username=current_user.nombre_usuario) }}"
+                       alt=""
                        class="w-9 h-9 rounded-full object-cover border border-white/30 bg-white/10 shadow-sm shrink-0">
                 {% else %}
                   <span class="w-9 h-9 rounded-full bg-white/15 text-primary-content border border-white/20 grid place-items-center text-sm font-black uppercase shadow-sm shrink-0">
