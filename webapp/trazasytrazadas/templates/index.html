@@ -38,6 +38,7 @@ Versión: 0.1
             method="post"
             enctype="multipart/form-data"
             class="w-full lg:w-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="flex flex-col sm:flex-row items-stretch justify-center gap-2 sm:gap-0 w-full sm:w-auto">
           <!-- Selector de archivo y texto de apoyo. -->
           <div class="flex flex-col w-full sm:w-[360px]">
@@ -125,6 +126,7 @@ Versión: 0.1
             action="{{ url_for("trazas.delete_image") }}"
             method="post"
             class="w-full lg:w-auto">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button id="delete-btn"
                 type="submit"
                 class="btn btn-outline btn-error w-full lg:w-auto whitespace-nowrap"

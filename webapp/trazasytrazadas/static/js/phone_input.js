@@ -3,6 +3,36 @@
 (function () {
   const DEFAULT_COUNTRY = "34";
 
+  function splitVisualPrefix(raw) {
+    if (!raw.startsWith("(+")) {
+      return null;
+    }
+
+    let index = 2;
+    let country = "";
+
+    while (index < raw.length && country.length < 2) {
+      const char = raw[index];
+
+      if (char < "0" || char > "9") {
+        break;
+      }
+
+      country += char;
+      index += 1;
+    }
+
+    if (raw[index] === ")") {
+      index += 1;
+    }
+
+    return {
+      country,
+      digits: raw.slice(index).replace(/\D/g, ""),
+      prefixOnly: true,
+    };
+  }
+
   function splitPhoneValue(value) {
     const raw = String(value || "").trim();
 
@@ -10,13 +40,9 @@
       return { country: DEFAULT_COUNTRY, digits: "", prefixOnly: false };
     }
 
-    const partialVisualMatch = raw.match(/^\(\+(\d{0,2})\)?\s*(.*)$/);
-    if (partialVisualMatch) {
-      return {
-        country: partialVisualMatch[1],
-        digits: partialVisualMatch[2].replace(/\D/g, ""),
-        prefixOnly: true,
-      };
+    const visualParts = splitVisualPrefix(raw);
+    if (visualParts) {
+      return visualParts;
     }
 
     if (raw.startsWith("+")) {

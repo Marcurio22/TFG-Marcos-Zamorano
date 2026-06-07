@@ -40,8 +40,35 @@ from .db import db
 from .models import Usuario
 
 _USERNAME_RE = r"^[A-Za-zÀ-ÿ0-9_.-]+$"
-_PHONE_PREFIX_RE = re.compile(r"^\+(\d{2})(.*)$")
-_PHONE_VISUAL_PREFIX_RE = re.compile(r"^\(\+(\d{2})\)\s*(.*)$")
+
+
+def _split_visual_phone(raw: str) -> tuple[str, str] | None:
+    """Extrae país y resto desde el formato visual '(+34) 600 11 22 33'."""
+    if not raw.startswith("(+"):
+        return None
+
+    closing_index = raw.find(")")
+    if closing_index != 4:
+        return None
+
+    country = raw[2:4]
+    if not country.isdigit():
+        return None
+
+    return country, raw[closing_index + 1:].strip()
+
+
+def _split_plus_phone(raw: str) -> tuple[str, str]:
+    """Extrae país y resto desde el formato '+34 600 11 22 33'."""
+    if len(raw) < 3 or not raw[1:3].isdigit():
+        raise ValueError(
+            _(
+                "Si indicas prefijo internacional, debe empezar por "
+                "'+' seguido de dos dígitos juntos."
+            )
+        )
+
+    return raw[1:3], raw[3:].strip()
 
 
 def normalize_phone_number(value: str | None) -> str | None:
@@ -51,22 +78,12 @@ def normalize_phone_number(value: str | None) -> str | None:
     if not raw:
         return None
 
-    visual_match = _PHONE_VISUAL_PREFIX_RE.match(raw)
+    visual_parts = _split_visual_phone(raw)
 
-    if visual_match is not None:
-        country = visual_match.group(1)
-        rest = visual_match.group(2).strip()
+    if visual_parts is not None:
+        country, rest = visual_parts
     elif raw.startswith("+"):
-        match = _PHONE_PREFIX_RE.match(raw)
-        if match is None:
-            raise ValueError(
-                _(
-                    "Si indicas prefijo internacional, debe empezar por "
-                    "'+' seguido de dos dígitos juntos."
-                )
-            )
-        country = match.group(1)
-        rest = match.group(2).strip()
+        country, rest = _split_plus_phone(raw)
     else:
         country = "34"
         rest = raw

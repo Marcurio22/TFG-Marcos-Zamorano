@@ -16,6 +16,7 @@ import os
 from datetime import timedelta
 from flask import Flask, flash, redirect, request, session, url_for
 from flask_babel import Babel, _, get_locale
+from flask_wtf.csrf import CSRFError, CSRFProtect
 from pathlib import Path
 from werkzeug.exceptions import RequestEntityTooLarge
 
@@ -24,6 +25,7 @@ from .admin import init_admin
 
 # Babel (i18n)
 babel = Babel()
+csrf = CSRFProtect()
 
 LANGUAGES = {
     "es": "Español",
@@ -169,6 +171,7 @@ def create_app(test_config=None):
     app.config.setdefault("BABEL_DEFAULT_TIMEZONE", "Europe/Madrid")
 
     babel.init_app(app, locale_selector=select_locale)
+    csrf.init_app(app)
 
     @app.errorhandler(RequestEntityTooLarge)
     def _handle_request_entity_too_large(_error):
@@ -180,6 +183,17 @@ def create_app(test_config=None):
             return redirect(url_for("admin_folds.index"))
 
         return _("El archivo supera el tamaño máximo permitido."), 413
+
+    @app.errorhandler(CSRFError)
+    def _handle_csrf_error(_error):
+        flash(
+            _(
+                "La sesión del formulario ha caducado. "
+                "Vuelve a intentarlo."
+            ),
+            "warning",
+        )
+        return redirect(url_for("trazas.index"))
 
     @app.context_processor
     def _inject_i18n():
