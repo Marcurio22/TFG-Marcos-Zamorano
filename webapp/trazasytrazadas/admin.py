@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import csv
 import threading
+import time
 from datetime import datetime
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -138,6 +139,19 @@ def _validate_model_file_in_background(
 
         models_dir = current_app.config["SEG_MODELS_DIR"]
         model_path = Path(models_dir) / fold_name
+
+        try:
+            min_visible_seconds = float(
+                current_app.config.get(
+                    "MODEL_VALIDATION_MIN_VISIBLE_SECONDS",
+                    2.0,
+                )
+            )
+        except (TypeError, ValueError):
+            min_visible_seconds = 2.0
+
+        if min_visible_seconds > 0:
+            time.sleep(min_visible_seconds)
 
         try:
             metadata = validate_fold_model_file(

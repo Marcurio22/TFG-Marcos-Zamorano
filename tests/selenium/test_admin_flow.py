@@ -94,6 +94,19 @@ def test_admin_users_search_and_model_upload_modal(
         "#upload-fold-form button[type='submit']",
     ).click()
 
-    wait_for_text(browser, "Modelo añadido correctamente")
-    wait_for_text(browser, "modelo_a_cargar_selenium.pt")
-    wait_for_text(browser, "Pendiente")
+    wait = wait_class()(browser, 15)
+    wait.until(lambda driver: "/admin/folds" in driver.current_url)
+
+    row_selector = (
+        "tr[data-model-row]"
+        "[data-model-name='modelo_a_cargar_selenium.pt']"
+    )
+
+    row = wait.until(
+        lambda driver: (
+            driver.find_elements("css selector", row_selector) or [False]
+        )[0]
+    )
+
+    assert row.get_attribute("data-model-state") == "subiendo"
+    assert row.get_attribute("data-model-validation") == "pendiente"

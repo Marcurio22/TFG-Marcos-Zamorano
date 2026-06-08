@@ -13,6 +13,7 @@ Versión: 0.1
     <meta charset="utf-8">
     <meta name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>
       {% block title %}{{ _("Trazas de Herbívoros") }}{% endblock %}
     </title>
@@ -59,11 +60,12 @@ Versión: 0.1
           <div class="px-3 sm:px-4">
             <div class="relative py-3">
               <!-- Botón toggle drawer -->
-              <button type="button"
-                      class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
-                      aria-label="{{ _("Abrir menú") }}"
-                      aria-controls="app-drawer"
-                      onclick="document.getElementById('app-drawer').checked = true;">
+              <label for="app-drawer"
+                     role="button"
+                     tabindex="0"
+                     class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
+                     aria-label="{{ _("Abrir menú") }}"
+                     aria-controls="app-drawer">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24"
                      fill="none"
@@ -76,7 +78,7 @@ Versión: 0.1
                   <path d="M4 12h16" />
                   <path d="M4 18h16" />
                 </svg>
-              </button>
+              </label>
               <!-- Título centrado -->
               <div class="max-w-5xl mx-auto flex items-center justify-center">
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm text-center">
@@ -359,6 +361,7 @@ Versión: 0.1
               <form method="post"
                     action="{{ url_for("trazas.logout") }}"
                     class="border-t border-white/10">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit"
                         class="w-full flex items-center gap-3 px-5 py-4 text-base sm:text-lg font-bold bg-red-600 hover:bg-red-700 text-white transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg"

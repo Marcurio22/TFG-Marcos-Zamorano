@@ -12,6 +12,10 @@
 document.addEventListener("DOMContentLoaded", () => {
   const CFG = window.VISOR_APP || {};
   const URLS = CFG.urls || {};
+
+  function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+  }
   const DEFAULTS = Object.assign(
     {
       center: [40.4168, -3.7038],
@@ -742,6 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
         },
         body: JSON.stringify(payload),
       });
@@ -825,6 +830,7 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
         },
         body: JSON.stringify({
           fuente_id: currentPlan.fuente.id,

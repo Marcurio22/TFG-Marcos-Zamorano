@@ -52,6 +52,7 @@
                         </label>
                     </form>
                     <form action="{{ url_for("trazas.logout") }}" method="post" class="w-full">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit"
                                 class="btn w-full rounded-sm border-none bg-red-600 text-white hover:bg-red-500"
                                 title="{{ _("Cierra la sesión actual de forma segura.") }}">

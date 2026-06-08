@@ -41,6 +41,7 @@ def app():
         {
             "TESTING": True,
             "SECRET_KEY": "test",
+            "WTF_CSRF_ENABLED": False,
             "UPLOAD_FOLDER": upload,
             "OUTPUT_FOLDER": output,
             "SEG_MODELS_DIR": models,

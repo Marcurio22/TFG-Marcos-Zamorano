@@ -14,7 +14,7 @@ Versión: 0.1
 
 import os
 from datetime import timedelta
-from flask import Flask, flash, redirect, request, session, url_for
+from flask import Flask, flash, jsonify, redirect, request, session, url_for
 from flask_babel import Babel, _, get_locale
 from flask_wtf.csrf import CSRFError, CSRFProtect
 from pathlib import Path
@@ -131,6 +131,7 @@ def create_app(test_config=None):
 
         # Usar GPU si existe.
         SEG_USE_GPU=True,
+        MODEL_VALIDATION_MIN_VISIBLE_SECONDS=2.0,
     )
 
     # Sesión: 24h máximo, sin refresco automático.
@@ -186,13 +187,24 @@ def create_app(test_config=None):
 
     @app.errorhandler(CSRFError)
     def _handle_csrf_error(_error):
-        flash(
-            _(
-                "La sesión del formulario ha caducado. "
-                "Vuelve a intentarlo."
-            ),
-            "warning",
+        message = _(
+            "La sesión del formulario ha caducado. "
+            "Vuelve a intentarlo."
         )
+
+        accepted = request.accept_mimetypes.best_match(
+            ["application/json", "text/html"]
+        )
+        wants_json = (
+            request.is_json
+            or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or accepted == "application/json"
+        )
+
+        if wants_json:
+            return jsonify({"error": message}), 400
+
+        flash(message, "warning")
         return redirect(url_for("trazas.index"))
 
     @app.context_processor

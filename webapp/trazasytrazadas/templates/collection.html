@@ -257,6 +257,7 @@ Versión: 0.1
                                             <form method="post"
                                                   action="{{ url_for('trazas.collection_toggle_processing', parcel_id=item.parcela_id) }}"
                                                   class="inline-flex">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="redirect_to" value="{{ current_query }}">
                                                 <button type="submit"
                                                         data-zone-toggle-processing
@@ -285,6 +286,7 @@ Versión: 0.1
                                                   action="{{ url_for('trazas.collection_delete', parcel_id=item.parcela_id) }}"
                                                   class="inline-flex"
                                                   data-delete-form>
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="redirect_to" value="{{ current_query }}">
                                                 <button type="button"
                                                         class="btn btn-square btn-sm btn-error"
@@ -394,6 +396,7 @@ Versión: 0.1
                 </form>
             </div>
             <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden"
                        name="redirect_to"
                        id="rename-zone-redirect-to"

@@ -60,6 +60,7 @@ Versión: 0.1
                     <form method="post"
                           action="{{ url_for('trazas.collection_toggle_processing', parcel_id=zone.parcela_id) }}"
                           class="inline-flex">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
                         <button type="submit"
                                 data-zone-toggle-processing
@@ -87,6 +88,7 @@ Versión: 0.1
                     <form method="post"
                           action="{{ url_for('trazas.collection_zone_retry_pending_failed', parcel_id=zone.parcela_id) }}"
                           class="inline-flex">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
                         <button type="submit"
                                 class="btn btn-sm btn-warning {% if not zone.puede_reintentar_todo %}btn-disabled{% endif %}"
@@ -271,6 +273,7 @@ Versión: 0.1
                             <form method="post"
                                   action="{{ url_for('trazas.collection_photo_retry', photo_id=photo.foto_id) }}"
                                   class="inline-flex">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
                                 <button type="submit"
                                         class="btn btn-sm btn-warning {% if not photo.puede_reintentar %}btn-disabled{% endif %}"
@@ -336,6 +339,7 @@ Versión: 0.1
                 <div class="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div class="flex flex-wrap items-center gap-3">
                         <form id="photo-viewer-retry-form" method="post" class="inline-flex">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden"
                                    name="redirect_to"
                                    id="photo-viewer-retry-redirect"
@@ -388,6 +392,7 @@ Versión: 0.1
                 </form>
             </div>
             <form id="zone-rename-form" method="post" class="mt-4 space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden"
                        name="redirect_to"
                        id="rename-zone-redirect-to"
