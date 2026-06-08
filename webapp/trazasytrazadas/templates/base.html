@@ -60,12 +60,11 @@ Versión: 0.1
           <div class="px-3 sm:px-4">
             <div class="relative py-3">
               <!-- Botón toggle drawer -->
-              <label for="app-drawer"
-                     role="button"
-                     tabindex="0"
-                     class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
-                     aria-label="{{ _("Abrir menú") }}"
-                     aria-controls="app-drawer">
+              <button type="button"
+                      class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
+                      aria-label="{{ _("Abrir menú") }}"
+                      aria-controls="app-drawer"
+                      onclick="document.getElementById('app-drawer').checked = true;">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24"
                      fill="none"
@@ -78,7 +77,7 @@ Versión: 0.1
                   <path d="M4 12h16" />
                   <path d="M4 18h16" />
                 </svg>
-              </label>
+              </button>
               <!-- Título centrado -->
               <div class="max-w-5xl mx-auto flex items-center justify-center">
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm text-center">
