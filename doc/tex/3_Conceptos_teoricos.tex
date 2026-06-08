@@ -26,12 +26,12 @@ Sobre estas representaciones, el sistema ejecuta tareas como clasificación, det
 		\label{fig:Image-segmentation-example-segmented}
 	\end{subfigure}
 	
-	\caption{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada. Fuente: MartinThoma. Licencia: CC0 1.0.}
+	\caption[Ejemplo de segmentación semántica.]{Ejemplo de segmentación semántica: (a) imagen original y (b) máscara segmentada. Fuente: MartinThoma. Licencia: CC0 1.0.}
 	\label{fig:segmentation-example-pair}
 \end{figure}
 
 \subsection{Conceptos teóricos de la Segmentación Semántica}
-En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica moderna en visión por computador, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
+En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
 
 
 \subsubsection{Aprendizaje Profundo}
@@ -61,12 +61,12 @@ La segmentación semántica es una tarea de predicción densa en Visión por Com
 Este proceso típicamente se implementa a través de una arquitectura de red neuronal profunda de codificador-decodificador, llamada \textit{encoder-decoder} de manera tradicional~\cite{ji2022automation, neloy2024autoencoders, bala2025visiontranscoder}.
 
 \begin{enumerate}
-	\item \textbf{Codificación mediante encoder:} 
+	\item Codificación mediante encoder:
 	El codificador, a menudo basado en una Red Neuronal Convolucional (CNN)~\cite{visionencoder2025} o un \textit{Vision Transformer (ViT)}~\cite{bala2025visiontranscoder}, toma la imagen de entrada y transforma los datos de esta en una representación de características de alto nivel mediante una reducción de la resolución espacial a través de diversas operaciones como podrían ser el \textit{max-pooling} o el uso de capas convolucionales, obteniendo así como resultado unas capas de características de baja resolución pero semánticamente ricas.
 	
-	\item \textbf{Decodificación por decoder:} El decodificador opera con las características comprimidas del codificador para reconstruir la predicción final. Esto lo hará mediante la utilización de operaciones de sobremuestreo, a menudo implementadas mediante \textit{upsampling}~\cite{badrinarayanan2016segnet, lin2017fpn} o mediante el uso de índices de \textit{max-pooling}~\cite{neloy2024autoencoders, zhang2022constructionautomation}, agrandando la entrada para extraer características de alta resolución~\cite{neloy2024autoencoders, ji2022automation, badrinarayanan2016segnet}.
+	\item Decodificación por decoder: El decodificador opera con las características comprimidas del codificador para reconstruir la predicción final. Esto lo hará mediante la utilización de operaciones de sobremuestreo, a menudo implementadas mediante \textit{upsampling}~\cite{badrinarayanan2016segnet, lin2017fpn} o mediante el uso de índices de \textit{max-pooling}~\cite{neloy2024autoencoders, zhang2022constructionautomation}, agrandando la entrada para extraer características de alta resolución~\cite{neloy2024autoencoders, ji2022automation, badrinarayanan2016segnet}.
 	
-	\item \textbf{Salida y Optimización:} La salida final es un mapa de segmentación que se alimenta a una capa \textit{Softmax} para asignar probabilidades de clasificación a cada píxel de forma independiente~\cite{ji2022automation, bala2025visiontranscoder, neloy2024autoencoders}, generando una predicción densa~\cite{neloy2024autoencoders, bala2025visiontranscoder}.
+	\item Salida y Optimización: La salida final es un mapa de segmentación que se alimenta a una capa \textit{Softmax} para asignar probabilidades de clasificación a cada píxel de forma independiente~\cite{ji2022automation, bala2025visiontranscoder, neloy2024autoencoders}, generando una predicción densa~\cite{neloy2024autoencoders, bala2025visiontranscoder}.
 \end{enumerate}
 
 \subsubsection{Kernel}
@@ -217,7 +217,7 @@ Desde un punto de vista geométrico, esta comparación puede interpretarse como 
 			\node at (0.7,0) {$\cap$};
 		\end{scope}
 	\end{tikzpicture}
-	\caption{Interpretación geométrica de IoU como solapamiento entre la máscara obtenida mediante la ruta de carga con \texttt{pickle} y la máscara obtenida mediante la ruta \textit{TorchScript}.}
+	\caption[Interpretación geométrica de IoU.]{Interpretación geométrica de IoU como solapamiento entre la máscara obtenida mediante la ruta de carga con \texttt{pickle} y la máscara obtenida mediante la ruta \textit{TorchScript}.}
 	\label{fig:iou-venn}
 \end{figure}
 
@@ -231,18 +231,18 @@ Al igual que IoU, valores altos implican que ambas rutas de inferencia generan m
 \subsubsection{Métricas temporales de rendimiento}
 Para evaluar la eficiencia práctica de cada enfoque se midieron tiempos de carga y tiempos de inferencia por \textit{fold} en el banco de pruebas. En particular:
 \begin{itemize}
-	\item \textbf{Tiempo de carga (\texttt{load\_ms})} Tiempo necesario para cargar el modelo desde disco.
-	\item \textbf{Tiempo de inferencia medio (\texttt{infer\_ms\_mean})} Media del tiempo de ejecución del \textit{forward} sobre una misma imagen, tras un calentamiento para estabilizar el rendimiento.
-	\item \textbf{Desviación estándar (\texttt{infer\_ms\_std})} Variabilidad del tiempo de inferencia entre repeticiones, empleado para detectar fluctuaciones del sistema.
+	\item Tiempo de carga (\texttt{load\_ms}): Tiempo necesario para cargar el modelo desde disco.
+	\item Tiempo de inferencia medio (\texttt{infer\_ms\_mean}): Media del tiempo de ejecución del \textit{forward} sobre una misma imagen, tras un calentamiento para estabilizar el rendimiento.
+	\item Desviación estándar (\texttt{infer\_ms\_std}): Variabilidad del tiempo de inferencia entre repeticiones, empleado para detectar fluctuaciones del sistema.
 \end{itemize}
 
 \subsubsection{Métricas geométricas derivadas de la máscara}
 Además del solapamiento entre predicciones, se calcularon métricas simples sobre la máscara binaria para interpretar cuantitativamente la estructura de las trazas detectadas:
 \begin{itemize}
-	\item \textbf{Área segmentada (\texttt{area\_px})} Número de píxeles clasificados como traza, interpretado como la extensión total detectada.
-	\item \textbf{Longitud del esqueleto (\texttt{skeleton\_len\_px})} Longitud en píxeles del esqueleto de la máscara, utilizada como aproximación a la longitud de las sendas detectadas~\cite{zhang1984thinning}.
-	\item \textbf{Número de componentes conexas (\texttt{n\_components})} Cantidad de regiones desconectadas segmentadas, indicador de discontinuidades en la detección~\cite{gonzalez2008dip}.
-	\item \textbf{Grosor medio estimado (\texttt{mean\_thickness\_px})} Aproximación del grosor medio de la traza, calculada a partir de la relación entre área y longitud del esqueleto~\cite{zhang1984thinning}.
+	\item Área segmentada (\texttt{area\_px}): Número de píxeles clasificados como traza, interpretado como la extensión total detectada.
+	\item Longitud del esqueleto (\texttt{skeleton\_len\_px}): Longitud en píxeles del esqueleto de la máscara, utilizada como aproximación a la longitud de las sendas detectadas~\cite{zhang1984thinning}.
+	\item Número de componentes conexas (\texttt{n\_components}): Cantidad de regiones desconectadas segmentadas, indicador de discontinuidades en la detección~\cite{gonzalez2008dip}.
+	\item Grosor medio estimado (\texttt{mean\_thickness\_px}): Aproximación del grosor medio de la traza, calculada a partir de la relación entre área y longitud del esqueleto~\cite{zhang1984thinning}.
 \end{itemize}
 
 Estas medidas complementan las métricas de solapamiento, ya que permiten comprobar si pequeñas discrepancias entre rutas de inferencia se traducen en cambios apreciables en la morfología global de las trazas.

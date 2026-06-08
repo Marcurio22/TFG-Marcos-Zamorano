@@ -11,9 +11,9 @@ A continuación se sintetizan las principales conclusiones extraídas tras la fi
 	
 	\item Se ha desarrollado una aplicación web monolítica modular con Flask, separando responsabilidades entre interfaz, lógica de aplicación, persistencia, procesamiento de imágenes e inferencia. Además del análisis de imágenes individuales, se ha incorporado soporte para visor cartográfico, generación de teselas, colecciones persistentes y procesamiento en segundo plano.
 	
-	\item Se ha diseñado un sistema extensible para la gestión de modelos, evitando que la aplicación dependa de un único artefacto fijo. Los administradores pueden incorporar modelos, validarlos antes de su uso y seleccionar cuál debe actuar como modelo activo, facilitando así la evolución futura del sistema.
+	\item Se ha diseñado un sistema extensible para la gestión de modelos, evitando que la aplicación dependa de uno único. Los administradores pueden incorporar modelos, validarlos antes de su uso y seleccionar cuál debe actuar como modelo activo, facilitando así la evolución futura del sistema.
 	
-	\item Ha sido necesario estudiar en profundidad tanto el artículo base~\cite{diezpastora2025trails} como el algoritmo proporcionado, analizando el flujo de preparación de imágenes, carga de modelos, ejecución de predicciones y generación de máscaras antes de adaptarlo a una aplicación con interacción real de usuario.
+	\item Ha sido necesario estudiar en profundidad tanto el código de ejecución del artículo base~\cite{diezpastora2025trails}, como el algoritmo proporcionado, analizando el flujo de preparación de imágenes, carga de modelos, ejecución de predicciones y generación de máscaras antes de adaptarlo a una aplicación con interacción real de usuario.
 	
 	\item Se han aplicado conocimientos adquiridos en distintas asignaturas del Grado en Ingeniería Informática, especialmente en \textit{Bases de Datos}, \textit{Análisis y Diseño de Sistemas}, \textit{Interacción Hombre-Máquina}, \textit{Gestión de Proyectos}, \textit{Estructuras de Datos}, \textit{Algoritmia}, \textit{Sistemas Inteligentes}, \textit{Minería de Datos} y \textit{Sistemas Distribuidos}.
 	
@@ -26,7 +26,7 @@ A continuación se sintetizan las principales conclusiones extraídas tras la fi
 
 \section{Líneas de trabajo futuras}
 
-A partir del trabajo realizado, las líneas de mejora halladas son:
+A partir del trabajo realizado, las líneas de mejora identificadas son las siguientes:
 
 \begin{itemize}
 	\item Una línea de mejora prioritaria sería estudiar la obtención de una licencia o autorización específica que permitiese integrar Google Earth Engine o fuentes de imaginería equivalentes bajo condiciones compatibles con el análisis automático. Esto permitiría trabajar con imágenes más próximas a aquellas utilizadas durante el entrenamiento del modelo original y, por tanto, mejorar la coherencia entre el dominio de entrenamiento y el dominio real de explotación.

@@ -1,5 +1,11 @@
 \capitulo{5}{Aspectos relevantes del desarrollo del proyecto}
 
+\subsection{Análisis del \textit{notebook} de inferencia original}
+
+Un aspecto relevante del desarrollo fue la comprensión y adaptación del código procedente del trabajo de investigación en el que se basa este proyecto~\cite{diezpastora2025trails}. Antes de integrar la inferencia en la aplicación web, fue necesario estudiar el \textit{notebook} y el flujo experimental proporcionado, identificando cómo se preparaban las imágenes, cómo se cargaban los modelos, cómo se ejecutaban las predicciones y cómo se transformaban las salidas del modelo en máscaras de segmentación interpretables.
+
+Este trabajo previo permitió trasladar un código orientado a experimentación a un entorno web con interacción real de usuario, control de errores, persistencia de resultados y ejecución repetible. Durante este proceso se analizaron distintas posibilidades de integración, separando las partes reutilizables del \textit{pipeline} original de aquellas que debían adaptarse para funcionar dentro de Flask, con rutas, formularios, ficheros subidos, modelos activos y procesamiento en segundo plano. Esta fase resultó fundamental para que la aplicación no se limitase a ejecutar un modelo, sino que incorporase la lógica de inferencia de forma coherente, mantenible y alineada con el comportamiento validado en el artículo original.
+
 \subsection{Comparativa de despliegue: modelos \textit{pickle} vs PyTorch}
 
 Durante el desarrollo se plantearon dos formas de ejecutar los modelos entrenados: por un lado, cargar el objeto completo serializado con \texttt{pickle} y, por otro, exportar el modelo a una representación TorchScript, ejecutable con el runtime de PyTorch, orientada a inferencia. La motivación inicial de la exportación a PyTorch fue principalmente de despliegue: un módulo TorchScript permite ejecutar la red sin depender del código de entrenamiento, reduce acoplamientos con \textit{frameworks}, como, por ejemplo, mediante PyTorch Lightning y facilita integrar el modelo en otros entornos de ejecución.
@@ -94,7 +100,7 @@ El segundo proceso asíncrono corresponde a la validación de modelos desde el p
 
 En conjunto, ambos procesos asíncronos refuerzan el rendimiento, la trazabilidad y la tolerancia a fallos del sistema, al permitir que las operaciones costosas continúen en segundo plano sin comprometer la respuesta inmediata de la interfaz.
 
-\subsection{Despliegue contenedorizado con Docker y Gunicorn}
+\subsection{Despliegue contenerizado con Docker y Gunicorn}
 
 El despliegue final de la aplicación se ha realizado mediante Docker Compose, separando el servicio web del servicio encargado del procesamiento de trazas. El contenedor \texttt{web} ejecuta la aplicación Flask mediante Gunicorn y atiende las peticiones HTTP del navegador, mientras que el contenedor \texttt{worker} se encarga de procesar las colecciones en segundo plano. Ambos servicios comparten los mismos volúmenes persistentes, donde se almacenan la base de datos SQLite, los modelos, las imágenes, las teselas y los resultados generados, evitando que estos recursos queden incluidos dentro de la imagen Docker.
 
