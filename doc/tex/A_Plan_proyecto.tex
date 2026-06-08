@@ -702,6 +702,56 @@ Finalmente, creé un fichero \texttt{README.md} con un formato más profesional,
 
 Como se observa en la Figura~\ref{fig:brsprint20}, el \textit{burndown} muestra un avance progresivo durante todo el \textit{sprint}. Aunque en los primeros días la línea de \textit{open points} se mantuvo algo por encima de la ideal, debido a que varias tareas de documentación requerían trabajo acumulado antes de poder cerrarse, el descenso se fue estabilizando conforme se completaron los principales apartados de memoria y anexos. En la parte final del \textit{sprint} se aprecia una bajada más marcada, coincidiendo con los días en los que acabé los exámenes finales, hasta completar todas las \textit{issues} el 1 de junio.
 
+\subsection{Sprint 21 - Despliegue y mejoras de calidad}
+El \textit{Sprint 21} se desarrolló del 2 al 8 de junio. Inicialmente estimé una dedicación de 27,5~horas, aunque durante el avance del \textit{sprint} surgieron nuevas \textit{issues} que elevaron la planificación total a 31,5~horas. Finalmente, la dedicación real fue de aproximadamente 32~horas. El objetivo principal de esta iteración fue realizar el despliegue de la aplicación, cerrar documentación técnica asociada al mismo y corregir distintas incidencias detectadas tanto en el servidor como en el análisis de calidad de SonarQube.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Montar Docker para el servidor.
+	\item Ejecutar el despliegue de la aplicación.
+	\item Arreglar el fichero \texttt{README.md}.
+	\item Redactar el tema de la licencia y crear el fichero \texttt{LICENSE.md}.
+	\item Cambiar todos los cuadros de comandos de la memoria.
+	\item Añadir los últimos \textit{tests} de Selenium y documentarlos.
+	\item Incorporar Selenium, Docker, Gunicorn y SonarQube en el apartado de herramientas.
+	\item Redactar todo lo referente a Gunicorn y despliegue que todavía faltaba.
+	\item Arreglar las tablas de anexos.
+	\item Corregir problemas de SonarQube:
+	\begin{itemize}
+		\item \textit{Security Snapshots}.
+		\item \textit{Reliability}.
+		\item \textit{Security Hotspots}.
+	\end{itemize}
+	\item Resolver las nuevas incidencias surgidas durante el \textit{sprint}:
+	\begin{itemize}
+		\item Arreglar un \textit{bug} de concurrencia en despliegue.
+		\item Arreglar el uso de GPU en el servidor.
+		\item Permitir iniciar sesión con usuario o correo electrónico.
+		\item Informar al usuario cuando no haya seleccionado dos puntos.
+	\end{itemize}
+\end{itemize}
+
+El primer día del \textit{sprint}, 2 de junio, lo dediqué a preparar la base del despliegue. En primer lugar, monté Docker para el servidor, dejando preparada la infraestructura necesaria para ejecutar la aplicación en el servidor, con el que también empecé a hacer avances. Además, arreglé el fichero \texttt{README.md}.
+
+El 3 de junio cerré tareas de documentación y pruebas. Por un lado, arreglé las tablas de anexos para mantener un formato coherente. Por otro, añadí los últimos \textit{tests} de Selenium y los documenté, completando así la parte de pruebas funcionales sobre la interfaz.
+
+El 4 de junio fue uno de los días más importantes del \textit{sprint}, ya que terminé de ejecutar el despliegue de la aplicación. Durante este proceso también redacté el apartado relativo a la licencia y creé el fichero \texttt{LICENSE.md}. Además, incorporé Selenium, Docker, Gunicorn y SonarQube en el apartado de herramientas de la memoria, para que la documentación reflejase correctamente las tecnologías finalmente utilizadas. Ese mismo día surgieron dos incidencias no previstas: un problema con el uso de la GPU en el servidor y un \textit{bug} de concurrencia durante el despliegue. Ambas incidencias tuvieron que resolverse dentro del propio \textit{sprint}, ya que afectaban directamente al correcto funcionamiento de la aplicación desplegada.
+
+El 5 de junio me centré en la memoria, cambiando todos los cuadros de comandos para homogeneizar su presentación y redactando las partes que todavía faltaban sobre Gunicorn y el despliegue. Esta documentación era necesaria para explicar correctamente cómo se había preparado el entorno de ejecución y qué papel desempeñaba cada componente dentro del servidor.
+
+El 6 de junio incorporé dos mejoras funcionales surgidas durante el avance del \textit{sprint}. La primera consistió en permitir que el usuario pudiese iniciar sesión tanto con su nombre de usuario como con su correo electrónico, haciendo el acceso más flexible. La segunda fue añadir un aviso cuando el usuario no hubiese seleccionado dos puntos en el visor, evitando así errores silenciosos y mejorando la retroalimentación de la interfaz.
+
+Finalmente, los días 7 y 8 de junio los dediqué principalmente a resolver incidencias detectadas por SonarQube. El día 7 corregí problemas asociados a \textit{Security Snapshots} y \textit{Reliability}, mientras que el día 8 cerré los \textit{Security Hotspots}. Con ello, el proyecto quedó en un estado más limpio desde el punto de vista de calidad de código y análisis estático.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/BR_Sprint21}
+	\caption[Burndown Report del Sprint 21]{Burndown Report del Sprint 21.}
+	\label{fig:brsprint21}
+\end{figure}
+
+Como se observa en la Figura~\ref{fig:brsprint21}, el \textit{burndown} muestra un avance bastante constante durante todo el \textit{sprint}. Aunque surgieron varias tareas nuevas durante la semana, especialmente relacionadas con el despliegue y con incidencias del servidor, estas se fueron resolviendo dentro del propio periodo. La línea de \textit{open points} se mantuvo siempre por debajo de la ideal, reflejando que el cierre de tareas fue progresivo y que el \textit{sprint} pudo completarse correctamente el 8 de junio.
+
 \section{Estudio de viabilidad}
 En este apartado se analiza la viabilidad del proyecto desde una doble perspectiva: económica, valorando los costes asociados a su desarrollo, despliegue y mantenimiento; y legal, revisando las licencias, condiciones de uso y obligaciones normativas que afectan a las tecnologías, datos y recursos empleados.
 
