@@ -1,0 +1,31 @@
+{# Renderizado común de mensajes flash con estilos DaisyUI. #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="{{ flash_toast_class|default('toast toast-top toast-center z-50 mt-4') }}">
+      {% for category, message in messages %}
+        {% set alert_class = "alert-info" %}
+        {% if category in ['error', 'danger'] %}
+          {% set alert_class = "alert-error" %}
+        {% elif category == 'success' %}
+          {% set alert_class = "alert-success" %}
+        {% elif category == 'warning' %}
+          {% set alert_class = "alert-warning" %}
+        {% endif %}
+        <div class="alert {{ alert_class }} shadow-lg">
+          <span class="text-sm sm:text-base">{{ message }}</span>
+          <button type="button"
+                  class="btn btn-sm btn-ghost ml-auto"
+                  aria-label="{{ _("Cerrar") }}"
+                  onclick="this.closest('.alert').remove();">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 20 20"
+                 fill="currentColor"
+                 class="w-4 h-4">
+              <path d="M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z" />
+            </svg>
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}

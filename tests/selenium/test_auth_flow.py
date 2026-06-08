@@ -48,7 +48,7 @@ def test_register_login_and_logout_flow(browser, live_server):
     wait_for_text(browser, "Has iniciado sesión correctamente")
     wait_for_text(browser, "Sin imagen")
 
-    clickable(browser, "label[for='app-drawer']").click()
+    clickable(browser, "button[aria-controls='app-drawer']").click()
     wait_for_text(browser, "Colección de imágenes")
     wait_for_text(browser, "selenium_user")
 
@@ -56,5 +56,5 @@ def test_register_login_and_logout_flow(browser, live_server):
     logout_button.click()
     wait_for_text(browser, "Has cerrado sesión correctamente")
 
-    clickable(browser, "label[for='app-drawer']").click()
+    clickable(browser, "button[aria-controls='app-drawer']").click()
     wait_for_text(browser, "Iniciar sesión")

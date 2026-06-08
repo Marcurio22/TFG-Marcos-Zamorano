@@ -1,0 +1,66 @@
+<script>
+    window.COLLECTION_APP = {
+        {% if collection_app_urls is defined and collection_app_urls %}
+        "urls": {{ collection_app_urls | tojson }},
+        {% endif %}
+        "pollIntervalMs": 5000,
+        "i18n": {{ {
+            "previewTitle": _("Vista previa de la zona"),
+            "previewError": _("No se ha podido cargar la vista previa de la zona."),
+            "progressText": _("%(completed)s/%(total)s teselas completadas", completed="{completed}", total="{total}"),
+            "zoneCompleted": _("Trazas completadas"),
+            "zoneProcessing": _("Procesando"),
+            "zonePending": _("En espera"),
+            "zoneFailed": _("Error"),
+            "zonePaused": _("En pausa"),
+            "pauseProcessing": _("Pausar cálculo"),
+            "resumeProcessing": _("Reanudar cálculo"),
+            "processingCompleted": _("Trazas completadas"),
+            "pauseProcessingTitle": _(
+                "Pausa el cálculo de trazas de esta colección."
+            ),
+            "resumeProcessingTitle": _(
+                "Reanuda el cálculo de trazas de esta colección."
+            ),
+            "processingCompletedTitle": _(
+                "Las trazas ya están calculadas."
+            ),
+            "photoCompleted": _("Trazas calculadas"),
+            "photoProcessing": _("Calculando trazas"),
+            "photoPending": _("Trazas no calculadas"),
+            "photoFailed": _("Error de cálculo"),
+            "photoStale": _("Procesamiento atascado"),
+            "retryTrace": _("Reintentar"),
+            "recalculateTrace": _("Recalcular trazas"),
+            "download": _("Descargar"),
+            "viewerImagePreview": _("Vista ampliada de la tesela seleccionada."),
+            "viewerDrawn": _("Trazas dibujadas"),
+            "viewerNotDrawn": _("Sin dibujar"),
+            "viewerDrawing": _("Dibujando..."),
+            "viewerDrawUnavailable": _(
+                "Todavía no hay trazas calculadas para esta tesela."
+            ),
+            "viewerDrawError": _(
+                "No se han podido dibujar las trazas sobre la imagen."
+            ),
+            "retryZoneReady": _(
+                "Recalcular solo las teselas pendientes o con error."
+            ),
+            "retryZoneDisabledCompleted": _(
+                "Todas las teselas ya tienen las trazas calculadas."
+            ),
+            "retryZoneDisabledWait": _(
+                "Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o teselas con error."
+            ),
+            "recalculatePhotoTitle": _(
+                "Vuelve a ejecutar el cálculo de trazas para esta tesela."
+            ),
+            "recalculatePhotoDisabledTitle": _(
+                "Disponible cuando la tesela esté pendiente el tiempo suficiente o haya fallado."
+            ),
+            "downloadPhotoTitle": _(
+                "Descarga la imagen de esta tesela."
+            )
+        } | tojson }}
+    };
+</script>

@@ -72,5 +72,5 @@ def test_profile_image_can_be_confirmed(browser, live_server, app, tmp_path):
     submit(browser, "form[action$='/perfil/imagen/confirmar'] button")
 
     wait_for_text(browser, "Imagen de perfil actualizada correctamente")
-    clickable(browser, "label[for='app-drawer']").click()
+    clickable(browser, "button[aria-controls='app-drawer']").click()
     assert visible_css(browser, "a[href$='/perfil'] img").is_displayed()
