@@ -6,7 +6,7 @@
     {# Contenedor Principal: Bordes curvos, sombra amplia y layout dividido #}
     <section class="w-full max-w-6xl rounded-[2rem] overflow-hidden shadow-2xl bg-blue-50/40 backdrop-blur-md flex flex-col lg:flex-row border border-white/40">
         <div class="relative w-full lg:w-5/12 min-h-[300px] lg:min-h-full flex items-center justify-center p-6 sm:p-10 text-center">
-            <img src="{{ url_for('static', filename='img/monte.jpg') }}"
+            <img src="{{ url_for('static', filename='img/monte.png') }}"
                  alt="{{ _("Paisaje") }}"
                  class="absolute inset-0 w-full h-full object-cover blur-[2px]" />
             <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
@@ -58,8 +58,8 @@
                                 <span>{{ _("Teléfono (opcional)") }}</span>
                             </label>
                             {{ form.telefono(class=input_class, placeholder=_("Ej: (+34) 999 99 99 99") , autocomplete="tel",
-                                                           inputmode="tel",
-                                                           data_phone_format="1") }}
+                            inputmode="tel",
+                            data_phone_format="1") }}
                             {% if form.telefono.errors %}
                                 <p class="mt-1.5 text-sm font-medium text-error">{{ form.telefono.errors[0] }}</p>
                             {% else %}
