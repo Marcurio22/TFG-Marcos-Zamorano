@@ -100,6 +100,30 @@ El segundo proceso asíncrono corresponde a la validación de modelos desde el p
 
 En conjunto, ambos procesos asíncronos refuerzan el rendimiento, la trazabilidad y la tolerancia a fallos del sistema, al permitir que las operaciones costosas continúen en segundo plano sin comprometer la respuesta inmediata de la interfaz.
 
+\section{Aspectos relevantes de la aplicación}
+
+Durante el desarrollo se han incorporado una serie de mejoras transversales orientadas a aumentar la calidad, seguridad y mantenibilidad de la aplicación.
+
+\subsection{Análisis de calidad de código con SonarQube}
+
+Con el objetivo de revisar la calidad del código desarrollado, se ha utilizado SonarQube como herramienta de análisis estático. Esta herramienta permite detectar posibles problemas de mantenibilidad, duplicidad, complejidad, errores potenciales y vulnerabilidades, ofreciendo una visión complementaria a la batería de pruebas automatizadas. 
+
+Su uso ha permitido identificar puntos de mejora en el código fuente y reforzar la calidad general del proyecto antes de su entrega final, especialmente en una aplicación que combina lógica web, procesamiento de imágenes, persistencia, JavaScript y ejecución de modelos.
+
+\subsection{Internacionalización de la interfaz}
+
+Otro aspecto relevante ha sido la incorporación de internacionalización en la interfaz mediante Flask-Babel. Los textos visibles de la aplicación se han preparado para poder mostrarse en distintos idiomas, centralizando las traducciones mediante catálogos \textit{gettext} y manteniendo un selector de idioma accesible desde la interfaz. 
+
+Además, para aquellos mensajes utilizados por JavaScript, las traducciones se inyectan desde las plantillas Jinja en objetos globales, evitando mezclar directamente código de plantilla dentro de ficheros estáticos. Esta decisión facilita que la aplicación pueda adaptarse a distintos usuarios sin modificar la lógica principal del sistema.
+
+\subsection{Protección frente a ataques CSRF}
+
+También se ha incorporado protección frente a ataques CSRF, \textit{Cross-Site Request Forgery}, con el fin de evitar que una página externa pueda aprovechar la sesión activa de un usuario para ejecutar acciones no autorizadas sobre la aplicación. Este tipo de ataque es especialmente relevante en operaciones realizadas mediante \texttt{POST}, ya que el navegador envía automáticamente las cookies de sesión aunque la petición se origine desde un sitio malicioso.
+
+Para mitigar este riesgo, se ha activado protección CSRF global en Flask mediante \texttt{CSRFProtect}. Los formularios HTML incluyen el token de seguridad mediante \texttt{form.hidden\_tag()} o mediante un campo oculto \texttt{csrf\_token}, mientras que las peticiones realizadas desde JavaScript mediante \texttt{fetch()} incorporan el token en la cabecera \texttt{X-CSRFToken}.
+
+Se ha añadido incluso un manejador de error específico para informar al usuario de forma comprensible cuando el token falta, es incorrecto o ha caducado. En las pruebas automáticas generales esta protección puede desactivarse para centrarse en la lógica funcional, manteniendo la posibilidad de realizar pruebas específicas que verifiquen el rechazo de acciones sensibles cuando no se proporciona un token válido.
+
 \subsection{Despliegue contenerizado con Docker y Gunicorn}
 
 El despliegue final de la aplicación se ha realizado mediante Docker Compose, separando el servicio web del servicio encargado del procesamiento de trazas. El contenedor \texttt{web} ejecuta la aplicación Flask mediante Gunicorn y atiende las peticiones HTTP del navegador, mientras que el contenedor \texttt{worker} se encarga de procesar las colecciones en segundo plano. Ambos servicios comparten los mismos volúmenes persistentes, donde se almacenan la base de datos SQLite, los modelos, las imágenes, las teselas y los resultados generados, evitando que estos recursos queden incluidos dentro de la imagen Docker.
