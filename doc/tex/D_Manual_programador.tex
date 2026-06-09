@@ -234,7 +234,7 @@ Para evitar duplicidades, el servicio \texttt{web} debe tener desactivado el arr
 La arquitectura permite escalar el procesamiento lanzando varios contenedores de tipo \texttt{worker}. Por ejemplo, puede aumentarse el número de procesos de trazas mediante el siguiente comando:
 
 \begin{pythonbox}{Ejecución de contenedores con Docker Compose}
-	docker compose up -d --scale worker=2
+docker compose up -d --scale worker=2
 \end{pythonbox}
 
 La concurrencia total del sistema viene determinada por el número de contenedores \texttt{worker} multiplicado por el valor de \texttt{TRACE\_WORKER\_CONCURRENCY}. Por tanto, si se ejecutan dos contenedores \texttt{worker} y cada uno tiene una concurrencia interna de dos, el sistema podrá procesar hasta cuatro tareas de forma concurrente, siempre dentro de los límites impuestos por la base de datos, la GPU y el sistema de ficheros.
@@ -428,36 +428,36 @@ No obstante, en el despliegue normal este comando no se ejecuta manualmente, sin
 El despliegue con Docker Compose permite levantar la aplicación de forma reproducible, separando el servicio web del servicio encargado del procesamiento de trazas. El primer paso consiste en copiar la carpeta completa del proyecto al servidor o entregarla al evaluador. La estructura esperada en la raíz del proyecto debe incluir, al menos, los siguientes elementos:
 
 \begin{infocmdbox}{Estructura mínima esperada en la raíz del proyecto}
-	Dockerfile
-	docker-compose.yml
-	.env.example
-	docker/
-	webapp/
-	instance/
+Dockerfile
+docker-compose.yml
+.env.example
+docker/
+webapp/
+instance/
 \end{infocmdbox}
 
 A continuación, debe crearse el fichero de variables de entorno a partir de la plantilla proporcionada:
 
 \begin{dockerbox}{Creación del fichero de variables de entorno}
-	cp .env.example .env
+cp .env.example .env
 \end{dockerbox}
 
 También debe generarse una clave secreta para la aplicación:
 
 \begin{pythonbox}{Generación de clave secreta}
-	python3 -c "import secrets; print(secrets.token_urlsafe(48))"
+python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 \end{pythonbox}
 
 El valor generado debe copiarse en la variable correspondiente del fichero \texttt{.env}:
 
 \begin{infocmdbox}{Variable de clave secreta}
-	SECRET_KEY=...
+SECRET_KEY=...
 \end{infocmdbox}
 
 Antes de arrancar los servicios debe comprobarse la existencia del directorio \texttt{instance}. Si se desea partir de un entorno vacío, puede crearse mediante:
 
 \begin{dockerbox}{Creación del directorio de instancia}
-	mkdir -p instance
+mkdir -p instance
 \end{dockerbox}
 
 Si se entrega un directorio \texttt{instance} ya preparado con datos de demostración, modelos y recursos asociados, no debe sobrescribirse, ya que contiene la base de datos y los ficheros persistentes necesarios para la ejecución.
@@ -465,32 +465,32 @@ Si se entrega un directorio \texttt{instance} ya preparado con datos de demostra
 Una vez preparada la configuración, los servicios se levantan desde la raíz del proyecto con:
 
 \begin{dockerbox}{Construcción y arranque de servicios}
-	docker compose up -d --build
+docker compose up -d --build
 \end{dockerbox}
 
 El estado de los contenedores puede comprobarse mediante:
 
 \begin{dockerbox}{Comprobación del estado de contenedores}
-	docker compose ps
+docker compose ps
 \end{dockerbox}
 
 Para revisar los registros de ejecución, pueden consultarse los logs del servicio web y del servicio de procesamiento:
 
 \begin{dockerbox}{Consulta de logs de los servicios}
-	docker compose logs -f web
-	docker compose logs -f worker
+docker compose logs -f web
+docker compose logs -f worker
 \end{dockerbox}
 
 En un despliegue local, la aplicación queda accesible normalmente en:
 
 \begin{infocmdbox}{Dirección de acceso en despliegue local}
-	http://localhost:8000
+http://localhost:8000
 \end{infocmdbox}
 
 En el servidor Gamma, la dirección de acceso utilizada es:
 
 \begin{infocmdbox}{Dirección de acceso en el servidor Gamma}
-	http://10.168.168.34:8000
+http://10.168.168.34:8000
 \end{infocmdbox}
 
 El acceso externo dependerá de la red de la universidad, de la disponibilidad del servidor y de que los contenedores estén correctamente levantados.
@@ -500,16 +500,16 @@ El acceso externo dependerá de la red de la universidad, de la disponibilidad d
 El directorio \texttt{instance} contiene los datos persistentes de la aplicación. Este directorio no debe formar parte de la imagen Docker, sino montarse como volumen para que la información sobreviva a reconstrucciones de la imagen o reinicios de los contenedores. La estructura esperada es la siguiente:
 
 \begin{infocmdbox}{Estructura esperada del directorio de instancia}
-	instance/
-	|-- trazasytrazadas.sqlite
-	|-- model/
-	|   |-- fold.0
-	|   |-- fold.1
-	|   `-- fold.2
-	|-- collection/
-	|-- profile_images/
-	|-- uploads/
-	`-- outputs/
+instance/
+|-- trazasytrazadas.sqlite
+|-- model/
+|   |-- fold.0
+|   |-- fold.1
+|   `-- fold.2
+|-- collection/
+|-- profile_images/
+|-- uploads/
+`-- outputs/
 \end{infocmdbox}
 
 La base de datos \texttt{trazasytrazadas.sqlite} almacena usuarios, modelos registrados, colecciones, teselas y estados de procesamiento. Los modelos reales deben situarse en \texttt{instance/model}, las colecciones y resultados generados se almacenan en \texttt{instance/collection}, las imágenes de perfil en \texttt{instance/profile\_images} y los ficheros asociados a subidas y salidas en \texttt{uploads} y \texttt{outputs}. Para la evaluación del proyecto puede entregarse un directorio \texttt{instance} de demostración ya preparado, evitando que el tribunal tenga que generar usuarios, modelos o colecciones desde cero.
@@ -517,9 +517,9 @@ La base de datos \texttt{trazasytrazadas.sqlite} almacena usuarios, modelos regi
 Antes de realizar copias de seguridad es recomendable detener los servicios, especialmente para evitar copiar la base de datos SQLite mientras está siendo escrita:
 
 \begin{dockerbox}{Copia de seguridad del directorio de instancia}
-	docker compose down
-	cp -a instance "instance.backup.$(date +%Y%m%d-%H%M%S)"
-	docker compose up -d
+docker compose down
+cp -a instance "instance.backup.$(date +%Y%m%d-%H%M%S)"
+docker compose up -d
 \end{dockerbox}
 
 De esta forma se conserva una copia completa del estado persistente de la aplicación, incluyendo base de datos, modelos, imágenes, colecciones y resultados.
@@ -529,7 +529,7 @@ De esta forma se conserva una copia completa del estado persistente de la aplica
 El fichero \texttt{.env} centraliza la configuración del despliegue. Una de las variables más importantes es:
 
 \begin{infocmdbox}{Ruta de instancia de Flask}
-	FLASK_INSTANCE_PATH=/app/instance
+FLASK_INSTANCE_PATH=/app/instance
 \end{infocmdbox}
 
 Esta variable fija la ruta de instancia de Flask dentro del contenedor. Gracias a ella, la aplicación utiliza \texttt{/app/instance} como directorio persistente único, evitando depender de la ruta por defecto calculada por Flask a partir del paquete Python.
@@ -537,11 +537,11 @@ Esta variable fija la ruta de instancia de Flask dentro del contenedor. Gracias 
 Las variables principales del servicio web son:
 
 \begin{infocmdbox}{Variables principales del servicio web}
-	WEB_CONCURRENCY=1
-	GUNICORN_THREADS=4
-	HOST_PORT=8000
-	SESSION_COOKIE_SECURE=false
-	SESSION_COOKIE_SAMESITE=Lax
+WEB_CONCURRENCY=1
+GUNICORN_THREADS=4
+HOST_PORT=8000
+SESSION_COOKIE_SECURE=false
+SESSION_COOKIE_SAMESITE=Lax
 \end{infocmdbox}
 
 \texttt{WEB\_CONCURRENCY=1} mantiene un único proceso Gunicorn, decisión adecuada para reducir conflictos con SQLite y evitar duplicar lógica de procesamiento. \texttt{GUNICORN\_THREADS=4} permite concurrencia HTTP ligera dentro del proceso web. \texttt{HOST\_PORT=8000} define el puerto expuesto por la aplicación y las variables de sesión controlan el comportamiento de las cookies en el entorno de despliegue.
@@ -549,10 +549,10 @@ Las variables principales del servicio web son:
 Las variables relacionadas con el procesamiento de trazas son:
 
 \begin{infocmdbox}{Variables de procesamiento de trazas}
-	AUTO_START_TRACE_WORKER=false
-	TRACE_WORKER_CONCURRENCY=1
-	TRACE_WORKER_BATCH_SIZE=1
-	TRACE_WORKER_STALE_SECONDS=600
+AUTO_START_TRACE_WORKER=false
+TRACE_WORKER_CONCURRENCY=1
+TRACE_WORKER_BATCH_SIZE=1
+TRACE_WORKER_STALE_SECONDS=600
 \end{infocmdbox}
 
 \texttt{AUTO\_START\_TRACE\_WORKER=false} indica que el servicio web no debe arrancar \textit{workers} internos en Docker. El procesamiento debe realizarse desde el servicio \texttt{worker}. \texttt{TRACE\_WORKER\_CONCURRENCY=1} establece el número de \textit{workers} lógicos dentro del servicio de procesamiento, manteniendo un modo conservador. \texttt{TRACE\_WORKER\_BATCH\_SIZE=1} hace que se reclamen pocas teselas por iteración, reduciendo la presión sobre SQLite y la GPU. Por último, \texttt{TRACE\_WORKER\_STALE\_SECONDS=600} permite recuperar teselas que hayan quedado atascadas en estado \texttt{processing}.
@@ -560,10 +560,10 @@ Las variables relacionadas con el procesamiento de trazas son:
 Las variables principales de inferencia y modelos son:
 
 \begin{infocmdbox}{Variables principales de inferencia y modelos}
-	SEG_USE_GPU=true
-	MODEL_VALIDATION_USE_GPU=true
-	SEG_DEFAULT_ACTIVE_FOLD=fold.0
-	SEG_N_FOLDS=3
+SEG_USE_GPU=true
+MODEL_VALIDATION_USE_GPU=true
+SEG_DEFAULT_ACTIVE_FOLD=fold.0
+SEG_N_FOLDS=3
 \end{infocmdbox}
 
 \texttt{SEG\_USE\_GPU=true} habilita el uso de CUDA si PyTorch detecta una GPU compatible. \texttt{MODEL\_VALIDATION\_USE\_GPU=true} permite validar modelos utilizando GPU. \texttt{SEG\_DEFAULT\_ACTIVE\_FOLD=fold.0} define el modelo activo inicial y \texttt{SEG\_N\_FOLDS=3}, este último se ajustará en base al número de modelos recibidos.
@@ -573,45 +573,45 @@ Las variables principales de inferencia y modelos son:
 En despliegues con aceleración por GPU es necesario comprobar que el servidor, Docker y PyTorch detectan correctamente el hardware disponible. En primer lugar, desde el propio servidor puede revisarse el estado de las GPU con:
 
 \begin{dockerbox}{Comprobación de GPU en el servidor}
-	nvidia-smi
+nvidia-smi
 \end{dockerbox}
 
 Dentro del servicio \texttt{web}, la comprobación básica de PyTorch puede realizarse con:
 
 \begin{dockerbox}{Comprobación de PyTorch en el servicio web}
-	docker compose exec -T web python - <<'PY'
-	import torch
-	
-	print(torch.__version__)
-	print(torch.version.cuda)
-	print(torch.cuda.is_available())
-	print(torch.cuda.device_count())
-	PY
+docker compose exec -T web python - <<'PY'
+import torch
+
+print(torch.__version__)
+print(torch.version.cuda)
+print(torch.cuda.is_available())
+print(torch.cuda.device_count())
+PY
 \end{dockerbox}
 
 La misma comprobación puede realizarse dentro del servicio \texttt{worker}:
 
 \begin{dockerbox}{Comprobación de PyTorch en el servicio worker}
-	docker compose exec -T worker python - <<'PY'
-	import torch
-	
-	print(torch.__version__)
-	print(torch.version.cuda)
-	print(torch.cuda.is_available())
-	print(torch.cuda.device_count())
-	PY
+docker compose exec -T worker python - <<'PY'
+import torch
+
+print(torch.__version__)
+print(torch.version.cuda)
+print(torch.cuda.is_available())
+print(torch.cuda.device_count())
+PY
 \end{dockerbox}
 
 Aunque \texttt{torch.cuda.is\_available()} indique que PyTorch detecta CUDA, esto no garantiza por sí solo que los \textit{kernels} se ejecuten correctamente en la GPU. Por ello, conviene ejecutar al menos una operación real en CUDA:
 
 \begin{dockerbox}{Prueba real de operación en CUDA}
-	docker compose exec -T web python - <<'PY'
-	import torch
-	
-	x = torch.randn((1024, 1024), device="cuda")
-	y = x @ x
-	print(y.mean().item())
-	PY
+docker compose exec -T web python - <<'PY'
+import torch
+
+x = torch.randn((1024, 1024), device="cuda")
+y = x @ x
+print(y.mean().item())
+PY
 \end{dockerbox}
 
 Esta prueba confirma que PyTorch no solo detecta CUDA, sino que puede ejecutar operaciones reales sobre GPU. Además, \texttt{nvidia-smi} permite observar el consumo de memoria y los procesos asociados durante la ejecución. En el servidor Gamma fue necesario utilizar versiones compatibles con las GPU NVIDIA TITAN Xp, concretamente \texttt{torch 2.7.1+cu118} y \texttt{torchvision 0.22.1+cu118}, ya que otras versiones más recientes con CUDA no ofrecían soporte adecuado para su arquitectura.
@@ -661,79 +661,79 @@ Durante la instalación, ejecución local o despliegue con Docker pueden aparece
 	\item \textbf{Docker no encuentra \texttt{docker-compose.yml}.} Este problema aparece cuando se ejecuta \texttt{docker compose} desde una carpeta que no corresponde a la raíz del proyecto. La raíz debe contener, entre otros elementos, \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{webapp/} y \texttt{docker/}. Para comprobar el estado de los servicios debe situarse primero en dicha carpeta:
 	
 	\begin{dockerboxnf}{Comprobación de servicios Docker}
-		cd ~/trazasytrazadas
-		docker compose ps
+cd ~/trazasytrazadas
+docker compose ps
 	\end{dockerboxnf}
 	
 	\item \textbf{Los modelos aparecen como ``sin fichero''.} Las causas más habituales son que los modelos no estén ubicados en \texttt{instance/model}, que \texttt{SEG\_MODELS\_DIR} no apunte a \texttt{/app/instance/model}, que no se haya definido \texttt{FLASK\_INSTANCE\_PATH=/app/instance}, que se haya copiado la base de datos SQLite pero no los ficheros físicos de modelo, o que \texttt{SEG\_N\_FOLDS} no coincida con los modelos entregados. Puede comprobarse la configuración real dentro del contenedor mediante:
 	
 	\begin{dockerboxnf}{Comprobación de rutas de modelos en el contenedor}
-		docker compose exec -T web python - <<'PY'
-		from trazasytrazadas import create_app
-		
-		app = create_app()
-		with app.app_context():
-		print(app.instance_path)
-		print(app.config["SEG_MODELS_DIR"])
-		PY
+docker compose exec -T web python - <<'PY'
+from trazasytrazadas import create_app
+
+app = create_app()
+with app.app_context():
+print(app.instance_path)
+print(app.config["SEG_MODELS_DIR"])
+PY
 	\end{dockerboxnf}
 	
 	El resultado esperado debe ser:
 	
 	\begin{infocmdboxnf}{Rutas esperadas de instancia y modelos}
-		/app/instance
-		/app/instance/model
+/app/instance
+/app/instance/model
 	\end{infocmdboxnf}
 	
 	También debe comprobarse que los ficheros existen físicamente:
 	
 	\begin{dockerboxnf}{Comprobación de ficheros de modelos}
-		docker compose exec web ls -lh /app/instance/model
+docker compose exec web ls -lh /app/instance/model
 	\end{dockerboxnf}
 	
 	Solo se entregan tres modelos, por lo que, debe ajustarse la variable correspondiente:
 	
 	\begin{infocmdboxnf}{Número de modelos entregados}
-		SEG_N_FOLDS=3
+SEG_N_FOLDS=3
 	\end{infocmdboxnf}
 	
 	\item \textbf{Las imágenes de perfil aparecen rotas.} Este problema puede deberse a que no se ha copiado el directorio \texttt{instance/profile\_images}, a que la base de datos referencia imágenes que no existen físicamente, a permisos incorrectos sobre \texttt{instance} o a que \texttt{PROFILE\_IMAGE\_FOLDER} no apunta a \texttt{/app/instance/profile\_images}. La ruta configurada puede comprobarse con:
 	
 	\begin{dockerboxnf}{Comprobación de ruta de imágenes de perfil}
-		docker compose exec -T web python - <<'PY'
-		from trazasytrazadas import create_app
-		
-		app = create_app()
-		with app.app_context():
-		print(app.config["PROFILE_IMAGE_FOLDER"])
-		PY
+docker compose exec -T web python - <<'PY'
+from trazasytrazadas import create_app
+
+app = create_app()
+with app.app_context():
+print(app.config["PROFILE_IMAGE_FOLDER"])
+PY
 	\end{dockerboxnf}
 	
 	Y los ficheros disponibles pueden revisarse mediante:
 	
 	\begin{dockerboxnf}{Listado de imágenes de perfil disponibles}
-		docker compose exec web find /app/instance/profile_images -maxdepth 4 -type f
+docker compose exec web find /app/instance/profile_images -maxdepth 4 -type f
 	\end{dockerboxnf}
 	
 	\item \textbf{\texttt{No space left on device}.} Este error suele producirse cuando se han incluido modelos dentro de la imagen Docker, cuando \texttt{.dockerignore} no excluye correctamente \texttt{instance}, cuando se copia un entorno virtual dentro de la imagen o cuando existen construcciones antiguas de Docker ocupando espacio. Debe revisarse el fichero \texttt{.dockerignore}, que debería excluir, al menos:
 	
 	\begin{infocmdboxnf}{Entradas recomendadas en .dockerignore}
-		instance/
-		webapp/instance/
-		venv/
-		.venv/
-		TFG_env/
-		.venv-test/
-		__pycache__/
-		.pytest_cache/
-		htmlcov/
+instance/
+webapp/instance/
+venv/
+.venv/
+TFG_env/
+.venv-test/
+__pycache__/
+.pytest_cache/
+htmlcov/
 	\end{infocmdboxnf}
 	
 	Los modelos no deben copiarse dentro de la imagen, sino montarse mediante volúmenes. Para liberar espacio puede realizarse una limpieza prudente con:
 	
 	\begin{dockerboxnf}{Limpieza prudente de imágenes y caché Docker}
-		docker builder prune -af
-		docker image prune -af
+docker builder prune -af
+docker image prune -af
 	\end{dockerboxnf}
 	
 	No se recomienda utilizar como primera opción \texttt{docker system prune --volumes}, ya que puede eliminar volúmenes persistentes si se están usando para almacenar datos de la aplicación.
@@ -741,58 +741,59 @@ Durante la instalación, ejecución local o despliegue con Docker pueden aparece
 	\item \textbf{No se crean ficheros en \texttt{instance}.} Este problema suele estar relacionado con permisos incorrectos, con la ausencia de \texttt{FLASK\_INSTANCE\_PATH}, con que el \texttt{entrypoint.sh} no haya creado las carpetas necesarias o con que el volumen no esté montado correctamente. Debe comprobarse que las rutas internas apuntan a \texttt{/app/instance/...}:
 	
 	\begin{dockerboxnf}{Comprobación de rutas internas de instancia}
-		docker compose exec -T web python - <<'PY'
-		from trazasytrazadas import create_app
-		
-		app = create_app()
-		with app.app_context():
-		print(app.instance_path)
-		print(app.config["DATABASE"])
-		print(app.config["UPLOAD_FOLDER"])
-		print(app.config["OUTPUT_FOLDER"])
-		PY
+docker compose exec -T web python - <<'PY'
+from trazasytrazadas import create_app
+
+app = create_app()
+with app.app_context():
+print(app.instance_path)
+print(app.config["DATABASE"])
+print(app.config["UPLOAD_FOLDER"])
+print(app.config["OUTPUT_FOLDER"])
+PY
 	\end{dockerboxnf}
 	
-	\item \textbf{Las traducciones no aparecen actualizadas.} En este caso conviene recompilar los catálogos mediante \texttt{pybabel compile -d trazasytrazadas/translations} desde el directorio \texttt{webapp}.
+	\item \textbf{Las traducciones no aparecen actualizadas.} En este caso conviene recompilar los catálogos mediante \\
+	\texttt{pybabel compile -d trazasytrazadas/translations} desde el directorio \texttt{webapp}.
 	
 	\item \textbf{Error al arrancar Gunicorn.} Debe comprobarse que el comando se ejecuta desde \texttt{webapp} o que la ruta de Python incluye dicho directorio. También debe verificarse que Gunicorn tiene acceso al paquete \texttt{trazasytrazadas} y que el directorio \texttt{instance} dispone de permisos adecuados.
 	
 	\item \textbf{La GPU no se utiliza en el despliegue.} Las causas habituales son que Docker no exponga la GPU al contenedor, que NVIDIA Container Toolkit no esté configurado, que la versión de PyTorch instalada sea solo CPU, que la \textit{build} CUDA no sea compatible con la GPU o que \texttt{SEG\_USE\_GPU} esté desactivado. En el servidor puede comprobarse la disponibilidad de GPU con:
 	
 	\begin{dockerboxnf}{Comprobación de GPU en el servidor}
-		nvidia-smi
+nvidia-smi
 	\end{dockerboxnf}
 	
 	Dentro del contenedor puede verificarse PyTorch mediante:
 	
 	\begin{dockerboxnf}{Comprobación de CUDA y PyTorch dentro del contenedor}
-		docker compose exec -T web python - <<'PY'
-		import torch
-		print(torch.__version__)
-		print(torch.version.cuda)
-		print(torch.cuda.is_available())
-		print(torch.cuda.device_count())
-		PY
+docker compose exec -T web python - <<'PY'
+import torch
+print(torch.__version__)
+print(torch.version.cuda)
+print(torch.cuda.is_available())
+print(torch.cuda.device_count())
+PY
 	\end{dockerboxnf}
 	
 	Además, en el fichero \texttt{.env} debe comprobarse que estén activadas las opciones correspondientes:
 	
 	\begin{infocmdboxnf}{Activación de GPU en el fichero .env}
-		SEG_USE_GPU=true
-		MODEL_VALIDATION_USE_GPU=true
+SEG_USE_GPU=true
+MODEL_VALIDATION_USE_GPU=true
 	\end{infocmdboxnf}
 	
 	\item \textbf{Aparecen advertencias de compatibilidad \texttt{sm\_61}.} Las GPU NVIDIA TITAN Xp del servidor Gamma tienen capacidad CUDA \texttt{sm\_61}. Algunas versiones modernas de PyTorch con CUDA no incluyen soporte para esta arquitectura. En particular, \texttt{torch 2.10.0+cu128} podía detectar CUDA, pero mostraba advertencias de incompatibilidad de arquitectura, por lo que no era una configuración segura para inferencia real en ese servidor. La versión validada en Docker fue:
 	
 	\begin{infocmdboxnf}{Versiones validadas de PyTorch y Torchvision}
-		torch 2.7.1+cu118
-		torchvision 0.22.1+cu118
+torch 2.7.1+cu118
+torchvision 0.22.1+cu118
 	\end{infocmdboxnf}
 	
 	\item \textbf{El servicio web procesa colecciones aunque existe un servicio \textit{worker}.} Este comportamiento suele indicar que \texttt{AUTO\_START\_TRACE\_WORKER=true} está configurado en el servicio web. En un despliegue Docker de producción, el servicio \texttt{web} no debe arrancar automáticamente el procesamiento de trazas. La configuración esperada es:
 	
 	\begin{infocmdboxnf}{Configuración esperada del worker}
-		AUTO_START_TRACE_WORKER=false
+AUTO_START_TRACE_WORKER=false
 	\end{infocmdboxnf}
 	
 	El procesamiento debe quedar delegado al servicio \texttt{worker} definido en Docker Compose.
@@ -800,7 +801,7 @@ Durante la instalación, ejecución local o despliegue con Docker pueden aparece
 
 \section{Pruebas del sistema}
 
-En esta sección se recogen las pruebas funcionales realizadas sobre la aplicación mediante casos de prueba derivados de los principales flujos de usuario. Estas pruebas se han validado sobre la versión final de la suite Selenium, por lo que todos los casos descritos presentan estado de ejecución satisfactorio. El objetivo de este apartado es documentar, de forma estructurada, qué funcionalidad se comprueba en cada caso, qué condiciones deben cumplirse antes de ejecutarlo y qué resultado se obtiene tras cada paso.
+En esta sección se recogen las pruebas funcionales realizadas sobre la aplicación mediante casos de prueba derivados de los principales flujos de usuario. Estas pruebas se han validado sobre la versión final de la \textit{suite} Selenium, por lo que todos los casos descritos presentan estado de ejecución satisfactorio. El objetivo de este apartado es documentar, de forma estructurada, qué funcionalidad se comprueba en cada caso, qué condiciones deben cumplirse antes de ejecutarlo y qué resultado se obtiene tras cada paso.
 
 \subsection{Pruebas con Selenium}
 

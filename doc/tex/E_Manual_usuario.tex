@@ -24,7 +24,11 @@ Para utilizar correctamente la aplicación no se requiere instalar ningún progr
 
 \section{Instalación}
 
-El usuario final no necesita realizar ninguna instalación local para utilizar la aplicación desplegada. Únicamente debe disponer de un navegador web actualizado, conocer la URL o dirección IP del servidor y, acceder a la dirección \texttt{http://10.168.168.34:8000}, siempre que los servicios estén levantados en el servidor mediante \texttt{Docker Compose}. El acceso y funcionamiento de la interfaz se ha probado correctamente en Google Chrome y Mozilla Firefox.
+El usuario final no necesita realizar ninguna instalación local para utilizar la aplicación desplegada. Únicamente debe disponer de un navegador web actualizado, conocer la URL o dirección IP del servidor y acceder a la dirección \texttt{http://10.168.168.34:8000}, siempre que los servicios estén levantados en el servidor mediante \texttt{Docker Compose}.
+
+Debe tenerse en cuenta que esta dirección solo será accesible desde la red interna de la Universidad de Burgos. Por tanto, el acceso deberá realizarse estando conectado a la red de la UBU, a la red inalámbrica \textit{eduroam} o, en caso de conexión externa, mediante la VPN de la Universidad.
+
+El funcionamiento de la interfaz se ha probado correctamente en los navegadores: Google Chrome y Mozilla Firefox.
 
 \section{Manual del usuario}
 
@@ -85,7 +89,7 @@ La pantalla de inicio de sesión, mostrada en la Figura~\ref{fig:manual_login}, 
 	\label{fig:manual_registro}
 \end{figure}
 
-Para crear una cuenta nueva, el usuario debe completar el formulario de registro representado en la Figura~\ref{fig:manual_registro}. En esta página se solicita un nombre de usuario, un correo electrónico, una contraseña, la repetición de dicha contraseña y, de forma opcional, un número de teléfono. El correo electrónico debe presentar un formato válido, incluyendo el símbolo \texttt{@} y un dominio correcto, como \texttt{@gmail.com}, \texttt{@hotmail.com} u otro equivalente. La contraseña debe cumplir unos requisitos mínimos de seguridad: tener más de ocho caracteres e incluir al menos una letra mayúscula, un número y un carácter especial. Además, los campos de contraseña y repetición de contraseña deben coincidir para poder completar el registro.
+Para crear una cuenta nueva, el usuario debe completar el formulario de registro representado en la Figura~\ref{fig:manual_registro}. En esta página se solicita un nombre de usuario, un correo electrónico, una contraseña, la repetición de dicha contraseña y, de forma opcional, un número de teléfono. El correo electrónico debe presentar un formato válido, incluyendo el símbolo \texttt{@}. La contraseña debe cumplir unos requisitos mínimos de seguridad: tener más de ocho caracteres e incluir al menos una letra mayúscula, un número y un carácter especial. Además, los campos de contraseña y repetición de contraseña deben coincidir para poder completar el registro.
 
 Una vez creada la cuenta, el usuario puede iniciar sesión desde la pantalla anterior introduciendo sus credenciales. Si los datos son correctos, la aplicación carga la interfaz principal asociada al usuario autenticado. A partir de ese momento, el menú lateral cambia para mostrar las opciones disponibles según el tipo de usuario.
 

@@ -89,14 +89,11 @@
 
 \usepackage{float}
 
-\floatstyle{plain}
-\newfloat{listado}{htbp}{lol}[chapter]
-\floatname{listado}{Listado}
-
 \tcbset{
 	cajabase/.style={
 		enhanced,
-		width=\textwidth,
+		breakable,
+		width=\linewidth,
 		boxrule=0.9pt,
 		arc=1.5mm,
 		outer arc=1.5mm,
@@ -110,8 +107,8 @@
 		lefttitle=4mm,
 		fonttitle=\bfseries,
 		coltitle=white,
-		before skip=0pt,
-		after skip=0pt
+		before skip=8pt,
+		after skip=8pt
 	},
 	terminalbase/.style={
 		cajabase,
@@ -120,6 +117,7 @@
 		listing options={
 			basicstyle=\ttfamily\small,
 			breaklines=true,
+			breakatwhitespace=false,
 			columns=fullflexible,
 			keepspaces=true,
 			showstringspaces=false,
@@ -134,8 +132,6 @@
 % Repositorio GitHub
 \newtcolorbox{githubbox}[1]{
 	cajabase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=green!5!white,
 	colframe=green!45!black,
@@ -145,8 +141,6 @@
 % Git
 \newtcblisting{gitbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=green!3!white,
 	colframe=green!45!black,
@@ -156,8 +150,6 @@
 % Windows / PowerShell
 \newtcblisting{windowsbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=violet!3!white,
 	colframe=violet!55!black,
@@ -167,8 +159,6 @@
 % Linux / macOS
 \newtcblisting{linuxbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=blue!3!white,
 	colframe=blue!55!black,
@@ -178,8 +168,6 @@
 % Python / Flask / instalación
 \newtcblisting{pythonbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=yellow!6!white,
 	colframe=orange!75!black,
@@ -189,19 +177,15 @@
 % Información, rutas o salidas esperadas
 \newtcblisting{infocmdbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
-	colback=gray!6!white,
-	colframe=gray!60!black,
-	colbacktitle=gray!70!black
+	colback=teal!4!white,
+	colframe=teal!55!black,
+	colbacktitle=teal!65!black
 }
 
 % Pruebas
 \newtcblisting{testbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=purple!4!white,
 	colframe=purple!60!black,
@@ -211,8 +195,6 @@
 % Logs JSON
 \newtcblisting{jsonlogbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
 	colback=cyan!4!white,
 	colframe=cyan!60!black,
@@ -222,29 +204,28 @@
 % Docker / Docker Compose
 \newtcblisting{dockerbox}[1]{
 	terminalbase,
-	before={\begin{listado}[!htbp]\centering},
-		after={\caption{#1}\end{listado}},
 	title={#1},
-	colback=brown!4!white,
-	colframe=brown!60!black,
-	colbacktitle=brown!70!black
+	colback=blue!4!white,
+	colframe=blue!65!black,
+	colbacktitle=blue!75!black
 }
 
 % Docker dentro de listas itemize
 \newtcblisting{dockerboxnf}[1]{
 	terminalbase,
 	title={#1},
-	colback=brown!4!white,
-	colframe=brown!60!black,
-	colbacktitle=brown!70!black
+	colback=blue!4!white,
+	colframe=blue!65!black,
+	colbacktitle=blue!75!black
 }
 
+% Información dentro de listas itemize
 \newtcblisting{infocmdboxnf}[1]{
 	terminalbase,
 	title={#1},
-	colback=gray!6!white,
-	colframe=gray!60!black,
-	colbacktitle=gray!70!black
+	colback=teal!4!white,
+	colframe=teal!55!black,
+	colbacktitle=teal!65!black
 }
 
 \usepackage{caption}
