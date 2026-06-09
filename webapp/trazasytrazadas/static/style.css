@@ -59,6 +59,19 @@ html {
   width: min(17rem, calc(100vw - 3rem));
 }
 
+.language-toggle-btn:hover,
+.language-toggle-btn:focus-visible {
+  background-color: hsl(var(--pf)) !important;
+  border-color: hsl(var(--pc) / 0.45) !important;
+  color: hsl(var(--pc)) !important;
+}
+
+.language-menu :where(li > a:hover, li > a:focus-visible) {
+  background-color: hsl(var(--p) / 0.10) !important;
+  color: hsl(var(--bc, 215 28% 17%)) !important;
+}
+
+
 #visor-alerts,
 .visor-toast {
   position: fixed;

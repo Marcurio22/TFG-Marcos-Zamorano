@@ -297,6 +297,33 @@ def test_collection_gallery_route_renders_saved_tiles(client, monkeypatch):
     assert b"tile_2.jpg" in response.data
 
 
+def test_paused_collection_uses_daisy_badge(
+    app,
+    client,
+    monkeypatch,
+):
+    """La pausa usa un badge DaisyUI corto en listado y galería."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    with app.app_context():
+        parcel = db.session.get(Parcela, parcel_id)
+        assert parcel is not None
+        parcel.estado = "paused"
+        db.session.commit()
+
+    listing = client.get("/coleccion")
+    gallery = client.get(f"/coleccion/{parcel_id}/galeria")
+
+    assert listing.status_code == 200
+    assert gallery.status_code == 200
+    listing_html = listing.get_data(as_text=True)
+    gallery_html = gallery.get_data(as_text=True)
+    assert "badge badge-warning badge-outline" in listing_html
+    assert "badge badge-warning badge-outline" in gallery_html
+    assert ">Pausado<" in listing_html
+    assert ">Pausado<" in gallery_html
+
+
 def test_visor_can_restore_zone_from_collection(app, client, monkeypatch):
     """Verifica que el visor pueda reabrirse con una zona persistida."""
     parcel_id = _register_zone(client, monkeypatch)
@@ -309,6 +336,39 @@ def test_visor_can_restore_zone_from_collection(app, client, monkeypatch):
         detail = get_zone_detail(parcel_id)
         assert detail is not None
         assert detail["total_teselas"] == 2
+
+
+def test_visor_restored_trace_panel_has_no_base_badge(
+    app,
+    client,
+    monkeypatch,
+):
+    """El panel restaurado no comparte espacio con badge de capa."""
+    parcel_id = _register_zone(client, monkeypatch)
+
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=1,
+    )
+    _mark_photo_completed_with_traces(
+        app,
+        parcel_id,
+        indice_fila=1,
+        indice_columna=2,
+    )
+
+    response = client.get(f"/visor?parcel_id={parcel_id}")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'id="visor-top-controls"' in html
+    assert "pointer-events-none absolute top-4" in html
+    assert 'id="map-traces-panel"' in html
+    assert "flex w-full max-w-full" in html
+    assert 'id="visor-base-badge"' not in html
+    assert "OpenStreetMap + PNOA" not in html
 
 
 def test_collection_delete_removes_zone_and_photos(app, client, monkeypatch):

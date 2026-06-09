@@ -53,6 +53,36 @@ def test_admin_user_management_page_renders_summary_and_rows(app, client):
     assert "Exportar PDF" in html
 
 
+def test_admin_protected_badge_uses_responsive_status_pill(app, client):
+    """El aviso de administrador protegido usa una píldora responsive."""
+    admin_id = _create_user(
+        app,
+        username="admin_responsive_badge",
+        email="admin_responsive_badge@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+    _create_user(
+        app,
+        username="other_admin_badge",
+        email="other_admin_badge@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/usuarios/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "badge badge-outline badge-warning badge-sm" in html
+    assert ">Protegido<" in html
+    assert "Administrador protegido" not in html
+
+
 def test_admin_can_export_users_csv(app, client):
     """El administrador puede exportar todos los usuarios a CSV."""
     admin_id = _create_user(

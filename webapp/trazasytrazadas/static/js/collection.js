@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
       zoneProcessing: "Procesando",
       zonePending: "En espera",
       zoneFailed: "Error",
-      zonePaused: "En pausa",
+      zonePaused: "Pausado",
       pauseProcessing: "Pausar cálculo",
       resumeProcessing: "Reanudar cálculo",
       processingCompleted: "Trazas completadas",

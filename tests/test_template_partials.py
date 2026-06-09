@@ -40,6 +40,8 @@ def test_auth_base_renders_shared_head_assets(client):
     _assert_shared_head_assets(html)
     assert 'aria-label="Cambiar idioma"' in html
     assert "dropdown-content menu" in html
+    assert "language-toggle-btn" in html
+    assert "language-menu" in html
 
 
 def test_base_renders_shared_head_assets_and_csrf(client):
@@ -51,6 +53,8 @@ def test_base_renders_shared_head_assets_and_csrf(client):
     _assert_shared_head_assets(html)
     assert 'name="csrf-token"' in html
     assert 'id="app-drawer"' in html
+    assert "language-toggle-btn" in html
+    assert "language-menu" in html
 
 
 def test_auth_base_keeps_flash_rendering(app, client):
