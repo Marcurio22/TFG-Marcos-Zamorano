@@ -18,6 +18,20 @@
 ![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 ![Selenium](https://img.shields.io/badge/Selenium-E2E-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
 
+![PyTorch](https://img.shields.io/badge/PyTorch-Segmentation-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Deploy-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-499848?style=for-the-badge&logo=gunicorn&logoColor=white)
+![SonarCloud](https://img.shields.io/badge/SonarCloud-Quality-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white)
+
+### Calidad del código
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+
 <br />
 
 ---
@@ -50,6 +64,17 @@ usuarios y modelos de segmentación.
 </p>
 
 </div>
+
+---
+
+## Licencia
+
+[![license](https://img.shields.io/badge/license-Apache%202.0-green?style=for-the-badge)](./LICENSE)
+
+Este proyecto se distribuye bajo los términos de la
+[Apache License 2.0](./LICENSE).
+
+<p align="right">(<a href="#readme-top">volver al principio</a>)</p>
 
 ---
 
@@ -104,13 +129,15 @@ directorio [`doc`](./doc).
 - Colección persistente de zonas, teselas y resultados asociados.
 - Galería de teselas con visualización de trazas.
 - Pausa y reanudación del procesamiento de trazas por colección.
+- Worker de procesamiento de teselas con concurrencia configurable.
 - Registro, login, logout, perfil e imagen de usuario.
 - Panel de administración de usuarios.
 - Gestión administrativa de modelos de segmentación.
-- Worker interno para procesar teselas pendientes.
+- Despliegue con Docker y Gunicorn.
 - Interfaz construida con Jinja2, Tailwind CSS y DaisyUI.
 - Internacionalización con Flask-Babel.
 - Tests con pytest, coverage y Selenium.
+- Análisis de calidad con SonarCloud mediante GitHub Actions.
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
 
@@ -118,28 +145,56 @@ directorio [`doc`](./doc).
 
 ## Estructura del repositorio
 
-La raíz del repositorio contiene la documentación, prototipos, pruebas y la
-aplicación web principal.
+La raíz del repositorio contiene la documentación, prototipos, pruebas,
+configuración de calidad, despliegue Docker y la aplicación web principal.
 
 ```text
 /
-├── assets/              Recursos gráficos y materiales auxiliares.
-├── doc/                 Documentación técnica y memoria del TFG.
-├── htmlcov/             Informe HTML de cobertura generado por coverage.
-├── prototipos/          Pruebas preliminares realizadas durante el desarrollo.
-├── tests/               Suite de pruebas automáticas del sistema.
-│   └── selenium/        Tests funcionales ejecutados en navegador real.
-└── webapp/              Aplicación web Flask.
-    ├── instance/        Recursos locales y base de datos SQLite.
-    ├── scripts/         Scripts auxiliares de mantenimiento.
-    └── trazasytrazadas/ Paquete principal de la aplicación.
-        ├── static/      Ficheros estáticos: imágenes, CSS y JavaScript.
-        └── templates/   Plantillas HTML Jinja2.
+├── .github/
+│   └── workflows/              Workflows de GitHub Actions, incluido SonarCloud.
+├── assets/                     Recursos gráficos y materiales auxiliares.
+│   └── mockup/                 Mockups y prototipos visuales en PDF.
+├── doc/                        Documentación técnica, memoria y anexos del TFG.
+├── docker/                     Configuración auxiliar de despliegue Docker.
+│   ├── entrypoint.sh           Inicialización del contenedor.
+│   └── gunicorn.conf.py        Configuración de Gunicorn.
+├── prototipos/                 Pruebas preliminares realizadas durante el desarrollo.
+├── tests/                      Suite de pruebas automáticas del sistema.
+│   └── selenium/               Tests funcionales ejecutados en navegador real.
+├── webapp/                     Aplicación web Flask.
+│   ├── requirements.txt        Dependencias Python de la aplicación.
+│   ├── run.py                  Punto de entrada local de Flask.
+│   ├── scripts/                Scripts auxiliares de mantenimiento.
+│   └── trazasytrazadas/        Paquete principal de la aplicación.
+│       ├── static/             Ficheros estáticos: imágenes, CSS y JavaScript.
+│       │   ├── img/            Imágenes, iconos y banderas.
+│       │   └── js/             JavaScript vanilla de la interfaz.
+│       ├── templates/          Plantillas HTML Jinja2.
+│       │   ├── admin/          Vistas de administración.
+│       │   └── collection/     Parciales reutilizables de colección.
+│       ├── translations/       Catálogos de traducción de Flask-Babel.
+│       ├── auth.py             Autenticación, perfil e imágenes de usuario.
+│       ├── collection.py       Rutas de colecciones y galerías de teselas.
+│       ├── collection_store.py Persistencia y operaciones de colecciones.
+│       ├── models.py           Modelos SQLAlchemy.
+│       ├── segmentation_inference.py Inferencia de segmentación.
+│       ├── trace_worker.py     Worker de procesamiento de trazas.
+│       └── visor.py            Visor cartográfico y generación de cuadrículas.
+├── Dockerfile                  Imagen Docker de la aplicación.
+├── docker-compose.yml          Orquestación de servicios web y worker.
+├── LICENSE                     Licencia Apache 2.0.
+├── pytest.ini                  Configuración de pytest.
+├── sonar-project.properties    Configuración del análisis SonarCloud.
+└── README.md                   Descripción general del proyecto.
 ```
+
+No se versionan artefactos generados localmente como `htmlcov/`, `.coverage`,
+`coverage.xml`, bases de datos SQLite, cachés, entornos virtuales ni el
+contenido persistente de `instance/`.
 
 Dentro de `webapp/trazasytrazadas` se encuentra el núcleo de la aplicación:
 factoría Flask, rutas, modelos, formularios, visor, colección, administración,
-inferencia y worker de trazas.
+inferencia, traducciones y worker de trazas.
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
 
@@ -159,9 +214,12 @@ El proyecto utiliza principalmente:
 - **Jinja2** para plantillas HTML.
 - **Tailwind CSS** y **DaisyUI** para interfaz.
 - **JavaScript vanilla** para interacción en cliente.
+- **PyTorch** para inferencia de modelos de segmentación.
+- **Docker** y **Gunicorn** para despliegue.
 - **pytest** para pruebas automáticas.
 - **coverage / pytest-cov** para medición de cobertura.
 - **Selenium** para pruebas funcionales en navegador.
+- **GitHub Actions** y **SonarCloud** para integración continua y calidad.
 - **Git** para control de versiones.
 
 <p align="right">(<a href="#readme-top">volver al principio</a>)</p>
@@ -246,7 +304,7 @@ de despliegue deberían cambiarse o eliminarse.
 ## Pruebas
 
 La suite de pruebas se encuentra en el directorio `tests/`, situado en la raíz
-del repositorio.
+del repositorio. `pytest.ini` configura `webapp` como ruta Python del proyecto.
 
 ### Tests funcionales y de regresión
 
@@ -329,6 +387,8 @@ mediante objetos globales como:
 - Respetar permisos, roles y propiedad de recursos de usuario.
 - Revisar con especial cuidado cambios en modelos, colección, worker,
   imágenes de perfil e inferencia.
+- Mantener `instance/` como almacenamiento persistente local o montado en
+  Docker, sin versionar bases de datos, modelos ni colecciones generadas.
 - No versionar artefactos generados localmente, bases de datos, cachés ni
   resultados temporales.
 
