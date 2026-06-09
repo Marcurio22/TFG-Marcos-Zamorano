@@ -30,15 +30,15 @@ El diseño de datos define la estructura de persistencia que soporta el funciona
 El diagrama general E/R se muestra en la Figura~\ref{fig:esquemaerbbdd}. Para el manejo de la información necesaria en el flujo de la aplicación se han definido las siguientes entidades, junto con sus relaciones y cardinalidades:
 
 \begin{itemize}
-	\item \textbf{Usuario:} representa a la persona registrada en la aplicación y constituye el origen del control de acceso. Incluye un identificador que actúa como clave primaria, así como atributos de autenticación y perfil, como el nombre de usuario, el correo electrónico, la contraseña, el rol y la fecha de alta. Un usuario puede crear múltiples parcelas, lo que queda reflejado mediante una relación uno a muchos.
+	\item Usuario: representa a la persona registrada en la aplicación y constituye el origen del control de acceso. Incluye un identificador que actúa como clave primaria, así como atributos de autenticación y perfil, como el nombre de usuario, el correo electrónico, la contraseña, el rol y la fecha de alta. Un usuario puede crear múltiples parcelas, lo que queda reflejado mediante una relación uno a muchos.
 	
-	\item \textbf{Parcela:} representa una unidad de trabajo asociada a un usuario, entendida como el área seleccionada por el mismo sobre la que se pretende organizar la información de análisis. Dispone de un identificador como clave primaria y, además, almacena atributos espaciales y descriptivos, como el tamaño en metros, el punto de origen, el punto final y una fecha asociada a la parcela. Cada una de ellas puede generar un \textit{grid} con múltiples fotos, estableciendo de nuevo una relación uno a muchos.
+	\item Parcela: representa una unidad de trabajo asociada a un usuario, entendida como el área seleccionada por el mismo sobre la que se pretende organizar la información de análisis. Dispone de un identificador como clave primaria y, además, almacena atributos espaciales y descriptivos, como el tamaño en metros, el punto de origen, el punto final y una fecha asociada a la parcela. Cada una de ellas puede generar un \textit{grid} con múltiples fotos, estableciendo de nuevo una relación uno a muchos.
 	
-	\item \textbf{Modelo:} representa los modelos de segmentación disponibles en el sistema y permite mantener un registro de los recursos de inferencia que pueden utilizarse para generar trazas. Cada entidad se corresponde con un modelo físico almacenado en la carpeta de modelos de la aplicación. Incluye un identificador como clave primaria y atributos como el nombre del modelo, su estado, su validación y la fecha de creación. Esta entidad permite conocer qué modelos existen, cuál se encuentra activo y cuáles han sido validados antes de utilizarse en el proceso de segmentación. Además, un mismo modelo puede procesar múltiples fotos, mientras que cada foto queda asociada al modelo concreto que generó sus trazas, lo que se formaliza mediante una relación uno a muchos.
+	\item Modelo: representa los modelos de segmentación disponibles en el sistema y permite mantener un registro de los recursos de inferencia que pueden utilizarse para generar trazas. Cada entidad se corresponde con un modelo físico almacenado en la carpeta de modelos de la aplicación. Incluye un identificador como clave primaria y atributos como el nombre del modelo, su estado, su validación y la fecha de creación. Esta entidad permite conocer qué modelos existen, cuál se encuentra activo y cuáles han sido validados antes de utilizarse en el proceso de segmentación. Además, un mismo modelo puede procesar múltiples fotos, mientras que cada foto queda asociada al modelo concreto que generó sus trazas, lo que se formaliza mediante una relación uno a muchos.
 	
-	\item \textbf{Foto:} modela cada imagen procesada dentro de una parcela y concentra los metadatos necesarios para su trazabilidad. Incluye un identificador como clave primaria y atributos como fecha de captura, resolución expresada en valor y unidad, coordenadas geográficas y rutas de almacenamiento, diferenciando la ruta de la imagen original y la ruta del resultado de trazas. Asimismo, cada foto queda vinculada al modelo utilizado durante su procesamiento, permitiendo conocer con precisión qué configuración de inferencia produjo el resultado asociado. Una foto puede contener exactamente un conjunto de trazas, formalizado mediante una relación uno a uno.
+	\item Foto: modela cada imagen procesada dentro de una parcela y concentra los metadatos necesarios para su trazabilidad. Incluye un identificador como clave primaria y atributos como fecha de captura, resolución expresada en valor y unidad, coordenadas geográficas y rutas de almacenamiento, diferenciando la ruta de la imagen original y la ruta del resultado de trazas. Asimismo, cada foto queda vinculada al modelo utilizado durante su procesamiento, permitiendo conocer con precisión qué configuración de inferencia produjo el resultado asociado. Una foto puede contener exactamente un conjunto de trazas, formalizado mediante una relación uno a uno.
 	
-	\item \textbf{Trazas:} representa el resultado generado por el sistema a partir de una foto concreta. Contiene un identificador como clave primaria y una ruta asociada al recurso resultante. Cada uno de estos ficheros \texttt{.json} está asociado a una imagen, por lo que se establece una relación uno a uno entre la foto procesada y sus trazas correspondientes.
+	\item Trazas: representa el resultado generado por el sistema a partir de una foto concreta. Contiene un identificador como clave primaria y una ruta asociada al recurso resultante. Cada uno de estos ficheros \texttt{.json} está asociado a una imagen, por lo que se establece una relación uno a uno entre la foto procesada y sus trazas correspondientes.
 \end{itemize}
 
 \FloatBarrier
@@ -497,30 +497,83 @@ En esta sección se describe el comportamiento dinámico de la aplicación a tra
 \begin{figure}[p]
 	\centering
 	\includegraphics[
-	width=0.98\textwidth,
-	trim=0 1600 0 0,
-	clip
-	]{img/Diagrama_secuencia_general.pdf}
-	\caption[Diagrama general de secuencia de la aplicación]{Diagrama general de secuencia de la aplicación, parte superior.}
-	\label{fig:diagramasecuenciageneral}
+	width=\textwidth,
+	height=0.88\textheight,
+	keepaspectratio
+	]{img/Diagrama_secuencia_img_individual.pdf}
+	\caption[Diagrama de secuencia del flujo de imagen individual]{Diagrama de secuencia del flujo de imagen individual.}
+	\label{fig:diagramasecuenciaimgindividual}
 \end{figure}
+
+La Figura~\ref{fig:diagramasecuenciaimgindividual} representa el flujo de procesamiento de una imagen individual. En este caso, el usuario selecciona una imagen desde la página principal, el navegador la envía al servidor mediante una petición de subida y la aplicación mantiene la referencia necesaria para poder mostrarla de nuevo en la interfaz. Posteriormente, cuando el usuario pulsa el botón de calcular trazas, el servidor almacena la imagen, carga el modelo activo, ejecuta la inferencia con PyTorch y guarda el resultado en forma de fichero JSON.
+
+Esta interacción puede resumirse en:
+
+\begin{enumerate}
+	\item El usuario selecciona una imagen desde el navegador y la aplicación la muestra en la página principal.
+	
+	\item El usuario solicita el cálculo de trazas y el servidor guarda la imagen subida, carga el modelo activo y ejecuta la inferencia.
+	
+	\item El sistema genera el fichero de trazas en formato JSON y mantiene la referencia al resultado generado.
+	
+	\item El navegador solicita las trazas calculadas, recibe el JSON y las dibuja sobre la imagen mediante JavaScript.
+	
+	\item Finalmente, el usuario puede descargar los resultados o borrar la imagen, en cuyo caso el servidor limpia la sesión y elimina los ficheros asociados.
+\end{enumerate}
 
 \begin{figure}[p]
 	\centering
-	\ContinuedFloat
 	\includegraphics[
-	width=0.98\textwidth,
-	trim=0 0 0 1600,
-	clip
-	]{img/Diagrama_secuencia_general.pdf}
-	\caption[]{Diagrama general de secuencia de la aplicación, parte inferior.}
+	width=\textwidth,
+	height=0.88\textheight,
+	keepaspectratio
+	]{img/Diagrama_Secuencia_Visor.pdf}
+	\caption[Diagrama de secuencia del visor cartográfico]{Diagrama de secuencia del visor cartográfico y creación de colecciones.}
+	\label{fig:diagramasecuenciavisor}
 \end{figure}
 
-La Figura~\ref{fig:diagramasecuenciageneral} muestra una visión general del comportamiento dinámico de la aplicación, recogiendo los principales intercambios entre el usuario, el navegador, el servidor Flask y los componentes internos o externos que intervienen en cada flujo. El diagrama no pretende detallar cada operación de bajo nivel, sino representar la secuencia completa de uso desde que el usuario accede a la aplicación hasta que obtiene, visualiza o descarga los resultados generados.
+La Figura~\ref{fig:diagramasecuenciavisor} muestra el flujo correspondiente al visor cartográfico y a la creación de colecciones. En este proceso, el usuario accede al visor, selecciona una zona sobre el mapa y envía dicha selección al servidor. La aplicación consulta la fuente cartográfica, calcula la cuadrícula de teselas, registra la parcela y sus fotos asociadas en la base de datos, y lanza el procesamiento en segundo plano para que las trazas se calculen de forma progresiva.
 
-De forma resumida, el diagrama recoge dos caminos principales. El primero corresponde al flujo de imagen individual, en el que el usuario carga una imagen, solicita el cálculo de trazas, el servidor ejecuta la inferencia con el modelo activo, guarda los resultados y permite posteriormente visualizar, descargar o eliminar los ficheros generados. El segundo camino corresponde al flujo cartográfico, donde el usuario selecciona una zona en el visor, la aplicación consulta la fuente cartográfica, calcula la cuadrícula de teselas, registra la colección y deja el procesamiento en segundo plano para que las teselas puedan consultarse después desde la galería.
+Esta interacción puede resumirse en:
 
-También se representa la relación con la persistencia y los recursos externos. La base de datos mantiene la información estructurada y los estados de procesamiento, mientras que el sistema de ficheros almacena imágenes, trazas y resultados descargables. Por su parte, el servicio cartográfico proporciona las imágenes necesarias para las teselas y el motor de inferencia genera las máscaras de traza. Finalmente, el navegador se encarga de interpretar las respuestas recibidas y dibujar las trazas sobre la imagen o sobre el mapa cuando los resultados están disponibles.
+\begin{enumerate}
+	\item El usuario abre el visor cartográfico y el servidor devuelve la página con el mapa interactivo.
+	
+	\item El usuario selecciona una zona y el navegador envía la geometría al servidor para generar la cuadrícula.
+	
+	\item La aplicación consulta la fuente cartográfica, calcula las teselas y crea la colección con sus fotos pendientes.
+	
+	\item El procesamiento de trazas se lanza en segundo plano, permitiendo que el usuario pueda abrir la colección sin esperar a que termine toda la inferencia.
+	
+	\item Desde la interfaz se puede consultar el estado del cálculo, pausar o reanudar el procesamiento y, cuando existan resultados, visualizar las trazas sobre el mapa.
+\end{enumerate}
+
+\begin{figure}[p]
+	\centering
+	\includegraphics[
+	width=\textwidth,
+	height=0.88\textheight,
+	keepaspectratio
+	]{img/Diagrama_secuencia_colección.pdf}
+	\caption[Diagrama de secuencia del flujo de colección]{Diagrama de secuencia del flujo de colección de imágenes.}
+	\label{fig:diagramasecuenciacoleccion}
+\end{figure}
+
+La Figura~\ref{fig:diagramasecuenciacoleccion} recoge el flujo de consulta y gestión de una colección de imágenes. Una vez creada la colección desde el visor, el usuario puede acceder al listado de colecciones, abrir su galería, consultar el estado de las teselas, visualizar imágenes individuales con sus trazas, descargar resultados o ejecutar acciones de mantenimiento, como renombrar, borrar o solicitar reprocesamiento.
+
+Esta interacción puede resumirse en:
+
+\begin{enumerate}
+	\item El usuario accede a la sección de colección y el servidor consulta en la base de datos las colecciones asociadas a su cuenta.
+	
+	\item Al abrir una colección concreta, la aplicación recupera la parcela y sus teselas, mostrando la galería y el estado de procesamiento.
+	
+	\item El navegador puede consultar periódicamente el progreso mediante peticiones JSON, obteniendo el número de teselas pendientes, completadas o fallidas.
+	
+	\item Cuando el usuario abre una tesela, el servidor recupera la imagen y el fichero JSON de trazas para que el navegador pueda dibujarlas sobre la imagen.
+	
+	\item La aplicación permite descargar los resultados en un fichero ZIP y ejecutar acciones adicionales sobre la colección, actualizando tanto la base de datos como los artefactos almacenados en el sistema de ficheros.
+\end{enumerate}
 
 \begin{figure}[p]
 	\centering

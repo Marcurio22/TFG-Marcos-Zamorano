@@ -118,7 +118,7 @@ class Parcela(db.Model):
     parcela_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     usuario_id = db.Column(
         db.Integer,
-        db.ForeignKey("usuario.usuario_id"),
+        db.ForeignKey("usuario.usuario_id", ondelete="CASCADE"),
         nullable=False,
     )
     tamano_metros = db.Column(db.Float, nullable=False)
@@ -147,12 +147,6 @@ class Parcela(db.Model):
         db.Text,
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP"),
-    )
-
-    usuario_id = db.Column(
-        db.Integer,
-        db.ForeignKey("usuario.usuario_id", ondelete="CASCADE"),
-        nullable=False,
     )
 
     usuario = db.relationship("Usuario", back_populates="parcelas")
@@ -237,12 +231,6 @@ class Foto(db.Model):
         db.Text,
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP"),
-    )
-
-    parcela_id = db.Column(
-        db.Integer,
-        db.ForeignKey("parcela.parcela_id", ondelete="CASCADE"),
-        nullable=False,
     )
 
     parcela = db.relationship("Parcela", back_populates="fotos")

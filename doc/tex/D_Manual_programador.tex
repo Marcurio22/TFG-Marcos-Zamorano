@@ -697,7 +697,7 @@ docker compose exec web ls -lh /app/instance/model
 SEG_N_FOLDS=3
 	\end{infocmdboxnf}
 	
-	\item \textbf{Las imágenes de perfil aparecen rotas.} Este problema puede deberse a que no se ha copiado el directorio \texttt{instance/profile\_images}, a que la base de datos referencia imágenes que no existen físicamente, a permisos incorrectos sobre \texttt{instance} o a que \texttt{PROFILE\_IMAGE\_FOLDER} no apunta a \texttt{/app/instance/profile\_images}. La ruta configurada puede comprobarse con:
+	\item Las imágenes de perfil aparecen rotas. Este problema puede deberse a que no se ha copiado el directorio \texttt{instance/profile\_images}, a que la base de datos referencia imágenes que no existen físicamente, a permisos incorrectos sobre \texttt{instance} o a que \texttt{PROFILE\_IMAGE\_FOLDER} no apunta a \texttt{/app/instance/profile\_images}. La ruta configurada puede comprobarse con:
 	
 	\begin{dockerboxnf}{Comprobación de ruta de imágenes de perfil}
 docker compose exec -T web python - <<'PY'
@@ -715,7 +715,7 @@ PY
 docker compose exec web find /app/instance/profile_images -maxdepth 4 -type f
 	\end{dockerboxnf}
 	
-	\item \textbf{\texttt{No space left on device}.} Este error suele producirse cuando se han incluido modelos dentro de la imagen Docker, cuando \texttt{.dockerignore} no excluye correctamente \texttt{instance}, cuando se copia un entorno virtual dentro de la imagen o cuando existen construcciones antiguas de Docker ocupando espacio. Debe revisarse el fichero \texttt{.dockerignore}, que debería excluir, al menos:
+	\item \texttt{No space left on device}. Este error suele producirse cuando se han incluido modelos dentro de la imagen Docker, cuando \texttt{.dockerignore} no excluye correctamente \texttt{instance}, cuando se copia un entorno virtual dentro de la imagen o cuando existen construcciones antiguas de Docker ocupando espacio. Debe revisarse el fichero \texttt{.dockerignore}, que debería excluir, al menos:
 	
 	\begin{infocmdboxnf}{Entradas recomendadas en .dockerignore}
 instance/
@@ -738,7 +738,7 @@ docker image prune -af
 	
 	No se recomienda utilizar como primera opción \texttt{docker system prune --volumes}, ya que puede eliminar volúmenes persistentes si se están usando para almacenar datos de la aplicación.
 	
-	\item \textbf{No se crean ficheros en \texttt{instance}.} Este problema suele estar relacionado con permisos incorrectos, con la ausencia de \texttt{FLASK\_INSTANCE\_PATH}, con que el \texttt{entrypoint.sh} no haya creado las carpetas necesarias o con que el volumen no esté montado correctamente. Debe comprobarse que las rutas internas apuntan a \texttt{/app/instance/...}:
+	\item No se crean ficheros en \texttt{instance}. Este problema suele estar relacionado con permisos incorrectos, con la ausencia de \texttt{FLASK\_INSTANCE\_PATH}, con que el \texttt{entrypoint.sh} no haya creado las carpetas necesarias o con que el volumen no esté montado correctamente. Debe comprobarse que las rutas internas apuntan a \texttt{/app/instance/...}:
 	
 	\begin{dockerboxnf}{Comprobación de rutas internas de instancia}
 docker compose exec -T web python - <<'PY'
@@ -753,12 +753,12 @@ print(app.config["OUTPUT_FOLDER"])
 PY
 	\end{dockerboxnf}
 	
-	\item \textbf{Las traducciones no aparecen actualizadas.} En este caso conviene recompilar los catálogos mediante \\
+	\item Las traducciones no aparecen actualizadas. En este caso conviene recompilar los catálogos mediante \\
 	\texttt{pybabel compile -d trazasytrazadas/translations} desde el directorio \texttt{webapp}.
 	
-	\item \textbf{Error al arrancar Gunicorn.} Debe comprobarse que el comando se ejecuta desde \texttt{webapp} o que la ruta de Python incluye dicho directorio. También debe verificarse que Gunicorn tiene acceso al paquete \texttt{trazasytrazadas} y que el directorio \texttt{instance} dispone de permisos adecuados.
+	\item Error al arrancar Gunicorn. Debe comprobarse que el comando se ejecuta desde \texttt{webapp} o que la ruta de Python incluye dicho directorio. También debe verificarse que Gunicorn tiene acceso al paquete \texttt{trazasytrazadas} y que el directorio \texttt{instance} dispone de permisos adecuados.
 	
-	\item \textbf{La GPU no se utiliza en el despliegue.} Las causas habituales son que Docker no exponga la GPU al contenedor, que NVIDIA Container Toolkit no esté configurado, que la versión de PyTorch instalada sea solo CPU, que la \textit{build} CUDA no sea compatible con la GPU o que \texttt{SEG\_USE\_GPU} esté desactivado. En el servidor puede comprobarse la disponibilidad de GPU con:
+	\item La GPU no se utiliza en el despliegue. Las causas habituales son que Docker no exponga la GPU al contenedor, que NVIDIA Container Toolkit no esté configurado, que la versión de PyTorch instalada sea solo CPU, que la \textit{build} CUDA no sea compatible con la GPU o que \texttt{SEG\_USE\_GPU} esté desactivado. En el servidor puede comprobarse la disponibilidad de GPU con:
 	
 	\begin{dockerboxnf}{Comprobación de GPU en el servidor}
 nvidia-smi
@@ -783,14 +783,14 @@ SEG_USE_GPU=true
 MODEL_VALIDATION_USE_GPU=true
 	\end{infocmdboxnf}
 	
-	\item \textbf{Aparecen advertencias de compatibilidad \texttt{sm\_61}.} Las GPU NVIDIA TITAN Xp del servidor Gamma tienen capacidad CUDA \texttt{sm\_61}. Algunas versiones modernas de PyTorch con CUDA no incluyen soporte para esta arquitectura. En particular, \texttt{torch 2.10.0+cu128} podía detectar CUDA, pero mostraba advertencias de incompatibilidad de arquitectura, por lo que no era una configuración segura para inferencia real en ese servidor. La versión validada en Docker fue:
+	\item Aparecen advertencias de compatibilidad \texttt{sm\_61}. Las GPU NVIDIA TITAN Xp del servidor Gamma tienen capacidad CUDA \texttt{sm\_61}. Algunas versiones modernas de PyTorch con CUDA no incluyen soporte para esta arquitectura. En particular, \texttt{torch 2.10.0+cu128} podía detectar CUDA, pero mostraba advertencias de incompatibilidad de arquitectura, por lo que no era una configuración segura para inferencia real en ese servidor. La versión validada en Docker fue:
 	
 	\begin{infocmdboxnf}{Versiones validadas de PyTorch y Torchvision}
 torch 2.7.1+cu118
 torchvision 0.22.1+cu118
 	\end{infocmdboxnf}
 	
-	\item \textbf{El servicio web procesa colecciones aunque existe un servicio \textit{worker}.} Este comportamiento suele indicar que \texttt{AUTO\_START\_TRACE\_WORKER=true} está configurado en el servicio web. En un despliegue Docker de producción, el servicio \texttt{web} no debe arrancar automáticamente el procesamiento de trazas. La configuración esperada es:
+	\item El servicio web procesa colecciones aunque existe un servicio \textit{worker}. Este comportamiento suele indicar que \texttt{AUTO\_START\_TRACE\_WORKER=true} está configurado en el servicio web. En un despliegue Docker de producción, el servicio \texttt{web} no debe arrancar automáticamente el procesamiento de trazas. La configuración esperada es:
 	
 	\begin{infocmdboxnf}{Configuración esperada del worker}
 AUTO_START_TRACE_WORKER=false

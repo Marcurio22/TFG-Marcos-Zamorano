@@ -24,20 +24,20 @@ Este catálogo establece los requisitos del sistema en dos categorías complemen
 \subsection{Requisitos funcionales}
 
 \begin{itemize}
-	\item \textbf{RF-01 Procesamiento de imagen:} la aplicación debe permitir ejecutar el flujo completo de análisis sobre una ortoimagen, desde su selección hasta la obtención y representación del resultado.
+	\item RF-01 Procesamiento de imagen: la aplicación debe permitir ejecutar el flujo completo de análisis sobre una ortoimagen, desde su selección hasta la obtención y representación del resultado.
 	\begin{itemize}
-		\item \textbf{RF-01.1 Insertar imagen:} el usuario debe poder seleccionar una imagen y previsualizarla en el cliente.
-		\item \textbf{RF-01.2 Ejecutar detección y segmentación:} el sistema debe enviar la imagen al servidor cuando proceda, ejecutar la inferencia con el modelo configurado y generar la salida asociada.
-		\item \textbf{RF-01.3 Visualizar resultado:} el cliente debe poder representar las trazas superpuestas sobre la imagen original, permitiendo su visualización.
-		\item \textbf{RF-01.4 Borrar imagen:} el usuario debe poder reiniciar el flujo eliminando la imagen activa y los resultados asociados, devolviendo la aplicación a un estado inicial consistente.
+		\item RF-01.1 Insertar imagen: el usuario debe poder seleccionar una imagen y previsualizarla en el cliente.
+		\item RF-01.2 Ejecutar detección y segmentación: el sistema debe enviar la imagen al servidor cuando proceda, ejecutar la inferencia con el modelo configurado y generar la salida asociada.
+		\item RF-01.3 Visualizar resultado: el cliente debe poder representar las trazas superpuestas sobre la imagen original, permitiendo su visualización.
+		\item RF-01.4 Borrar imagen: el usuario debe poder reiniciar el flujo eliminando la imagen activa y los resultados asociados, devolviendo la aplicación a un estado inicial consistente.
 	\end{itemize}
 	
-	\item \textbf{RF-02 Exportación de resultados:} el sistema debe permitir la descarga del resultado generado en un formato reutilizable, asociado a la imagen analizada.
+	\item RF-02 Exportación de resultados: el sistema debe permitir la descarga del resultado generado en un formato reutilizable, asociado a la imagen analizada.
 	
-	\item \textbf{RF-03 Gestión de cuentas:} la aplicación debe incorporar un sistema de usuarios que habilite funcionalidades adicionales bajo sesión autenticada.
+	\item RF-03 Gestión de cuentas: la aplicación debe incorporar un sistema de usuarios que habilite funcionalidades adicionales bajo sesión autenticada.
 	\begin{itemize}
-		\item \textbf{RF-03.1 Registro:} el usuario anónimo debe poder crear una cuenta proporcionando los datos requeridos.
-		\item \textbf{RF-03.2 Inicio de sesión:} el usuario debe poder autenticarse mediante credenciales válidas para acceder a funcionalidades restringidas.
+		\item RF-03.1 Registro: el usuario anónimo debe poder crear una cuenta proporcionando los datos requeridos.
+		\item RF-03.2 Inicio de sesión: el usuario debe poder autenticarse mediante credenciales válidas para acceder a funcionalidades restringidas.
 		\item \textbf{RF-03.3 Cierre de sesión:} el usuario autenticado debe poder finalizar su sesión de forma explícita.
 		\item \textbf{RF-03.4 Administración de perfil:} el usuario autenticado debe poder consultar y actualizar la información básica de su perfil dentro de los límites establecidos por el sistema.
 	\end{itemize}
