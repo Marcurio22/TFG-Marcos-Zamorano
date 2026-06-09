@@ -6,31 +6,43 @@
 
 ### Aplicación web para el análisis de trazas de herbívoros sobre imágenes y zonas cartográficas
 
-![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-Web%20app-000000?style=for-the-badge&logo=flask&logoColor=white)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Jinja](https://img.shields.io/badge/Jinja2-Templates-B41717?style=for-the-badge&logo=jinja&logoColor=white)
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-Web%20app-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Jinja](https://img.shields.io/badge/Jinja2-Templates-B41717?style=for-the-badge&logo=jinja&logoColor=white)](https://jinja.palletsprojects.com/)
 
-![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-UI-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![DaisyUI](https://img.shields.io/badge/DaisyUI-Components-5A0EF8?style=for-the-badge)
-![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
-![Selenium](https://img.shields.io/badge/Selenium-E2E-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-UI-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![DaisyUI](https://img.shields.io/badge/DaisyUI-Components-5A0EF8?style=for-the-badge)](https://daisyui.com/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![pytest](https://img.shields.io/badge/pytest-Tests-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Selenium](https://img.shields.io/badge/Selenium-E2E-43B02A?style=for-the-badge&logo=selenium&logoColor=white)](https://www.selenium.dev/)
 
-![PyTorch](https://img.shields.io/badge/PyTorch-Segmentation-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Deploy-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-499848?style=for-the-badge&logo=gunicorn&logoColor=white)
-![SonarCloud](https://img.shields.io/badge/SonarCloud-Quality-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white)
+[![PyTorch](https://img.shields.io/badge/PyTorch-Segmentation-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Docker](https://img.shields.io/badge/Docker-Deploy-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-499848?style=for-the-badge&logo=gunicorn&logoColor=white)](https://gunicorn.org/)
+[![SonarCloud](https://img.shields.io/badge/SonarCloud-Quality-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/)
 
 ### Calidad del código
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Marcurio22_TFG-Marcos-Zamorano&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Marcurio22_TFG-Marcos-Zamorano)
+<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/SonarCloud-Quality%20Gate%20Passed-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="SonarCloud Quality Gate Passed">
+</a>
+<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Coverage-92.47%25-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Cobertura SonarCloud 92.47%">
+</a>
+<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Duplications-2.52%25-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Duplicación SonarCloud 2.52%">
+</a>
+<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Reliability-A-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Reliability rating A">
+</a>
+<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Maintainability-A-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Maintainability rating A">
+</a>
+<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Security-0%20hotspots-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Security hotspots 0">
+</a>
 
 <br />
 
