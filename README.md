@@ -23,25 +23,30 @@
 [![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-499848?style=for-the-badge&logo=gunicorn&logoColor=white)](https://gunicorn.org/)
 [![SonarCloud](https://img.shields.io/badge/SonarCloud-Quality-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/)
 
+---
+
 ### Calidad del código
 
 <a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
   <img src="https://img.shields.io/badge/SonarCloud-Quality%20Gate%20Passed-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="SonarCloud Quality Gate Passed">
 </a>
-<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
-  <img src="https://img.shields.io/badge/Coverage-92.47%25-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Cobertura SonarCloud 92.47%">
+<a href="https://sonarcloud.io/component_measures?id=Marcurio22_TFG-Marcos-Zamorano&metric=coverage&view=list">
+  <img src="https://img.shields.io/badge/Coverage-95.4%25-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Cobertura SonarCloud 95.4%">
 </a>
-<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
-  <img src="https://img.shields.io/badge/Duplications-2.52%25-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Duplicación SonarCloud 2.52%">
+<a href="https://sonarcloud.io/component_measures?id=Marcurio22_TFG-Marcos-Zamorano&metric=duplicated_lines_density&view=list">
+  <img src="https://img.shields.io/badge/Duplications-1.4%25-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Duplicación SonarCloud 1.4%">
 </a>
-<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+<a href="https://sonarcloud.io/project/issues?impactSoftwareQualities=RELIABILITY&issueStatuses=OPEN%2CCONFIRMED&id=Marcurio22_TFG-Marcos-Zamorano">
   <img src="https://img.shields.io/badge/Reliability-A-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Reliability rating A">
 </a>
-<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
+<a href="https://sonarcloud.io/project/issues?impactSoftwareQualities=MAINTAINABILITY&issueStatuses=OPEN%2CCONFIRMED&id=Marcurio22_TFG-Marcos-Zamorano">
   <img src="https://img.shields.io/badge/Maintainability-A-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Maintainability rating A">
 </a>
-<a href="https://sonarcloud.io/summary/overall?id=Marcurio22_TFG-Marcos-Zamorano">
-  <img src="https://img.shields.io/badge/Security-0%20hotspots-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Security hotspots 0">
+<a href="https://sonarcloud.io/project/issues?impactSoftwareQualities=SECURITY&issueStatuses=OPEN%2CCONFIRMED&id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Security-A-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Security ranking A">
+</a>
+<a href="https://sonarcloud.io/project/security_hotspots?id=Marcurio22_TFG-Marcos-Zamorano">
+  <img src="https://img.shields.io/badge/Security Hotspots-0%20hotspots-brightgreen?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Security hotspots 0">
 </a>
 
 <br />
