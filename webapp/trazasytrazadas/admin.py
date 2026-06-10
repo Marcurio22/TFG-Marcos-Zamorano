@@ -25,6 +25,7 @@ from flask import (
     abort,
     current_app,
     flash,
+    jsonify,
     redirect,
     request,
     url_for,
@@ -99,6 +100,40 @@ def _format_model_created_at(value) -> str:
         DD/MM/AAAA, HH:mm."""
     return _format_user_joined_at(value)
 
+
+
+
+def _request_wants_json_response() -> bool:
+    """Indica si el cliente espera una respuesta JSON."""
+    accepted = request.accept_mimetypes.best_match(
+        ["application/json", "text/html"]
+    )
+    return (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or accepted == "application/json"
+    )
+
+
+def _model_upload_response(
+    message: str,
+    category: str,
+    *,
+    status_code: int = 200,
+    model_name: str | None = None,
+):
+    """Devuelve JSON para subidas AJAX o redirección clásica."""
+    if _request_wants_json_response():
+        payload = {
+            "ok": status_code < 400,
+            "category": category,
+            "message": message,
+            "model_name": model_name,
+            "redirect_url": url_for("admin_folds.index"),
+        }
+        return jsonify(payload), status_code
+
+    flash(message, category)
+    return redirect(url_for("admin_folds.index"))
 
 def _flash_model_validation_events() -> None:
     """Muestra los resultados de validaciones ejecutadas en segundo plano."""
@@ -798,9 +833,20 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
 
         form = AdminFoldUploadForm()
         if not form.validate_on_submit():
+            first_error = None
             for field_errors in form.errors.values():
                 for error in field_errors:
-                    flash(error, "warning")
+                    first_error = first_error or error
+                    if not _request_wants_json_response():
+                        flash(error, "warning")
+
+            if _request_wants_json_response():
+                return _model_upload_response(
+                    first_error or _("Revisa los datos del formulario."),
+                    "warning",
+                    status_code=400,
+                )
+
             return redirect(url_for("admin_folds.index"))
 
         max_bytes = int(
@@ -810,39 +856,54 @@ class FoldsAdminView(_AdminAccessMixin, BaseView):
             )
         )
         if request.content_length and request.content_length > max_bytes:
-            flash(
+            return _model_upload_response(
                 _("El archivo de modelo supera el tamaño máximo permitido."),
                 "warning",
+                status_code=413,
             )
-            return redirect(url_for("admin_folds.index"))
 
         source_filename = form.model_file.data.filename
+        fold_name = form.fold_name.data
         try:
             add_fold_file(
-                fold_name=form.fold_name.data,
+                fold_name=fold_name,
                 file_storage=form.model_file.data,
                 validation_status="pendiente",
             )
         except ValueError as exc:
-            flash(str(exc), "warning")
-        except FileExistsError:
-            flash(_("Ya existe otro modelo con ese nombre."), "warning")
-        except OSError:
-            flash(_("No se ha podido guardar el modelo."), "error")
-        else:
-            _start_model_validation_task(
-                form.fold_name.data,
-                source_filename,
+            return _model_upload_response(
+                str(exc),
+                "warning",
+                status_code=400,
+                model_name=fold_name,
             )
-            flash(
-                _(
-                    "Modelo recibido. Aparecerá como subiendo "
-                    "mientras se valida en segundo plano."
-                ),
-                "info",
+        except FileExistsError:
+            return _model_upload_response(
+                _("Ya existe otro modelo con ese nombre."),
+                "warning",
+                status_code=409,
+                model_name=fold_name,
+            )
+        except OSError:
+            return _model_upload_response(
+                _("No se ha podido guardar el modelo."),
+                "error",
+                status_code=500,
+                model_name=fold_name,
             )
 
-        return redirect(url_for("admin_folds.index"))
+        _start_model_validation_task(
+            fold_name,
+            source_filename,
+        )
+        return _model_upload_response(
+            _(
+                "Modelo recibido. Aparecerá como subiendo "
+                "mientras se valida en segundo plano."
+            ),
+            "info",
+            model_name=fold_name,
+        )
 
     @expose("/eliminar", methods=("POST",))
     def delete(self):

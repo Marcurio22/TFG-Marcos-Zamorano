@@ -1,0 +1,341 @@
+/* global window, document, FormData, XMLHttpRequest */
+(() => {
+  "use strict";
+
+  const config = window.ADMIN_FOLDS_APP || {};
+  const messages = config.messages || {};
+  let refreshTimer = null;
+  let uploadInProgress = false;
+
+  function message(key, fallback) {
+    return messages[key] || fallback;
+  }
+
+  function startRefreshLoop() {
+    if (refreshTimer) {
+      return;
+    }
+
+    refreshTimer = window.setInterval(() => {
+      const openDialog = document.querySelector("dialog[open]");
+      if (!openDialog && !uploadInProgress) {
+        window.location.reload();
+      }
+    }, 5000);
+  }
+
+  function closeDialog(dialog) {
+    if (dialog?.open && typeof dialog.close === "function") {
+      dialog.close();
+    }
+  }
+
+  function showProgress(text) {
+    const progressBox = document.querySelector("[data-model-upload-progress]");
+    const progressText = document.querySelector("[data-upload-progress-text]");
+    if (!progressBox || !progressText) {
+      return;
+    }
+
+    progressBox.classList.remove("hidden");
+    progressText.textContent = text;
+  }
+
+  function updateProgress(percent) {
+    const progressBar = document.querySelector("[data-upload-progress-bar]");
+    const boundedPercent = Math.max(0, Math.min(100, percent));
+    const prefix = message("uploadingPrefix", "Subiendo");
+    const suffix = message("uploadingSuffix", "del archivo.");
+
+    if (progressBar) {
+      progressBar.value = boundedPercent;
+    }
+
+    showProgress(`${prefix} ${boundedPercent}% ${suffix}`);
+  }
+
+  function finishProgress(text) {
+    const progressBar = document.querySelector("[data-upload-progress-bar]");
+    const spinner = document.querySelector("[data-upload-progress-spinner]");
+    if (progressBar) {
+      progressBar.value = 100;
+    }
+    if (spinner) {
+      spinner.classList.add("hidden");
+    }
+    showProgress(text);
+  }
+
+  function restoreSubmitButton(button, originalText) {
+    if (!button) {
+      return;
+    }
+
+    button.disabled = false;
+    button.classList.remove("btn-disabled");
+    button.textContent = originalText;
+  }
+
+  function markSubmitButtonBusy(button) {
+    if (!button) {
+      return "";
+    }
+
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.classList.add("btn-disabled");
+    button.textContent = message("savingButton", "Guardando...");
+    return originalText;
+  }
+
+  function fillUploadingRow(row, foldName) {
+    row.dataset.modelName = foldName;
+
+    const nameCell = row.querySelector("[data-uploading-model-name]");
+    const stateLabel = row.querySelector("[data-uploading-state-label]");
+    const validationLabel = row.querySelector(
+      "[data-uploading-validation-label]"
+    );
+    const actionLabel = row.querySelector("[data-uploading-action-label]");
+
+    if (nameCell) {
+      nameCell.textContent = foldName;
+    }
+    if (stateLabel) {
+      stateLabel.textContent = message("uploadingState", "Subiendo...");
+    }
+    if (validationLabel) {
+      validationLabel.textContent = message("pending", "Pendiente");
+    }
+    if (actionLabel) {
+      actionLabel.textContent = message("uploadingAction", "Subiendo...");
+    }
+  }
+
+  function cssEscape(value) {
+    if (window.CSS && typeof window.CSS.escape === "function") {
+      return window.CSS.escape(value);
+    }
+
+    return value.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+  }
+
+  function showUploadingRow(foldName) {
+    if (!foldName) {
+      return null;
+    }
+
+    const existingSelector = `tr[data-model-row][data-model-name="${cssEscape(
+      foldName
+    )}"]`;
+    const existingRow = document.querySelector(existingSelector);
+    if (existingRow) {
+      return existingRow;
+    }
+
+    const body = document.querySelector("[data-model-table-body]");
+    const template = document.getElementById("uploading-model-row-template");
+    if (!body || !template) {
+      return null;
+    }
+
+    const fragment = template.content.cloneNode(true);
+    const row = fragment.querySelector("tr[data-model-row]");
+    if (!row) {
+      return null;
+    }
+
+    fillUploadingRow(row, foldName);
+    body.prepend(fragment);
+    return body.querySelector(existingSelector);
+  }
+
+  function removeTemporaryRow(row) {
+    if (row && row.querySelector("[data-uploading-model-name]")) {
+      row.remove();
+    }
+  }
+
+  function parseJsonResponse(xhr) {
+    try {
+      return JSON.parse(xhr.responseText || "{}");
+    } catch (_error) {
+      return {
+        ok: false,
+        message: message(
+          "networkError",
+          "La conexión se ha interrumpido durante la subida."
+        ),
+      };
+    }
+  }
+
+  function handleUploadError(text, temporaryRow, submitButton, originalText) {
+    uploadInProgress = false;
+    removeTemporaryRow(temporaryRow);
+    restoreSubmitButton(submitButton, originalText);
+    showProgress(text);
+  }
+
+  function setupUploadForm() {
+    const uploadDialog = document.getElementById("upload-fold-modal");
+    const uploadForm = document.getElementById("upload-fold-form");
+    const submitButton = uploadForm?.querySelector('button[type="submit"]');
+
+    document.querySelectorAll("[data-upload-fold-button]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (typeof uploadDialog.showModal === "function") {
+          uploadDialog.showModal();
+        }
+      });
+    });
+
+    uploadForm?.addEventListener("submit", (event) => {
+      if (!window.FormData || !window.XMLHttpRequest) {
+        showProgress(message(
+          "formDataUnsupported",
+          "Tu navegador no permite mostrar el progreso de subida."
+        ));
+        return;
+      }
+
+      event.preventDefault();
+      const originalText = markSubmitButtonBusy(submitButton);
+      const formData = new FormData(uploadForm);
+      const foldName = String(formData.get("fold_name") || "").trim();
+      const temporaryRow = showUploadingRow(foldName);
+      const xhr = new XMLHttpRequest();
+
+      closeDialog(uploadDialog);
+      uploadInProgress = true;
+      showProgress(message("submitting", "Enviando archivo al servidor..."));
+
+      xhr.open("POST", uploadForm.action);
+      xhr.setRequestHeader("Accept", "application/json");
+      xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      xhr.timeout = 0;
+
+      xhr.upload.addEventListener("progress", (uploadEvent) => {
+        if (uploadEvent.lengthComputable && uploadEvent.total > 0) {
+          const percent = Math.round(
+            (uploadEvent.loaded / uploadEvent.total) * 100
+          );
+          updateProgress(percent);
+          return;
+        }
+
+        showProgress(message("uploading", "Subiendo archivo..."));
+      });
+
+      xhr.addEventListener("load", () => {
+        const payload = parseJsonResponse(xhr);
+        if (xhr.status < 200 || xhr.status >= 300 || payload.ok === false) {
+          handleUploadError(
+            payload.message || message("networkError", "Error de subida."),
+            temporaryRow,
+            submitButton,
+            originalText
+          );
+          return;
+        }
+
+        uploadInProgress = false;
+        finishProgress(
+          payload.message || message("received", "Modelo recibido.")
+        );
+        startRefreshLoop();
+        window.setTimeout(() => {
+          window.location.href = payload.redirect_url || window.location.href;
+        }, 1200);
+      });
+
+      xhr.addEventListener("error", () => {
+        handleUploadError(
+          message("networkError", "La conexión se ha interrumpido."),
+          temporaryRow,
+          submitButton,
+          originalText
+        );
+      });
+
+      xhr.addEventListener("abort", () => {
+        handleUploadError(
+          message("networkError", "La subida se ha cancelado."),
+          temporaryRow,
+          submitButton,
+          originalText
+        );
+      });
+
+      xhr.send(formData);
+    });
+  }
+
+  function setupActionModals() {
+    const activateDialog = document.getElementById("activate-fold-modal");
+    const activateName = document.getElementById("activate-fold-name");
+    const activateInput = document.getElementById("activate-fold-input");
+
+    document.querySelectorAll("[data-activate-fold-button]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const foldName = button.dataset.foldName || "";
+        activateName.textContent = foldName;
+        activateInput.value = foldName;
+        if (typeof activateDialog.showModal === "function") {
+          activateDialog.showModal();
+        }
+      });
+    });
+
+    const deleteDialog = document.getElementById("delete-fold-modal");
+    const deleteName = document.getElementById("delete-fold-name");
+    const deleteInput = document.getElementById("delete-fold-input");
+
+    document.querySelectorAll("[data-delete-fold-button]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const foldName = button.dataset.foldName || "";
+        deleteName.textContent = foldName;
+        deleteInput.value = foldName;
+        if (typeof deleteDialog.showModal === "function") {
+          deleteDialog.showModal();
+        }
+      });
+    });
+
+    const renameDialog = document.getElementById("rename-fold-modal");
+    const renameCurrentName = document.getElementById("rename-current-name");
+    const renameNewName = document.getElementById("rename-new-name");
+
+    document.querySelectorAll("[data-rename-fold-button]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const currentName = button.dataset.currentName || "";
+        renameCurrentName.value = currentName;
+        renameNewName.value = currentName;
+        if (typeof renameDialog.showModal === "function") {
+          renameDialog.showModal();
+        }
+      });
+    });
+  }
+
+  window.addEventListener("beforeunload", (event) => {
+    if (!uploadInProgress) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = message(
+      "leaveWarning",
+      "La subida del modelo sigue en curso. Si sales ahora, se cancelará."
+    );
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (config.hasRefreshingModels) {
+      startRefreshLoop();
+    }
+
+    setupUploadForm();
+    setupActionModals();
+  });
+})();

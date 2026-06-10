@@ -8,9 +8,11 @@ Versión: 0.1
 ==============================================================================
 """
 
+import gc
 import os
 import sys
 import tempfile
+import time
 
 import pytest
 
@@ -20,6 +22,22 @@ from trazasytrazadas.db import db
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
+
+
+def _cleanup_temporary_directory(tmpdir) -> None:
+    """Elimina un directorio temporal reintentando cierres en Windows."""
+    last_error = None
+    for _attempt in range(5):
+        try:
+            tmpdir.cleanup()
+            return
+        except PermissionError as exc:
+            last_error = exc
+            gc.collect()
+            time.sleep(0.2)
+
+    if last_error is not None:
+        raise last_error
 
 
 @pytest.fixture
@@ -68,7 +86,7 @@ def app():
             db.session.remove()
             db.engine.dispose()
     finally:
-        tmpdir.cleanup()
+        _cleanup_temporary_directory(tmpdir)
 
 
 @pytest.fixture

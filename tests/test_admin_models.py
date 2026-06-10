@@ -88,6 +88,39 @@ def test_admin_folds_page_marks_fold_zero_as_default_active(app, client):
     assert "Activo: fold.0" in html
 
 
+def test_admin_folds_page_prepares_ajax_upload_progress(app, client):
+    """La pantalla prepara progreso AJAX para subir modelos."""
+    admin_id = _create_user(
+        app,
+        username="admin_ajax_upload_page",
+        email="admin_ajax_upload_page@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    with app.app_context():
+        models_dir = Path(app.config["SEG_MODELS_DIR"])
+        models_dir.mkdir(parents=True, exist_ok=True)
+        (models_dir / "fold.0").write_text("a", encoding="utf-8")
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.get("/admin/folds/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "window.ADMIN_FOLDS_APP" in html
+    assert "admin_folds.js" in html
+    assert "data-model-upload-progress" in html
+    assert "data-upload-warning" in html
+    assert "No abandones esta página" in html
+    assert "data-model-table-body" in html
+    assert "uploading-model-row-template" in html
+    assert "Subiendo {percent}" not in html
+
+
 def test_admin_can_activate_fold_and_persists_in_db(app, client):
     """El administrador puede activar un fold y se persiste en SQLite."""
     _disable_csrf(app)
@@ -224,13 +257,68 @@ def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
     assert "modelo nuevo" in html
     assert "Subiendo..." in html
     assert "Pendiente" in html
-    assert "const hasRefreshingModels = true;" in html
+    assert '"hasRefreshingModels":true' in html.replace(" ", "")
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])
         assert (models_dir / "modelo nuevo").exists()
         model = db.session.execute(
             db.select(Modelo).where(Modelo.nombre_modelo == "modelo nuevo")
+        ).scalar_one()
+        assert model.estado == "subiendo"
+        assert model.validacion == "pendiente"
+
+def test_admin_upload_returns_json_for_ajax_request(
+    app,
+    client,
+    monkeypatch,
+):
+    """La subida AJAX responde JSON sin recargar la página."""
+    _disable_csrf(app)
+
+    admin_id = _create_user(
+        app,
+        username="admin_ajax_upload",
+        email="admin_ajax_upload@example.com",
+        password_hash=generate_password_hash("Password1!"),
+        role="admin",
+    )
+
+    monkeypatch.setattr(
+        admin_module,
+        "_start_model_validation_task",
+        lambda fold_name, source_filename: None,
+    )
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(admin_id)
+        session["_fresh"] = True
+
+    response = client.post(
+        "/admin/folds/subir",
+        data={
+            "fold_name": "modelo ajax",
+            "model_file": (
+                BytesIO(_serialized_dummy_model()),
+                "modelo-ajax.pkl",
+            ),
+        },
+        content_type="multipart/form-data",
+        headers={
+            "Accept": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["ok"] is True
+    assert payload["model_name"] == "modelo ajax"
+    assert payload["redirect_url"].endswith("/admin/folds/")
+
+    with app.app_context():
+        model = db.session.execute(
+            db.select(Modelo).where(Modelo.nombre_modelo == "modelo ajax")
         ).scalar_one()
         assert model.estado == "subiendo"
         assert model.validacion == "pendiente"
@@ -482,7 +570,7 @@ def test_admin_folds_page_reports_failed_pending_upload(app, client):
     html = response.get_data(as_text=True)
     assert "ha fallado y se ha eliminado" in html
     assert 'data-model-name="modelo fallido"' not in html
-    assert "const hasRefreshingModels = false;" in html
+    assert '"hasRefreshingModels":false' in html.replace(" ", "")
 
     with app.app_context():
         models_dir = Path(app.config["SEG_MODELS_DIR"])

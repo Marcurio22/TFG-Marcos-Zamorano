@@ -91,6 +91,7 @@ class _ServerThread(threading.Thread):
     def stop(self) -> None:
         """Detiene el servidor local de pruebas."""
         self.server.shutdown()
+        self.server.server_close()
 
 
 def _wait_until_ready(base_url: str) -> None:

@@ -176,11 +176,18 @@ def create_app(test_config=None):
 
     @app.errorhandler(RequestEntityTooLarge)
     def _handle_request_entity_too_large(_error):
-        if request.path.startswith("/admin/folds/subir"):
-            flash(
-                _("El archivo de modelo supera el tamaño máximo permitido."),
-                "warning",
-            )
+        message = _("El archivo de modelo supera el tamaño máximo permitido.")
+        is_model_upload = request.path.startswith("/admin/folds/subir")
+        wants_json = (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.accept_mimetypes.best == "application/json"
+        )
+
+        if is_model_upload and wants_json:
+            return jsonify({"ok": False, "message": message}), 413
+
+        if is_model_upload:
+            flash(message, "warning")
             return redirect(url_for("admin_folds.index"))
 
         return _("El archivo supera el tamaño máximo permitido."), 413

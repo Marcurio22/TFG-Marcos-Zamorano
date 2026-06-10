@@ -65,6 +65,54 @@
                         </div>
                     {% endif %}
                 </div>
+                <div class="hidden rounded-2xl border border-info/30 bg-info/10 p-4 text-info-content shadow-sm"
+                     data-model-upload-progress
+                     role="status"
+                     aria-live="polite">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="min-w-0 space-y-2">
+                            <p class="font-extrabold">{{ _("Subiendo modelo") }}</p>
+                            <p class="text-sm" data-upload-progress-text>
+                                {{ _("Preparando la subida del archivo...") }}
+                            </p>
+                        </div>
+                        <span class="loading loading-spinner loading-md shrink-0"
+                              data-upload-progress-spinner
+                              aria-hidden="true"></span>
+                    </div>
+                    <div class="mt-4 rounded-2xl border-2 border-warning/60 bg-warning/15 p-4 text-warning-content shadow-sm"
+                         data-upload-warning>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+                            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-warning/25"
+                                  aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     class="h-6 w-6">
+                                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                    <path d="M12 9v4" />
+                                    <path d="M12 17h.01" />
+                                </svg>
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-base font-black uppercase tracking-wide">
+                                    {{ _("No abandones esta página") }}
+                                </p>
+                                <p class="mt-1 text-sm font-semibold leading-relaxed">
+                                    {{ _("Espera hasta que la subida termine. Si sales antes, el archivo puede cancelarse y el modelo no se guardará.") }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <progress class="progress progress-primary mt-4 h-3 w-full"
+                              value="0"
+                              max="100"
+                              data-upload-progress-bar></progress>
+                </div>
                 {% if fold_rows %}
                     <div class="overflow-x-auto rounded-box border border-base-200 bg-base-100 shadow-sm">
                         <table class="table table-zebra text-sm">
@@ -78,7 +126,7 @@
                                     <th class="text-right">{{ _("Acciones") }}</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody data-model-table-body>
                                 {% for row in fold_rows %}
                                     {% set row_locked = row.estado == "subiendo" or row.validacion != "validado" %}
                                     <tr data-model-row
@@ -350,87 +398,61 @@
             <button title="{{ _("Cerrar") }}">{{ _("Cerrar") }}</button>
         </form>
     </dialog>
+    <template id="uploading-model-row-template">
+        <tr data-model-row
+            data-model-name=""
+            data-model-state="subiendo"
+            data-model-validation="pendiente">
+            <td class="font-bold text-base-content/75">-</td>
+            <td class="font-semibold" data-uploading-model-name></td>
+            <td>
+                <div class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-sky-700">
+                    <span class="loading loading-spinner loading-xs"></span>
+                    <span data-uploading-state-label></span>
+                </div>
+            </td>
+            <td>
+                <div class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">
+                    <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+                    <span data-uploading-validation-label></span>
+                </div>
+            </td>
+            <td class="text-sm text-base-content/75">-</td>
+            <td>
+                <div class="flex flex-wrap justify-end gap-2">
+                    <span class="badge badge-outline badge-info badge-sm"
+                          data-uploading-action-label></span>
+                </div>
+            </td>
+        </tr>
+    </template>
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const hasRefreshingModels = {{ "true" if has_refreshing_models else "false" }};
-
-        if (hasRefreshingModels) {
-            window.setInterval(() => {
-            const openDialog = document.querySelector("dialog[open]");
-            if (!openDialog) {
-                window.location.reload();
-            }
-            }, 5000);
+    window.ADMIN_FOLDS_APP = {{ {
+        "hasRefreshingModels": has_refreshing_models,
+        "messages": {
+            "formDataUnsupported": _(
+                "Tu navegador no permite mostrar el progreso de subida."
+            ),
+            "leaveWarning": _(
+                "La subida del modelo sigue en curso. "
+                "Si sales ahora, se cancelará."
+            ),
+            "networkError": _(
+                "La conexión se ha interrumpido durante la subida."
+            ),
+            "pending": _("Pendiente"),
+            "received": _(
+                "Modelo recibido. La validación continuará en segundo plano."
+            ),
+            "savingButton": _("Guardando..."),
+            "submitting": _("Enviando archivo al servidor..."),
+            "uploading": _("Subiendo archivo..."),
+            "uploadingAction": _("Subiendo..."),
+            "uploadingPrefix": _("Subiendo"),
+            "uploadingState": _("Subiendo..."),
+            "uploadingSuffix": _("del archivo.")
         }
-
-        const uploadDialog = document.getElementById("upload-fold-modal");
-        const uploadForm = document.getElementById("upload-fold-form");
-        const uploadSubmitButton = uploadForm?.querySelector('button[type="submit"]');
-
-        document.querySelectorAll("[data-upload-fold-button]").forEach((button) => {
-            button.addEventListener("click", () => {
-                if (typeof uploadDialog.showModal === "function") {
-                uploadDialog.showModal();
-                }
-            });
-        });
-
-        uploadForm?.addEventListener("submit", () => {
-            if (uploadDialog?.open) {
-                uploadDialog.close();
-            }
-
-            if (uploadSubmitButton) {
-                uploadSubmitButton.disabled = true;
-                uploadSubmitButton.classList.add("btn-disabled");
-                uploadSubmitButton.textContent = "{{ _('Guardando...') }}";
-            }
-        });
-
-        const activateDialog = document.getElementById("activate-fold-modal");
-        const activateName = document.getElementById("activate-fold-name");
-        const activateInput = document.getElementById("activate-fold-input");
-
-        document.querySelectorAll("[data-activate-fold-button]").forEach((button) => {
-            button.addEventListener("click", () => {
-            const foldName = button.dataset.foldName || "";
-            activateName.textContent = foldName;
-            activateInput.value = foldName;
-            if (typeof activateDialog.showModal === "function") {
-                activateDialog.showModal();
-            }
-            });
-        });
-
-        const deleteDialog = document.getElementById("delete-fold-modal");
-        const deleteName = document.getElementById("delete-fold-name");
-        const deleteInput = document.getElementById("delete-fold-input");
-
-        document.querySelectorAll("[data-delete-fold-button]").forEach((button) => {
-            button.addEventListener("click", () => {
-                const foldName = button.dataset.foldName || "";
-                deleteName.textContent = foldName;
-                deleteInput.value = foldName;
-                if (typeof deleteDialog.showModal === "function") {
-                deleteDialog.showModal();
-                }
-            });
-        });
-
-        const renameDialog = document.getElementById("rename-fold-modal");
-        const renameCurrentName = document.getElementById("rename-current-name");
-        const renameNewName = document.getElementById("rename-new-name");
-
-        document.querySelectorAll("[data-rename-fold-button]").forEach((button) => {
-            button.addEventListener("click", () => {
-            const currentName = button.dataset.currentName || "";
-            renameCurrentName.value = currentName;
-            renameNewName.value = currentName;
-            if (typeof renameDialog.showModal === "function") {
-                renameDialog.showModal();
-            }
-            });
-        });
-    });
+    }|tojson }};
     </script>
+    <script src="{{ url_for('static', filename='js/admin_folds.js') }}"></script>
 {% endblock %}
