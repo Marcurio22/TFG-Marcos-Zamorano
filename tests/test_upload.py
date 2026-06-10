@@ -1,11 +1,7 @@
-"""
-Pruebas relacionadas con la subida de imágenes.
-
-Este módulo cubre la subida correcta de archivos válidos y distintos casos de
-error asociados a peticiones incompletas o extensiones no permitidas.
+"""Pruebas relacionadas con la subida de imágenes.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io

@@ -6,7 +6,7 @@ PNOA con fallback por resolución, generación de cuadrículas, descarga de
 teselas individuales y empaquetado de descargas en ZIP.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io

@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Helpers comunes para pruebas funcionales con Selenium.
-
-Contiene utilidades de espera, autenticación, creación de datos y generación de
-imágenes usadas por los flujos de navegador.
+"""Helpers comunes para flujos funcionales con Selenium.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

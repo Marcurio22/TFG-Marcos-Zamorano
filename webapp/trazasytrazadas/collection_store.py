@@ -7,7 +7,7 @@ Flask, el visor y el worker reutilicen una única capa de acceso a datos. Todas
 las operaciones de lectura y escritura pasan por los modelos SQLAlchemy.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 
@@ -688,7 +688,7 @@ def save_generated_zone(
     """
     Persiste una nueva zona generada por el visor y todas sus teselas.
 
-    En esta versión solo guarda metadata. La descarga física de las teselas se
+    En esta versión solo guarda metadatos. La descarga física de las teselas se
     difiere al worker de trazas para no bloquear la petición web.
     """
     if status not in ALLOWED_ZONE_STATUSES:

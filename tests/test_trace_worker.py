@@ -1,11 +1,7 @@
-"""
-Pruebas del worker de trazas en segundo plano.
-
-Validan que las teselas se persistan físicamente y que el worker CLI procese
-fotos pendientes actualizando SQLite y guardando el resultado JSON.
+"""Pruebas del worker de trazas en segundo plano.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io

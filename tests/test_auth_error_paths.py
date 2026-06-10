@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de errores defensivos de autenticación y perfil.
-
-Este módulo cubre ramas defensivas del manejo de imagen de perfil y errores de
-persistencia del perfil de usuario.
+"""Pruebas de errores defensivos de autenticación y perfil.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -44,7 +38,7 @@ def _login_user(client, user_id: int) -> None:
 
 
 def test_profile_image_delete_and_size_helpers(app, tmp_path, monkeypatch):
-    """Verifica la imagen de perfil en el caso previsto."""
+    """Comprueba helpers de tamaño y borrado de imágenes de perfil."""
     with app.app_context():
         app.config["PROFILE_IMAGE_FOLDER"] = str(tmp_path)
         image = tmp_path / "users" / "1" / "avatar.png"
@@ -76,7 +70,8 @@ def test_profile_image_delete_and_size_helpers(app, tmp_path, monkeypatch):
 def test_save_profile_image_preview_reports_unusable_storage_paths(
     app, client, monkeypatch
 ):
-    """Verifica que la imagen de perfil informa el caso previsto."""
+    """Comprueba el error cuando el almacenamiento
+        de previsualización no es usable."""
     user_id = _create_user(
         app,
         username="profile_paths",
@@ -114,7 +109,7 @@ def test_save_profile_image_preview_reports_unusable_storage_paths(
 def test_update_profile_commit_error_rerenders_edit_form(
     app, client, monkeypatch
 ):
-    """Verifica el perfil de usuario en el caso previsto."""
+    """Comprueba que un error de guardado devuelve el formulario de perfil."""
     _disable_csrf(app)
     user_id = _create_user(
         app,
@@ -150,7 +145,8 @@ def test_update_profile_commit_error_rerenders_edit_form(
 def test_profile_image_preview_and_confirm_error_branches(
     app, client, tmp_path, monkeypatch
 ):
-    """Verifica la imagen de perfil en el caso previsto."""
+    """Comprueba errores de previsualización y confirmación
+        de imagen de perfil."""
     _disable_csrf(app)
     user_id = _create_user(
         app,

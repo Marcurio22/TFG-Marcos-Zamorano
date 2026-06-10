@@ -10,7 +10,7 @@ entrenamiento anteriores y una carga cacheada del modelo para evitar recargas
 innecesarias.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -71,7 +71,7 @@ def _normalize_imagenet(img_t: torch.Tensor) -> torch.Tensor:
     return (img_t - mean) / std
 
 
-# Stubs mínimos para reconstruir pickles heredados.
+# Stubs mínimos para tratar pickles heredados.
 
 class BinarySegModel(nn.Module):
     """
@@ -91,7 +91,7 @@ class BinarySegModel(nn.Module):
             image = (image - self.mean) / self.std
         return self.model(image)
 
-    # Métodos habituales de Lightning referenciados en algunos pickles.
+    # Métodos de Lightning referenciados en algunos pickles.
     def log(self, *args, **kwargs): return None
     def log_dict(self, *args, **kwargs): return None
     def save_hyperparameters(self, *args, **kwargs): return None
@@ -358,7 +358,7 @@ class _PickleInferWrapper(_InferWrapper):
 
 
 def _torch_load_compat(path: str, device: torch.device):
-    """Carga artefactos de torch explicando que es una acción de admin."""
+    """Carga un artefacto de PyTorch en el dispositivo indicado."""
     return torch.load(path, map_location=device, weights_only=False)
 
 
@@ -742,10 +742,6 @@ def compute_traces_from_segmentation(
     """
     Ejecuta la inferencia de segmentación y devuelve las coordenadas de traza
     en el formato esperado por el frontend.
-
-    El parámetro n_folds se mantiene en la firma por compatibilidad con la
-    configuración del pipeline, aunque en esta implementación no se utiliza de
-    forma directa.
     """
     mask = predict_mask_ensemble(
         image_path=image_path,

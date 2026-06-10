@@ -1,11 +1,11 @@
 <!--
 Plantilla base común de la aplicación.
 
-Define la estructura general de la interfaz, incluyendo cabecera, selector de
-idioma, mensajes flash, contenedor principal y pie de página.
+Define la estructura general de la interfaz, incluyendo cabecera, menú
+lateral, selector de idioma, mensajes flash y pie de página.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 -->
 <!DOCTYPE html>
 <html lang="{{ current_lang or 'es' }}" data-theme="corporate">
@@ -20,13 +20,13 @@ Versión: 0.1
     {% include "_head_assets.html" %}
   </head>
   <body class="min-h-screen bg-base-200 text-base-content">
-    <!-- Fondo visual común de la interfaz. -->
+    
     <div class="pointer-events-none fixed inset-0 z-0">
       <div class="absolute inset-0 bg-cover bg-center opacity-30 blur-[1.5px] saturate-75"
            style="background-image:url('{{ url_for('static', filename='img/background.png') }}')"></div>
       <div class="absolute inset-0 bg-base-200/45"></div>
     </div>
-    <!-- Drawer (DaisyUI) -->
+    
     <div class="drawer">
       <input id="app-drawer" type="checkbox" class="drawer-toggle" />
       {% set FLAG_FILES = {
@@ -36,13 +36,13 @@ Versión: 0.1
         "it": "img/flags/it.svg",
         "de": "img/flags/de.svg"
       } %}
-      <!-- Contenido principal -->
+      
       <div class="drawer-content min-h-screen flex flex-col relative z-10">
-        <!-- Cabecera principal y selector de idioma. -->
+        
         <header class="bg-primary text-primary-content shadow-sm relative z-50">
           <div class="px-3 sm:px-4">
             <div class="relative py-3">
-              <!-- Botón toggle drawer -->
+              
               <button type="button"
                       class="btn btn-sm btn-ghost btn-square drawer-button absolute left-0 top-1/2 -translate-y-1/2"
                       aria-label="{{ _("Abrir menú") }}"
@@ -61,7 +61,7 @@ Versión: 0.1
                   <path d="M4 18h16" />
                 </svg>
               </button>
-              <!-- Título centrado -->
+              
               <div class="max-w-5xl mx-auto flex items-center justify-center">
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight drop-shadow-sm text-center">
                   {{ _("Trazas de Herbívoros") }}
@@ -70,16 +70,16 @@ Versión: 0.1
             </div>
           </div>
         </header>
-        <!-- Mensajes flash renderizados con estilos de DaisyUI. -->
+        
         {% set flash_toast_class = "toast toast-top toast-center z-50 mt-4" %}
         {% include "_flash_messages.html" %}
-        <!-- Contenedor principal para las vistas hijas. -->
+        
         <main class="flex-1 relative z-10">
           <div class="{% block page_container_class %}max-w-5xl mx-auto px-3 sm:px-4 py-3{% endblock %}">
             {% block content %}{% endblock %}
           </div>
         </main>
-        <!-- Pie de página común de la aplicación. -->
+        
         <footer class="border-t border-base-300 bg-transparent relative z-10"
                 style="background-color: rgba(255, 255, 255, 0.20);
                        backdrop-filter: blur(6px)">
@@ -102,7 +102,7 @@ Versión: 0.1
             </div>
           </div>
         </footer>
-        <!-- Cierre automático de mensajes flash visibles en pantalla. -->
+        
         <script>
         document.addEventListener("DOMContentLoaded", () => {
           document.querySelectorAll(".toast .alert").forEach((alertEl) => {
@@ -115,7 +115,7 @@ Versión: 0.1
         });
         </script>
       </div>
-      <!-- Menú lateral -->
+      
       <div class="drawer-side z-40">
         <label for="app-drawer"
                class="drawer-overlay"

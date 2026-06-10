@@ -1,12 +1,7 @@
-"""
-Pruebas de manejo de errores para la ruta /calculate.
-
-Este módulo verifica que la aplicación responde correctamente cuando el cálculo
-de trazas falla por ausencia de recursos o por errores inesperados durante la
-ejecución.
+"""Pruebas de manejo de errores para la ruta /calculate.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io
@@ -30,7 +25,7 @@ def upload_image(client):
 
 
 def test_calculate_handles_filenotfounderror(client, mock_compute_traces):
-    """Verifica que el comportamiento esperado gestiona el caso previsto."""
+    """Comprueba la respuesta de cálculo cuando falta el fichero de imagen."""
     upload_image(client)
 
     mock_compute_traces(exc=FileNotFoundError("Missing weights"))
@@ -40,7 +35,7 @@ def test_calculate_handles_filenotfounderror(client, mock_compute_traces):
 
 
 def test_calculate_handles_generic_exception(client, mock_compute_traces):
-    """Verifica que el comportamiento esperado gestiona el caso previsto."""
+    """Comprueba la respuesta de cálculo ante una excepción inesperada."""
     upload_image(client)
 
     mock_compute_traces(exc=RuntimeError("Boom"))

@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de navegación y accesos protegidos.
-
-Este módulo verifica el comportamiento del menú, el drawer lateral y las
-restricciones de acceso para usuarios anónimos, autenticados y administradores.
+"""Pruebas de navegación y accesos protegidos.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

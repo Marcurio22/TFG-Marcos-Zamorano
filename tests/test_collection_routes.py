@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de rutas complementarias de colección y galería.
-
-Este módulo cubre ramas defensivas de helpers y rutas de colección que no
-requieren modificar lógica de producción.
+"""Pruebas de rutas complementarias de colección y galería.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -64,7 +58,8 @@ def _zone(**overrides):
 
 
 def test_collection_helpers_redirect_pagination_and_fallback_name(app):
-    """Verifica las rutas de colección en el caso previsto."""
+    """Comprueba redirecciones, paginación y nombres
+        por defecto de colección."""
     assert (
         collection_module._safe_internal_redirect(None, "/fallback")
         == "/fallback"
@@ -106,7 +101,7 @@ def test_collection_helpers_redirect_pagination_and_fallback_name(app):
 
 
 def test_load_zone_or_404_aborts_when_zone_is_missing(app, monkeypatch):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba que una zona inexistente devuelve 404."""
     monkeypatch.setattr(
         collection_module, "get_zone_detail", lambda parcel_id: None
     )
@@ -119,7 +114,7 @@ def test_load_zone_or_404_aborts_when_zone_is_missing(app, monkeypatch):
 def test_fetch_photo_bytes_uses_local_file_or_reports_missing_source(
     tmp_path, monkeypatch
 ):
-    """Verifica que el comportamiento esperado informa el caso previsto."""
+    """Comprueba lectura local de teselas y errores de origen ausente."""
     local_file = tmp_path / "tile.jpg"
     local_file.write_bytes(b"local-bytes")
     monkeypatch.setattr(
@@ -147,7 +142,7 @@ def test_fetch_photo_bytes_uses_local_file_or_reports_missing_source(
 def test_fetch_photo_traces_reports_absent_missing_and_corrupt_files(
     tmp_path, monkeypatch
 ):
-    """Verifica que el flujo de trazas informa el caso previsto."""
+    """Comprueba errores de trazas ausentes, inexistentes o corruptas."""
     monkeypatch.setattr(
         collection_module, "get_storage_abspath", lambda path: None
     )
@@ -190,7 +185,7 @@ def test_fetch_photo_traces_reports_absent_missing_and_corrupt_files(
 
 
 def test_render_overlay_and_zone_preview_special_cases(app, monkeypatch):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba casos especiales de overlay y vista previa de zona."""
     photo = _photo(ruta_trazas="traces/tile.json")
     monkeypatch.setattr(
         collection_module, "_fetch_photo_bytes", lambda received: _jpeg_bytes()
@@ -229,7 +224,7 @@ def test_render_overlay_and_zone_preview_special_cases(app, monkeypatch):
 def test_collection_listing_and_status_routes_parse_variants(
     client, force_login, monkeypatch
 ):
-    """Verifica las rutas de colección en el caso previsto."""
+    """Comprueba variantes de listado y consulta de estado de colección."""
     force_login()
     captured = {}
 
@@ -267,7 +262,7 @@ def test_collection_listing_and_status_routes_parse_variants(
 def test_collection_preview_route_handles_generation_branches(
     client, force_login, tmp_path, monkeypatch
 ):
-    """Verifica que las rutas de colección gestiona el caso previsto."""
+    """Comprueba ramas de generación de vista previa de colección."""
     force_login()
     monkeypatch.setattr(
         collection_module,
@@ -335,7 +330,7 @@ def test_collection_preview_route_handles_generation_branches(
 def test_collection_download_rename_delete_and_retry_routes(
     client, force_login, monkeypatch
 ):
-    """Verifica las rutas de colección en el caso previsto."""
+    """Comprueba descarga, renombrado, borrado y reintento de colecciones."""
     force_login()
     monkeypatch.setattr(
         collection_module,
@@ -431,7 +426,7 @@ def test_collection_download_rename_delete_and_retry_routes(
 def test_collection_photo_retry_image_traces_and_download_routes(
     client, force_login, monkeypatch
 ):
-    """Verifica las rutas de colección en el caso previsto."""
+    """Comprueba reintento, imagen, trazas y descarga de una tesela."""
     force_login()
     monkeypatch.setattr(collection_module, "get_photo", lambda photo_id: None)
     assert client.post("/coleccion/fotos/404/retry").status_code == 404

@@ -1,13 +1,12 @@
 /**
  * Lógica de interacción de la colección de imágenes.
  *
- * Gestiona la preview modal, el borrado con modal DaisyUI, el visor ampliado
- * de teselas y el polling ligero de estados para colección y galería.
+ * Gestiona la vista previa de zonas, la galería de teselas, las acciones sobre
+ * colecciones y la actualización periódica de estados.
  *
  * Autor: Marcos Zamorano Lasso
- * Versión: 0.1
+ * Versión: 1.0
  */
-
 document.addEventListener("DOMContentLoaded", () => {
   const CFG = window.COLLECTION_APP || {};
   const I18N = Object.assign(
@@ -91,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentViewerPhotoId = null;
   let currentViewerTraces = null;
 
+  // Escapa texto antes de insertarlo en HTML.
   function htmlEscape(value) {
     return String(value)
       .replaceAll("&", "&amp;")
@@ -100,16 +100,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .replaceAll("'", "&#39;");
   }
 
+  // Sustituye marcadores simples dentro de un texto.
   function formatTemplate(template, values) {
     return Object.entries(values).reduce((result, [key, value]) => {
       return result.replaceAll(`{${key}}`, String(value));
     }, template);
   }
 
+  // Comprueba si un diálogo está abierto.
   function isDialogOpen(dialogEl) {
     return Boolean(dialogEl && dialogEl.open);
   }
 
+  // Genera el indicador visual de estado de una zona.
   function renderZoneStateMarkup(status) {
     if (status === "completed") {
       return `
@@ -143,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
   }
 
+  // Actualiza el botón de pausa o reanudación.
   function updateZoneProcessingToggle(button, status) {
     if (!button) {
       return;
@@ -178,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Genera la insignia de estado de una zona.
   function renderZoneBadgeMarkup(status) {
     if (status === "completed") {
       return `<span class="badge badge-success badge-outline">${I18N.zoneCompleted}</span>`;
@@ -198,6 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<span class="badge badge-neutral badge-outline">${I18N.zonePending}</span>`;
   }
 
+  // Actualiza el botón de reintento global de una zona.
   function updateZoneRetryAllButton(payload) {
     if (!zoneRetryAllButton) {
       return;
@@ -224,6 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Genera el indicador de estado de una tesela.
   function renderPhotoStateMarkup(status, isStale) {
     if (isStale) {
       return `
@@ -301,6 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  // Genera las acciones disponibles para una tesela.
   function renderPhotoActionsMarkup(options) {
     const parts = [];
     const redirectTo = window.location.pathname + window.location.search;
@@ -331,6 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return parts.join("");
   }
 
+  // Calcula el estado visual de trazas de una tesela.
   function getPhotoVisualTraceStatus(photo) {
     if (!photo) {
       return "pending";
@@ -343,6 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return photo.traceStatus || "pending";
   }
 
+  // Obtiene el título asociado al estado de trazas.
   function getPhotoVisualTraceTitle(status) {
     if (status === "completed") {
       return I18N.photoCompleted;
@@ -359,6 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return I18N.photoPending;
   }
 
+  // Sincroniza el estado de trazas del visor de teselas.
   function syncPhotoViewerTraceStatus() {
     if (!photoViewerTraceStatus) {
       return;
@@ -373,6 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoViewerTraceStatus.dataset.photoState = visualStatus;
   }
 
+  // Reinicia el botón de dibujado del visor.
   function resetPhotoViewerDrawToggle() {
     if (!photoViewerDrawToggle) {
       return;
@@ -383,6 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoViewerDrawToggle.setAttribute("aria-disabled", "true");
   }
 
+  // Limpia el modal de vista previa de zona.
   function resetPreviewModal() {
     if (!loadingEl || !errorEl || !imageEl) return;
     loadingEl.classList.remove("hidden");
@@ -392,6 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     imageEl.removeAttribute("src");
   }
 
+  // Muestra un error en la vista previa de zona.
   function showPreviewError(message) {
     if (!loadingEl || !errorEl || !imageEl) return;
     loadingEl.classList.add("hidden");
@@ -400,6 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
     errorEl.classList.remove("hidden");
   }
 
+  // Localiza la tarjeta de una tesela por identificador.
   function getPhotoCard(photoId) {
     if (!photoId) {
       return null;
@@ -410,6 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ) || null;
   }
 
+  // Lee los datos de una tesela desde su tarjeta.
   function getPhotoDataFromCard(card) {
     if (!card) {
       return null;
@@ -433,6 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // Limpia los errores del visor de teselas.
   function clearPhotoViewerError() {
     if (!photoViewerError) {
       return;
@@ -441,6 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoViewerError.classList.add("hidden");
   }
 
+  // Muestra un error en el visor de teselas.
   function showPhotoViewerError(message) {
     if (!photoViewerError) {
       return;
@@ -449,6 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoViewerError.classList.remove("hidden");
   }
 
+  // Limpia el lienzo de trazas del visor.
   function clearPhotoViewerOverlay() {
     currentViewerTraces = null;
     if (!photoViewerCanvas) {
@@ -462,6 +481,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncPhotoViewerTraceStatus();
   }
 
+  // Ajusta el lienzo al tamaño de la imagen visible.
   function resizePhotoViewerCanvas() {
     if (!photoViewerImage || !photoViewerCanvas) {
       return;
@@ -482,6 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
     photoViewerCanvas.style.height = `${height}px`;
   }
 
+  // Dibuja las trazas cargadas sobre la tesela visible.
   function drawCurrentViewerTraces() {
     if (!photoViewerImage || !photoViewerCanvas || !currentViewerTraces) {
       return;
@@ -513,6 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncPhotoViewerTraceStatus();
   }
 
+  // Actualiza los controles del visor de teselas.
   function updatePhotoViewerControls(photo) {
     if (!photo) {
       return;
@@ -551,6 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Rellena el visor con los datos de una tesela.
   function populatePhotoViewer(photo) {
     if (!photoViewerModal || !photo) {
       return;
@@ -614,6 +637,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Solicita y dibuja las trazas de la tesela activa.
   async function drawViewerTraces() {
     const card = getPhotoCard(currentViewerPhotoId);
     const photo = getPhotoDataFromCard(card);
@@ -813,6 +837,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Actualiza los estados de la lista de colecciones.
   async function refreshCollectionStatuses() {
     const statusUrl = CFG.urls && CFG.urls.statusCollection;
     const rows = Array.from(document.querySelectorAll("[data-zone-row]"));
@@ -875,6 +900,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Actualiza el estado de la galería abierta.
   async function refreshGalleryStatus() {
     if (!galleryRoot) {
       return;
@@ -976,12 +1002,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Ejecuta una iteración de actualización periódica.
   async function runPollingTick() {
     try {
       await refreshCollectionStatuses();
       await refreshGalleryStatus();
     } catch (_error) {
-      // Polling silencioso: no interrumpe la UI si falla una consulta puntual.
     }
   }
 

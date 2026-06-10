@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de configuración, bootstrap de base de datos y datos demo.
-
-Este módulo cubre ramas de soporte de la app factory, db.py y seed_data.py que
-no se ejercitan en los flujos funcionales principales.
+"""Pruebas de configuración, bootstrap de base de datos y datos demo.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -42,7 +36,7 @@ from trazasytrazadas.seed_data import (
     ],
 )
 def test_env_bool(monkeypatch, value, expected):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba la lectura booleana de variables de entorno."""
     if value is None:
         monkeypatch.delenv("FEATURE_FLAG", raising=False)
         assert _env_bool("FEATURE_FLAG", True) is True
@@ -52,7 +46,8 @@ def test_env_bool(monkeypatch, value, expected):
 
 
 def test_select_locale_from_query_session_accept_language_and_default(app):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba la selección de idioma desde query,
+        sesión y cabeceras HTTP."""
     with app.test_request_context("/?lang=en"):
         assert select_locale() == "en"
 
@@ -72,7 +67,7 @@ def test_select_locale_from_query_session_accept_language_and_default(app):
 
 
 def test_request_entity_too_large_handlers(client, app, force_login):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba las respuestas ante cargas superiores al tamaño permitido."""
     # Ruta no-admin: Flask aborta antes de la vista si supera el máximo.
     app.config["MAX_CONTENT_LENGTH"] = 1
     response = client.post("/upload", data={"image": (b"abc", "a.png")})
@@ -92,7 +87,7 @@ def test_request_entity_too_large_handlers(client, app, force_login):
 
 
 def test_context_processor_exposes_languages(app):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba que el contexto Jinja expone idiomas disponibles."""
     with app.test_request_context("/"):
         values = {}
         for processor in app.template_context_processors[None]:
@@ -102,7 +97,8 @@ def test_context_processor_exposes_languages(app):
 
 
 def test_ensure_system_user_repairs_existing_row(app):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba que el usuario de sistema se repara
+        si ya existe incompleto."""
     with app.app_context():
         system = db.session.get(Usuario, 1)
         system.nombre_usuario = "changed"
@@ -120,7 +116,7 @@ def test_ensure_system_user_repairs_existing_row(app):
 
 
 def test_init_db_command_outputs_message(app, runner=None):
-    """Verifica la base de datos en el caso previsto."""
+    """Comprueba la salida del comando de inicialización de base de datos."""
     with app.app_context():
         result = app.test_cli_runner().invoke(init_db_command)
         assert result.exit_code == 0
@@ -128,7 +124,7 @@ def test_init_db_command_outputs_message(app, runner=None):
 
 
 def test_seed_sql_reader_execute_copy_and_load(app, tmp_path):
-    """Verifica la carga de datos iniciales en el caso previsto."""
+    """Comprueba lectura, copia y carga de datos demo SQL."""
     sql_file = tmp_path / "demo.sql"
     sql_file.write_text(
         "-- comment\n"
@@ -163,7 +159,7 @@ def test_seed_sql_reader_execute_copy_and_load(app, tmp_path):
 
 
 def test_load_demo_data_if_needed_disabled_missing_and_error(app, tmp_path):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba los casos desactivado, ausente y error de la carga demo."""
     with app.app_context():
         app.config["LOAD_DEMO_DATA"] = False
         load_demo_data_if_needed()

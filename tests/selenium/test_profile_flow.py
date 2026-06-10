@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium del perfil de usuario.
-
-Verifica la edición de datos personales y el flujo de confirmación de imagen de
-perfil usando formularios reales de la interfaz.
+"""Pruebas Selenium del perfil de usuario.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

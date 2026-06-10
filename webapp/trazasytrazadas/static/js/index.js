@@ -1,24 +1,17 @@
 /**
  * Lógica de interfaz de la vista principal.
  *
- * Este archivo gestiona la previsualización local de imágenes, la interacción
- * de drag and drop, el estado visual de la página, la apertura del modal de
- * carga, el dibujado de trazas sobre el canvas y la habilitación de la
- * descarga de resultados.
- *
- * Lee su configuración desde window.TRACES_APP, inyectado por la
- * plantilla del servidor.
+ * Gestiona la selección de imágenes, la previsualización local, el envío del
+ * formulario, el dibujado de trazas y la descarga de resultados.
  *
  * Autor: Marcos Zamorano Lasso
- * Versión: 0.1
+ * Versión: 1.0
  */
-
 document.addEventListener("DOMContentLoaded", () => {
   const CFG = window.TRACES_APP || {};
   const serverHasImage = !!CFG.serverHasImage;
   const autoDrawTraces = !!CFG.autoDrawTraces;
 
-  // Cadenas traducidas recibidas desde la plantilla.
   const I18N = Object.assign(
     {
       noFileChosen: "Ningún archivo seleccionado",
@@ -31,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
     CFG.i18n || {}
   );
 
-  // El estado del checkbox se reinicia en cada carga de página.
   const tracesCheckbox = document.getElementById("traces-drawn-checkbox");
   if (tracesCheckbox) tracesCheckbox.checked = false;
 
@@ -63,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusEl = document.getElementById("status-message");
   const statusBadgeEl = document.getElementById("status-badge");
 
+  // Actualiza la insignia de estado de la vista principal.
   function setStatusBadge(state) {
     if (!statusBadgeEl) return;
 
@@ -93,11 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const downloadBtn = document.getElementById("download-btn");
 
-  /**
-   * Activa o desactiva el botón de descarga y ajusta su estado visual.
-   *
-   * @param {boolean} enabled Indica si la descarga debe estar disponible.
-   */
+  // Activa o bloquea la descarga de resultados.
   function setDownloadEnabled(enabled) {
     if (!downloadBtn) return;
 
@@ -112,7 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // La descarga solo se habilita cuando ya existen trazas dibujadas.
   setDownloadEnabled(false);
 
   if (downloadBtn) {
@@ -123,14 +111,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Modal de carga durante el envío del pipeline.
   const pipelineForm = document.getElementById("pipeline-form");
   const calculandoModal = document.getElementById("calculando-modal");
   const deleteForm = document.getElementById("delete-form");
 
-  /**
-   * Abre el modal de cálculo usando la API nativa si está disponible.
-   */
+  // Abre el modal de carga del procesamiento.
   function openLoadingModal() {
     if (!calculandoModal) return;
     if (typeof calculandoModal.showModal === "function") {
@@ -146,7 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Elementos principales de imagen y canvas.
   const img = document.getElementById("main-image");
   const canvas = document.getElementById("traces-canvas");
   const placeholder = document.getElementById("placeholder");
@@ -159,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let lastTraces = null;
 
+  // Limpia el lienzo de trazas dibujadas.
   function clearTracesOverlay() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -166,15 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  /**
-   * Indica si las trazas calculadas deben seguir visibles en el canvas.
-   *
-   * El cambio de tamaño del canvas borra su contenido interno. Por eso, tras
-   * una redimensión de ventana o zoom del navegador, hay que volver a pintar
-   * las últimas trazas si el usuario mantiene activado el checkbox.
-   *
-   * @returns {boolean} true si procede redibujar la superposición.
-   */
+  // Comprueba si deben redibujarse las trazas visibles.
   function shouldRedrawVisibleTraces() {
     return !!(
       lastTraces &&
@@ -186,9 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  /**
-   * Redimensiona el canvas y repinta las trazas visibles si procede.
-   */
+  // Ajusta el lienzo y redibuja las trazas visibles.
   function resizeCanvasAndRedrawTraces() {
     resizeCanvas();
     if (!shouldRedrawVisibleTraces()) return;
@@ -198,9 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let resizeRedrawFrame = null;
 
-  /**
-   * Agrupa redimensiones sucesivas y repinta una sola vez por frame.
-   */
+  // Programa un reajuste del lienzo en el siguiente ciclo.
   function scheduleCanvasResizeAndRedraw() {
     if (resizeRedrawFrame) cancelAnimationFrame(resizeRedrawFrame);
     resizeRedrawFrame = requestAnimationFrame(() => {
@@ -209,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Dibuja las trazas recibidas sobre el canvas.
   function drawTracesFromData(xs, ys) {
     if (!img || !canvas) return;
 
@@ -228,20 +202,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Abre el selector de archivos asociado al input de imagen.
-   */
+  // Abre el selector de archivos de imagen.
   function openImagePicker() {
     if (!imageInput) return;
     imageInput.click();
   }
 
-  /**
-   * Ajusta el tamaño del canvas al tamaño visible de la imagen.
-   *
-   * El canvas trabaja superpuesto a la imagen, por lo que ambos deben
-   * compartir dimensiones en pantalla.
-   */
+  // Sincroniza el tamaño del canvas con la imagen.
   function resizeCanvas() {
     if (!img || !canvas) return;
     canvas.width = img.clientWidth;
@@ -254,13 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resizeCanvas();
   }
 
-  /**
-   * Recupera las trazas desde el backend y las dibuja sobre el canvas.
-   *
-   * Las coordenadas se escalan en función del tamaño visible de la imagen para
-   * mantener la correspondencia entre el tamaño original y la representación
-   * mostrada en pantalla.
-   */
+  // Carga y dibuja las trazas desde el JSON del servidor.
   async function drawTracesFromJson() {
     if (!img || !canvas) return;
 
@@ -289,17 +250,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Lanza el dibujado automático si el servidor indica que ya hay trazas
-   * calculadas para la imagen actual.
-   */
+  // Dibuja automáticamente las trazas si la página lo indica.
   function maybeAutoDraw() {
     if (!autoDrawTraces) return;
     if (!img || !canvas) return;
 
     canvas.classList.remove("hidden");
 
-    // Si la imagen ya está cargada desde caché, el evento load puede haber ocurrido.
     if (img.complete && img.naturalWidth > 0) {
       drawTracesFromJson();
     } else {
@@ -309,11 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   maybeAutoDraw();
 
-  /**
-   * Limpia únicamente la previsualización local y restablece el estado visual.
-   *
-   * No realiza ninguna operación contra el backend.
-   */
+  // Limpia la previsualización local de imagen.
   function clearPreviewOnly() {
     if (localPreviewUrl) {
       URL.revokeObjectURL(localPreviewUrl);
@@ -331,7 +284,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tracesCheckbox) tracesCheckbox.disabled = true;
     setDownloadEnabled(false);
 
-    // Solo se vuelve al placeholder si no existe una imagen persistida en servidor.
     if (!serverHasImage) {
       if (img) {
         img.src = "";
@@ -346,11 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Actualiza el aspecto visual de la zona de carga según su estado.
-   *
-   * @param {"idle"|"active"|"success"|"error"} state Estado visual a aplicar.
-   */
+  // Actualiza el estado visual del área de arrastre.
   function setDropzoneState(state) {
     if (!imageFrame) return;
 
@@ -375,12 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Comprueba si el fichero recibido tiene un formato de imagen admitido.
-   *
-   * @param {File|null|undefined} file Fichero a validar.
-   * @returns {boolean} true si el fichero parece una imagen PNG o JPEG.
-   */
+  // Valida que el archivo seleccionado sea una imagen admitida.
   function isValidImageFile(file) {
     if (!file) return false;
     const okTypes = ["image/png", "image/jpeg"];
@@ -389,14 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg");
   }
 
-  /**
-   * Genera la previsualización local de la imagen seleccionada.
-   *
-   * Reinicia el canvas y el estado asociado a trazas previas, ya que la
-   * selección de una nueva imagen invalida cualquier superposición anterior.
-   *
-   * @param {File} file Fichero de imagen a mostrar en local.
-   */
+  // Muestra la previsualización local de una imagen.
   function previewFile(file) {
     if (!file) return;
 
@@ -425,7 +361,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (statusEl) statusEl.textContent = I18N.statusUploaded;
     setStatusBadge("image_uploaded");
 
-    // Fuerza el ajuste del canvas incluso si la imagen se resuelve muy rápido.
     if (img && canvas) {
       if (img.complete && img.naturalWidth > 0) resizeCanvas();
       else img.addEventListener("load", resizeCanvas, { once: true });
@@ -439,8 +374,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Si solo existe una preview local y no hay imagen persistida, el borrado se
-  // resuelve en cliente sin enviar la petición al backend.
   if (deleteForm) {
     deleteForm.addEventListener("submit", (e) => {
       const hasLocalPreview =
@@ -451,21 +384,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Si el borrado sí llega al backend, se reinicia el estado visual local.
       if (tracesCheckbox) tracesCheckbox.checked = false;
       setDownloadEnabled(false);
     });
   }
 
-  // Gestión de drag and drop para la selección de imágenes.
   if (imageFrame) {
     let dragDepth = 0;
 
-    /**
-     * Cancela el comportamiento por defecto del navegador durante el drag and drop.
-     *
-     * @param {DragEvent} e Evento de arrastre.
-     */
+    // Cancela el comportamiento por defecto del navegador.
     const prevent = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -501,7 +428,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Se replica el fichero en el input para mantener un único origen de datos.
       if (imageInput) {
         const dt = new DataTransfer();
         dt.items.add(file);
@@ -519,7 +445,6 @@ document.addEventListener("DOMContentLoaded", () => {
       openImagePicker();
     });
 
-    // Evita que el navegador intente abrir el archivo si se suelta fuera del área.
     document.addEventListener("dragover", prevent);
     document.addEventListener("drop", (e) => {
       if (!imageFrame.contains(e.target)) prevent(e);

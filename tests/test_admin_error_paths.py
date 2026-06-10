@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de rutas defensivas del panel de administración.
-
-Este módulo cubre ramas defensivas de helpers y endpoints admin sin
-modificar la arquitectura existente ni las plantillas.
+"""Pruebas de rutas defensivas del panel de administración.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -42,7 +36,8 @@ def _login_admin(
 
 
 def test_admin_format_export_pdf_and_flash_helpers(app, monkeypatch):
-    """Verifica los formularios en el caso previsto."""
+    """Comprueba el formateo de exportaciones PDF
+        y mensajes flash del panel admin."""
     assert admin_module._format_user_joined_at(None) == "-"
     assert (
         admin_module._format_user_joined_at(datetime(2026, 5, 14, 9, 30))
@@ -103,7 +98,7 @@ def test_admin_format_export_pdf_and_flash_helpers(app, monkeypatch):
 def test_admin_model_validation_background_success_and_failure(
     app, monkeypatch, tmp_path
 ):
-    """Verifica la administración de modelos en el caso previsto."""
+    """Comprueba la validación asíncrona de modelos en éxito y error."""
     models_dir = tmp_path / "models"
     models_dir.mkdir()
     model_path = models_dir / "modelo"
@@ -157,7 +152,7 @@ def test_admin_model_validation_background_success_and_failure(
 
 
 def test_start_model_validation_task_creates_daemon_thread(app, monkeypatch):
-    """Verifica que la gestión de modelos crea el caso previsto."""
+    """Comprueba que la validación de modelos arranca un hilo daemon."""
     started = []
 
     class FakeThread:
@@ -186,7 +181,8 @@ def test_start_model_validation_task_creates_daemon_thread(app, monkeypatch):
 def test_admin_user_index_detail_edit_and_delete_routes(
     app, client, monkeypatch
 ):
-    """Verifica la administración de usuarios en el caso previsto."""
+    """Comprueba listado, detalle, edición y
+        borrado de usuarios administrados."""
     _disable_csrf(app)
     admin_id = _login_admin(app, client)
     user_id = _create_user(
@@ -259,7 +255,8 @@ def test_admin_user_index_detail_edit_and_delete_routes(
 def test_admin_user_delete_rolls_back_and_restores_staged_dirs(
     app, client, monkeypatch
 ):
-    """Verifica la administración de usuarios en el caso previsto."""
+    """Comprueba que el borrado de usuarios restaura
+        datos si falla la transacción."""
     _disable_csrf(app)
     _login_admin(
         app,
@@ -305,7 +302,8 @@ def test_admin_user_delete_rolls_back_and_restores_staged_dirs(
 
 
 def test_admin_folds_error_branches(app, client, monkeypatch):
-    """Verifica la administración de modelos en el caso previsto."""
+    """Comprueba errores controlados en la
+        gestión administrativa de modelos."""
     _disable_csrf(app)
     _login_admin(
         app,

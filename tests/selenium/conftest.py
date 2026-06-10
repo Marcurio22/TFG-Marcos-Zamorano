@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Fixtures de Selenium para pruebas funcionales de navegador.
-
-Levanta la aplicación Flask en un puerto local y crea un navegador Chrome en
-modo headless para ejecutar flujos reales de usuario.
+"""Fixtures de Selenium y servidor local para pruebas de navegador.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -121,7 +115,6 @@ def live_server(app):
 
         db.session.remove()
         db.engine.dispose()
-
 
 
 def _option_float(config, name: str, default: float = 0.0) -> float:

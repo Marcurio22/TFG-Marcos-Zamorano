@@ -6,7 +6,7 @@ Define el acceso al panel de administración y sus vistas protegidas por rol.
 Solo los usuarios autenticados con rol 'admin' podrán acceder.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 
@@ -101,8 +101,6 @@ def _format_model_created_at(value) -> str:
     return _format_user_joined_at(value)
 
 
-
-
 def _request_wants_json_response() -> bool:
     """Indica si el cliente espera una respuesta JSON."""
     accepted = request.accept_mimetypes.best_match(
@@ -134,6 +132,7 @@ def _model_upload_response(
 
     flash(message, category)
     return redirect(url_for("admin_folds.index"))
+
 
 def _flash_model_validation_events() -> None:
     """Muestra los resultados de validaciones ejecutadas en segundo plano."""

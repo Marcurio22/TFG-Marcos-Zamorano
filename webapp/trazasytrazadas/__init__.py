@@ -8,7 +8,7 @@ prepara los directorios de trabajo en instance/, configura la
 internacionalización con Flask-Babel y registra el blueprint principal.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 

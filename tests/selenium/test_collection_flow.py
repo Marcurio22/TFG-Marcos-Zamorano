@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de colección de imágenes.
-
-Ejercita la lista de colecciones, la pausa/reanudación de cálculo y el estado
-visual de botones gestionados por HTML y JavaScript.
+"""Pruebas Selenium de colección de imágenes.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

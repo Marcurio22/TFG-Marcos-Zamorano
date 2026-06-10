@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de comportamiento de gestión de modelos.
-
-Este módulo cubre validaciones, metadatos, eventos y transiciones de estado de
-modelos/folds no cubiertas por los tests funcionales del panel admin.
+"""Pruebas de comportamiento de gestión de modelos.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -36,13 +30,15 @@ class DummyStorage:
 
 
 def test_get_models_dir_requires_context_without_explicit_path():
-    """Verifica que la gestión de modelos exige el caso previsto."""
+    """Comprueba que el directorio de modelos requiere
+        contexto si no se indica ruta."""
     with pytest.raises(RuntimeError):
         model_store._get_models_dir()
 
 
 def test_validation_events_ignore_empty_invalid_and_corrupt_lines(tmp_path):
-    """Verifica las validaciones en el caso previsto."""
+    """Comprueba que los eventos de validación ignoran
+        líneas vacías o corruptas."""
     model_store.record_fold_validation_event(
         "", "success", models_dir=tmp_path
     )
@@ -70,7 +66,7 @@ def test_validation_events_ignore_empty_invalid_and_corrupt_lines(tmp_path):
 
 
 def test_fold_name_validation_and_legacy_index_parsing():
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba validación de nombres y parseo de índices heredados."""
     assert not model_store.is_valid_fold_name("")
     assert not model_store.is_valid_fold_name(".")
     assert not model_store.is_valid_fold_name("..")
@@ -86,7 +82,8 @@ def test_fold_name_validation_and_legacy_index_parsing():
 
 
 def test_metadata_read_write_delete_and_invalid_payloads(tmp_path):
-    """Verifica el borrado en el caso previsto."""
+    """Comprueba lectura, escritura, borrado y
+        errores de metadatos de modelo."""
     with pytest.raises(ValueError):
         model_store.write_fold_metadata("../bad", {}, models_dir=tmp_path)
 
@@ -114,7 +111,7 @@ def test_metadata_read_write_delete_and_invalid_payloads(tmp_path):
 
 
 def test_list_fold_files_filters_and_sorts(tmp_path):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba filtrado y ordenación de ficheros de modelo."""
     (tmp_path / "fold.10").write_bytes(b"x")
     (tmp_path / "fold.2").write_bytes(b"x")
     (tmp_path / "zeta").write_bytes(b"x")
@@ -133,7 +130,7 @@ def test_list_fold_files_filters_and_sorts(tmp_path):
 
 
 def test_context_free_active_model_resolution(tmp_path):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba resolución del modelo activo sin contexto Flask explícito."""
     assert model_store.get_active_model() is None
     assert model_store.get_active_fold_name(models_dir=tmp_path) == "fold.0"
 
@@ -155,7 +152,7 @@ def test_context_free_active_model_resolution(tmp_path):
 
 
 def test_sync_and_active_model_variants(app):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba sincronización y variantes de modelo activo."""
     models_dir = Path(app.config["SEG_MODELS_DIR"])
     (models_dir / "fold.0").write_bytes(b"x")
     (models_dir / "custom").write_bytes(b"x")
@@ -190,7 +187,8 @@ def test_sync_and_active_model_variants(app):
 
 
 def test_rename_fold_file_errors_metadata_and_missing_model_row(app):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba errores de renombrado, metadatos y
+        filas de modelo ausentes."""
     models_dir = Path(app.config["SEG_MODELS_DIR"])
     (models_dir / "old").write_bytes(b"x")
     (models_dir / "exists").write_bytes(b"x")
@@ -244,7 +242,7 @@ def test_rename_fold_file_errors_metadata_and_missing_model_row(app):
 
 
 def test_add_fold_file_validations_metadata_and_cleanup(app):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba validaciones, metadatos y limpieza al añadir modelos."""
     models_dir = Path(app.config["SEG_MODELS_DIR"])
 
     with app.app_context():
@@ -340,7 +338,7 @@ def test_add_fold_file_validations_metadata_and_cleanup(app):
 
 
 def test_validation_success_and_failure_transitions(app):
-    """Verifica las validaciones en el caso previsto."""
+    """Comprueba transiciones de validación correcta y fallida."""
     models_dir = Path(app.config["SEG_MODELS_DIR"])
     (models_dir / "pending").write_bytes(b"x")
     model_store.write_fold_metadata(
@@ -418,7 +416,7 @@ def test_validation_success_and_failure_transitions(app):
 
 
 def test_validation_helpers_without_app_context(tmp_path):
-    """Verifica las validaciones en el caso previsto."""
+    """Comprueba helpers de validación sin contexto de aplicación."""
     (tmp_path / "orphan").write_bytes(b"x")
     model_store.mark_fold_validation_succeeded(
         "orphan", {"a": 1}, models_dir=tmp_path
@@ -434,7 +432,7 @@ def test_validation_helpers_without_app_context(tmp_path):
 
 
 def test_delete_fold_file_errors_and_success(app):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba errores y éxito al borrar ficheros de modelo."""
     models_dir = Path(app.config["SEG_MODELS_DIR"])
     (models_dir / "active").write_bytes(b"x")
     (models_dir / "inactive").write_bytes(b"x")

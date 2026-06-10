@@ -1,11 +1,5 @@
-"""
-===============================================================================
-Paquete de tests de la aplicación.
-
-Permite compartir helpers entre módulos de prueba y agrupar utilidades comunes
-de la suite funcional.
+"""Paquete de pruebas de la aplicación.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """

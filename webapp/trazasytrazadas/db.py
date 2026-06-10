@@ -2,12 +2,11 @@
 ===============================================================================
 Integración de Flask-SQLAlchemy.
 
-Este módulo centraliza la instancia db = SQLAlchemy(), la inicialización del
-esquema a partir de modelos Python y las operaciones mínimas de bootstrap de
-datos técnicos. No mantiene conexiones manuales ni carga esquemas SQL externos.
+Este módulo centraliza la instancia db = SQLAlchemy() y la inicialización del
+esquema a partir de modelos Python.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 

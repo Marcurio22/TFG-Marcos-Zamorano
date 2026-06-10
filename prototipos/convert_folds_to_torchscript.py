@@ -1,3 +1,12 @@
+"""
+Conversión de modelos entrenados a formato TorchScript.
+
+Script auxiliar utilizado para generar artefactos exportables a partir de los
+modelos de segmentación entrenados durante la fase experimental.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+"""
 import working_example_unet_mamba_simple as ws
 import os
 import sys
@@ -7,9 +16,6 @@ import torch
 import importlib
 import __main__
 
-# ------------------------------------------------------------
-# Setup
-# ------------------------------------------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 print(sys.path)
@@ -17,7 +23,7 @@ print(sys.path)
 os.environ["SKIP_DATASET_LOADING"] = "1"
 
 
-# Clases que el pickle puede requerir en __main__
+# Registra en __main__ las clases necesarias para cargar pickles antiguos.
 for name in [
     "BinarySegModel",
     "SemanticSegmentatorPyTorch",
@@ -49,7 +55,7 @@ prefix = (
 
 device = "cpu"
 
-# Preprocess
+# Parámetros de normalización usados durante inferencia.
 preprocess = {
     "mean": [0.485, 0.456, 0.406],
     "std":  [0.229, 0.224, 0.225],
@@ -58,12 +64,9 @@ preprocess_path = os.path.join(DST_DIR, "preprocess.json")
 with open(preprocess_path, "w", encoding="utf-8") as f:
     json.dump(preprocess, f, indent=2)
 
-# ------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------
-
 
 def load_any(path: str):
+    """Carga un modelo guardado con pickle o con torch.load."""
     try:
         with open(path, "rb") as f:
             return pickle.load(f)
@@ -72,33 +75,21 @@ def load_any(path: str):
 
 
 def extract_pure_net(obj) -> torch.nn.Module:
-    """
-    Devuelve un nn.Module "puro" sin LightningModule listo para exportar.
-    Casos típicos:
-      - obj.model es LightningModule (BinarySegModel) y
-        obj.model.model es smp.Unet
-      - obj.model.model es otro wrapper, etc.
-    """
-    # Si es el wrapper de entrenamiento con atributo .model
+    """Extrae la red PyTorch exportable desde el objeto cargado."""
     if hasattr(obj, "model"):
-        m = obj.model  # puede ser BinarySegModel o nn.Module
+        m = obj.model
 
-        # Si m tiene .model y ese .model es la red real: smp.Unet
         if (hasattr(m, "model") and
                 isinstance(m.model, torch.nn.Module)):
             return m.model
 
-        # Si m ya es nn.Module "puro", se usa
         is_not_lightning = (
             not m.__class__.__module__.startswith("pytorch_lightning"))
         if isinstance(m, torch.nn.Module) and is_not_lightning:
             return m
 
-    # Si directamente es nn.Module, si es LightningModule,
-    # evitamos exportarlo
     if isinstance(obj, torch.nn.Module):
         if obj.__class__.__module__.startswith("pytorch_lightning"):
-            # Si es LightningModule, intenta bajar al .model
             if (hasattr(obj, "model") and
                     isinstance(obj.model, torch.nn.Module)):
                 return obj.model
@@ -112,26 +103,22 @@ def extract_pure_net(obj) -> torch.nn.Module:
 
 
 class InferWrapper(torch.nn.Module):
-    """
-    Wrapper: normaliza + ejecuta net + sigmoid.
-    Esto evita depender de preprocesamiento externo.
-    """
+    """Modelo de inferencia con normalización y sigmoid integradas."""
 
     def __init__(self, net: torch.nn.Module, mean, std):
+        """Inicializa la red y registra los parámetros de normalización."""
         super().__init__()
         self.net = net
         self.register_buffer("mean", torch.tensor(mean).view(1, 3, 1, 1))
         self.register_buffer("std", torch.tensor(std).view(1, 3, 1, 1))
 
     def forward(self, x):
+        """Ejecuta la inferencia normalizada sobre el tensor de entrada."""
         x = (x - self.mean) / self.std
         logits = self.net(x)
         return torch.sigmoid(logits)
 
 
-# ------------------------------------------------------------
-# Main
-# ------------------------------------------------------------
 for fold in range(10):
     src = os.path.join(SRC_DIR, f"{prefix}{fold}")
     print("Cargando:", src)
@@ -144,6 +131,7 @@ for fold in range(10):
     def patch_unet_decoder_interpolation_mode(
         net: torch.nn.Module, default="nearest"
     ):
+        """Ajusta bloques del decoder que no declaran modo de interpolación."""
         for m in net.modules():
             name = m.__class__.__name__
             if name in ("UnetDecoderBlock", "DecoderBlock"):
@@ -152,21 +140,18 @@ for fold in range(10):
 
     patch_unet_decoder_interpolation_mode(net, default="nearest")
 
-    # Guarda state_dict limpio del net puro
     sd_path = os.path.join(DST_DIR, f"unet_fold_{fold}.state_dict.pth")
     torch.save(net.state_dict(), sd_path)
     print("State_dict guardado:", sd_path)
 
     dummy = torch.randn(1, 3, 512, 512)
 
-    # Exporta TorchScript del net puro
     print("Trazando TorchScript (net puro) fold", fold)
     ts_net = torch.jit.trace(net, dummy, strict=False)
     dst_net = os.path.join(DST_DIR, f"unet_fold_{fold}.pt")
     ts_net.save(dst_net)
     print("Guardado:", dst_net)
 
-    # Exporta wrapper con normalización + sigmoid dentro
     print("Trazando TorchScript (wrapper inferencia) fold", fold)
     infer = InferWrapper(net, preprocess["mean"], preprocess["std"]).eval()
     ts_infer = torch.jit.trace(infer, dummy, strict=False)

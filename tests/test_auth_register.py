@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de registro de usuarios.
-
-Este módulo verifica el alta de usuarios y las validaciones asociadas a nombre
-de usuario, correo electrónico, teléfono y contraseña.
+"""Pruebas de registro de usuarios.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

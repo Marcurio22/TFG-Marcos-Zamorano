@@ -1,11 +1,7 @@
-"""
-Pruebas de error para el endpoint /traces.
-
-Este módulo cubre los casos en los que todavía no se han calculado trazas o en
-los que la sesión referencia un fichero JSON que ya no existe en disco.
+"""Pruebas de error para el endpoint /traces.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import os

@@ -2,11 +2,11 @@
 ===============================================================================
 Rutas de la colección de imágenes y galerías de teselas.
 
-Este módulo define la nueva pantalla persistente de colección, así como las
+Este módulo define la pantalla persistente de colección, así como las
 vistas auxiliares de galería, preview, descarga ZIP y eliminación de zonas.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 
@@ -247,12 +247,11 @@ def _zone_download_filename(detail: dict) -> str:
 
 def _build_zone_preview_bytes(detail: dict) -> bytes:
     """
-    Construye una preview exacta de la zona a partir de sus teselas y luego la
-    reduce proporcionalmente para que quepa dentro de 1024x640.
+    Genera una vista previa de la zona componiendo sus teselas originales.
 
-    No recorta ni deforma la imagen final: solo la escala manteniendo la
-    relación de aspecto, por lo que el área representada sigue siendo
-    exactamente la seleccionada por el usuario.
+    La imagen resultante se escala proporcionalmente hasta el tamaño máximo
+    permitido, sin recortar ni alterar la relación de aspecto del área
+    seleccionada por el usuario.
     """
     photos = detail.get("fotos") or []
     if not photos:

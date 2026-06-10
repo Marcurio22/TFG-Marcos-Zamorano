@@ -1,12 +1,7 @@
-"""
-Pruebas básicas de la colección de imágenes persistida en SQLite.
-
-Estas pruebas validan el registro automático de zonas desde el visor, el
-listado paginado, la vista de galería, la recuperación en el mapa y el
-borrado en cascada de parcelas y fotos asociadas.
+"""Pruebas básicas de la colección de imágenes persistida en SQLite.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 import io
 import json

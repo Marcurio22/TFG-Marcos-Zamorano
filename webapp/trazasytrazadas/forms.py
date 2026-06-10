@@ -6,7 +6,7 @@ Define los formularios y validaciones de entrada para el alta de usuarios,
 el inicio de sesión y la edición del perfil.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 
@@ -43,7 +43,7 @@ _USERNAME_RE = r"^[A-Za-zÀ-ÿ0-9_.-]+$"
 
 
 def _split_visual_phone(raw: str) -> tuple[str, str] | None:
-    """Extrae país y resto desde el formato visual '(+34) 600 11 22 33'."""
+    """Extrae el prefijo y el número desde el formato visual '(+NN)'."""
     if not raw.startswith("(+"):
         return None
 
@@ -59,7 +59,7 @@ def _split_visual_phone(raw: str) -> tuple[str, str] | None:
 
 
 def _split_plus_phone(raw: str) -> tuple[str, str]:
-    """Extrae país y resto desde el formato '+34 600 11 22 33'."""
+    """Extrae el prefijo y el número desde el formato internacional '+NN'."""
     if len(raw) < 3 or not raw[1:3].isdigit():
         raise ValueError(
             _(

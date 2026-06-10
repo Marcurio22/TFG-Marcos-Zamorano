@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Helpers compartidos para pruebas de autenticación, perfil y administración.
-
-Este módulo centraliza utilidades reutilizadas por los tests de
-registro, login, perfil, usuarios administrados y gestión de modelos.
+"""Helpers compartidos de autenticación, perfil y administración para tests.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

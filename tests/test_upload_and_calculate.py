@@ -1,12 +1,7 @@
-"""
-Pruebas del endpoint /upload_and_calculate.
-
-Este módulo cubre el comportamiento del pipeline combinado que permite usar una
-imagen enviada en la misma petición o reutilizar la imagen ya almacenada en
-sesión para calcular trazas.
+"""Pruebas del endpoint /upload_and_calculate.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io

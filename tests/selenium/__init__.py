@@ -1,11 +1,5 @@
-"""
-==============================================================================
-Paquete de pruebas funcionales con Selenium.
-
-Agrupa los tests de navegador que verifican flujos reales de HTML y JavaScript
-sobre una instancia Flask levantada en local.
+"""Paquete de pruebas funcionales con Selenium.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """

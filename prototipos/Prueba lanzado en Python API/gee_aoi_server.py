@@ -1,3 +1,12 @@
+"""
+Servidor Flask de prueba para solicitar recortes a Google Earth Engine.
+
+Expone endpoints mínimos para generar miniaturas, enlaces GeoTIFF y tareas de
+exportación a Drive a partir de un área rectangular definida por dos puntos.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+"""
 import os
 from flask import Flask, request, jsonify, send_from_directory
 import ee
@@ -9,23 +18,25 @@ app = Flask(__name__)
 
 
 def init_ee():
+    """Inicializa Earth Engine usando el proyecto configurado si existe."""
     if GEE_PROJECT:
         ee.Initialize(project=GEE_PROJECT)
     else:
         ee.Initialize()
 
 
-# Hay que autenticarse antes de arrancar el server.
 init_ee()
 
 
 def parse_date(s: str) -> str:
+    """Valida una fecha recibida en formato ISO corto."""
     if not s or len(s) != 10:
         raise ValueError("Fecha inválida, usa YYYY-MM-DD.")
     return s
 
 
 def rect_from_points(p1, p2):
+    """Construye un rectángulo de Earth Engine a partir de dos puntos."""
     lon_min = min(p1["lng"], p2["lng"])
     lon_max = max(p1["lng"], p2["lng"])
     lat_min = min(p1["lat"], p2["lat"])
@@ -37,6 +48,7 @@ def rect_from_points(p1, p2):
 
 
 def build_composite(dataset: str, aoi: ee.Geometry, start: str, end: str, cloud: float):
+    """Prepara la composición RGB y sus parámetros de visualización."""
     if dataset == "S2_MEDIAN":
         col = (ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
                .filterBounds(aoi)
@@ -61,11 +73,13 @@ def build_composite(dataset: str, aoi: ee.Geometry, start: str, end: str, cloud:
 
 @app.get("/")
 def index():
+    """Sirve la interfaz HTML del prototipo."""
     return send_from_directory(APP_DIR, "gee_aoi_app.html")
 
 
 @app.post("/api/thumb")
 def api_thumb():
+    """Devuelve una URL temporal de miniatura para el área seleccionada."""
     try:
         data = request.get_json(force=True)
         aoi = rect_from_points(data["p1"], data["p2"])
@@ -87,6 +101,7 @@ def api_thumb():
 
 @app.post("/api/download")
 def api_download():
+    """Devuelve una URL temporal de descarga GeoTIFF."""
     try:
         data = request.get_json(force=True)
         aoi = rect_from_points(data["p1"], data["p2"])
@@ -112,6 +127,7 @@ def api_download():
 
 @app.post("/api/export")
 def api_export():
+    """Crea una tarea de exportación a Google Drive."""
     try:
         data = request.get_json(force=True)
         aoi = rect_from_points(data["p1"], data["p2"])

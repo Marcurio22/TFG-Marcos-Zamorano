@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de gestión administrativa de usuarios.
-
-Valida el detalle y la edición de usuarios desde el panel de administración
-con formularios reales y permisos de administrador.
+"""Pruebas Selenium de gestión administrativa de usuarios.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

@@ -1,4 +1,13 @@
-"""Configuración de Gunicorn para trazasytrazadas en Docker."""
+"""Configuración de Gunicorn para trazasytrazadas en Docker.
+
+Define los parámetros de ejecución del servidor WSGI Gunicorn, incluyendo el
+número de trabajadores, hilos, tiempo de espera y opciones de logging.
+Las configuraciones se pueden ajustar mediante variables de entorno para
+facilitar la personalización en diferentes entornos de despliegue.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+"""
 
 from __future__ import annotations
 
@@ -26,8 +35,6 @@ def _int_from_env(name: str, default: int) -> int:
 
 bind = f"0.0.0.0:{os.environ.get('PORT', '8000')}"
 
-# IMPORTANTE: mantener un solo proceso por defecto. La aplicación usa SQLite,
-# hilos internos para worker/validación y ficheros auxiliares de eventos.
 workers = _int_from_env("WEB_CONCURRENCY", 1)
 threads = _int_from_env("GUNICORN_THREADS", 4)
 worker_class = "gthread"

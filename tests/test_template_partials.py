@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de parciales compartidos de plantillas.
-
-Este módulo verifica que la extracción de bloques comunes a includes Jinja no
-rompe recursos globales ni mensajes flash en las plantillas base.
+"""Pruebas de parciales compartidos de plantillas.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

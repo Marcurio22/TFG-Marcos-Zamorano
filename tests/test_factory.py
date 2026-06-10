@@ -1,12 +1,7 @@
-"""
-Pruebas básicas de la application factory de Flask.
-
-Este módulo verifica que create_app() construye la aplicación con la
-configuración esperada y que respeta los ajustes de sesión definidos para el
-proyecto.
+"""Pruebas básicas de la application factory de Flask.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 from datetime import timedelta

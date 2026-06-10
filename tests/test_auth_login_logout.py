@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de inicio y cierre de sesión.
-
-Este módulo verifica el flujo de login, logout, mantenimiento de sesión y
-rechazo de credenciales inválidas.
+"""Pruebas de inicio y cierre de sesión.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

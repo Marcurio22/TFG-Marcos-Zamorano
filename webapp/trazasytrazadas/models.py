@@ -3,11 +3,9 @@
 Modelos SQLAlchemy de la aplicación.
 
 Define los modelos reales de la BBDD gestionados mediante SQLAlchemy.
-Los nombres de columnas se mantienen en español y las trazas quedan
-embebidas en la tabla de fotos.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 

@@ -6,7 +6,7 @@ Genera:
 - trazasytrazadas/seed/collection_storage/
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 from __future__ import annotations

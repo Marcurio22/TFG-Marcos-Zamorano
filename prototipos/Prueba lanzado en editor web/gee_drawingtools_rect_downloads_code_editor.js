@@ -1,16 +1,12 @@
-/**** 
- * GEE Code Editor / Earth Engine App
- * Selector por 2 puntos con drawingTools reales + descargas por imagen.
+/*
+ * Prototipo de Google Earth Engine Code Editor para generar descargas por AOI.
  *
- * Uso:
- * 1) Pulsa "Añadir punto" y haz 1 clic en el mapa. Repite hasta tener 2 puntos.
- * 2) Pulsa "Crear AOI" para construir el rectángulo entre los dos últimos puntos.
- * 3) Ajusta fechas, nube, dataset, escala y máximo de imágenes.
- * 4) Pulsa "Generar enlaces". Se crearán enlaces de descarga GeoTIFF.
+ * Permite marcar dos puntos, construir el rectángulo de trabajo y obtener
+ * enlaces GeoTIFF para las imágenes que intersectan el área seleccionada.
  *
- * Nota: getDownloadURL está pensado para recortes pequeños.
- *       Si el rectángulo es muy grande, algunos enlaces pueden fallar.
- ****/
+ * Autor: Marcos Zamorano Lasso
+ * Versión: 1.0
+ */
 
 Map.setOptions('SATELLITE');
 Map.setCenter(-3.7038, 40.4168, 6);
@@ -30,10 +26,12 @@ var aoiBounds = null;
 var aoiLayer = null;
 var previewLayer = null;
 
+// Limpia las geometrías dibujadas en el mapa.
 function clearDrawings() {
   drawingTools.layers().reset([]);
 }
 
+// Elimina el AOI y su capa de previsualización.
 function clearAoiPreview() {
   if (aoiLayer) {
     Map.layers().remove(aoiLayer);
@@ -43,6 +41,7 @@ function clearAoiPreview() {
   aoiBounds = null;
 }
 
+// Elimina la capa de imagen mostrada como vista previa.
 function clearImagePreview() {
   if (previewLayer) {
     Map.layers().remove(previewLayer);
@@ -50,6 +49,7 @@ function clearImagePreview() {
   }
 }
 
+// Reinicia el estado completo del prototipo.
 function resetAll() {
   clearDrawings();
   clearAoiPreview();
@@ -60,6 +60,7 @@ function resetAll() {
   pointCountLabel.setValue('Puntos dibujados: 0');
 }
 
+// Rellena una cadena por la izquierda hasta la longitud indicada.
 function padLeft(value, length, ch) {
   var s = String(value);
   var pad = (ch === undefined) ? '0' : String(ch);
@@ -69,12 +70,14 @@ function padLeft(value, length, ch) {
   return s;
 }
 
+// Activa el modo de dibujo de puntos.
 function enterPointMode() {
   drawingTools.setShape('point');
   drawingTools.draw();
   statusLabel.setValue('Modo punto activo: haz 1 clic en el mapa.');
 }
 
+// Obtiene las coordenadas de los puntos dibujados.
 function getPointCoords() {
   var pts = [];
   var layers = drawingTools.layers();
@@ -93,17 +96,18 @@ function getPointCoords() {
           pts.push(coords);
         }
       } catch (err) {
-        // Ignorar geometrías no compatibles
       }
     }
   }
   return pts;
 }
 
+// Actualiza el contador de puntos dibujados.
 function refreshPointCount() {
   pointCountLabel.setValue('Puntos dibujados: ' + getPointCoords().length);
 }
 
+// Construye el AOI rectangular a partir de los dos últimos puntos.
 function buildAoiFromPoints() {
   var pts = getPointCoords();
   refreshPointCount();
@@ -152,6 +156,7 @@ function buildAoiFromPoints() {
   Map.centerObject(aoi, 13);
 }
 
+// Devuelve la configuración del dataset seleccionado.
 function getDatasetSpec() {
   var dataset = datasetSelect.getValue();
 
@@ -191,6 +196,7 @@ function getDatasetSpec() {
   throw new Error('Dataset no soportado: ' + dataset);
 }
 
+// Convierte una fecha en milisegundos a formato YYYY-MM-DD.
 function formatMillis(ms) {
   var d = new Date(ms);
   var y = d.getUTCFullYear();
@@ -199,17 +205,20 @@ function formatMillis(ms) {
   return y + '-' + m + '-' + day;
 }
 
+// Normaliza un texto para usarlo como nombre de descarga.
 function safeName(text, fallback) {
   var t = String(text || fallback || 'img');
   return t.replace(/[^A-Za-z0-9_\\-]+/g, '_');
 }
 
+// Calcula un resumen básico del tamaño del rectángulo.
 function estimateBboxInfo(bounds) {
   var widthDeg = Math.abs(bounds[2] - bounds[0]);
   var heightDeg = Math.abs(bounds[3] - bounds[1]);
   return 'BBox lon/lat ≈ ' + widthDeg.toFixed(6) + ' × ' + heightDeg.toFixed(6) + ' grados';
 }
 
+// Genera los enlaces de descarga para el AOI activo.
 function generateLinks() {
   resultsPanel.clear();
   clearImagePreview();
@@ -339,7 +348,6 @@ function generateLinks() {
   });
 }
 
-// Panel lateral
 var title = ui.Label('Descarga de imágenes por AOI (2 puntos)', {
   fontWeight: 'bold',
   fontSize: '18px',
@@ -482,17 +490,13 @@ var controls = ui.Panel({
   }
 });
 
-// Evitar duplicar panel si re-ejecutas el script
 if (ui.root.widgets().length() > 1) {
   ui.root.remove(ui.root.widgets().get(0));
 }
 
-// Mantener el mapa por defecto del Code Editor y poner los controles a la izquierda.
 ui.root.insert(0, controls);
 
-// Actualizar contador cuando cambien las capas de dibujo
 drawingTools.onLayerAdd(refreshPointCount);
 drawingTools.onLayerRemove(refreshPointCount);
 
-// Estado inicial
 resetAll();

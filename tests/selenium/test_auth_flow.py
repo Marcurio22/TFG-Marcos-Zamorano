@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de autenticación de usuarios.
-
-Verifica registro, login, navegación autenticada y cierre de sesión usando el
-HTML real y las interacciones de navegador.
+"""Pruebas Selenium de autenticación de usuarios.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

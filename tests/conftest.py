@@ -1,11 +1,7 @@
-"""
-==============================================================================
-Configura pytest para el proyecto. Añade el paquete trazasytrazadas
-al sys.path, crea la app de test y expone fixtures comunes.
+"""Configuración de pytest y fixtures comunes de la aplicación.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 import gc

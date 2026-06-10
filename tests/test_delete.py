@@ -1,12 +1,7 @@
-"""
-Pruebas para la ruta /delete y la limpieza del estado asociado.
-
-Este módulo comprueba tanto el caso en el que no existe ninguna imagen cargada
-como la eliminación correcta de archivos temporales y variables de sesión tras
-un cálculo previo.
+"""Pruebas para la ruta /delete y la limpieza del estado asociado.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io
@@ -31,7 +26,7 @@ def upload_image(client):
 
 
 def test_delete_requires_image(client):
-    """Verifica que el borrado exige el caso previsto."""
+    """Comprueba que el borrado exige una imagen cargada en sesión."""
     resp = client.post("/delete", follow_redirects=True)
     assert (
         "No hay ninguna imagen cargada para borrar.".encode("utf-8")
@@ -41,7 +36,7 @@ def test_delete_requires_image(client):
 
 def test_delete_cleans_files_and_session(client, mock_compute_traces):
     # Sustituye el cálculo real para evitar depender de pesos de segmentación.
-    """Verifica el borrado en el caso previsto."""
+    """Comprueba que el borrado limpia archivos temporales y sesión."""
     mock_compute_traces()
 
     data = {"image": (create_test_image_bytes(), "test.jpg")}

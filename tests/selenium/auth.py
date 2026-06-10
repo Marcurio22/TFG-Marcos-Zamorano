@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Rutas y utilidades de autenticación.
-
-Define el registro de usuarios, el inicio de sesión, el perfil y la
-integración base con Flask-Login.
+"""Rutas auxiliares de autenticación usadas por pruebas Selenium.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

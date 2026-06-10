@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de administración de modelos.
-
-Este módulo verifica la gestión administrativa de modelos heredada de la lógica
-de folds: listado, subida, activación, renombrado, validación y borrado.
+"""Pruebas de administración de modelos.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -301,6 +295,7 @@ def test_admin_can_upload_model_as_pending(app, client, monkeypatch):
         ).scalar_one()
         assert model.estado == "subiendo"
         assert model.validacion == "pendiente"
+
 
 def test_admin_upload_returns_json_for_ajax_request(
     app,

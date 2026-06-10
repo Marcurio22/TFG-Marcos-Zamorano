@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas del perfil de usuario.
-
-Este módulo verifica la visualización y edición del perfil, la actualización de
-datos personales y el flujo básico de imagen de perfil.
+"""Pruebas del perfil de usuario.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

@@ -1,14 +1,7 @@
-"""
-Pruebas para la ruta /download_results.
-
-Este módulo verifica que la descarga de resultados:
-- falle con 404 si no hay estado suficiente en sesión,
-- falle con 404 si la sesión apunta a archivos inexistentes,
-- y genere un ZIP válido con la imagen original, el JSON de trazas
-  y el PNG de overlay cuando el flujo previo se ha completado.
+"""Pruebas para la ruta /download_results.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io

@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas unitarias de inferencia de segmentación.
-
-Este módulo cubre ramas internas de carga, validación y preprocesado
-sin depender de modelos reales pesados.
+"""Pruebas unitarias de inferencia de segmentación.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -74,7 +68,7 @@ class ParentWithDecoder(nn.Module):
 
 
 def test_tensor_preprocessing_and_stubs():
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba preprocesado de tensores y dobles de prueba."""
     tensor = torch.zeros((1, 3, 32, 64))
     padded, pad_h, pad_w = seg._pad_to_multiple_of_32(tensor)
     assert padded is tensor
@@ -108,7 +102,7 @@ def test_tensor_preprocessing_and_stubs():
 
 
 def test_inject_symbols_and_patch_helpers(monkeypatch):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba inyección de símbolos y helpers de parcheo."""
     fake_main = types.SimpleNamespace()
     monkeypatch.setitem(sys.modules, "__main__", fake_main)
     seg._inject_symbols_into_main()
@@ -143,7 +137,7 @@ def test_inject_symbols_and_patch_helpers(monkeypatch):
 
 
 def test_dummy_and_safe_unpickler_behaviour(tmp_path):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba el comportamiento del cargador seguro y objetos mínimos."""
     dummy = seg._Dummy()
     dummy.answer = 42
     assert dummy["answer"] == 42
@@ -165,7 +159,7 @@ def test_dummy_and_safe_unpickler_behaviour(tmp_path):
 
 
 def test_state_dict_and_core_module_extraction():
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba extracción de state_dict y módulo principal."""
     state = {"layer.weight": torch.zeros(1), "nested": {"bias": torch.ones(1)}}
     assert seg._looks_like_state_dict(state)
     assert not seg._looks_like_state_dict({})
@@ -191,7 +185,7 @@ def test_state_dict_and_core_module_extraction():
 
 
 def test_output_extraction_and_infer_wrapper():
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba extracción de salida e inferencia envuelta."""
     tensor = torch.ones((1, 1, 2, 2))
     assert seg._extract_tensor_output(tensor) is tensor
     assert seg._extract_tensor_output(["x", tensor]) is tensor
@@ -213,7 +207,7 @@ def test_output_extraction_and_infer_wrapper():
 
 
 def test_loader_kind_and_model_loading_branches(monkeypatch, tmp_path):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba tipos de cargador y ramas de carga de modelo."""
     device = torch.device("cpu")
     model_path = tmp_path / "model.pt"
     model_path.write_bytes(b"model")
@@ -317,7 +311,7 @@ def test_loader_kind_and_model_loading_branches(monkeypatch, tmp_path):
 
 
 def test_cached_loader_missing_and_success(monkeypatch, tmp_path):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba caché de carga con modelo ausente y válido."""
     seg.load_model_file_models.cache_clear()
     with pytest.raises(FileNotFoundError):
         seg.load_model_file_models(str(tmp_path), "missing", False)
@@ -347,7 +341,7 @@ def test_cached_loader_missing_and_success(monkeypatch, tmp_path):
 
 
 def test_prediction_and_compute_traces(monkeypatch, tmp_path):
-    """Verifica el flujo de trazas en el caso previsto."""
+    """Comprueba predicción y cálculo de trazas."""
     image_path = tmp_path / "img.png"
     Image.new("RGB", (5, 6), color="white").save(image_path)
 
@@ -390,7 +384,8 @@ def test_prediction_and_compute_traces(monkeypatch, tmp_path):
 def test_validation_tensor_output_coercion_and_model_file_validation(
     monkeypatch, tmp_path
 ):
-    """Verifica la gestión de modelos en el caso previsto."""
+    """Comprueba adaptación de salida tensorial y
+        validación de fichero de modelo."""
     tensor = seg._make_validation_tensor(32)
     inverted = seg._make_validation_tensor(32, inverted=True)
     assert tensor.shape == (1, 3, 32, 32)

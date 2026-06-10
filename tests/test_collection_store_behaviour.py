@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de comportamiento de la capa de colección.
-
-Este módulo cubre ramas defensivas de serialización, almacenamiento físico,
-estados agregados, reintentos y borrado seguro de parcelas.
+"""Pruebas de comportamiento de la capa de colección.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -108,7 +102,7 @@ def _create_parcel_with_photos(app, *photo_statuses: str):
 
 
 def test_collection_store_small_helpers_and_contracts(app):
-    """Verifica la persistencia de colección en el caso previsto."""
+    """Comprueba helpers básicos y contratos de la capa de colección."""
     with app.app_context():
         assert store._date_from_db_timestamp(None)
         assert store._json_loads("", {"fallback": True}) == {"fallback": True}
@@ -136,7 +130,7 @@ def test_collection_store_small_helpers_and_contracts(app):
 
 
 def test_photo_retry_stale_and_zone_status_helpers(app):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba reintentos, trabajos antiguos y estado agregado de zona."""
     now = datetime.now(timezone.utc)
     old = (now - timedelta(seconds=300)).strftime("%Y-%m-%d %H:%M:%S")
     fresh = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -173,7 +167,7 @@ def test_photo_retry_stale_and_zone_status_helpers(app):
 def test_update_zone_name_missing_and_too_long_and_save_zone_invalid_status(
     app,
 ):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba errores de nombre de zona y estados no válidos al guardar."""
     with app.test_request_context("/"):
         with pytest.raises(ValueError):
             store.update_zone_name(
@@ -197,7 +191,7 @@ def test_update_zone_name_missing_and_too_long_and_save_zone_invalid_status(
 
 
 def test_preview_staging_restore_and_purge_cleanup(app, tmp_path, monkeypatch):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba staging, restauración y limpieza de vistas previas."""
     with app.app_context():
         app.config["COLLECTION_STORAGE_ROOT"] = str(tmp_path)
         preview_path = Path(store.save_zone_preview_bytes(3, b"preview"))
@@ -255,7 +249,8 @@ def test_preview_staging_restore_and_purge_cleanup(app, tmp_path, monkeypatch):
 def test_stage_parcel_dirs_restores_previous_staging_when_later_stage_fails(
     app, tmp_path, monkeypatch
 ):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba que el staging anterior se restaura
+        si falla una etapa posterior."""
     with app.app_context():
         app.config["COLLECTION_STORAGE_ROOT"] = str(tmp_path)
         first_root = Path(store._parcel_root_dir(1))
@@ -285,7 +280,8 @@ def test_stage_parcel_dirs_restores_previous_staging_when_later_stage_fails(
 def test_list_search_detail_plan_photo_and_materialize_paths(
     app, tmp_path, monkeypatch
 ):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba listado, búsqueda, detalle y materialización
+        de rutas de colección."""
     parcel_id, photo_ids = _create_parcel_with_photos(
         app, "completed", "failed", "processing"
     )
@@ -334,7 +330,7 @@ def test_list_search_detail_plan_photo_and_materialize_paths(
 
 
 def test_delete_zone_error_restore_and_purge_paths(app, tmp_path, monkeypatch):
-    """Verifica el borrado en el caso previsto."""
+    """Comprueba restauración y limpieza tras errores al borrar una zona."""
     parcel_id, _photo_ids = _create_parcel_with_photos(app, "pending")
 
     with app.test_request_context("/"):
@@ -383,7 +379,7 @@ def test_delete_zone_error_restore_and_purge_paths(app, tmp_path, monkeypatch):
 
 
 def test_mark_refresh_retry_and_remove_paths(app, tmp_path, monkeypatch):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba marcado, refresco, reintento y eliminación de teselas."""
     parcel_id, photo_ids = _create_parcel_with_photos(
         app, "pending", "failed", "completed"
     )

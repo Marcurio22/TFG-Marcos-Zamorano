@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de rutas y validaciones del visor cartográfico.
-
-Este módulo cubre validaciones, utilidades WMS y selección de fuentes
-sin depender de servicios externos.
+"""Pruebas de rutas y validaciones del visor cartográfico.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -53,7 +47,7 @@ def _png_rgba_bytes(alpha=0) -> bytes:
 
 
 def test_public_contract_helpers_and_bbox_validation(app):
-    """Verifica las validaciones en el caso previsto."""
+    """Comprueba helpers públicos y validación de cajas geográficas."""
     source = visor.VISOR_PNOA_SOURCES[0]
     assert visor._visor_source_by_id(source["id"]) is source
     assert visor._visor_source_by_id("missing") is None
@@ -92,7 +86,7 @@ def test_public_contract_helpers_and_bbox_validation(app):
 
 
 def test_coordinate_wms_and_http_helpers(monkeypatch):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba conversión de coordenadas y helpers HTTP/WMS."""
     bbox3857 = visor._visor_bbox_to_mercator((40.0, -4.0, 41.0, -3.0))
     latlng = visor._visor_bbox_to_latlng(bbox3857)
     assert latlng["sur"] == pytest.approx(40.0)
@@ -163,7 +157,7 @@ def test_coordinate_wms_and_http_helpers(monkeypatch):
 
 
 def test_blank_image_detection():
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba detección de imágenes vacías."""
     assert visor._visor_image_is_probably_blank(_png_rgba_bytes(alpha=0))
     assert visor._visor_image_is_probably_blank(_jpeg_bytes())
     assert not visor._visor_image_is_probably_blank(_varied_jpeg_bytes())
@@ -171,7 +165,7 @@ def test_blank_image_detection():
 
 
 def test_probe_resolution_select_and_build_tiles(monkeypatch, app):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba selección de resolución y construcción de teselas."""
     source_low = {
         "id": "low",
         "label": "Low",
@@ -262,7 +256,7 @@ def test_probe_resolution_select_and_build_tiles(monkeypatch, app):
 
 
 def test_parse_and_fetch_tile_errors(monkeypatch, app):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba errores de parseo y descarga de teselas."""
     source = visor.VISOR_PNOA_SOURCES[0]
     args = {
         "fuente_id": source["id"],
@@ -323,7 +317,7 @@ def test_parse_and_fetch_tile_errors(monkeypatch, app):
 def test_grid_plan_error_paths_and_warnings(
     client, app, force_login, monkeypatch
 ):
-    """Verifica la generación de cuadrícula en el caso previsto."""
+    """Comprueba errores y avisos al generar el plan de cuadrícula."""
     force_login()
     payload = {
         "limites": {"sur": 40, "oeste": -4, "norte": 41, "este": -3},
@@ -408,7 +402,7 @@ def test_grid_plan_error_paths_and_warnings(
 
 
 def test_download_tile_and_zip_routes(client, app, force_login, monkeypatch):
-    """Verifica las descargas en el caso previsto."""
+    """Comprueba rutas de descarga de tesela y ZIP."""
     force_login()
     source = visor.VISOR_PNOA_SOURCES[0]
 

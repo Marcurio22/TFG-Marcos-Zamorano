@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de gestión administrativa de modelos.
-
-Ejercita acciones de activación y renombrado de modelos sobre los modales del
-panel administrativo.
+"""Pruebas Selenium de gestión administrativa de modelos.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

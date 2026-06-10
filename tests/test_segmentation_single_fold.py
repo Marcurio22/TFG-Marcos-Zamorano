@@ -1,12 +1,7 @@
-"""
-Prueba del comportamiento de inferencia con un único modelo activo.
-
-Este módulo verifica que la función de predicción carga el modelo activo por
-nombre de fichero y que la máscara resultante mantiene el tamaño original de
-la imagen.
+"""Prueba del comportamiento de inferencia con un único modelo activo.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import numpy as np

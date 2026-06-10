@@ -1,10 +1,18 @@
+<!--
+Prototipo Leaflet para descargar recortes PNOA mediante WMS.
+
+La página permite marcar un rectángulo con dos clics, calcular el GetMap del
+servicio PNOA-MA y abrir o descargar la imagen resultante.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+-->
 <!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>PNOA (IGN/CNIG) AOI por 2 puntos → JPG</title>
-    <!-- Leaflet -->
     <link rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -80,7 +88,6 @@
       <div id="map"></div>
     </div>
     <script>
-  // --- Configuración ---
   const IBERIA_BOUNDS = L.latLngBounds(
     L.latLng(35.5, -10.5),   // SW
     L.latLng(44.8,  4.7)     // NE
@@ -138,6 +145,7 @@
   const linkA = document.getElementById("getmapLink");
   const linkUrl = document.getElementById("getmapUrl");
 
+  // Actualiza el mensaje de estado mostrado al usuario.
   function setStatus(msg, cls) {
     statusEl.className = "small " + (cls || "");
     statusEl.textContent = msg;
@@ -147,6 +155,7 @@
   let markers = [];
   let rect = null;
 
+  // Limpia los puntos, el rectángulo y el enlace generado.
   function clearSelection() {
     pts = [];
     markers.forEach(m => map.removeLayer(m));
@@ -160,8 +169,10 @@
 
   btnClear.addEventListener("click", clearSelection);
 
+  // Indica si la capa PNOA está activa en el mapa.
   function pnoaActive() { return map.hasLayer(pnoa); }
 
+  // Activa o desactiva PNOA según el nivel de zoom.
   function updatePnoaVisibility() {
     const z = map.getZoom();
     const shouldShow = z >= PNOA_MIN_ZOOM;
@@ -182,6 +193,7 @@
   map.on("zoomend", updatePnoaVisibility);
   updatePnoaVisibility();
 
+  // Dibuja el rectángulo del AOI con los puntos seleccionados.
   function drawRect() {
     if (rect) map.removeLayer(rect);
     if (pts.length < 2) return;
@@ -209,6 +221,7 @@
     else setStatus("Primer punto colocado. Haz clic para el segundo punto.", "ok");
   });
 
+	// Construye la URL WMS GetMap para el recorte actual.
 	function buildGetMapUrl() {
 	  if (pts.length < 2) throw new Error("Necesitas 2 puntos.");
 
@@ -265,6 +278,7 @@
 	  return { url, widthPx, heightPx, resM, filename, ext };
 	}
 
+	// Intenta descargar automáticamente la imagen generada.
 	async function tryAutoDownload(url, filename) {
 	  try {
 		const resp = await fetch(url, { mode: "cors" });
@@ -307,7 +321,6 @@
 		if (ok) {
 		  setStatus(`Descarga iniciada: ${filename}`, "ok");
 		} else {
-		  // Fallback si CORS bloquea
 		  setStatus(
 			`No se pudo forzar descarga automática (posible CORS). Abro la imagen en pestaña; guarda como "${filename}".`,
 			"warn"

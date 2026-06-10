@@ -1,3 +1,12 @@
+/**
+ * Lógica de administración de modelos.
+ *
+ * Controla la subida de modelos, el progreso de carga, la cancelación de la
+ * transferencia y los modales de acciones administrativas.
+ *
+ * Autor: Marcos Zamorano Lasso
+ * Versión: 1.0
+ */
 /* global window, document, FormData, XMLHttpRequest */
 (() => {
   "use strict";
@@ -8,10 +17,12 @@
   let uploadInProgress = false;
   let activeUploadXhr = null;
 
+  // Obtiene un mensaje traducido con valor por defecto.
   function message(key, fallback) {
     return messages[key] || fallback;
   }
 
+  // Inicia la recarga periódica cuando no hay acciones abiertas.
   function startRefreshLoop() {
     if (refreshTimer) {
       return;
@@ -25,12 +36,14 @@
     }, 5000);
   }
 
+  // Cierra un diálogo si está abierto.
   function closeDialog(dialog) {
     if (dialog?.open && typeof dialog.close === "function") {
       dialog.close();
     }
   }
 
+  // Oculta y elimina un aviso de la pantalla.
   function dismissToast(alertEl) {
     if (!alertEl) {
       return;
@@ -41,6 +54,7 @@
     window.setTimeout(() => alertEl.remove(), 260);
   }
 
+  // Construye el icono de cierre usado en los avisos.
   function makeCloseIcon() {
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     icon.setAttribute("viewBox", "0 0 20 20");
@@ -60,6 +74,7 @@
     return icon;
   }
 
+  // Muestra el aviso de cancelación de subida.
   function showCancellationToast() {
     const toastContainer = document.querySelector(
       "[data-upload-toast-container]"
@@ -98,6 +113,7 @@
     }, 5000);
   }
 
+  // Actualiza el bloque de progreso de subida.
   function showProgress(text) {
     const progressBox = document.querySelector("[data-model-upload-progress]");
     const progressText = document.querySelector("[data-upload-progress-text]");
@@ -109,6 +125,7 @@
     progressText.textContent = text;
   }
 
+  // Muestra u oculta el botón de cancelar subida.
   function setCancelButtonVisible(visible) {
     const cancelButton = document.querySelector("[data-upload-cancel-button]");
     if (!cancelButton) {
@@ -119,6 +136,7 @@
     cancelButton.disabled = !visible;
   }
 
+  // Muestra u oculta el indicador de carga.
   function setSpinnerVisible(visible) {
     const spinner = document.querySelector("[data-upload-progress-spinner]");
     if (!spinner) {
@@ -128,6 +146,7 @@
     spinner.classList.toggle("hidden", !visible);
   }
 
+  // Reinicia la interfaz de progreso antes de una subida.
   function resetProgressUi() {
     const progressBox = document.querySelector("[data-model-upload-progress]");
     const progressBar = document.querySelector("[data-upload-progress-bar]");
@@ -144,6 +163,7 @@
     setCancelButtonVisible(true);
   }
 
+  // Oculta el bloque de progreso de subida.
   function hideProgressUi() {
     const progressBox = document.querySelector("[data-model-upload-progress]");
     const progressBar = document.querySelector("[data-upload-progress-bar]");
@@ -157,6 +177,7 @@
     }
   }
 
+  // Actualiza el porcentaje visible de la subida.
   function updateProgress(percent) {
     const progressBar = document.querySelector("[data-upload-progress-bar]");
     const boundedPercent = Math.max(0, Math.min(100, percent));
@@ -170,6 +191,7 @@
     showProgress(`${prefix} ${boundedPercent}% ${suffix}`);
   }
 
+  // Marca la subida como finalizada en la interfaz.
   function finishProgress(text) {
     const progressBar = document.querySelector("[data-upload-progress-bar]");
     if (progressBar) {
@@ -181,6 +203,7 @@
     showProgress(text);
   }
 
+  // Restaura el botón de envío tras una acción.
   function restoreSubmitButton(button, originalText) {
     if (!button) {
       return;
@@ -191,6 +214,7 @@
     button.textContent = originalText;
   }
 
+  // Bloquea el botón de envío durante una acción.
   function markSubmitButtonBusy(button) {
     if (!button) {
       return "";
@@ -203,6 +227,7 @@
     return originalText;
   }
 
+  // Rellena la fila temporal del modelo en subida.
   function fillUploadingRow(row, foldName) {
     row.dataset.modelName = foldName;
 
@@ -227,6 +252,7 @@
     }
   }
 
+  // Escapa valores usados en selectores CSS.
   function cssEscape(value) {
     if (window.CSS && typeof window.CSS.escape === "function") {
       return window.CSS.escape(value);
@@ -235,6 +261,7 @@
     return value.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
   }
 
+  // Crea o reutiliza la fila temporal de subida.
   function showUploadingRow(foldName) {
     if (!foldName) {
       return null;
@@ -265,12 +292,14 @@
     return body.querySelector(existingSelector);
   }
 
+  // Elimina la fila temporal de la tabla.
   function removeTemporaryRow(row) {
     if (row && row.querySelector("[data-uploading-model-name]")) {
       row.remove();
     }
   }
 
+  // Interpreta la respuesta JSON de una petición.
   function parseJsonResponse(xhr) {
     try {
       return JSON.parse(xhr.responseText || "{}");
@@ -285,6 +314,7 @@
     }
   }
 
+  // Limpia la referencia a la subida activa.
   function clearActiveUpload() {
     uploadInProgress = false;
     activeUploadXhr = null;
@@ -292,6 +322,7 @@
     setCancelButtonVisible(false);
   }
 
+  // Restaura la interfaz cuando falla la subida.
   function handleUploadError(text, temporaryRow, submitButton, originalText) {
     clearActiveUpload();
     removeTemporaryRow(temporaryRow);
@@ -299,6 +330,7 @@
     showProgress(text);
   }
 
+  // Restaura la interfaz tras cancelar la subida.
   function handleUploadCancellation(temporaryRow, submitButton, originalText) {
     clearActiveUpload();
     removeTemporaryRow(temporaryRow);
@@ -307,6 +339,7 @@
     showCancellationToast();
   }
 
+  // Configura el botón de cancelación de subida.
   function setupCancelUploadButton() {
     const cancelButton = document.querySelector("[data-upload-cancel-button]");
     if (!cancelButton) {
@@ -324,6 +357,7 @@
     });
   }
 
+  // Configura el formulario de subida con progreso AJAX.
   function setupUploadForm() {
     const uploadDialog = document.getElementById("upload-fold-modal");
     const uploadForm = document.getElementById("upload-fold-form");
@@ -415,6 +449,7 @@
     });
   }
 
+  // Configura los modales de acciones sobre modelos.
   function setupActionModals() {
     const activateDialog = document.getElementById("activate-fold-modal");
     const activateName = document.getElementById("activate-fold-name");

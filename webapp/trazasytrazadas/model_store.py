@@ -118,7 +118,8 @@ def consume_fold_validation_events(
 
 
 def _metadata_path_for_fold_path(fold_path: Path) -> Path:
-    """Devuelve la ruta del metadato sidecar asociado a un fold."""
+    """Devuelve la ruta del fichero auxiliar de metadatos
+        asociado al modelo."""
     return fold_path.with_name(f".{fold_path.name}{_METADATA_SUFFIX}")
 
 
@@ -126,7 +127,7 @@ def _metadata_path_for_fold_name(
     fold_name: str,
     models_dir: str | Path | None = None,
 ) -> Path:
-    """Devuelve la ruta del sidecar de metadatos de un fold."""
+    """Devuelve la ruta del fichero auxiliar de metadatos del modelo."""
     models_path = _get_models_dir(models_dir) / fold_name
     return _metadata_path_for_fold_path(models_path)
 
@@ -184,7 +185,7 @@ def write_fold_metadata(
     metadata: dict,
     models_dir: str | Path | None = None,
 ) -> None:
-    """Persiste metadatos opcionales de un fold en un sidecar JSON."""
+    """Persiste metadatos opcionales del modelo en un fichero auxiliar JSON."""
     normalized_name = (fold_name or "").strip()
     if not is_valid_fold_name(normalized_name):
         raise ValueError("Introduce un nombre de modelo válido.")
@@ -200,7 +201,7 @@ def delete_fold_metadata(
     fold_name: str,
     models_dir: str | Path | None = None,
 ) -> None:
-    """Elimina el sidecar de metadatos de un fold si existe."""
+    """Elimina el fichero auxiliar de metadatos del modelo si existe."""
     metadata_path = _metadata_path_for_fold_name(fold_name, models_dir)
     try:
         metadata_path.unlink()
@@ -255,7 +256,7 @@ def _available_file_names(models_dir: str | Path | None = None) -> set[str]:
 
 
 def sync_models_from_files(models_dir: str | Path | None = None) -> None:
-    """Sincroniza la tabla modelo con los ficheros fold.N existentes."""
+    """Sincroniza la tabla modelo con los ficheros existentes."""
     if not has_app_context():
         return
 
@@ -391,7 +392,7 @@ def get_active_fold_name(
     models_dir: str | Path | None = None,
     default_name: str | None = None,
 ) -> str | None:
-    """Devuelve el nombre del fold activo."""
+    """Devuelve el nombre del modelo activo."""
     if has_app_context():
         active_model = get_active_model()
         if active_model is not None:

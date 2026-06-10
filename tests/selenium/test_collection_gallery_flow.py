@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de galería de colección.
-
-Ejercita el renombrado de colecciones y el visor ampliado de teselas con trazas
-calculadas usando HTML y JavaScript reales.
+"""Pruebas Selenium de galería de colección.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

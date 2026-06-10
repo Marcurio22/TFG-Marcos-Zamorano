@@ -1,15 +1,7 @@
-"""
-Pruebas del flujo principal de cálculo y consulta de trazas.
-
-Este módulo verifica:
-- el estado inicial de la vista principal sin imagen,
-- el estado de la vista cuando ya existe una imagen cargada,
-- que no se pueda calcular sin imagen previa,
-- y que el cálculo directo mediante /calculate funcione correctamente con un
-  cálculo simulado.
+"""Pruebas del flujo principal de cálculo y consulta de trazas.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io

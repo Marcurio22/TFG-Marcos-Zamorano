@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de subida y validación de modelos.
-
-Comprueba el flujo completo de navegador para añadir un modelo desde el panel
-administrativo y esperar a que la validación lo deje disponible.
+"""Pruebas Selenium de subida y validación de modelos.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

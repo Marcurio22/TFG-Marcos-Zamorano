@@ -1,4 +1,12 @@
-{# Renderizado común de mensajes flash con estilos DaisyUI. #}
+<!--
+Parcial compartido para mostrar mensajes flash de la aplicación.
+
+Centraliza el marcado de los avisos tipo toast con estilos DaisyUI,
+permitiendo reutilizar el mismo comportamiento en las plantillas base.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+-->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div class="{{ flash_toast_class|default('toast toast-top toast-center z-50 mt-4') }}">

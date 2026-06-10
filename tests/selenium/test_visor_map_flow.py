@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium de interacción básica con el mapa.
-
-Comprueba que Leaflet acepta selección por clics, genera la cuadrícula usando
-backend simulado y permite reiniciar la selección desde la interfaz.
+"""Pruebas Selenium de interacción básica con el mapa.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

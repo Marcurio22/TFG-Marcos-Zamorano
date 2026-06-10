@@ -1,3 +1,12 @@
+<!--
+Prototipo HTML para solicitar recortes a Google Earth Engine desde Flask.
+
+Permite seleccionar un área con dos puntos en Leaflet y pedir al servidor una
+miniatura, un enlace GeoTIFF o una exportación a Google Drive.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+-->
 <!doctype html>
 <html lang="es">
 <head>
@@ -121,12 +130,15 @@
 
   const statusEl = document.getElementById('status');
 
+  // Actualiza el texto de estado de la interfaz.
   function setStatus(msg) { statusEl.textContent = msg; }
 
+  // Actualiza el contador de puntos seleccionados.
   function updateStatus() {
     setStatus(`Puntos: ${pts.length}/2\n` + (pts.length===2 ? `AOI listo.` : `Haz clic en el mapa para añadir puntos.`));
   }
 
+  // Limpia puntos, rectángulo y enlaces generados.
   function clearAll() {
     pts = [];
     markers.forEach(m => map.removeLayer(m));
@@ -139,6 +151,7 @@
     updateStatus();
   }
 
+  // Dibuja el rectángulo definido por los dos puntos.
   function drawRect() {
     if (rect) map.removeLayer(rect);
     if (pts.length < 2) return;
@@ -158,6 +171,7 @@
     updateStatus();
   });
 
+  // Envía una petición JSON al servidor Flask.
   async function postJson(url, body) {
     const res = await fetch(url, {
       method: 'POST',
@@ -169,6 +183,7 @@
     return data;
   }
 
+  // Recoge los parámetros actuales del formulario.
   function currentParams() {
     if (pts.length < 2) throw new Error('Necesitas 2 puntos.');
     return {

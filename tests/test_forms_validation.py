@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de validación de formularios y utilidades de formato.
-
-Este módulo cubre validaciones unitarias de teléfonos, edición de usuario y
-nombres de modelos que no quedan ejercitadas por los flujos funcionales.
+"""Pruebas de validación de formularios y utilidades de formato.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -40,7 +34,7 @@ from trazasytrazadas.forms import (
     ],
 )
 def test_normalize_phone_number_success(value, expected):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba normalización correcta de teléfonos."""
     assert normalize_phone_number(value) == expected
 
 
@@ -55,13 +49,13 @@ def test_normalize_phone_number_success(value, expected):
     ],
 )
 def test_normalize_phone_number_errors(value, message):
-    """Verifica el comportamiento esperado en el caso previsto."""
+    """Comprueba errores de normalización de teléfonos."""
     with pytest.raises(ValueError, match=message):
         normalize_phone_number(value)
 
 
 def test_format_phone_number_for_display_variants():
-    """Verifica los formularios en el caso previsto."""
+    """Comprueba variantes de formato visual de teléfono."""
     assert "No asociado" in format_phone_number_for_display(None)
     assert "bad-phone" == format_phone_number_for_display("bad-phone")
     assert "No asociado" in format_phone_number_for_display("   ")
@@ -70,7 +64,7 @@ def test_format_phone_number_for_display_variants():
 
 
 def test_registration_form_trims_empty_username_and_optional_phone(app):
-    """Verifica los formularios en el caso previsto."""
+    """Comprueba limpieza de usuario vacío y teléfono opcional en registro."""
     app.config["WTF_CSRF_ENABLED"] = False
     with app.test_request_context("/"):
         empty_user = RegistrationForm(
@@ -109,7 +103,8 @@ def test_registration_form_trims_empty_username_and_optional_phone(app):
 
 
 def test_profile_form_allows_current_user_duplicates_and_blank_phone(app):
-    """Verifica que el perfil de usuario permite el caso previsto."""
+    """Comprueba que el perfil permite conservar datos
+        propios y teléfono vacío."""
     app.config["WTF_CSRF_ENABLED"] = False
     with app.test_request_context("/"):
         user_id = _create_user(
@@ -135,7 +130,8 @@ def test_profile_form_allows_current_user_duplicates_and_blank_phone(app):
 def test_admin_user_edit_form_self_duplicates_blank_phone_and_invalid_role(
     app,
 ):
-    """Verifica la administración de usuarios en el caso previsto."""
+    """Comprueba edición admin con datos propios,
+        teléfono vacío y rol inválido."""
     app.config["WTF_CSRF_ENABLED"] = False
     with app.test_request_context("/"):
         user_id = _create_user(
@@ -180,7 +176,7 @@ def test_admin_user_edit_form_self_duplicates_blank_phone_and_invalid_role(
 
 @pytest.mark.parametrize("field_value", [".", ".."])
 def test_admin_fold_forms_reject_dot_names(app, field_value):
-    """Verifica que la gestión de modelos rechaza el caso previsto."""
+    """Comprueba que formularios de modelo rechazan nombres ocultos."""
     app.config["WTF_CSRF_ENABLED"] = False
     with app.test_request_context("/"):
         rename = AdminFoldRenameForm(
@@ -216,7 +212,7 @@ def test_admin_fold_forms_reject_dot_names(app, field_value):
 def test_admin_fold_rename_form_rejects_unsafe_names(
     app, field_value, expected
 ):
-    """Verifica que la gestión de modelos rechaza el caso previsto."""
+    """Comprueba que el renombrado rechaza nombres de modelo inseguros."""
     app.config["WTF_CSRF_ENABLED"] = False
     with app.test_request_context("/"):
         form = AdminFoldRenameForm(
@@ -240,7 +236,7 @@ def test_admin_fold_rename_form_rejects_unsafe_names(
 def test_admin_fold_upload_form_rejects_unsafe_names(
     app, field_value, expected
 ):
-    """Verifica que la gestión de modelos rechaza el caso previsto."""
+    """Comprueba que la subida rechaza nombres de modelo inseguros."""
     app.config["WTF_CSRF_ENABLED"] = False
     with app.test_request_context("/"):
         form = AdminFoldUploadForm(

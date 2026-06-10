@@ -1,11 +1,11 @@
 """
 Carga inicial de datos demo mediante sentencias INSERT INTO.
 
-Este módulo solo ejecutaun fichero SQL de datos iniciales
+Este módulo solo ejecuta un fichero SQL de datos iniciales
 cuando la base de datos está vacía.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -42,9 +42,7 @@ def _is_database_empty() -> bool:
 def _read_sql_statements(sql_file: Path) -> list[str]:
     """
     Lee un fichero SQL generado por la aplicación.
-
-    El exportador genera una sentencia por bloque terminado en ';'. No se usa
-    sqlite3 directamente; cada sentencia se ejecuta mediante SQLAlchemy.
+    Cada sentencia se ejecuta mediante SQLAlchemy.
     """
     content = sql_file.read_text(encoding="utf-8")
     statements: list[str] = []

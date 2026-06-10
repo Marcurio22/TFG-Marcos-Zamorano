@@ -1,11 +1,11 @@
-# Archivos compilados de Python
+# Cachés de Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Georreferenciación
+# Rásteres generados durante las pruebas
 *.tif
 
-# Jupyter Notebook
+# Checkpoints locales de Jupyter
 .ipynb_checkpoints/

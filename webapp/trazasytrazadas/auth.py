@@ -6,7 +6,7 @@ Define el registro de usuarios, el inicio de sesión, el perfil y la
 integración base con Flask-Login.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 

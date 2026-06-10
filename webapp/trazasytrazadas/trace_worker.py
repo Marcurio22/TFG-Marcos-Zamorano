@@ -7,7 +7,7 @@ lanza el worker automáticamente en background cuando la aplicación empieza a
 recibir peticiones, sin requerir acciones manuales del usuario.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 ===============================================================================
 """
 
@@ -260,6 +260,7 @@ def _ensure_background_worker_started(app) -> None:
 
     Se invoca desde un hook de Flask antes de procesar peticiones. En tests se
     desactiva vía configuración para evitar efectos no deterministas.
+    Esta función es de uso meramente local.
     """
     if not app.config.get("AUTO_START_TRACE_WORKER", True):
         return

@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium del visor cartográfico.
-
-Valida controles HTML/JS esenciales del visor sin depender de servicios WMS
-externos ni de descargas reales de teselas.
+"""Pruebas Selenium del visor cartográfico.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

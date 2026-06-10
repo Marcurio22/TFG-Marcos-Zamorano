@@ -1,18 +1,17 @@
 /**
  * Lógica de interfaz del visor cartográfico.
  *
- * Este archivo controla la selección de un área sobre Leaflet, la petición al
- * backend para resolver la mejor ortofoto PNOA disponible, la visualización
- * de la cuadrícula resultante y la descarga de teselas individuales o en ZIP.
+ * Controla la selección de área sobre el mapa, la generación de teselas, la
+ * descarga de resultados y la visualización de trazas sobre Leaflet.
  *
  * Autor: Marcos Zamorano Lasso
- * Versión: 0.1
+ * Versión: 1.0
  */
-
 document.addEventListener("DOMContentLoaded", () => {
   const CFG = window.VISOR_APP || {};
   const URLS = CFG.urls || {};
 
+  // Obtiene el token CSRF disponible en la página.
   function getCsrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
   }
@@ -143,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const traceOverlayCache = new Map();
   const initialZone = CFG.zonaInicial || CFG.initialZone || null;
 
+  // Sustituye marcadores simples dentro de un texto.
   function formatTemplate(template, values) {
     return Object.keys(values).reduce(
       (acc, key) => acc.replaceAll(`{${key}}`, String(values[key])),
@@ -150,26 +150,32 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
+  // Redondea una coordenada para mostrarla o enviarla.
   function roundCoord(value, digits = 6) {
     return Number(value).toFixed(digits);
   }
 
+  // Actualiza el resumen de selección del mapa.
   function setSelectionSummary(message) {
     if (selectionSummaryEl) selectionSummaryEl.textContent = message;
   }
 
+  // Actualiza el resumen de la fuente cartográfica.
   function setSourceSummary(message) {
     if (sourceSummaryEl) sourceSummaryEl.textContent = message;
   }
 
+  // Actualiza el resumen de descargas disponibles.
   function setDownloadsSummary(message) {
     if (downloadsSummaryEl) downloadsSummaryEl.textContent = message;
   }
 
+  // Elimina los avisos visibles del visor.
   function clearAlerts() {
     if (alertsEl) alertsEl.innerHTML = "";
   }
 
+  // Oculta y elimina un aviso concreto.
   function dismissAlert(alertEl) {
     if (!alertEl) return;
     alertEl.style.transition = "opacity 250ms ease";
@@ -177,6 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => alertEl.remove(), 260);
   }
 
+  // Desplaza la vista hasta la lista de descargas.
   function scrollToDownloads() {
     if (!downloadsSectionEl) return;
     downloadsSectionEl.scrollIntoView({
@@ -185,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Muestra un aviso en el visor.
   function addAlert(kind, message) {
     if (!alertsEl) return;
 
@@ -217,12 +225,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   }
 
+  // Muestra la lista de descargas vacía.
   function setEmptyDownloadsList() {
     if (!downloadListEl) return;
     downloadListEl.innerHTML = `<div class="text-sm opacity-70">${I18N.emptyList}</div>`;
     if (downloadAllBtn) downloadAllBtn.disabled = true;
   }
 
+  // Obtiene el texto del estado de trazas en mapa.
   function getMapTraceStatusTitle(status) {
     if (status === "completed") {
       return I18N.mapTraceStatusCompleted;
@@ -239,6 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return I18N.mapTraceStatusPending;
   }
 
+  // Genera el indicador de estado de trazas en mapa.
   function renderMapTraceStatusMarkup(status) {
     if (status === "completed") {
       return `
@@ -297,6 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  // Sincroniza el estado de trazas del panel del mapa.
   function syncMapTraceStatus(plan) {
     if (!mapTracesStatus) {
       return;
@@ -308,6 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mapTracesStatus.dataset.traceStatus = status;
   }
 
+  // Limpia las capas de trazas dibujadas en el mapa.
   function clearMapTraceOverlays({ resetCheckbox = true } = {}) {
     traceOverlayGroup.clearLayers();
 
@@ -316,6 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Actualiza los controles de trazas del mapa.
   function updateMapTraceControls(plan) {
     if (!mapTracesPanel || !mapTracesCheckbox) {
       return;
@@ -342,6 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncMapTraceStatus(plan);
   }
 
+  // Solicita las trazas de una tesela.
   async function fetchTileTraces(tile) {
     const cacheKey = String(tile.foto_id || tile.id || tile.url_trazas || "");
     if (cacheKey && traceOverlayCache.has(cacheKey)) {
@@ -376,6 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return traces;
   }
 
+  // Construye la capa gráfica de trazas de una tesela.
   function buildTileTraceOverlay(tile, traces) {
     const width = Number(tile.ancho || currentPlan?.ancho_tesela || 1024);
     const height = Number(tile.alto || currentPlan?.alto_tesela || 640);
@@ -411,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Dibuja las trazas disponibles sobre el mapa.
   async function drawMapTraces({ silent = false } = {}) {
     if (!currentPlan?.puede_dibujar_trazas) {
       if (mapTracesCheckbox) {
@@ -460,6 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Reinicia el estado de cuadrícula y descargas.
   function resetGridState() {
     gridGroup.clearLayers();
     traceOverlayGroup.clearLayers();
@@ -476,6 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMapTraceControls(null);
   }
 
+  // Limpia la selección activa del mapa.
   function resetSelection() {
     selectedPoints = [];
     selectionBounds = null;
@@ -487,6 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setSelectionSummary(I18N.statusReset);
   }
 
+  // Actualiza el resumen a partir del rectángulo seleccionado.
   function updateSelectionSummaryFromBounds(bounds) {
     const sw = bounds.getSouthWest();
     const ne = bounds.getNorthEast();
@@ -500,6 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
+  // Construye la carga enviada al backend para generar teselas.
   function buildPayload() {
     if (!selectionBounds) return null;
     const sw = selectionBounds.getSouthWest();
@@ -521,6 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // Lanza la descarga de un archivo recibido como blob.
   function triggerFileDownload(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -532,6 +554,7 @@ document.addEventListener("DOMContentLoaded", () => {
     URL.revokeObjectURL(url);
   }
 
+  // Descarga una tesela individual.
   async function downloadSingleTile(tile) {
     addAlert("alert-info", formatTemplate(I18N.downloadingTile, { tile: tile.nombre }));
     const response = await fetch(tile.url_descarga, { method: "GET" });
@@ -542,6 +565,7 @@ document.addEventListener("DOMContentLoaded", () => {
     triggerFileDownload(blob, tile.nombre_archivo);
   }
 
+  // Renderiza la lista de teselas descargables.
   function renderDownloadList(plan) {
     if (!downloadListEl) return;
     downloadListEl.innerHTML = "";
@@ -591,6 +615,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Muestra la capa PNOA elegida para la zona.
   function renderPreviewLayer(plan) {
     previewGroup.clearLayers();
     if (activePreviewLayer) {
@@ -627,6 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
+  // Dibuja la cuadrícula de teselas sobre el mapa.
   function renderGrid(plan) {
     gridGroup.clearLayers();
     traceOverlayGroup.clearLayers();
@@ -649,6 +675,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMapTraceControls(plan);
   }
 
+  // Restaura una zona cargada desde la colección.
   function restoreInitialZone(zone) {
     if (!zone || !zone.limites || !zone.plan) return;
 
@@ -707,6 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Comprueba que exista una selección válida.
   function ensureSelectionReady() {
     if (selectionBounds) {
       return true;
@@ -717,6 +745,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return false;
   }
 
+  // Abre el modal de generación de cuadrícula.
   function openGridControls() {
     if (!ensureSelectionReady()) {
       return;
@@ -725,6 +754,7 @@ document.addEventListener("DOMContentLoaded", () => {
     controlsModal?.showModal();
   }
 
+  // Solicita al backend la generación de la cuadrícula.
   async function generateGrid() {
     if (!ensureSelectionReady()) {
       if (controlsModal?.open) {
@@ -819,6 +849,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Descarga todas las teselas generadas en un ZIP.
   async function downloadZip() {
     if (!currentPlan) return;
 

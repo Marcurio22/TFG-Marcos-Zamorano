@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de ejecución y arranque del worker de trazas.
-
-Este módulo cubre ramas de arranque automático, ejecución bajo demanda y bucle
-sin trabajo pendiente sin crear threads reales de larga duración.
+"""Pruebas de ejecución y arranque del worker de trazas.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -26,7 +20,7 @@ class _StopWorker(RuntimeError):
 
 
 def test_run_trace_worker_waits_when_empty_queue_and_continues(monkeypatch):
-    """Verifica el worker de trazas en el caso previsto."""
+    """Comprueba que el worker espera con cola vacía y continúa."""
     calls = {"claim": 0, "sleep": []}
 
     def fake_claim_pending_photos(limit):
@@ -54,7 +48,8 @@ def test_run_trace_worker_waits_when_empty_queue_and_continues(monkeypatch):
 
 
 def test_background_worker_target_runs_inside_app_context(app, monkeypatch):
-    """Verifica que el worker de trazas ejecuta el caso previsto."""
+    """Comprueba que el worker de fondo se
+        ejecuta con contexto de aplicación."""
     observed = {}
 
     def fake_run_trace_worker(**kwargs):
@@ -76,7 +71,7 @@ def test_background_worker_target_runs_inside_app_context(app, monkeypatch):
 
 
 def test_trigger_trace_worker_starts_thread_when_enabled(app, monkeypatch):
-    """Verifica que el worker de trazas arranca el caso previsto."""
+    """Comprueba que el disparador arranca un hilo cuando está habilitado."""
     app.config["AUTO_START_TRACE_WORKER"] = True
     app.config["TESTING"] = False
     created_threads = []
@@ -122,7 +117,8 @@ def test_trigger_trace_worker_starts_thread_when_enabled(app, monkeypatch):
 
 
 def test_ensure_background_worker_started_respects_flags(app, monkeypatch):
-    """Verifica que el worker de trazas arranca el caso previsto."""
+    """Comprueba que el autoarranque del worker
+        respeta flags y estado previo."""
     created_threads = []
     started_threads = []
 
@@ -189,7 +185,7 @@ def test_ensure_background_worker_started_respects_flags(app, monkeypatch):
 
 
 def test_traces_worker_command_uses_default_poll_seconds(app, monkeypatch):
-    """Verifica que el worker de trazas usa el caso previsto."""
+    """Comprueba que el comando del worker usa el intervalo por defecto."""
     observed = {}
 
     def fake_run_trace_worker(**kwargs):

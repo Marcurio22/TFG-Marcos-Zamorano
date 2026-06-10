@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de validación y permisos de imagen de perfil.
-
-Este módulo cubre validaciones y permisos de acceso de la imagen de perfil que
-no quedan cubiertos por el flujo principal del perfil.
+"""Pruebas de validación y permisos de imagen de perfil.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations
@@ -33,14 +27,15 @@ def _image_bytes(fmt="PNG", size=(24, 24)) -> BytesIO:
 
 
 def test_load_user_rejects_non_integer(app):
-    """Verifica que el comportamiento esperado rechaza el caso previsto."""
+    """Comprueba que la carga de usuario rechaza identificadores no enteros."""
     with app.app_context():
         assert auth_module.load_user("not-an-id") is None
         assert auth_module.load_user(None) is None
 
 
 def test_auth_date_formatter_accepts_none_strings_and_unknown():
-    """Verifica los formularios en el caso previsto."""
+    """Comprueba el formato de fechas de alta nulas,
+        texto y valores desconocidos."""
     assert auth_module._format_user_joined_at(None) == "-"
     assert (
         auth_module._format_user_joined_at("2024-01-02T03:04:05.000000")
@@ -58,7 +53,7 @@ def test_auth_date_formatter_accepts_none_strings_and_unknown():
 
 
 def test_profile_image_path_helpers_and_size_failures(app, force_login):
-    """Verifica la imagen de perfil en el caso previsto."""
+    """Comprueba rutas de imagen de perfil y errores al calcular tamaño."""
     force_login()
     with app.test_request_context("/"):
         assert auth_module._profile_image_abspath(None) is None
@@ -82,7 +77,7 @@ def test_profile_image_path_helpers_and_size_failures(app, force_login):
 def test_save_profile_image_preview_rejects_extension_size_and_corrupt_file(
     app, force_login
 ):
-    """Verifica que la imagen de perfil rechaza el caso previsto."""
+    """Comprueba rechazo por extensión, tamaño e imagen corrupta."""
     user_id = force_login()
     app.config["PROFILE_IMAGE_MAX_BYTES"] = 5
 
@@ -123,7 +118,7 @@ def test_save_profile_image_preview_rejects_extension_size_and_corrupt_file(
 def test_profile_image_cancel_removes_pending_preview(
     client, app, force_login
 ):
-    """Verifica la imagen de perfil en el caso previsto."""
+    """Comprueba que cancelar elimina la previsualización pendiente."""
     force_login()
     app.config["WTF_CSRF_ENABLED"] = False
     root = Path(app.config["PROFILE_IMAGE_FOLDER"])
@@ -170,7 +165,7 @@ def test_profile_image_cancel_requires_valid_csrf(
 
 
 def test_profile_image_file_permissions(client, app, force_login):
-    """Verifica la imagen de perfil en el caso previsto."""
+    """Comprueba permisos de acceso a imágenes de perfil."""
     owner_id = force_login(username="owner", email="owner@example.com")
     root = Path(app.config["PROFILE_IMAGE_FOLDER"])
     owner_path = root / "users" / str(owner_id) / "avatar.png"
@@ -196,7 +191,7 @@ def test_profile_image_file_permissions(client, app, force_login):
 
 
 def test_admin_can_serve_other_users_profile_image(client, app, force_login):
-    """Verifica la imagen de perfil en el caso previsto."""
+    """Comprueba que un administrador puede ver imágenes de otros usuarios."""
     force_login(username="admin", email="admin@example.com", role="admin")
     root = Path(app.config["PROFILE_IMAGE_FOLDER"])
     other_path = root / "users" / "999" / "avatar.png"

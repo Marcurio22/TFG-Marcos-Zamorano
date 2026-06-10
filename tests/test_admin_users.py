@@ -1,13 +1,7 @@
-"""
-===============================================================================
-Pruebas de administración de usuarios.
-
-Este módulo verifica el listado, detalle, edición, borrado y exportación de
-usuarios desde el panel de administración.
+"""Pruebas de administración de usuarios.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-===============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

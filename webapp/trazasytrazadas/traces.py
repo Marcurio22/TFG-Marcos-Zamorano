@@ -7,7 +7,7 @@ incluye funciones auxiliares para validar archivos, gestionar el estado de
 sesión y preparar los artefactos asociados al procesamiento.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import os
@@ -97,12 +97,12 @@ def _set_error(message: str):
 
 
 def _flash_ok(message: str):
-    """Mensajes de éxito (UI: alert-success)."""
+    """Mensajes de éxito."""
     flash(message, "success")
 
 
 def _flash_info(message: str):
-    """Mensajes informativos (UI: alert-info)."""
+    """Mensajes informativos."""
     flash(message, "info")
 
 
@@ -223,16 +223,11 @@ _UUID_SUFFIX_RE = re.compile(r"^(?P<base>.+)_[0-9a-f]{32}$", re.IGNORECASE)
 
 
 def _strip_uuid_from_saved_filename(saved_filename: str) -> str:
-    """
-    Convierte:
-      image_1_cace55ae3fa943d596cdd5fb695b9d0d.png -> image_1
-      test.jpg -> test
-    """
+    """Extrae el nombre base visible de un fichero guardado con sufijo UUID."""
     stem, _ext = os.path.splitext(saved_filename)
     m = _UUID_SUFFIX_RE.match(stem)
     return m.group("base") if m else stem
 
-# Rutas principales.
 
 # ---------------- Ruta raíz ----------------------
 
@@ -287,6 +282,7 @@ def index():
         status_message=status_message,
     )
 
+
 # ---------------- Ruta upload ----------------------
 
 
@@ -307,6 +303,7 @@ def upload_image():
 
     _flash_ok(_("Imagen cargada correctamente."))
     return redirect(url_for("trazas.index"))
+
 
 # ---------------- Ruta delete ----------------------
 
@@ -336,6 +333,7 @@ def delete_image():
     _flash_ok(_("Imagen borrada correctamente."))
 
     return redirect(url_for("trazas.index"))
+
 
 # ---------------- Ruta calculate ----------------------
 
@@ -398,6 +396,7 @@ def upload_and_calculate():
 
     return calculate_traces()
 
+
 # ---------------- Ruta de descarga de resultados ----------------------
 
 
@@ -433,9 +432,6 @@ def download_results():
 
     overlay_name = f"{display_base}_traces.png"
     zip_name = f"{display_base}_{zip_suffix}.zip"
-
-    # El overlay se genera en memoria para incluirlo en el ZIP sin crear
-    # archivos temporales adicionales en disco.
     overlay_png = _render_traces_overlay_png(image_path, traces_path)
 
     zip_buf = io.BytesIO()
@@ -452,7 +448,6 @@ def download_results():
         download_name=zip_name,
     )
 
-# Rutas auxiliares: servicio de imágenes y JSON.
 
 # ----------- Ruta GET/uploads/<filename> ------------
 
@@ -463,6 +458,7 @@ def uploaded_file(filename: str):
     Sirve la imagen original subida por el usuario.
     """
     return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
+
 
 # -------------------- Ruta traces -----------------------
 

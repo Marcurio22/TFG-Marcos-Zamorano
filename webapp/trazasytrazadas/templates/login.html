@@ -1,9 +1,18 @@
+<!--
+Vista de inicio de sesión de la aplicación.
+
+Presenta el formulario de acceso para usuarios registrados y mantiene
+la estética común de las pantallas públicas.
+
+Autor: Marcos Zamorano Lasso
+Versión: 1.0
+-->
 {% extends "auth_base.html" %}
 {% block title %}{{ _("Inicio de sesión") }} · {{ _("Trazas de Herbívoros") }}{% endblock %}
 {% block content %}
-    {# Estilo de los inputs modernizado: bordes curvos, fondo semi-translúcido y transiciones suaves #}
+    
     {% set input_class = "input input-bordered w-full rounded-xl border-primary/20 bg-white/90 text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm" %}
-    {# Contenedor Principal: Bordes muy curvos (rounded-[2rem]), sombra amplia, fondo azul muy pálido y layout dividido #}
+    
     <section class="w-full max-w-6xl rounded-[2rem] overflow-hidden shadow-2xl bg-blue-50/40 backdrop-blur-md flex flex-col lg:flex-row border border-white/40">
         <div class="relative w-full lg:w-1/2 min-h-[400px] lg:min-h-[600px] flex items-center justify-center p-6 sm:p-10 text-center">
             <img src="{{ url_for('static', filename='img/monte.png') }}"

@@ -1,13 +1,7 @@
-"""
-==============================================================================
-Pruebas Selenium del panel de administración.
-
-Verifica navegación real por gestión de usuarios y modelos usando una cuenta
-administradora y datos persistidos de prueba.
+"""Pruebas Selenium del panel de administración.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
-==============================================================================
+Versión: 1.0
 """
 
 from __future__ import annotations

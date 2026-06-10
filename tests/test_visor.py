@@ -1,12 +1,7 @@
-"""
-Pruebas básicas de la pantalla Visor y sus endpoints auxiliares.
-
-Estas pruebas verifican que la vista del visor responde, que el backend
-puede devolver un plan de cuadrícula sin depender del IGN y que la descarga de
-una tesela individual funciona mediante el proxy backend.
+"""Pruebas básicas de la pantalla Visor y sus endpoints auxiliares.
 
 Autor: Marcos Zamorano Lasso
-Versión: 0.1
+Versión: 1.0
 """
 
 import io
