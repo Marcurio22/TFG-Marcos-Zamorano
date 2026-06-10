@@ -3,6 +3,8 @@
 {% block page_container_class %}max-w-6xl mx-auto px-3 sm:px-4 py-5{% endblock %}
 {% block content %}
     <section class="space-y-6">
+        <div class="toast toast-top toast-center z-[9999] mt-20 pointer-events-none"
+             data-upload-toast-container></div>
         <div class="rounded-3xl border border-primary/20 bg-base-100/85 shadow-xl backdrop-blur-sm">
             <div class="p-5 sm:p-8">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -76,9 +78,17 @@
                                 {{ _("Preparando la subida del archivo...") }}
                             </p>
                         </div>
-                        <span class="loading loading-spinner loading-md shrink-0"
-                              data-upload-progress-spinner
-                              aria-hidden="true"></span>
+                        <div class="flex shrink-0 items-center gap-2">
+                            <span class="loading loading-spinner loading-md"
+                                  data-upload-progress-spinner
+                                  aria-hidden="true"></span>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline btn-error hidden"
+                                    data-upload-cancel-button
+                                    title="{{ _("Cancela la transferencia del archivo en curso.") }}">
+                                {{ _("Cancelar subida") }}
+                            </button>
+                        </div>
                     </div>
                     <div class="mt-4 rounded-2xl border-2 border-warning/60 bg-warning/15 p-4 text-warning-content shadow-sm"
                          data-upload-warning>
@@ -430,6 +440,12 @@
     window.ADMIN_FOLDS_APP = {{ {
         "hasRefreshingModels": has_refreshing_models,
         "messages": {
+            "cancelling": _("Cancelando subida..."),
+            "cancelledToastMessage": _(
+                "La subida se ha cancelado correctamente. "
+                "No se ha guardado ningún modelo."
+            ),
+            "close": _("Cerrar"),
             "formDataUnsupported": _(
                 "Tu navegador no permite mostrar el progreso de subida."
             ),

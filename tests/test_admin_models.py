@@ -116,9 +116,43 @@ def test_admin_folds_page_prepares_ajax_upload_progress(app, client):
     assert "data-model-upload-progress" in html
     assert "data-upload-warning" in html
     assert "No abandones esta página" in html
+    assert "data-upload-cancel-button" in html
+    assert "Cancelar subida" in html
+    assert "Cancelando subida..." in html
+    assert "data-upload-toast-container" in html
+    assert "toast toast-top toast-center" in html
+    assert "mt-20" in html
+    assert "La subida se ha cancelado correctamente." in html
     assert "data-model-table-body" in html
     assert "uploading-model-row-template" in html
     assert "Subiendo {percent}" not in html
+
+
+def test_admin_folds_javascript_supports_upload_cancellation():
+    """El script de modelos puede abortar una subida AJAX en curso."""
+    script_path = (
+        Path(__file__).resolve().parents[1]
+        / "webapp"
+        / "trazasytrazadas"
+        / "static"
+        / "js"
+        / "admin_folds.js"
+    )
+
+    script = script_path.read_text(encoding="utf-8")
+
+    assert "data-upload-cancel-button" in script
+    assert "activeUploadXhr.abort()" in script
+    assert "setupCancelUploadButton" in script
+    assert "handleUploadCancellation" in script
+    assert "hideProgressUi" in script
+    assert "showCancellationToast" in script
+    assert "dismissToast" in script
+    assert "makeCloseIcon" in script
+    assert "alert alert-info shadow-lg pointer-events-auto" in script
+    assert "data-upload-toast-container" in script
+    assert "window.setTimeout(() =>" in script
+    assert "}, 5000)" in script
 
 
 def test_admin_can_activate_fold_and_persists_in_db(app, client):

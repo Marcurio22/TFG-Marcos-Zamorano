@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-06-10 14:01+0200\n"
+"POT-Creation-Date: 2026-06-10 19:41+0200\n"
 "PO-Revision-Date: 2026-02-22 17:55+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -37,26 +37,32 @@ msgstr "Validation terminée. Le modèle « %(name)s » est désormais disponibl
 
 #: trazasytrazadas/admin.py:156
 #, python-format
-msgid "La validación del modelo «%(name)s» ha fallado y se ha eliminado de la lista."
-msgstr "La validation du modèle «%(name)s» a échoué et il a été supprimé de la liste."
+msgid ""
+"La validación del modelo «%(name)s» ha fallado y se ha eliminado de la "
+"lista."
+msgstr ""
+"La validation du modèle «%(name)s» a échoué et il a été supprimé de la "
+"liste."
 
-#: trazasytrazadas/admin.py:250 trazasytrazadas/forms.py:498
+#: trazasytrazadas/admin.py:250
 #: trazasytrazadas/templates/admin/user_detail.html:69
-#: trazasytrazadas/templates/admin/users.html:270 trazasytrazadas/templates/profile.html:92
+#: trazasytrazadas/templates/admin/users.html:270
+#: trazasytrazadas/templates/profile.html:92
 msgid "Administrador"
 msgstr "Administrateur"
 
-#: trazasytrazadas/admin.py:251 trazasytrazadas/templates/admin/user_detail.html:85
+#: trazasytrazadas/admin.py:251
+#: trazasytrazadas/templates/admin/user_detail.html:85
 #: trazasytrazadas/templates/admin/users.html:286
 msgid "Sistema"
 msgstr "Système"
 
-#: trazasytrazadas/admin.py:252 trazasytrazadas/admin.py:262 trazasytrazadas/forms.py:173
-#: trazasytrazadas/forms.py:345 trazasytrazadas/forms.py:457 trazasytrazadas/forms.py:497
+#: trazasytrazadas/admin.py:252 trazasytrazadas/admin.py:262
 #: trazasytrazadas/templates/admin/user_detail.html:101
 #: trazasytrazadas/templates/admin/user_edit.html:46
 #: trazasytrazadas/templates/admin/users.html:217
-#: trazasytrazadas/templates/admin/users.html:302 trazasytrazadas/templates/profile.html:160
+#: trazasytrazadas/templates/admin/users.html:302
+#: trazasytrazadas/templates/profile.html:160
 #: trazasytrazadas/templates/register.html:42
 msgid "Usuario"
 msgstr "Utilisateur"
@@ -65,20 +71,22 @@ msgstr "Utilisateur"
 msgid "ID"
 msgstr "ID"
 
-#: trazasytrazadas/admin.py:263 trazasytrazadas/forms.py:193 trazasytrazadas/forms.py:365
-#: trazasytrazadas/forms.py:477 trazasytrazadas/templates/admin/user_detail.html:111
+#: trazasytrazadas/admin.py:263
+#: trazasytrazadas/templates/admin/user_detail.html:111
 #: trazasytrazadas/templates/admin/user_edit.html:56
-#: trazasytrazadas/templates/admin/users.html:218 trazasytrazadas/templates/profile.html:174
+#: trazasytrazadas/templates/admin/users.html:218
+#: trazasytrazadas/templates/profile.html:174
 #: trazasytrazadas/templates/register.html:78
 msgid "Correo electrónico"
 msgstr "Adresse e-mail"
 
-#: trazasytrazadas/admin.py:264 trazasytrazadas/templates/admin/user_detail.html:115
+#: trazasytrazadas/admin.py:264
+#: trazasytrazadas/templates/admin/user_detail.html:115
 #: trazasytrazadas/templates/admin/users.html:219
 msgid "Teléfono"
 msgstr "Téléphone"
 
-#: trazasytrazadas/admin.py:265 trazasytrazadas/forms.py:495
+#: trazasytrazadas/admin.py:265
 #: trazasytrazadas/templates/admin/user_detail.html:123
 #: trazasytrazadas/templates/admin/user_edit.html:81
 #: trazasytrazadas/templates/admin/users.html:220
@@ -108,7 +116,9 @@ msgid "No se puede retirar el rol de administrador desde esta vista."
 msgstr "Le rôle d'administrateur ne peut pas être retiré depuis cette vue."
 
 #: trazasytrazadas/admin.py:650
-msgid "No se ha podido actualizar el usuario. Revisa los datos e inténtalo de nuevo."
+msgid ""
+"No se ha podido actualizar el usuario. Revisa los datos e inténtalo de "
+"nuevo."
 msgstr "L'utilisateur n'a pas pu être mis à jour. Vérifiez les données et réessayez."
 
 #: trazasytrazadas/admin.py:657
@@ -133,10 +143,12 @@ msgstr "L'utilisateur n'a pas pu être supprimé. Réessayez plus tard."
 
 #: trazasytrazadas/admin.py:734
 #, python-format
-msgid "Usuario eliminado correctamente. También se han eliminado %(count)s parcelas asociadas."
+msgid ""
+"Usuario eliminado correctamente. También se han eliminado %(count)s "
+"parcelas asociadas."
 msgstr ""
-"Utilisateur supprimé avec succès. %(count)s parcelles associées ont également été "
-"supprimées."
+"Utilisateur supprimé avec succès. %(count)s parcelles associées ont "
+"également été supprimées."
 
 #: trazasytrazadas/admin.py:742
 msgid "Usuario eliminado correctamente."
@@ -179,10 +191,12 @@ msgid "No se ha podido guardar el modelo."
 msgstr "Le modèle n’a pas pu être enregistré."
 
 #: trazasytrazadas/admin.py:900
-msgid "Modelo recibido. Aparecerá como subiendo mientras se valida en segundo plano."
+msgid ""
+"Modelo recibido. Aparecerá como subiendo mientras se valida en segundo "
+"plano."
 msgstr ""
-"Modèle reçu. Il apparaîtra comme en cours d’envoi pendant qu’il est validé en arrière-"
-"plan."
+"Modèle reçu. Il apparaîtra comme en cours d’envoi pendant qu’il est validé "
+"en arrière-plan."
 
 #: trazasytrazadas/admin.py:922
 msgid "El modelo que intentas eliminar no existe."
@@ -197,13 +211,17 @@ msgid "Modelo eliminado correctamente."
 msgstr "Modèle supprimé avec succès."
 
 #: trazasytrazadas/admin.py:936 trazasytrazadas/admin.py:938
-#: trazasytrazadas/templates/base.html:250 trazasytrazadas/templates/profile.html:223
+#: trazasytrazadas/templates/base.html:250
+#: trazasytrazadas/templates/profile.html:223
 msgid "Panel del Administrador"
 msgstr "Panneau d'administration"
 
-#: trazasytrazadas/admin.py:947 trazasytrazadas/templates/admin/user_detail.html:2
-#: trazasytrazadas/templates/admin/users.html:2 trazasytrazadas/templates/admin/users.html:27
-#: trazasytrazadas/templates/base.html:270 trazasytrazadas/templates/profile.html:228
+#: trazasytrazadas/admin.py:947
+#: trazasytrazadas/templates/admin/user_detail.html:2
+#: trazasytrazadas/templates/admin/users.html:2
+#: trazasytrazadas/templates/admin/users.html:27
+#: trazasytrazadas/templates/base.html:270
+#: trazasytrazadas/templates/profile.html:228
 msgid "Gestión de Usuarios"
 msgstr "Gestion des utilisateurs"
 
@@ -212,7 +230,8 @@ msgid "Administración"
 msgstr "Administration"
 
 #: trazasytrazadas/admin.py:956 trazasytrazadas/templates/admin/folds.html:2
-#: trazasytrazadas/templates/admin/folds.html:28 trazasytrazadas/templates/base.html:290
+#: trazasytrazadas/templates/admin/folds.html:30
+#: trazasytrazadas/templates/base.html:290
 #: trazasytrazadas/templates/profile.html:233
 msgid "Gestión del Modelo"
 msgstr "Gestion du modèle"
@@ -234,7 +253,9 @@ msgid "El archivo seleccionado no es una imagen válida."
 msgstr "Le fichier sélectionné n’est pas une image valide."
 
 #: trazasytrazadas/auth.py:391
-msgid "No se ha podido completar el registro. Revisa los datos e inténtalo de nuevo."
+msgid ""
+"No se ha podido completar el registro. Revisa los datos e inténtalo de "
+"nuevo."
 msgstr "L'inscription n'a pas pu être finalisée. Vérifiez les données et réessayez."
 
 #: trazasytrazadas/auth.py:399
@@ -265,7 +286,7 @@ msgstr "Le profil n'a pas pu être mis à jour. Vérifiez les données et réess
 msgid "Perfil actualizado correctamente."
 msgstr "Profil mis à jour avec succès."
 
-#: trazasytrazadas/auth.py:547 trazasytrazadas/forms.py:574
+#: trazasytrazadas/auth.py:547
 msgid "Selecciona una imagen de perfil."
 msgstr "Sélectionnez une image de profil."
 
@@ -358,16 +379,20 @@ msgstr "Toutes les tuiles ont déjà des traces calculées."
 
 #: trazasytrazadas/collection.py:636
 msgid ""
-"La recalculación masiva estará disponible cuando existan teselas pendientes con al "
-"menos 2 minutos de antigüedad o teselas con error."
+"La recalculación masiva estará disponible cuando existan teselas pendientes"
+" con al menos 2 minutos de antigüedad o teselas con error."
 msgstr ""
-"Le recalcul massif sera disponible lorsqu'il y aura des tuiles en attente depuis au "
-"moins 2 minutes ou des tuiles en erreur."
+"Le recalcul massif sera disponible lorsqu'il y aura des tuiles en attente "
+"depuis au moins 2 minutes ou des tuiles en erreur."
 
 #: trazasytrazadas/collection.py:648
 #, python-format
-msgid "Se han marcado %(count)s teselas pendientes o con error para recalcular las trazas."
-msgstr "%(count)s tuiles en attente ou en erreur ont été marquées pour recalculer les traces."
+msgid ""
+"Se han marcado %(count)s teselas pendientes o con error para recalcular las"
+" trazas."
+msgstr ""
+"%(count)s tuiles en attente ou en erreur ont été marquées pour recalculer "
+"les traces."
 
 #: trazasytrazadas/collection.py:656
 msgid "No hay teselas pendientes o con error para recalcular."
@@ -399,10 +424,12 @@ msgid "No se ha podido eliminar completamente la zona. Inténtalo de nuevo."
 msgstr "La zone n'a pas pu être entièrement supprimée. Réessayez."
 
 #: trazasytrazadas/forms.py:65
-msgid "Si indicas prefijo internacional, debe empezar por '+' seguido de dos dígitos juntos."
+msgid ""
+"Si indicas prefijo internacional, debe empezar por '+' seguido de dos "
+"dígitos juntos."
 msgstr ""
-"Si vous indiquez un préfixe international, il doit commencer par '+' suivi de deux "
-"chiffres sans espace."
+"Si vous indiquez un préfixe international, il doit commencer par '+' suivi "
+"de deux chiffres sans espace."
 
 #: trazasytrazadas/forms.py:93
 msgid "Introduce el número de teléfono después del prefijo."
@@ -424,72 +451,18 @@ msgstr "Le téléphone ne peut pas dépasser 20 caractères."
 msgid "No asociado"
 msgstr "Non associé"
 
-#: trazasytrazadas/forms.py:175 trazasytrazadas/forms.py:236 trazasytrazadas/forms.py:347
-#: trazasytrazadas/forms.py:392 trazasytrazadas/forms.py:459 trazasytrazadas/forms.py:512
+#: trazasytrazadas/forms.py:236 trazasytrazadas/forms.py:392
+#: trazasytrazadas/forms.py:512
 msgid "Introduce un nombre de usuario."
 msgstr "Saisissez un nom d'utilisateur."
 
-#: trazasytrazadas/forms.py:179 trazasytrazadas/forms.py:351 trazasytrazadas/forms.py:463
-msgid "El nombre de usuario debe tener entre 3 y 50 caracteres."
-msgstr "Le nom d’utilisateur doit comporter entre 3 et 50 caractères."
-
-#: trazasytrazadas/forms.py:185 trazasytrazadas/forms.py:357 trazasytrazadas/forms.py:469
-msgid ""
-"El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones "
-"bajos."
-msgstr ""
-"Le nom d’utilisateur ne peut contenir que des lettres, des chiffres, des points, des "
-"traits d’union et des traits de soulignement."
-
-#: trazasytrazadas/forms.py:195 trazasytrazadas/forms.py:367 trazasytrazadas/forms.py:479
-msgid "Introduce un correo electrónico."
-msgstr "Saisissez une adresse e-mail."
-
-#: trazasytrazadas/forms.py:198 trazasytrazadas/forms.py:370 trazasytrazadas/forms.py:482
-msgid "El correo electrónico no puede superar los 50 caracteres."
-msgstr "L’adresse e-mail ne peut pas dépasser 50 caractères."
-
-#: trazasytrazadas/forms.py:203 trazasytrazadas/forms.py:375 trazasytrazadas/forms.py:487
-msgid "Introduce un correo electrónico válido."
-msgstr "Saisissez une adresse e-mail valide."
-
-#: trazasytrazadas/forms.py:207 trazasytrazadas/forms.py:379 trazasytrazadas/forms.py:491
-#: trazasytrazadas/templates/admin/user_edit.html:66
-#: trazasytrazadas/templates/profile.html:188 trazasytrazadas/templates/register.html:58
-msgid "Teléfono (opcional)"
-msgstr "Téléphone (facultatif)"
-
-#: trazasytrazadas/forms.py:213 trazasytrazadas/forms.py:324
-#: trazasytrazadas/templates/login.html:66 trazasytrazadas/templates/register.html:94
-msgid "Contraseña"
-msgstr "Mot de passe"
-
-#: trazasytrazadas/forms.py:215 trazasytrazadas/forms.py:326
-msgid "Introduce una contraseña."
-msgstr "Saisissez un mot de passe."
-
-#: trazasytrazadas/forms.py:219 trazasytrazadas/templates/register.html:110
-msgid "Repetir contraseña"
-msgstr "Répéter le mot de passe"
-
-#: trazasytrazadas/forms.py:221
-msgid "Repite la contraseña."
-msgstr "Saisissez à nouveau le mot de passe."
-
-#: trazasytrazadas/forms.py:224
-msgid "Las contraseñas no coinciden."
-msgstr "Les mots de passe ne correspondent pas."
-
-#: trazasytrazadas/forms.py:228 trazasytrazadas/templates/login.html:94
-#: trazasytrazadas/templates/register.html:2
-msgid "Registrarse"
-msgstr "S'inscrire"
-
-#: trazasytrazadas/forms.py:246 trazasytrazadas/forms.py:409 trazasytrazadas/forms.py:526
+#: trazasytrazadas/forms.py:246 trazasytrazadas/forms.py:409
+#: trazasytrazadas/forms.py:526
 msgid "Ya existe un usuario con ese nombre."
 msgstr "Un utilisateur avec ce nom existe déjà."
 
-#: trazasytrazadas/forms.py:262 trazasytrazadas/forms.py:432 trazasytrazadas/forms.py:546
+#: trazasytrazadas/forms.py:262 trazasytrazadas/forms.py:432
+#: trazasytrazadas/forms.py:546
 msgid "Ya existe un usuario con ese correo electrónico."
 msgstr "Un utilisateur avec cette adresse e-mail existe déjà."
 
@@ -509,67 +482,13 @@ msgstr "Le mot de passe doit contenir au moins un chiffre."
 msgid "La contraseña debe incluir al menos un carácter especial."
 msgstr "Le mot de passe doit contenir au moins un caractère spécial."
 
-#: trazasytrazadas/forms.py:309 trazasytrazadas/templates/login.html:47
-msgid "Usuario o correo electrónico"
-msgstr "Nom d’utilisateur ou adresse e-mail"
-
-#: trazasytrazadas/forms.py:312 trazasytrazadas/forms.py:338
+#: trazasytrazadas/forms.py:338
 msgid "Introduce tu usuario o correo electrónico."
 msgstr "Saisissez votre nom d’utilisateur ou votre adresse e-mail."
 
-#: trazasytrazadas/forms.py:316
-msgid "El usuario o correo electrónico no puede superar los 50 caracteres."
-msgstr "Le nom d’utilisateur ou l’adresse e-mail ne peut pas dépasser 50 caractères."
-
-#: trazasytrazadas/forms.py:329 trazasytrazadas/templates/base.html:352
-#: trazasytrazadas/templates/register.html:134
-msgid "Iniciar sesión"
-msgstr "Se connecter"
-
-#: trazasytrazadas/forms.py:384 trazasytrazadas/forms.py:504
-msgid "Guardar cambios"
-msgstr "Enregistrer les modifications"
-
-#: trazasytrazadas/forms.py:501 trazasytrazadas/forms.py:565
+#: trazasytrazadas/forms.py:565
 msgid "Selecciona un rol válido."
 msgstr "Sélectionnez un rôle valide."
-
-#: trazasytrazadas/forms.py:572 trazasytrazadas/templates/admin/user_detail.html:28
-#: trazasytrazadas/templates/profile.html:24
-msgid "Imagen de perfil"
-msgstr "Image de profil"
-
-#: trazasytrazadas/forms.py:577
-msgid "Revisar imagen"
-msgstr "Vérifier l’image"
-
-#: trazasytrazadas/forms.py:583 trazasytrazadas/templates/profile_image_confirm.html:46
-msgid "Guardar imagen"
-msgstr "Enregistrer l’image"
-
-#: trazasytrazadas/forms.py:594
-msgid "Nombre actual"
-msgstr "Nom actuel"
-
-#: trazasytrazadas/forms.py:596
-msgid "Falta el nombre actual del modelo."
-msgstr "Il manque le nom actuel du modèle."
-
-#: trazasytrazadas/forms.py:600 trazasytrazadas/templates/admin/folds.html:319
-msgid "Nuevo nombre"
-msgstr "Nouveau nom"
-
-#: trazasytrazadas/forms.py:602 trazasytrazadas/forms.py:645
-msgid "Introduce un nombre para el modelo."
-msgstr "Saisissez un nom pour le modèle."
-
-#: trazasytrazadas/forms.py:606 trazasytrazadas/forms.py:649
-msgid "El nombre del modelo debe tener entre 1 y 100 caracteres."
-msgstr "Le nom du modèle doit comporter entre 1 et 100 caractères."
-
-#: trazasytrazadas/forms.py:612 trazasytrazadas/templates/admin/folds.html:338
-msgid "Guardar nombre"
-msgstr "Enregistrer le nom"
 
 #: trazasytrazadas/forms.py:620 trazasytrazadas/forms.py:669
 msgid "Introduce un nombre de modelo válido."
@@ -586,24 +505,6 @@ msgstr "Le nom du modèle ne peut pas contenir de chemin."
 #: trazasytrazadas/forms.py:635 trazasytrazadas/forms.py:684
 msgid "El nombre del modelo contiene caracteres no permitidos."
 msgstr "Le nom du modèle contient des caractères non autorisés."
-
-#: trazasytrazadas/forms.py:643 trazasytrazadas/templates/admin/folds.html:323
-#: trazasytrazadas/templates/admin/folds.html:360
-#: trazasytrazadas/templates/admin/folds.html:363
-msgid "Nombre del modelo"
-msgstr "Nom du modèle"
-
-#: trazasytrazadas/forms.py:656 trazasytrazadas/templates/admin/folds.html:371
-msgid "Archivo del modelo"
-msgstr "Fichier du modèle"
-
-#: trazasytrazadas/forms.py:658
-msgid "Selecciona un archivo de modelo."
-msgstr "Sélectionnez un fichier de modèle."
-
-#: trazasytrazadas/forms.py:661 trazasytrazadas/templates/admin/folds.html:392
-msgid "Guardar y validar modelo"
-msgstr "Enregistrer et valider le modèle"
 
 #: trazasytrazadas/traces.py:149
 msgid "No se ha seleccionado ningún archivo."
@@ -668,8 +569,8 @@ msgid ""
 "La resolución solicitada no está disponible en la zona. Se ha aplicado un "
 "ajusteautomático a %(resolution)s m/px."
 msgstr ""
-"La résolution demandée n'est pas disponible dans la zone. Un ajustement automatique à "
-"%(resolution)s m/px a été appliqué."
+"La résolution demandée n'est pas disponible dans la zone. Un ajustement "
+"automatique à %(resolution)s m/px a été appliqué."
 
 #: trazasytrazadas/visor.py:884 trazasytrazadas/visor.py:1140
 msgid "La fuente solicitada no existe."
@@ -705,12 +606,16 @@ msgstr "Aucune couverture PNOA adaptée n'a été trouvée pour la zone sélecti
 
 #: trazasytrazadas/visor.py:1027
 #, python-format
-msgid "La cuadrícula contiene %(count)s teselas y puede generar una descarga pesada."
+msgid ""
+"La cuadrícula contiene %(count)s teselas y puede generar una descarga "
+"pesada."
 msgstr "La grille contient %(count)s tuiles et peut générer un téléchargement lourd."
 
 #: trazasytrazadas/visor.py:1057
 msgid "La zona se ha generado, pero no se ha podido registrar en la colección."
-msgstr "La zone a été générée, mais elle n'a pas pu être enregistrée dans la collection."
+msgstr ""
+"La zone a été générée, mais elle n'a pas pu être enregistrée dans la "
+"collection."
 
 #: trazasytrazadas/visor.py:1090
 msgid "Se ha producido un error interno al generar la cuadrícula."
@@ -726,10 +631,11 @@ msgid "El ZIP supera el límite permitido de %(limit)s teselas."
 msgstr "Le ZIP dépasse la limite autorisée de %(limit)s tuiles."
 
 #: trazasytrazadas/templates/_flash_messages.html:18
-#: trazasytrazadas/templates/admin/folds.html:272
-#: trazasytrazadas/templates/admin/folds.html:304
-#: trazasytrazadas/templates/admin/folds.html:343
-#: trazasytrazadas/templates/admin/folds.html:398
+#: trazasytrazadas/templates/admin/folds.html:282
+#: trazasytrazadas/templates/admin/folds.html:314
+#: trazasytrazadas/templates/admin/folds.html:353
+#: trazasytrazadas/templates/admin/folds.html:408
+#: trazasytrazadas/templates/admin/folds.html:448
 #: trazasytrazadas/templates/admin/user_detail.html:218
 #: trazasytrazadas/templates/admin/users.html:441
 #: trazasytrazadas/templates/collection.html:368
@@ -742,32 +648,42 @@ msgstr "Le ZIP dépasse la limite autorisée de %(limit)s tuiles."
 #: trazasytrazadas/templates/collection_gallery.html:307
 #: trazasytrazadas/templates/collection_gallery.html:308
 #: trazasytrazadas/templates/collection_gallery.html:378
-#: trazasytrazadas/templates/index.html:203 trazasytrazadas/templates/visor.html:94
-#: trazasytrazadas/templates/visor.html:95 trazasytrazadas/templates/visor.html:128
+#: trazasytrazadas/templates/index.html:203
+#: trazasytrazadas/templates/visor.html:94
+#: trazasytrazadas/templates/visor.html:95
+#: trazasytrazadas/templates/visor.html:128
 #: trazasytrazadas/templates/visor.html:196
 msgid "Cerrar"
 msgstr "Fermer"
 
-#: trazasytrazadas/templates/admin/folds.html:2 trazasytrazadas/templates/admin/master.html:2
-#: trazasytrazadas/templates/admin/users.html:2 trazasytrazadas/templates/auth_base.html:8
+#: trazasytrazadas/templates/admin/folds.html:2
+#: trazasytrazadas/templates/admin/master.html:2
+#: trazasytrazadas/templates/admin/users.html:2
+#: trazasytrazadas/templates/auth_base.html:8
 #: trazasytrazadas/templates/base.html:18 trazasytrazadas/templates/base.html:67
 #: trazasytrazadas/templates/collection.html:12
 #: trazasytrazadas/templates/collection_gallery.html:12
 #: trazasytrazadas/templates/index.html:12 trazasytrazadas/templates/login.html:2
 #: trazasytrazadas/templates/profile.html:2
 #: trazasytrazadas/templates/profile_image_confirm.html:2
-#: trazasytrazadas/templates/register.html:2 trazasytrazadas/templates/visor.html:12
+#: trazasytrazadas/templates/register.html:2
+#: trazasytrazadas/templates/visor.html:12
 msgid "Trazas de Herbívoros"
 msgstr "Traces d’herbivores"
 
-#: trazasytrazadas/templates/auth_base.html:31 trazasytrazadas/templates/auth_base.html:32
-#: trazasytrazadas/templates/base.html:140 trazasytrazadas/templates/base.html:141
+#: trazasytrazadas/templates/auth_base.html:31
+#: trazasytrazadas/templates/auth_base.html:32
+#: trazasytrazadas/templates/base.html:140
+#: trazasytrazadas/templates/base.html:141
 msgid "Cambiar idioma"
 msgstr "Changer de langue"
 
-#: trazasytrazadas/templates/auth_base.html:37 trazasytrazadas/templates/auth_base.html:42
-#: trazasytrazadas/templates/auth_base.html:53 trazasytrazadas/templates/base.html:146
-#: trazasytrazadas/templates/base.html:151 trazasytrazadas/templates/base.html:162
+#: trazasytrazadas/templates/auth_base.html:37
+#: trazasytrazadas/templates/auth_base.html:42
+#: trazasytrazadas/templates/auth_base.html:53
+#: trazasytrazadas/templates/base.html:146
+#: trazasytrazadas/templates/base.html:151
+#: trazasytrazadas/templates/base.html:162
 msgid "Idioma"
 msgstr "Langue"
 
@@ -781,11 +697,11 @@ msgstr "Universidad de Burgos"
 
 #: trazasytrazadas/templates/base.html:96
 msgid ""
-"TFG · Aplicación web para seguimiento de presión de herbivoría mediante visión por "
-"computador"
+"TFG · Aplicación web para seguimiento de presión de herbivoría mediante "
+"visión por computador"
 msgstr ""
-"Projet de fin d'études · Application web de surveillance de la pression des herbivores "
-"par vision par ordinateur"
+"Projet de fin d'études · Application web de surveillance de la pression des"
+" herbivores par vision par ordinateur"
 
 #: trazasytrazadas/templates/base.html:122
 msgid "Cerrar menú"
@@ -799,11 +715,13 @@ msgstr "Menu"
 msgid "Inicio"
 msgstr "Accueil"
 
-#: trazasytrazadas/templates/base.html:226 trazasytrazadas/templates/visor.html:12
+#: trazasytrazadas/templates/base.html:226
+#: trazasytrazadas/templates/visor.html:12
 msgid "Visor"
 msgstr "Visionneuse"
 
-#: trazasytrazadas/templates/base.html:245 trazasytrazadas/templates/collection.html:12
+#: trazasytrazadas/templates/base.html:245
+#: trazasytrazadas/templates/collection.html:12
 #: trazasytrazadas/templates/collection.html:37
 #: trazasytrazadas/templates/collection_gallery.html:20
 msgid "Colección de imágenes"
@@ -817,9 +735,15 @@ msgstr "Ouvrir le profil utilisateur"
 msgid "U"
 msgstr "U"
 
-#: trazasytrazadas/templates/base.html:333 trazasytrazadas/templates/profile.html:71
+#: trazasytrazadas/templates/base.html:333
+#: trazasytrazadas/templates/profile.html:71
 msgid "Cerrar sesión"
 msgstr "Se déconnecter"
+
+#: trazasytrazadas/templates/base.html:352
+#: trazasytrazadas/templates/register.html:134
+msgid "Iniciar sesión"
+msgstr "Se connecter"
 
 #: trazasytrazadas/templates/collection.html:18
 msgid "Vuelve al visor cartográfico para crear nuevas zonas."
@@ -831,11 +755,11 @@ msgstr "Retour à la visionneuse"
 
 #: trazasytrazadas/templates/collection.html:39
 msgid ""
-"Registro persistente de las zonas generadas desde el visor cartográfico y sus teselas "
-"asociadas."
+"Registro persistente de las zonas generadas desde el visor cartográfico y "
+"sus teselas asociadas."
 msgstr ""
-"Registre persistant des zones générées depuis la visionneuse cartographique et de leurs"
-" tuiles associées."
+"Registre persistant des zones générées depuis la visionneuse cartographique"
+" et de leurs tuiles associées."
 
 #: trazasytrazadas/templates/admin/users.html:120
 #: trazasytrazadas/templates/collection.html:47
@@ -853,7 +777,8 @@ msgstr "enregistrements"
 
 #: trazasytrazadas/templates/admin/users.html:136
 #: trazasytrazadas/templates/admin/users.html:147
-#: trazasytrazadas/templates/collection.html:63 trazasytrazadas/templates/collection.html:74
+#: trazasytrazadas/templates/collection.html:63
+#: trazasytrazadas/templates/collection.html:74
 msgid "Buscar"
 msgstr "Rechercher"
 
@@ -882,13 +807,14 @@ msgstr "Aperçu"
 msgid "ZIP"
 msgstr "ZIP"
 
-#: trazasytrazadas/templates/admin/folds.html:123
-#: trazasytrazadas/templates/collection.html:100 trazasytrazadas/templates/index.html:19
+#: trazasytrazadas/templates/admin/folds.html:133
+#: trazasytrazadas/templates/collection.html:100
+#: trazasytrazadas/templates/index.html:19
 #: trazasytrazadas/templates/index.html:20
 msgid "Estado"
 msgstr "État"
 
-#: trazasytrazadas/templates/admin/folds.html:126
+#: trazasytrazadas/templates/admin/folds.html:136
 #: trazasytrazadas/templates/admin/users.html:222
 #: trazasytrazadas/templates/collection.html:101
 msgid "Acciones"
@@ -931,7 +857,8 @@ msgstr "Affiche un aperçu de la zone sélectionnée."
 
 #: trazasytrazadas/templates/collection.html:187
 #: trazasytrazadas/templates/collection_gallery.html:31
-#: trazasytrazadas/templates/visor.html:80 trazasytrazadas/templates/visor.html:164
+#: trazasytrazadas/templates/visor.html:80
+#: trazasytrazadas/templates/visor.html:164
 msgid "Descargar ZIP"
 msgstr "Télécharger le ZIP"
 
@@ -1036,8 +963,8 @@ msgstr "Suspendre le calcul"
 msgid "Pausa el cálculo de trazas de esta colección."
 msgstr "Suspendre le calcul des traces de cette collection."
 
-#: trazasytrazadas/templates/admin/folds.html:207
-#: trazasytrazadas/templates/admin/folds.html:298
+#: trazasytrazadas/templates/admin/folds.html:217
+#: trazasytrazadas/templates/admin/folds.html:308
 #: trazasytrazadas/templates/admin/user_detail.html:212
 #: trazasytrazadas/templates/admin/users.html:324
 #: trazasytrazadas/templates/admin/users.html:435
@@ -1071,11 +998,11 @@ msgstr "Aucune zone enregistrée pour le moment"
 
 #: trazasytrazadas/templates/collection.html:351
 msgid ""
-"Genera una cuadrícula desde el visor y se añadirá automáticamente a esta colección "
-"persistente."
+"Genera una cuadrícula desde el visor y se añadirá automáticamente a esta "
+"colección persistente."
 msgstr ""
-"Générez une grille depuis la visionneuse et elle sera automatiquement ajoutée à cette "
-"collection persistante."
+"Générez une grille depuis la visionneuse et elle sera automatiquement "
+"ajoutée à cette collection persistante."
 
 #: trazasytrazadas/templates/collection.html:355
 msgid "Abre el visor para generar una nueva zona."
@@ -1094,8 +1021,12 @@ msgid "Eliminar zona"
 msgstr "Supprimer la zone"
 
 #: trazasytrazadas/templates/collection.html:407
-msgid "Esta acción eliminará permanentemente la zona y sus teselas asociadas del registro."
-msgstr "Cette action supprimera définitivement la zone et ses tuiles associées du registre."
+msgid ""
+"Esta acción eliminará permanentemente la zona y sus teselas asociadas del "
+"registro."
+msgstr ""
+"Cette action supprimera définitivement la zone et ses tuiles associées du "
+"registre."
 
 #: trazasytrazadas/templates/collection.html:411
 msgid "Zona"
@@ -1114,10 +1045,10 @@ msgstr "Destination"
 msgid "Cancela los cambios y cierra la ventana."
 msgstr "Annule les modifications et ferme la fenêtre."
 
-#: trazasytrazadas/templates/admin/folds.html:258
-#: trazasytrazadas/templates/admin/folds.html:288
-#: trazasytrazadas/templates/admin/folds.html:334
-#: trazasytrazadas/templates/admin/folds.html:387
+#: trazasytrazadas/templates/admin/folds.html:268
+#: trazasytrazadas/templates/admin/folds.html:298
+#: trazasytrazadas/templates/admin/folds.html:344
+#: trazasytrazadas/templates/admin/folds.html:397
 #: trazasytrazadas/templates/admin/user_detail.html:204
 #: trazasytrazadas/templates/admin/user_edit.html:97
 #: trazasytrazadas/templates/admin/users.html:428
@@ -1151,11 +1082,11 @@ msgstr "Recalculer uniquement les tuiles en attente ou en erreur."
 #: trazasytrazadas/templates/collection/_collection_app_config.html:52
 #: trazasytrazadas/templates/collection_gallery.html:96
 msgid ""
-"Disponible cuando existan teselas pendientes con al menos 2 minutos de antigüedad o "
-"teselas con error."
+"Disponible cuando existan teselas pendientes con al menos 2 minutos de "
+"antigüedad o teselas con error."
 msgstr ""
-"Disponible lorsqu'il existe des tuiles en attente depuis au moins 2 minutes ou des "
-"tuiles en erreur."
+"Disponible lorsqu'il existe des tuiles en attente depuis au moins 2 minutes"
+" ou des tuiles en erreur."
 
 #: trazasytrazadas/templates/collection_gallery.html:98
 msgid "Recalcular pendientes y errores"
@@ -1205,7 +1136,8 @@ msgstr "Traitement bloqué"
 
 #: trazasytrazadas/templates/collection/_collection_app_config.html:28
 #: trazasytrazadas/templates/collection_gallery.html:205
-#: trazasytrazadas/templates/index.html:17 trazasytrazadas/templates/index.html:217
+#: trazasytrazadas/templates/index.html:17
+#: trazasytrazadas/templates/index.html:217
 #: trazasytrazadas/templates/visor.html:192
 msgid "Trazas calculadas"
 msgstr "Traces calculées"
@@ -1233,8 +1165,12 @@ msgstr "Relance le calcul des traces pour cette tuile."
 
 #: trazasytrazadas/templates/collection/_collection_app_config.html:58
 #: trazasytrazadas/templates/collection_gallery.html:280
-msgid "Disponible cuando la tesela esté pendiente el tiempo suficiente o haya fallado."
-msgstr "Disponible lorsque la tuile est en attente depuis assez longtemps ou a échoué."
+msgid ""
+"Disponible cuando la tesela esté pendiente el tiempo suficiente o haya "
+"fallado."
+msgstr ""
+"Disponible lorsque la tuile est en attente depuis assez longtemps ou a "
+"échoué."
 
 #: trazasytrazadas/templates/collection/_collection_app_config.html:34
 #: trazasytrazadas/templates/collection_gallery.html:282
@@ -1251,7 +1187,8 @@ msgstr "Télécharge l'image de cette tuile."
 #: trazasytrazadas/templates/collection/_collection_app_config.html:35
 #: trazasytrazadas/templates/collection_gallery.html:287
 #: trazasytrazadas/templates/collection_gallery.html:366
-#: trazasytrazadas/templates/index.html:111 trazasytrazadas/templates/index.html:112
+#: trazasytrazadas/templates/index.html:111
+#: trazasytrazadas/templates/index.html:112
 #: trazasytrazadas/templates/visor.html:163
 msgid "Descargar"
 msgstr "Décharge"
@@ -1277,7 +1214,8 @@ msgid "Muestra u oculta las trazas calculadas sobre la tesela."
 msgstr "Affiche ou masque les traces calculées sur la tuile."
 
 #: trazasytrazadas/templates/collection_gallery.html:356
-#: trazasytrazadas/templates/visor.html:54 trazasytrazadas/templates/visor.html:187
+#: trazasytrazadas/templates/visor.html:54
+#: trazasytrazadas/templates/visor.html:187
 msgid "Dibujar trazas"
 msgstr "Dessiner les traces"
 
@@ -1286,11 +1224,13 @@ msgstr "Dessiner les traces"
 msgid "Estado de trazas"
 msgstr "État des traces"
 
-#: trazasytrazadas/templates/index.html:15 trazasytrazadas/templates/index.html:215
+#: trazasytrazadas/templates/index.html:15
+#: trazasytrazadas/templates/index.html:215
 msgid "Sin imagen"
 msgstr "Aucune image"
 
-#: trazasytrazadas/templates/index.html:16 trazasytrazadas/templates/index.html:216
+#: trazasytrazadas/templates/index.html:16
+#: trazasytrazadas/templates/index.html:216
 msgid "Lista para calcular"
 msgstr "Prête à calculer"
 
@@ -1306,7 +1246,8 @@ msgstr "Sélectionnez une image JPG ou PNG à analyser."
 msgid "Elegir archivo"
 msgstr "Choisir un fichier"
 
-#: trazasytrazadas/templates/index.html:59 trazasytrazadas/templates/index.html:212
+#: trazasytrazadas/templates/index.html:59
+#: trazasytrazadas/templates/index.html:212
 msgid "Ningún archivo seleccionado"
 msgstr "Aucun fichier sélectionné"
 
@@ -1322,7 +1263,8 @@ msgstr "Taille maximale :"
 msgid "Procesa la imagen seleccionada para detectar trazas."
 msgstr "Traite l'image sélectionnée pour détecter les traces."
 
-#: trazasytrazadas/templates/index.html:88 trazasytrazadas/templates/index.html:186
+#: trazasytrazadas/templates/index.html:88
+#: trazasytrazadas/templates/index.html:186
 msgid "Calcular trazas"
 msgstr "Calculer les traces"
 
@@ -1335,8 +1277,12 @@ msgid "Descarga los resultados cuando las trazas estén calculadas."
 msgstr "Télécharge les résultats une fois les traces calculées."
 
 #: trazasytrazadas/templates/index.html:116
-msgid "Indica si las trazas están dibujadas sobre la imagen y permite visualizarlas."
-msgstr "Indique si les traces sont dessinées sur l'image et permet de les visualiser."
+msgid ""
+"Indica si las trazas están dibujadas sobre la imagen y permite "
+"visualizarlas."
+msgstr ""
+"Indique si les traces sont dessinées sur l'image et permet de les "
+"visualiser."
 
 #: trazasytrazadas/templates/index.html:117
 msgid "DIBUJAR TRAZAS"
@@ -1378,7 +1324,8 @@ msgstr "Veuillez patienter un instant."
 msgid "Inicio de sesión"
 msgstr "Connexion"
 
-#: trazasytrazadas/templates/login.html:10 trazasytrazadas/templates/register.html:10
+#: trazasytrazadas/templates/login.html:10
+#: trazasytrazadas/templates/register.html:10
 msgid "Paisaje"
 msgstr "Paysage"
 
@@ -1388,40 +1335,51 @@ msgstr "BIENVENUE !"
 
 #: trazasytrazadas/templates/login.html:18
 msgid ""
-"Aquí podrás analizar imágenes para detectar y visualizar trazas asociadas a la presión "
-"herbívora."
+"Aquí podrás analizar imágenes para detectar y visualizar trazas asociadas a"
+" la presión herbívora."
 msgstr ""
-"Vous pouvez ici analyser des images afin de détecter et visualiser les traces associées"
-" à la pression herbivore."
+"Vous pouvez ici analyser des images afin de détecter et visualiser les "
+"traces associées à la pression herbivore."
 
 #: trazasytrazadas/templates/login.html:20
 msgid ""
-"Sin iniciar sesión, puedes trabajar con imágenes sueltas: cargarlas, calcular sus "
-"trazas y dibujarlas sobre la propia imagen."
+"Sin iniciar sesión, puedes trabajar con imágenes sueltas: cargarlas, "
+"calcular sus trazas y dibujarlas sobre la propia imagen."
 msgstr ""
-"Sans connexion, vous pouvez travailler avec des images isolées : les charger, calculer "
-"leurs traces et les dessiner sur l'image elle-même."
+"Sans connexion, vous pouvez travailler avec des images isolées : les "
+"charger, calculer leurs traces et les dessiner sur l'image elle-même."
 
 #: trazasytrazadas/templates/login.html:23
 msgid ""
-"Si accedes con tu cuenta, además dispondrás de herramientas cartográficas y de gestión:"
-" seleccionar zonas en el visor, generar y descargar teselas, guardar zonas en tu "
-"colección y consultarlas más tarde."
+"Si accedes con tu cuenta, además dispondrás de herramientas cartográficas y"
+" de gestión: seleccionar zonas en el visor, generar y descargar teselas, "
+"guardar zonas en tu colección y consultarlas más tarde."
 msgstr ""
-"Si vous vous connectez avec votre compte, vous disposerez également d'outils "
-"cartographiques et de gestion : sélectionner des zones dans la visionneuse, générer et "
-"télécharger des tuiles, enregistrer des zones dans votre collection et les consulter "
-"plus tard."
+"Si vous vous connectez avec votre compte, vous disposerez également "
+"d'outils cartographiques et de gestion : sélectionner des zones dans la "
+"visionneuse, générer et télécharger des tuiles, enregistrer des zones dans "
+"votre collection et les consulter plus tard."
 
 #: trazasytrazadas/templates/login.html:26
-msgid "Para iniciar sesión, introduce tu usuario o correo electrónico y tu contraseña."
+msgid ""
+"Para iniciar sesión, introduce tu usuario o correo electrónico y tu "
+"contraseña."
 msgstr ""
-"Pour vous connecter, saisissez votre nom d’utilisateur ou votre adresse e-mail, ainsi "
-"que votre mot de passe."
+"Pour vous connecter, saisissez votre nom d’utilisateur ou votre adresse "
+"e-mail, ainsi que votre mot de passe."
+
+#: trazasytrazadas/templates/login.html:47
+msgid "Usuario o correo electrónico"
+msgstr "Nom d’utilisateur ou adresse e-mail"
 
 #: trazasytrazadas/templates/login.html:50
 msgid "Introduzca aquí su usuario o correo"
 msgstr "Saisissez ici votre nom d’utilisateur ou votre adresse e-mail"
+
+#: trazasytrazadas/templates/login.html:66
+#: trazasytrazadas/templates/register.html:94
+msgid "Contraseña"
+msgstr "Mot de passe"
 
 #: trazasytrazadas/templates/login.html:69
 msgid "Introduzca aquí su contraseña"
@@ -1447,13 +1405,24 @@ msgstr "Vous n'avez pas de compte ?"
 msgid "Crea una cuenta para guardar zonas y acceder a la colección."
 msgstr "Créez un compte pour enregistrer des zones et accéder à la collection."
 
+#: trazasytrazadas/templates/login.html:94
+#: trazasytrazadas/templates/register.html:2
+msgid "Registrarse"
+msgstr "S'inscrire"
+
 #: trazasytrazadas/templates/profile.html:2
 msgid "Perfil"
 msgstr "Profil"
 
-#: trazasytrazadas/templates/profile.html:21 trazasytrazadas/templates/profile.html:51
+#: trazasytrazadas/templates/profile.html:21
+#: trazasytrazadas/templates/profile.html:51
 msgid "Cambiar imagen de perfil"
 msgstr "Changer l’image de profil"
+
+#: trazasytrazadas/templates/admin/user_detail.html:28
+#: trazasytrazadas/templates/profile.html:24
+msgid "Imagen de perfil"
+msgstr "Image de profil"
 
 #: trazasytrazadas/templates/profile.html:58
 msgid "Cierra la sesión actual de forma segura."
@@ -1501,8 +1470,15 @@ msgstr "Saisissez ici votre e-mail"
 msgid "Actualiza el correo electrónico de acceso y contacto."
 msgstr "Met à jour l'adresse e-mail d'accès et de contact."
 
+#: trazasytrazadas/templates/admin/user_edit.html:66
+#: trazasytrazadas/templates/profile.html:188
+#: trazasytrazadas/templates/register.html:58
+msgid "Teléfono (opcional)"
+msgstr "Téléphone (facultatif)"
+
 #: trazasytrazadas/templates/admin/user_edit.html:68
-#: trazasytrazadas/templates/profile.html:191 trazasytrazadas/templates/register.html:60
+#: trazasytrazadas/templates/profile.html:191
+#: trazasytrazadas/templates/register.html:60
 msgid "Ej: (+34) 999 99 99 99"
 msgstr "Ex. : +34 999 99 99 99"
 
@@ -1555,11 +1531,11 @@ msgstr "Nouvelle image de profil"
 
 #: trazasytrazadas/templates/profile_image_confirm.html:22
 msgid ""
-"Comprueba que la imagen se ve correctamente. Se recortará en formato cuadrado para "
-"mantener el avatar circular en toda la aplicación."
+"Comprueba que la imagen se ve correctamente. Se recortará en formato "
+"cuadrado para mantener el avatar circular en toda la aplicación."
 msgstr ""
-"Vérifiez que l’image s’affiche correctement. Elle sera recadrée au format carré pour "
-"conserver un avatar circulaire dans toute l’application."
+"Vérifiez que l’image s’affiche correctement. Elle sera recadrée au format "
+"carré pour conserver un avatar circulaire dans toute l’application."
 
 #: trazasytrazadas/templates/profile_image_confirm.html:26
 msgid "Formatos admitidos: JPG y PNG. Tamaño máximo: 4 MB."
@@ -1568,6 +1544,10 @@ msgstr "Formats acceptés : JPG et PNG. Taille maximale : 4 Mo."
 #: trazasytrazadas/templates/profile_image_confirm.html:35
 msgid "Guarda esta imagen como nueva imagen de perfil."
 msgstr "Enregistrer cette image comme nouvelle image de profil."
+
+#: trazasytrazadas/templates/profile_image_confirm.html:46
+msgid "Guardar imagen"
+msgstr "Enregistrer l’image"
 
 #: trazasytrazadas/templates/profile_image_confirm.html:55
 msgid "Descarta esta imagen y vuelve al perfil."
@@ -1583,11 +1563,11 @@ msgstr "Créez votre compte pour exploiter tout le potentiel de l'application."
 
 #: trazasytrazadas/templates/register.html:20
 msgid ""
-"Podrás acceder a herramientas cartográficas, gestionar tus propias zonas, generar "
-"teselas y consultar tu colección en cualquier momento."
+"Podrás acceder a herramientas cartográficas, gestionar tus propias zonas, "
+"generar teselas y consultar tu colección en cualquier momento."
 msgstr ""
-"Vous pourrez accéder aux outils cartographiques, gérer vos propres zones, générer des "
-"tuiles et consulter votre collection à tout moment."
+"Vous pourrez accéder aux outils cartographiques, gérer vos propres zones, "
+"générer des tuiles et consulter votre collection à tout moment."
 
 #: trazasytrazadas/templates/register.html:28
 msgid "Crear Cuenta"
@@ -1605,21 +1585,28 @@ msgstr "Si vous n'indiquez pas de préfixe, +34 sera utilisé."
 msgid "Ej: pepe1234@gmail.com"
 msgstr "Ex. : pepe1234@gmail.com"
 
-#: trazasytrazadas/templates/register.html:96 trazasytrazadas/templates/register.html:112
+#: trazasytrazadas/templates/register.html:96
+#: trazasytrazadas/templates/register.html:112
 msgid "Introduzca aquí la contraseña"
 msgstr "Saisissez ici le mot de passe"
 
+#: trazasytrazadas/templates/register.html:110
+msgid "Repetir contraseña"
+msgstr "Répéter le mot de passe"
+
 #: trazasytrazadas/templates/register.html:120
 msgid ""
-"La contraseña debe tener más de 8 caracteres, una mayúscula, un número y un carácter "
-"especial."
+"La contraseña debe tener más de 8 caracteres, una mayúscula, un número y un"
+" carácter especial."
 msgstr ""
-"Le mot de passe doit comporter plus de 8 caractères, une majuscule, un chiffre et un "
-"caractère spécial."
+"Le mot de passe doit comporter plus de 8 caractères, une majuscule, un "
+"chiffre et un caractère spécial."
 
 #: trazasytrazadas/templates/register.html:125
 msgid "Crea tu cuenta para guardar zonas y usar las herramientas cartográficas."
-msgstr "Créez votre compte pour enregistrer des zones et utiliser les outils cartographiques."
+msgstr ""
+"Créez votre compte pour enregistrer des zones et utiliser les outils "
+"cartographiques."
 
 #: trazasytrazadas/templates/register.html:129
 msgid "¿Ya tiene cuenta?"
@@ -1651,13 +1638,14 @@ msgstr "Format fixe par tuile : 1024 × 640 px."
 
 #: trazasytrazadas/templates/visor.html:38
 msgid ""
-"Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona "
-"automáticamente la mejor ortofoto disponible y aplica un ajuste automático si la "
-"resolución pedida no existe en la zona."
+"Haz dos clics sobre el mapa para definir el rectángulo. El visor selecciona"
+" automáticamente la mejor ortofoto disponible y aplica un ajuste automático"
+" si la resolución pedida no existe en la zona."
 msgstr ""
-"Cliquez deux fois sur la carte pour définir le rectangle. La visionneuse sélectionne "
-"automatiquement la meilleure orthophoto disponible et applique un ajustement "
-"automatique si la résolution demandée n'existe pas dans la zone."
+"Cliquez deux fois sur la carte pour définir le rectangle. La visionneuse "
+"sélectionne automatiquement la meilleure orthophoto disponible et applique "
+"un ajustement automatique si la résolution demandée n'existe pas dans la "
+"zone."
 
 #: trazasytrazadas/templates/visor.html:49
 msgid "Muestra u oculta las trazas calculadas sobre el mapa."
@@ -1671,7 +1659,8 @@ msgstr "Liste des téléchargements"
 msgid "Abre la colección de zonas guardadas."
 msgstr "Ouvre la collection des zones enregistrées."
 
-#: trazasytrazadas/templates/visor.html:75 trazasytrazadas/templates/visor.html:186
+#: trazasytrazadas/templates/visor.html:75
+#: trazasytrazadas/templates/visor.html:186
 msgid "Abrir colección"
 msgstr "Ouvrir la collection"
 
@@ -1679,21 +1668,23 @@ msgstr "Ouvrir la collection"
 msgid "Descarga todas las teselas generadas en un archivo ZIP."
 msgstr "Télécharge toutes les tuiles générées dans un fichier ZIP."
 
-#: trazasytrazadas/templates/visor.html:84 trazasytrazadas/templates/visor.html:175
+#: trazasytrazadas/templates/visor.html:84
+#: trazasytrazadas/templates/visor.html:175
 msgid "Genera primero la cuadrícula para obtener las teselas descargables."
 msgstr "Générez d'abord la grille pour obtenir les tuiles téléchargeables."
 
-#: trazasytrazadas/templates/visor.html:97 trazasytrazadas/templates/visor.html:123
+#: trazasytrazadas/templates/visor.html:97
+#: trazasytrazadas/templates/visor.html:123
 msgid "Generar cuadrícula"
 msgstr "Générer la grille"
 
 #: trazasytrazadas/templates/visor.html:99
 msgid ""
-"Selecciona la resolución objetivo y ejecuta las acciones sobre la zona marcada en el "
-"mapa."
+"Selecciona la resolución objetivo y ejecuta las acciones sobre la zona "
+"marcada en el mapa."
 msgstr ""
-"Sélectionnez la résolution cible et exécutez les actions sur la zone marquée sur la "
-"carte."
+"Sélectionnez la résolution cible et exécutez les actions sur la zone "
+"marquée sur la carte."
 
 #: trazasytrazadas/templates/visor.html:103
 msgid "Resolución objetivo"
@@ -1705,11 +1696,11 @@ msgstr "Sélectionne la résolution cible pour générer les tuiles."
 
 #: trazasytrazadas/templates/visor.html:116
 msgid ""
-"Las teselas mantienen un formato fijo 1024 × 640 px para parecerse a las imágenes de "
-"entrenamiento."
+"Las teselas mantienen un formato fijo 1024 × 640 px para parecerse a las "
+"imágenes de entrenamiento."
 msgstr ""
-"Les tuiles conservent un format fixe de 1024 × 640 px afin de ressembler aux images "
-"d'entraînement."
+"Les tuiles conservent un format fixe de 1024 × 640 px afin de ressembler "
+"aux images d'entraînement."
 
 #: trazasytrazadas/templates/visor.html:122
 msgid "Genera la cuadrícula de teselas para el área seleccionada."
@@ -1744,11 +1735,11 @@ msgstr "%(count)s tuiles à %(resolution)s m/px avec %(source)s."
 #: trazasytrazadas/templates/visor.html:161
 #, python-format
 msgid ""
-"Se muestran las primeras %(count)s teselas en la lista. Usa el ZIP para descargar el "
-"conjunto completo."
+"Se muestran las primeras %(count)s teselas en la lista. Usa el ZIP para "
+"descargar el conjunto completo."
 msgstr ""
-"Les %(count)s premières tuiles sont affichées dans la liste. Utilisez le ZIP pour "
-"télécharger l'ensemble complet."
+"Les %(count)s premières tuiles sont affichées dans la liste. Utilisez le "
+"ZIP pour télécharger l'ensemble complet."
 
 #: trazasytrazadas/templates/visor.html:165
 msgid "No se ha podido generar la cuadrícula."
@@ -1756,19 +1747,23 @@ msgstr "La grille n'a pas pu être générée."
 
 #: trazasytrazadas/templates/visor.html:166
 msgid "La cuadrícula contiene muchas teselas y puede implicar una descarga pesada."
-msgstr "La grille contient de nombreuses tuiles et peut entraîner un téléchargement lourd."
+msgstr ""
+"La grille contient de nombreuses tuiles et peut entraîner un téléchargement"
+" lourd."
 
 #: trazasytrazadas/templates/visor.html:167
 msgid ""
-"La resolución solicitada no está disponible en la zona. Se ha aplicado un ajuste "
-"automático."
+"La resolución solicitada no está disponible en la zona. Se ha aplicado un "
+"ajuste automático."
 msgstr ""
-"La résolution demandée n'est pas disponible dans la zone. Un ajustement automatique a "
-"été appliqué."
+"La résolution demandée n'est pas disponible dans la zone. Un ajustement "
+"automatique a été appliqué."
 
 #: trazasytrazadas/templates/visor.html:168
 msgid "La ortofoto seleccionada no alcanza la resolución pedida para esa zona."
-msgstr "L'orthophoto sélectionnée n'atteint pas la résolution demandée pour cette zone."
+msgstr ""
+"L'orthophoto sélectionnée n'atteint pas la résolution demandée pour cette "
+"zone."
 
 #: trazasytrazadas/templates/visor.html:169
 msgid "Calculando cobertura y cuadrícula..."
@@ -1776,7 +1771,9 @@ msgstr "Calcul de la couverture et de la grille..."
 
 #: trazasytrazadas/templates/visor.html:170
 msgid "Selección reiniciada. Elige dos puntos para crear un nuevo rectángulo."
-msgstr "Sélection réinitialisée. Choisissez deux points pour créer un nouveau rectangle."
+msgstr ""
+"Sélection réinitialisée. Choisissez deux points pour créer un nouveau "
+"rectangle."
 
 #: trazasytrazadas/templates/visor.html:171
 msgid "Preparando ZIP de teselas..."
@@ -1791,8 +1788,12 @@ msgid "No se ha podido generar el ZIP."
 msgstr "Le ZIP n'a pas pu être généré."
 
 #: trazasytrazadas/templates/visor.html:174
-msgid "Ya existe una selección activa. Usa «Reiniciar selección» para empezar de nuevo."
-msgstr "Une sélection est déjà active. Utilisez « Réinitialiser la sélection » pour recommencer."
+msgid ""
+"Ya existe una selección activa. Usa «Reiniciar selección» para empezar de "
+"nuevo."
+msgstr ""
+"Une sélection est déjà active. Utilisez « Réinitialiser la sélection » pour"
+" recommencer."
 
 #: trazasytrazadas/templates/visor.html:176
 #, python-format
@@ -1849,7 +1850,9 @@ msgstr "Les traces n'ont pas pu être dessinées sur la carte."
 
 #: trazasytrazadas/templates/visor.html:191
 msgid "Las trazas estarán disponibles cuando todas las teselas estén calculadas."
-msgstr "Les traces seront disponibles lorsque toutes les tuiles auront été calculées."
+msgstr ""
+"Les traces seront disponibles lorsque toutes les tuiles auront été "
+"calculées."
 
 #: trazasytrazadas/templates/visor.html:193
 msgid "Trazas en proceso"
@@ -1863,327 +1866,381 @@ msgstr "Certaines traces présentent une erreur"
 msgid "Trazas pendientes"
 msgstr "Traces en attente"
 
-#: trazasytrazadas/templates/admin/folds.html:30
-msgid "Administra los modelos disponibles y selecciona cuál queda activo en el sistema."
-msgstr "Administre les modèles disponibles et sélectionne celui qui reste actif dans le système."
+#: trazasytrazadas/templates/admin/folds.html:32
+msgid ""
+"Administra los modelos disponibles y selecciona cuál queda activo en el "
+"sistema."
+msgstr ""
+"Administre les modèles disponibles et sélectionne celui qui reste actif "
+"dans le système."
 
-#: trazasytrazadas/templates/admin/folds.html:36
+#: trazasytrazadas/templates/admin/folds.html:38
 #, python-format
 msgid "%(count)s modelos"
 msgstr "%(count)s modèles"
 
-#: trazasytrazadas/templates/admin/folds.html:40
-#: trazasytrazadas/templates/admin/folds.html:239
+#: trazasytrazadas/templates/admin/folds.html:42
+#: trazasytrazadas/templates/admin/folds.html:249
 msgid "Abre el formulario para validar y añadir un nuevo modelo."
 msgstr "Ouvre le formulaire pour valider et ajouter un nouveau modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:41
-#: trazasytrazadas/templates/admin/folds.html:240
+#: trazasytrazadas/templates/admin/folds.html:43
+#: trazasytrazadas/templates/admin/folds.html:250
 msgid "Añadir modelo"
 msgstr "Ajouter un modèle"
 
-#: trazasytrazadas/templates/admin/folds.html:51
+#: trazasytrazadas/templates/admin/folds.html:53
 msgid "Listado de modelos"
 msgstr "Liste des modèles"
 
-#: trazasytrazadas/templates/admin/folds.html:53
+#: trazasytrazadas/templates/admin/folds.html:55
 msgid ""
-"Consulta los modelos disponibles, activa uno, renómbralos o añade nuevos modelos para "
-"validarlos en segundo plano."
+"Consulta los modelos disponibles, activa uno, renómbralos o añade nuevos "
+"modelos para validarlos en segundo plano."
 msgstr ""
-"Consulte les modèles disponibles, active l’un d’eux, renomme-les ou ajoute de nouveaux "
-"modèles à valider en arrière-plan."
+"Consulte les modèles disponibles, active l’un d’eux, renomme-les ou ajoute "
+"de nouveaux modèles à valider en arrière-plan."
 
-#: trazasytrazadas/templates/admin/folds.html:58
+#: trazasytrazadas/templates/admin/folds.html:60
 msgid "Modelo usado actualmente por el sistema para calcular trazas."
 msgstr "Modèle actuellement utilisé par le système pour calculer les traces."
 
-#: trazasytrazadas/templates/admin/folds.html:59
+#: trazasytrazadas/templates/admin/folds.html:61
 #, python-format
 msgid "Activo: %(name)s"
 msgstr "Actif : %(name)s"
 
-#: trazasytrazadas/templates/admin/folds.html:63
+#: trazasytrazadas/templates/admin/folds.html:65
 msgid "Todavía no hay ningún modelo activo para el cálculo de trazas."
 msgstr "Aucun modèle actif n’est encore défini pour le calcul des traces."
 
-#: trazasytrazadas/templates/admin/folds.html:64
+#: trazasytrazadas/templates/admin/folds.html:66
 msgid "Sin modelo activo"
 msgstr "Aucun modèle actif"
 
-#: trazasytrazadas/templates/admin/folds.html:74
+#: trazasytrazadas/templates/admin/folds.html:76
 msgid "Subiendo modelo"
 msgstr "Téléversement du modèle"
 
-#: trazasytrazadas/templates/admin/folds.html:76
+#: trazasytrazadas/templates/admin/folds.html:78
 msgid "Preparando la subida del archivo..."
 msgstr "Préparation du téléversement du fichier..."
 
-#: trazasytrazadas/templates/admin/folds.html:103
+#: trazasytrazadas/templates/admin/folds.html:88
+msgid "Cancela la transferencia del archivo en curso."
+msgstr "Annule le transfert du fichier en cours."
+
+#: trazasytrazadas/templates/admin/folds.html:89
+msgid "Cancelar subida"
+msgstr "Annuler l’envoi"
+
+#: trazasytrazadas/templates/admin/folds.html:113
 msgid "No abandones esta página"
 msgstr "Ne quittez pas cette page"
 
-#: trazasytrazadas/templates/admin/folds.html:106
+#: trazasytrazadas/templates/admin/folds.html:116
 msgid ""
-"Espera hasta que la subida termine. Si sales antes, el archivo puede cancelarse y el "
-"modelo no se guardará."
+"Espera hasta que la subida termine. Si sales antes, el archivo puede "
+"cancelarse y el modelo no se guardará."
 msgstr ""
-"Attendez la fin du téléversement. Si vous quittez avant, l’envoi peut être annulé et le"
-" modèle ne sera pas enregistré."
+"Attendez la fin du téléversement. Si vous quittez avant, l’envoi peut être "
+"annulé et le modèle ne sera pas enregistré."
 
-#: trazasytrazadas/templates/admin/folds.html:121
+#: trazasytrazadas/templates/admin/folds.html:131
 msgid "Modelo"
 msgstr "Modèle"
 
-#: trazasytrazadas/templates/admin/folds.html:122
+#: trazasytrazadas/templates/admin/folds.html:132
 msgid "Nombre"
 msgstr "Nom"
 
-#: trazasytrazadas/templates/admin/folds.html:124
+#: trazasytrazadas/templates/admin/folds.html:134
 msgid "Validación"
 msgstr "Validation"
 
-#: trazasytrazadas/templates/admin/folds.html:125
+#: trazasytrazadas/templates/admin/folds.html:135
 msgid "Fecha de creación"
 msgstr "Date de création"
 
-#: trazasytrazadas/templates/admin/folds.html:142
+#: trazasytrazadas/templates/admin/folds.html:152
 msgid "Activo"
 msgstr "Actif"
 
-#: trazasytrazadas/templates/admin/folds.html:147
-#: trazasytrazadas/templates/admin/folds.html:188
-#: trazasytrazadas/templates/admin/folds.html:450
-#: trazasytrazadas/templates/admin/folds.html:452
+#: trazasytrazadas/templates/admin/folds.html:157
+#: trazasytrazadas/templates/admin/folds.html:198
+#: trazasytrazadas/templates/admin/folds.html:466
+#: trazasytrazadas/templates/admin/folds.html:468
 msgid "Subiendo..."
 msgstr "Téléversement..."
 
-#: trazasytrazadas/templates/admin/folds.html:152
+#: trazasytrazadas/templates/admin/folds.html:162
 msgid "No activo"
 msgstr "Inactif"
 
-#: trazasytrazadas/templates/admin/folds.html:160
+#: trazasytrazadas/templates/admin/folds.html:170
 msgid "Validado"
 msgstr "Validé"
 
-#: trazasytrazadas/templates/admin/folds.html:165
-#: trazasytrazadas/templates/admin/folds.html:191
-#: trazasytrazadas/templates/admin/folds.html:443
+#: trazasytrazadas/templates/admin/folds.html:175
+#: trazasytrazadas/templates/admin/folds.html:201
+#: trazasytrazadas/templates/admin/folds.html:459
 msgid "Pendiente"
 msgstr "En attente"
 
-#: trazasytrazadas/templates/admin/folds.html:177
+#: trazasytrazadas/templates/admin/folds.html:187
 msgid "Activa este modelo como principal del sistema."
 msgstr "Active ce modèle comme modèle principal du système."
 
-#: trazasytrazadas/templates/admin/folds.html:178
+#: trazasytrazadas/templates/admin/folds.html:188
 msgid "Activar"
 msgstr "Activer"
 
-#: trazasytrazadas/templates/admin/folds.html:182
+#: trazasytrazadas/templates/admin/folds.html:192
 msgid "Este modelo está activo y no puede eliminarse directamente."
 msgstr "Ce modèle est actif et ne peut pas être supprimé directement."
 
-#: trazasytrazadas/templates/admin/folds.html:182
+#: trazasytrazadas/templates/admin/folds.html:192
 msgid "En uso"
 msgstr "En cours d'utilisation"
 
-#: trazasytrazadas/templates/admin/folds.html:185
+#: trazasytrazadas/templates/admin/folds.html:195
 msgid "El archivo físico del modelo no existe en la carpeta de modelos."
 msgstr "Le fichier physique du modèle n’existe pas dans le dossier des modèles."
 
-#: trazasytrazadas/templates/admin/folds.html:185
+#: trazasytrazadas/templates/admin/folds.html:195
 msgid "Sin fichero"
 msgstr "Aucun fichier"
 
-#: trazasytrazadas/templates/admin/folds.html:188
+#: trazasytrazadas/templates/admin/folds.html:198
 msgid "Este modelo se está subiendo y validando en segundo plano."
 msgstr "Ce modèle est en cours de téléversement et de validation en arrière-plan."
 
-#: trazasytrazadas/templates/admin/folds.html:191
+#: trazasytrazadas/templates/admin/folds.html:201
 msgid "Este modelo se está validando en segundo plano y todavía no puede activarse."
-msgstr "Ce modèle est en cours de validation en arrière-plan et ne peut pas encore être activé."
+msgstr ""
+"Ce modèle est en cours de validation en arrière-plan et ne peut pas encore "
+"être activé."
 
-#: trazasytrazadas/templates/admin/folds.html:197
+#: trazasytrazadas/templates/admin/folds.html:207
 msgid "Espera a que termine la validación para renombrar este modelo."
 msgstr "Attendez la fin de la validation avant de renommer ce modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:197
+#: trazasytrazadas/templates/admin/folds.html:207
 msgid "Renombra este modelo."
 msgstr "Renomme ce modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:199
+#: trazasytrazadas/templates/admin/folds.html:209
 msgid "Renombrar"
 msgstr "Renommer"
 
-#: trazasytrazadas/templates/admin/folds.html:205
+#: trazasytrazadas/templates/admin/folds.html:215
 msgid "No se puede eliminar el modelo activo."
 msgstr "Le modèle actif ne peut pas être supprimé."
 
-#: trazasytrazadas/templates/admin/folds.html:205
+#: trazasytrazadas/templates/admin/folds.html:215
 msgid "Espera a que termine la validación para eliminar este modelo."
 msgstr "Attends la fin de la validation pour supprimer ce modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:205
+#: trazasytrazadas/templates/admin/folds.html:215
 msgid "Abre la confirmación para eliminar este modelo."
 msgstr "Ouvre la confirmation pour supprimer ce modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:232
+#: trazasytrazadas/templates/admin/folds.html:242
 msgid "No se han encontrado modelos"
 msgstr "Aucun modèle trouvé"
 
-#: trazasytrazadas/templates/admin/folds.html:234
-msgid "Añade un modelo desde esta pantalla para validarlo antes de incorporarlo al sistema."
-msgstr "Ajoute un modèle depuis cet écran afin de le valider avant de l’intégrer au système."
+#: trazasytrazadas/templates/admin/folds.html:244
+msgid ""
+"Añade un modelo desde esta pantalla para validarlo antes de incorporarlo al"
+" sistema."
+msgstr ""
+"Ajoute un modèle depuis cet écran afin de le valider avant de l’intégrer au"
+" système."
 
-#: trazasytrazadas/templates/admin/folds.html:249
+#: trazasytrazadas/templates/admin/folds.html:259
 msgid "Cambiar modelo activo"
 msgstr "Changer de modèle actif"
 
-#: trazasytrazadas/templates/admin/folds.html:250
+#: trazasytrazadas/templates/admin/folds.html:260
 msgid "Vas a activar este modelo como principal del sistema:"
 msgstr "Vous allez activer ce modèle comme modèle principal du système :"
 
-#: trazasytrazadas/templates/admin/folds.html:258
-#: trazasytrazadas/templates/admin/folds.html:288
+#: trazasytrazadas/templates/admin/folds.html:268
+#: trazasytrazadas/templates/admin/folds.html:298
 msgid "Cancela la acción y cierra la ventana."
 msgstr "Annule l'action et ferme la fenêtre."
 
-#: trazasytrazadas/templates/admin/folds.html:267
+#: trazasytrazadas/templates/admin/folds.html:277
 msgid "Confirma el cambio de modelo activo."
 msgstr "Confirme le changement de modèle actif."
 
-#: trazasytrazadas/templates/admin/folds.html:267
+#: trazasytrazadas/templates/admin/folds.html:277
 msgid "Confirmar"
 msgstr "Confirmer"
 
-#: trazasytrazadas/templates/admin/folds.html:277
+#: trazasytrazadas/templates/admin/folds.html:287
 msgid "Eliminar modelo"
 msgstr "Supprimer le modèle"
 
-#: trazasytrazadas/templates/admin/folds.html:279
+#: trazasytrazadas/templates/admin/folds.html:289
 msgid ""
-"Esta acción eliminará el archivo del modelo y sus metadatos asociados. No se puede "
-"deshacer."
+"Esta acción eliminará el archivo del modelo y sus metadatos asociados. No "
+"se puede deshacer."
 msgstr ""
-"Cette action supprimera le fichier du modèle et ses métadonnées associées. Elle est "
-"irréversible."
+"Cette action supprimera le fichier du modèle et ses métadonnées associées. "
+"Elle est irréversible."
 
-#: trazasytrazadas/templates/admin/folds.html:297
+#: trazasytrazadas/templates/admin/folds.html:307
 msgid "Elimina definitivamente este modelo del sistema."
 msgstr "Supprime définitivement ce modèle du système."
 
-#: trazasytrazadas/templates/admin/folds.html:309
+#: trazasytrazadas/templates/admin/folds.html:319
 msgid "Renombrar modelo"
 msgstr "Renommer le modèle"
 
-#: trazasytrazadas/templates/admin/folds.html:310
+#: trazasytrazadas/templates/admin/folds.html:320
 msgid "Introduce un nuevo nombre para el modelo."
 msgstr "Saisissez un nouveau nom pour le modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:324
+#: trazasytrazadas/templates/admin/folds.html:329
+msgid "Nuevo nombre"
+msgstr "Nouveau nom"
+
+#: trazasytrazadas/templates/admin/folds.html:333
+#: trazasytrazadas/templates/admin/folds.html:370
+#: trazasytrazadas/templates/admin/folds.html:373
+msgid "Nombre del modelo"
+msgstr "Nom du modèle"
+
+#: trazasytrazadas/templates/admin/folds.html:334
 msgid "Escribe un nombre único para el modelo."
 msgstr "Saisissez un nom unique pour le modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:326
-msgid "Puedes usar cualquier nombre único sin barras ni caracteres reservados del sistema."
+#: trazasytrazadas/templates/admin/folds.html:336
+msgid ""
+"Puedes usar cualquier nombre único sin barras ni caracteres reservados del "
+"sistema."
 msgstr ""
-"Vous pouvez utiliser n’importe quel nom unique sans barres ni caractères réservés du "
-"système."
+"Vous pouvez utiliser n’importe quel nom unique sans barres ni caractères "
+"réservés du système."
 
-#: trazasytrazadas/templates/admin/folds.html:333
+#: trazasytrazadas/templates/admin/folds.html:343
 msgid "Cancela el cambio de nombre y cierra la ventana."
 msgstr "Annule le changement de nom et ferme la fenêtre."
 
-#: trazasytrazadas/templates/admin/folds.html:338
+#: trazasytrazadas/templates/admin/folds.html:348
 msgid "Guarda el nuevo nombre del modelo."
 msgstr "Enregistre le nouveau nom du modèle."
 
 #: trazasytrazadas/templates/admin/folds.html:348
+msgid "Guardar nombre"
+msgstr "Enregistrer le nom"
+
+#: trazasytrazadas/templates/admin/folds.html:358
 msgid "Añadir nuevo modelo"
 msgstr "Ajouter un nouveau modèle"
 
-#: trazasytrazadas/templates/admin/folds.html:350
+#: trazasytrazadas/templates/admin/folds.html:360
 msgid ""
-"Selecciona el archivo serializado del modelo y asígnale un nombre. El sistema lo "
-"guardará y lo validará en segundo plano con una inferencia de prueba."
+"Selecciona el archivo serializado del modelo y asígnale un nombre. El "
+"sistema lo guardará y lo validará en segundo plano con una inferencia de "
+"prueba."
 msgstr ""
-"Sélectionnez le fichier sérialisé du modèle et attribuez-lui un nom. Le système "
-"l’enregistrera et le validera en arrière-plan avec une inférence de test."
+"Sélectionnez le fichier sérialisé du modèle et attribuez-lui un nom. Le "
+"système l’enregistrera et le validera en arrière-plan avec une inférence de"
+" test."
 
-#: trazasytrazadas/templates/admin/folds.html:364
+#: trazasytrazadas/templates/admin/folds.html:374
 msgid "Escribe un nombre único para identificar este modelo."
 msgstr "Saisissez un nom unique pour identifier ce modèle."
 
-#: trazasytrazadas/templates/admin/folds.html:366
-msgid "Debe ser único. No puede contener rutas ni caracteres reservados del sistema."
+#: trazasytrazadas/templates/admin/folds.html:376
+msgid ""
+"Debe ser único. No puede contener rutas ni caracteres reservados del "
+"sistema."
 msgstr ""
-"Il doit être unique. Il ne peut pas contenir de chemins ni de caractères réservés du "
-"système."
+"Il doit être unique. Il ne peut pas contenir de chemins ni de caractères "
+"réservés du système."
 
-#: trazasytrazadas/templates/admin/folds.html:373
+#: trazasytrazadas/templates/admin/folds.html:381
+msgid "Archivo del modelo"
+msgstr "Fichier du modèle"
+
+#: trazasytrazadas/templates/admin/folds.html:383
 msgid "Selecciona el archivo serializado del modelo que se va a validar."
 msgstr "Sélectionnez le fichier sérialisé du modèle à valider."
 
-#: trazasytrazadas/templates/admin/folds.html:374
+#: trazasytrazadas/templates/admin/folds.html:384
 msgid "Aparecerá como subiendo y se validará en segundo plano."
 msgstr "Il apparaîtra comme en cours d’envoi et sera validé en arrière-plan."
 
-#: trazasytrazadas/templates/admin/folds.html:377
+#: trazasytrazadas/templates/admin/folds.html:387
 msgid "Validación en segundo plano"
 msgstr "Validation en arrière-plan"
 
-#: trazasytrazadas/templates/admin/folds.html:379
+#: trazasytrazadas/templates/admin/folds.html:389
 msgid ""
-"Tras guardar el archivo, el sistema comprobará en segundo plano que puede cargarse y "
-"ejecutar una inferencia de prueba."
+"Tras guardar el archivo, el sistema comprobará en segundo plano que puede "
+"cargarse y ejecutar una inferencia de prueba."
 msgstr ""
-"Après l’enregistrement du fichier, le système vérifiera en arrière-plan qu’il peut être"
-" chargé et exécuter une inférence de test."
+"Après l’enregistrement du fichier, le système vérifiera en arrière-plan "
+"qu’il peut être chargé et exécuter une inférence de test."
 
-#: trazasytrazadas/templates/admin/folds.html:386
+#: trazasytrazadas/templates/admin/folds.html:396
 msgid "Cancela la subida del modelo y cierra la ventana."
 msgstr "Annule le téléversement du modèle et ferme la fenêtre."
 
-#: trazasytrazadas/templates/admin/folds.html:391
+#: trazasytrazadas/templates/admin/folds.html:401
 msgid "Guarda el archivo e inicia la validación en segundo plano."
 msgstr "Enregistrez le fichier et lancez la validation en arrière-plan."
 
-#: trazasytrazadas/templates/admin/folds.html:433
+#: trazasytrazadas/templates/admin/folds.html:402
+msgid "Guardar y validar modelo"
+msgstr "Enregistrer et valider le modèle"
+
+#: trazasytrazadas/templates/admin/folds.html:443
+msgid "Cancelando subida..."
+msgstr "Annulation de l’envoi..."
+
+#: trazasytrazadas/templates/admin/folds.html:444
+msgid "La subida se ha cancelado correctamente. No se ha guardado ningún modelo."
+msgstr "L’envoi a été annulé avec succès. Aucun modèle n’a été enregistré."
+
+#: trazasytrazadas/templates/admin/folds.html:449
 msgid "Tu navegador no permite mostrar el progreso de subida."
 msgstr "Votre navigateur ne permet pas d’afficher la progression du téléversement."
 
-#: trazasytrazadas/templates/admin/folds.html:436
+#: trazasytrazadas/templates/admin/folds.html:452
 msgid "La subida del modelo sigue en curso. Si sales ahora, se cancelará."
 msgstr ""
-"Le téléversement du modèle est toujours en cours. Si vous quittez maintenant, il sera "
-"annulé."
+"Le téléversement du modèle est toujours en cours. Si vous quittez "
+"maintenant, il sera annulé."
 
-#: trazasytrazadas/templates/admin/folds.html:440
+#: trazasytrazadas/templates/admin/folds.html:456
 msgid "La conexión se ha interrumpido durante la subida."
 msgstr "La connexion a été interrompue pendant le téléversement."
 
-#: trazasytrazadas/templates/admin/folds.html:444
+#: trazasytrazadas/templates/admin/folds.html:460
 msgid "Modelo recibido. La validación continuará en segundo plano."
 msgstr "Modèle reçu. La validation se poursuivra en arrière-plan."
 
-#: trazasytrazadas/templates/admin/folds.html:447
+#: trazasytrazadas/templates/admin/folds.html:463
 msgid "Guardando..."
 msgstr "Enregistrement..."
 
-#: trazasytrazadas/templates/admin/folds.html:448
+#: trazasytrazadas/templates/admin/folds.html:464
 msgid "Enviando archivo al servidor..."
 msgstr "Envoi du fichier au serveur..."
 
-#: trazasytrazadas/templates/admin/folds.html:449
+#: trazasytrazadas/templates/admin/folds.html:465
 msgid "Subiendo archivo..."
 msgstr "Téléversement du fichier..."
 
-#: trazasytrazadas/templates/admin/folds.html:451
+#: trazasytrazadas/templates/admin/folds.html:467
 msgid "Subiendo"
 msgstr "Téléversement"
 
-#: trazasytrazadas/templates/admin/folds.html:453
+#: trazasytrazadas/templates/admin/folds.html:469
 msgid "del archivo."
 msgstr "du fichier."
 
@@ -2239,27 +2296,27 @@ msgstr "Parcelles associées"
 
 #: trazasytrazadas/templates/admin/user_detail.html:133
 msgid ""
-"El usuario del sistema está protegido y no puede editarse ni eliminarse desde esta "
-"pantalla."
+"El usuario del sistema está protegido y no puede editarse ni eliminarse "
+"desde esta pantalla."
 msgstr ""
-"L'utilisateur système est protégé et ne peut être ni modifié ni supprimé depuis cet "
-"écran."
+"L'utilisateur système est protégé et ne peut être ni modifié ni supprimé "
+"depuis cet écran."
 
 #: trazasytrazadas/templates/admin/user_detail.html:137
 msgid ""
-"Este es el usuario con el que has iniciado sesión y no puede eliminarse desde esta "
-"vista."
+"Este es el usuario con el que has iniciado sesión y no puede eliminarse "
+"desde esta vista."
 msgstr ""
-"C'est l'utilisateur avec lequel vous êtes connecté et il ne peut pas être supprimé "
-"depuis cette vue."
+"C'est l'utilisateur avec lequel vous êtes connecté et il ne peut pas être "
+"supprimé depuis cette vue."
 
 #: trazasytrazadas/templates/admin/user_detail.html:142
 msgid ""
-"Los usuarios administradores están protegidos y no pueden eliminarse ni perder su rol "
-"desde esta vista."
+"Los usuarios administradores están protegidos y no pueden eliminarse ni "
+"perder su rol desde esta vista."
 msgstr ""
-"Les utilisateurs administrateurs sont protégés et ne peuvent pas être supprimés ni "
-"perdre leur rôle depuis cette vue."
+"Les utilisateurs administrateurs sont protégés et ne peuvent pas être "
+"supprimés ni perdre leur rôle depuis cette vue."
 
 #: trazasytrazadas/templates/admin/user_detail.html:150
 #: trazasytrazadas/templates/admin/users.html:315
@@ -2287,11 +2344,11 @@ msgstr "Cette action supprimera définitivement l'utilisateur sélectionné."
 #: trazasytrazadas/templates/admin/user_detail.html:189
 #, python-format
 msgid ""
-"Este usuario tiene %(count)s parcelas asociadas. Al eliminarlo, esas parcelas y sus "
-"fotos se borrarán permanentemente."
+"Este usuario tiene %(count)s parcelas asociadas. Al eliminarlo, esas "
+"parcelas y sus fotos se borrarán permanentemente."
 msgstr ""
-"Cet utilisateur a %(count)s parcelles associées. En le supprimant, ces parcelles et "
-"leurs photos seront définitivement supprimées."
+"Cet utilisateur a %(count)s parcelles associées. En le supprimant, ces "
+"parcelles et leurs photos seront définitivement supprimées."
 
 #: trazasytrazadas/templates/admin/user_detail.html:194
 #: trazasytrazadas/templates/admin/users.html:419
@@ -2317,16 +2374,26 @@ msgid "Volver al detalle del usuario"
 msgstr "Retour au détail de l'utilisateur"
 
 #: trazasytrazadas/templates/admin/user_edit.html:29
-msgid "Actualiza la información visible y el rol de acceso del usuario seleccionado."
-msgstr "Met à jour les informations visibles et le rôle d'accès de l'utilisateur sélectionné."
+msgid ""
+"Actualiza la información visible y el rol de acceso del usuario "
+"seleccionado."
+msgstr ""
+"Met à jour les informations visibles et le rôle d'accès de l'utilisateur "
+"sélectionné."
 
 #: trazasytrazadas/templates/admin/user_edit.html:34
-msgid "El rol de un administrador está protegido y no puede cambiarse desde esta vista."
-msgstr "Le rôle d'un administrateur est protégé et ne peut pas être modifié depuis cette vue."
+msgid ""
+"El rol de un administrador está protegido y no puede cambiarse desde esta "
+"vista."
+msgstr ""
+"Le rôle d'un administrateur est protégé et ne peut pas être modifié depuis "
+"cette vue."
 
 #: trazasytrazadas/templates/admin/user_edit.html:38
 msgid "El usuario del sistema está protegido y no puede editarse desde esta vista."
-msgstr "L'utilisateur système est protégé et ne peut pas être modifié depuis cette vue."
+msgstr ""
+"L'utilisateur système est protégé et ne peut pas être modifié depuis cette "
+"vue."
 
 #: trazasytrazadas/templates/admin/user_edit.html:86
 msgid "El rol de administrador está protegido y no puede modificarse aquí."
@@ -2469,17 +2536,20 @@ msgstr "Aucun utilisateur trouvé"
 
 #: trazasytrazadas/templates/admin/users.html:386
 msgid "Prueba a cambiar el texto de búsqueda o el número de registros mostrados."
-msgstr "Essayez de modifier le texte de recherche ou le nombre d'enregistrements affichés."
+msgstr ""
+"Essayez de modifier le texte de recherche ou le nombre d'enregistrements "
+"affichés."
 
 #: trazasytrazadas/templates/admin/users.html:415
 msgid ""
 "Esta acción eliminará permanentemente el usuario seleccionado.\n"
-"                                                Si tiene parcelas asociadas, también se"
-" borrarán definitivamente junto con sus fotos."
+"                                                Si tiene parcelas "
+"asociadas, también se borrarán definitivamente junto con sus fotos."
 msgstr ""
 "Cette action supprimera définitivement l’utilisateur sélectionné.\n"
-"                                                S’il a des parcelles associées, elles "
-"seront également supprimées définitivement avec leurs photos."
+"                                                S’il a des parcelles "
+"associées, elles seront également supprimées définitivement avec leurs "
+"photos."
 
 #: trazasytrazadas/templates/collection/_collection_app_config.html:33
 msgid "Reintentar"
@@ -2543,7 +2613,9 @@ msgstr "Enregistrer"
 #~ msgstr "TRACES DESSINÉES"
 
 #~ msgid "No se puede eliminar el usuario porque tiene parcelas asociadas."
-#~ msgstr "L'utilisateur ne peut pas être supprimé, car des zones lui sont associées."
+#~ msgstr ""
+#~ "L'utilisateur ne peut pas être supprimé,"
+#~ " car des zones lui sont associées."
 
 #~ msgid "Modelo añadido y validado correctamente."
 #~ msgstr "Modèle ajouté et validé avec succès."
@@ -2584,22 +2656,25 @@ msgstr "Enregistrer"
 #~ msgid "Debe ser único y seguir el formato fold.0, fold.1, fold.2..."
 #~ msgstr "Il doit être unique et respecter le format fold.0, fold.1, fold.2..."
 
-#~ msgid "No se guardará si no puede cargarse como modelo de segmentación compatible."
+#~ msgid ""
+#~ "No se guardará si no puede cargarse"
+#~ " como modelo de segmentación compatible."
 #~ msgstr ""
-#~ "Il ne sera pas enregistré s'il ne peut "
-#~ "pas être chargé comme modèle de segmentation "
-#~ "compatible."
+#~ "Il ne sera pas enregistré s'il ne"
+#~ " peut pas être chargé comme modèle "
+#~ "de segmentation compatible."
 
 #~ msgid ""
-#~ "La subida puede tardar porque se deserializa "
-#~ "el modelo y se prueba con imágenes RGB "
-#~ "sintéticas antes de incorporarlo al directorio "
-#~ "de modelos."
+#~ "La subida puede tardar porque se "
+#~ "deserializa el modelo y se prueba "
+#~ "con imágenes RGB sintéticas antes de "
+#~ "incorporarlo al directorio de modelos."
 #~ msgstr ""
-#~ "Le téléversement peut prendre du temps, car "
-#~ "le modèle est désérialisé et testé avec "
-#~ "des images RGB synthétiques avant d'être ajouté"
-#~ " au répertoire des modèles."
+#~ "Le téléversement peut prendre du temps,"
+#~ " car le modèle est désérialisé et "
+#~ "testé avec des images RGB synthétiques "
+#~ "avant d'être ajouté au répertoire des "
+#~ "modèles."
 
 #~ msgid "Valida el archivo y añade el fold si el modelo es compatible."
 #~ msgstr "Valide le fichier et ajoute le fold si le modèle est compatible."
@@ -2608,13 +2683,71 @@ msgstr "Enregistrer"
 #~ msgstr "Valider et ajouter le modèle"
 
 #~ msgid ""
-#~ "Este usuario tiene parcelas asociadas y no "
-#~ "puede eliminarse hasta reasignarlas o eliminarlas."
+#~ "Este usuario tiene parcelas asociadas y"
+#~ " no puede eliminarse hasta reasignarlas "
+#~ "o eliminarlas."
 #~ msgstr ""
-#~ "Cet utilisateur a des zones associées et "
-#~ "ne peut pas être supprimé avant qu'elles "
-#~ "soient réattribuées ou supprimées."
+#~ "Cet utilisateur a des zones associées "
+#~ "et ne peut pas être supprimé avant"
+#~ " qu'elles soient réattribuées ou supprimées."
 
 #~ msgid "Administrador protegido"
 #~ msgstr "Administrateur protégé"
+
+#~ msgid "El nombre de usuario debe tener entre 3 y 50 caracteres."
+#~ msgstr "Le nom d’utilisateur doit comporter entre 3 et 50 caractères."
+
+#~ msgid ""
+#~ "El nombre de usuario solo puede "
+#~ "contener letras, números, puntos, guiones "
+#~ "y guiones bajos."
+#~ msgstr ""
+#~ "Le nom d’utilisateur ne peut contenir "
+#~ "que des lettres, des chiffres, des "
+#~ "points, des traits d’union et des "
+#~ "traits de soulignement."
+
+#~ msgid "Introduce un correo electrónico."
+#~ msgstr "Saisissez une adresse e-mail."
+
+#~ msgid "El correo electrónico no puede superar los 50 caracteres."
+#~ msgstr "L’adresse e-mail ne peut pas dépasser 50 caractères."
+
+#~ msgid "Introduce un correo electrónico válido."
+#~ msgstr "Saisissez une adresse e-mail valide."
+
+#~ msgid "Introduce una contraseña."
+#~ msgstr "Saisissez un mot de passe."
+
+#~ msgid "Repite la contraseña."
+#~ msgstr "Saisissez à nouveau le mot de passe."
+
+#~ msgid "Las contraseñas no coinciden."
+#~ msgstr "Les mots de passe ne correspondent pas."
+
+#~ msgid "El usuario o correo electrónico no puede superar los 50 caracteres."
+#~ msgstr ""
+#~ "Le nom d’utilisateur ou l’adresse e-mail"
+#~ " ne peut pas dépasser 50 caractères."
+
+#~ msgid "Guardar cambios"
+#~ msgstr "Enregistrer les modifications"
+
+#~ msgid "Revisar imagen"
+#~ msgstr "Vérifier l’image"
+
+#~ msgid "Nombre actual"
+#~ msgstr "Nom actuel"
+
+#~ msgid "Falta el nombre actual del modelo."
+#~ msgstr "Il manque le nom actuel du modèle."
+
+#~ msgid "Introduce un nombre para el modelo."
+#~ msgstr "Saisissez un nom pour le modèle."
+
+#~ msgid "El nombre del modelo debe tener entre 1 y 100 caracteres."
+#~ msgstr "Le nom du modèle doit comporter entre 1 et 100 caractères."
+
+#~ msgid "Selecciona un archivo de modelo."
+#~ msgstr "Sélectionnez un fichier de modèle."
 

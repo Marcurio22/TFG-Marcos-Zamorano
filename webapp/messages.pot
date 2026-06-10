@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-06-10 14:01+0200\n"
+"POT-Creation-Date: 2026-06-10 19:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,7 +41,7 @@ msgid ""
 "lista."
 msgstr ""
 
-#: trazasytrazadas/admin.py:250 trazasytrazadas/forms.py:498
+#: trazasytrazadas/admin.py:250
 #: trazasytrazadas/templates/admin/user_detail.html:69
 #: trazasytrazadas/templates/admin/users.html:270
 #: trazasytrazadas/templates/profile.html:92
@@ -55,8 +55,6 @@ msgid "Sistema"
 msgstr ""
 
 #: trazasytrazadas/admin.py:252 trazasytrazadas/admin.py:262
-#: trazasytrazadas/forms.py:173 trazasytrazadas/forms.py:345
-#: trazasytrazadas/forms.py:457 trazasytrazadas/forms.py:497
 #: trazasytrazadas/templates/admin/user_detail.html:101
 #: trazasytrazadas/templates/admin/user_edit.html:46
 #: trazasytrazadas/templates/admin/users.html:217
@@ -70,8 +68,7 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: trazasytrazadas/admin.py:263 trazasytrazadas/forms.py:193
-#: trazasytrazadas/forms.py:365 trazasytrazadas/forms.py:477
+#: trazasytrazadas/admin.py:263
 #: trazasytrazadas/templates/admin/user_detail.html:111
 #: trazasytrazadas/templates/admin/user_edit.html:56
 #: trazasytrazadas/templates/admin/users.html:218
@@ -86,7 +83,7 @@ msgstr ""
 msgid "Teléfono"
 msgstr ""
 
-#: trazasytrazadas/admin.py:265 trazasytrazadas/forms.py:495
+#: trazasytrazadas/admin.py:265
 #: trazasytrazadas/templates/admin/user_detail.html:123
 #: trazasytrazadas/templates/admin/user_edit.html:81
 #: trazasytrazadas/templates/admin/users.html:220
@@ -226,7 +223,7 @@ msgid "Administración"
 msgstr ""
 
 #: trazasytrazadas/admin.py:956 trazasytrazadas/templates/admin/folds.html:2
-#: trazasytrazadas/templates/admin/folds.html:28
+#: trazasytrazadas/templates/admin/folds.html:30
 #: trazasytrazadas/templates/base.html:290
 #: trazasytrazadas/templates/profile.html:233
 msgid "Gestión del Modelo"
@@ -284,7 +281,7 @@ msgstr ""
 msgid "Perfil actualizado correctamente."
 msgstr ""
 
-#: trazasytrazadas/auth.py:547 trazasytrazadas/forms.py:574
+#: trazasytrazadas/auth.py:547
 msgid "Selecciona una imagen de perfil."
 msgstr ""
 
@@ -443,72 +440,9 @@ msgstr ""
 msgid "No asociado"
 msgstr ""
 
-#: trazasytrazadas/forms.py:175 trazasytrazadas/forms.py:236
-#: trazasytrazadas/forms.py:347 trazasytrazadas/forms.py:392
-#: trazasytrazadas/forms.py:459 trazasytrazadas/forms.py:512
+#: trazasytrazadas/forms.py:236 trazasytrazadas/forms.py:392
+#: trazasytrazadas/forms.py:512
 msgid "Introduce un nombre de usuario."
-msgstr ""
-
-#: trazasytrazadas/forms.py:179 trazasytrazadas/forms.py:351
-#: trazasytrazadas/forms.py:463
-msgid "El nombre de usuario debe tener entre 3 y 50 caracteres."
-msgstr ""
-
-#: trazasytrazadas/forms.py:185 trazasytrazadas/forms.py:357
-#: trazasytrazadas/forms.py:469
-msgid ""
-"El nombre de usuario solo puede contener letras, números, puntos, guiones"
-" y guiones bajos."
-msgstr ""
-
-#: trazasytrazadas/forms.py:195 trazasytrazadas/forms.py:367
-#: trazasytrazadas/forms.py:479
-msgid "Introduce un correo electrónico."
-msgstr ""
-
-#: trazasytrazadas/forms.py:198 trazasytrazadas/forms.py:370
-#: trazasytrazadas/forms.py:482
-msgid "El correo electrónico no puede superar los 50 caracteres."
-msgstr ""
-
-#: trazasytrazadas/forms.py:203 trazasytrazadas/forms.py:375
-#: trazasytrazadas/forms.py:487
-msgid "Introduce un correo electrónico válido."
-msgstr ""
-
-#: trazasytrazadas/forms.py:207 trazasytrazadas/forms.py:379
-#: trazasytrazadas/forms.py:491
-#: trazasytrazadas/templates/admin/user_edit.html:66
-#: trazasytrazadas/templates/profile.html:188
-#: trazasytrazadas/templates/register.html:58
-msgid "Teléfono (opcional)"
-msgstr ""
-
-#: trazasytrazadas/forms.py:213 trazasytrazadas/forms.py:324
-#: trazasytrazadas/templates/login.html:66
-#: trazasytrazadas/templates/register.html:94
-msgid "Contraseña"
-msgstr ""
-
-#: trazasytrazadas/forms.py:215 trazasytrazadas/forms.py:326
-msgid "Introduce una contraseña."
-msgstr ""
-
-#: trazasytrazadas/forms.py:219 trazasytrazadas/templates/register.html:110
-msgid "Repetir contraseña"
-msgstr ""
-
-#: trazasytrazadas/forms.py:221
-msgid "Repite la contraseña."
-msgstr ""
-
-#: trazasytrazadas/forms.py:224
-msgid "Las contraseñas no coinciden."
-msgstr ""
-
-#: trazasytrazadas/forms.py:228 trazasytrazadas/templates/login.html:94
-#: trazasytrazadas/templates/register.html:2
-msgid "Registrarse"
 msgstr ""
 
 #: trazasytrazadas/forms.py:246 trazasytrazadas/forms.py:409
@@ -537,68 +471,12 @@ msgstr ""
 msgid "La contraseña debe incluir al menos un carácter especial."
 msgstr ""
 
-#: trazasytrazadas/forms.py:309 trazasytrazadas/templates/login.html:47
-msgid "Usuario o correo electrónico"
-msgstr ""
-
-#: trazasytrazadas/forms.py:312 trazasytrazadas/forms.py:338
+#: trazasytrazadas/forms.py:338
 msgid "Introduce tu usuario o correo electrónico."
 msgstr ""
 
-#: trazasytrazadas/forms.py:316
-msgid "El usuario o correo electrónico no puede superar los 50 caracteres."
-msgstr ""
-
-#: trazasytrazadas/forms.py:329 trazasytrazadas/templates/base.html:352
-#: trazasytrazadas/templates/register.html:134
-msgid "Iniciar sesión"
-msgstr ""
-
-#: trazasytrazadas/forms.py:384 trazasytrazadas/forms.py:504
-msgid "Guardar cambios"
-msgstr ""
-
-#: trazasytrazadas/forms.py:501 trazasytrazadas/forms.py:565
+#: trazasytrazadas/forms.py:565
 msgid "Selecciona un rol válido."
-msgstr ""
-
-#: trazasytrazadas/forms.py:572
-#: trazasytrazadas/templates/admin/user_detail.html:28
-#: trazasytrazadas/templates/profile.html:24
-msgid "Imagen de perfil"
-msgstr ""
-
-#: trazasytrazadas/forms.py:577
-msgid "Revisar imagen"
-msgstr ""
-
-#: trazasytrazadas/forms.py:583
-#: trazasytrazadas/templates/profile_image_confirm.html:46
-msgid "Guardar imagen"
-msgstr ""
-
-#: trazasytrazadas/forms.py:594
-msgid "Nombre actual"
-msgstr ""
-
-#: trazasytrazadas/forms.py:596
-msgid "Falta el nombre actual del modelo."
-msgstr ""
-
-#: trazasytrazadas/forms.py:600 trazasytrazadas/templates/admin/folds.html:319
-msgid "Nuevo nombre"
-msgstr ""
-
-#: trazasytrazadas/forms.py:602 trazasytrazadas/forms.py:645
-msgid "Introduce un nombre para el modelo."
-msgstr ""
-
-#: trazasytrazadas/forms.py:606 trazasytrazadas/forms.py:649
-msgid "El nombre del modelo debe tener entre 1 y 100 caracteres."
-msgstr ""
-
-#: trazasytrazadas/forms.py:612 trazasytrazadas/templates/admin/folds.html:338
-msgid "Guardar nombre"
 msgstr ""
 
 #: trazasytrazadas/forms.py:620 trazasytrazadas/forms.py:669
@@ -615,24 +493,6 @@ msgstr ""
 
 #: trazasytrazadas/forms.py:635 trazasytrazadas/forms.py:684
 msgid "El nombre del modelo contiene caracteres no permitidos."
-msgstr ""
-
-#: trazasytrazadas/forms.py:643 trazasytrazadas/templates/admin/folds.html:323
-#: trazasytrazadas/templates/admin/folds.html:360
-#: trazasytrazadas/templates/admin/folds.html:363
-msgid "Nombre del modelo"
-msgstr ""
-
-#: trazasytrazadas/forms.py:656 trazasytrazadas/templates/admin/folds.html:371
-msgid "Archivo del modelo"
-msgstr ""
-
-#: trazasytrazadas/forms.py:658
-msgid "Selecciona un archivo de modelo."
-msgstr ""
-
-#: trazasytrazadas/forms.py:661 trazasytrazadas/templates/admin/folds.html:392
-msgid "Guardar y validar modelo"
 msgstr ""
 
 #: trazasytrazadas/traces.py:149
@@ -756,10 +616,11 @@ msgid "El ZIP supera el límite permitido de %(limit)s teselas."
 msgstr ""
 
 #: trazasytrazadas/templates/_flash_messages.html:18
-#: trazasytrazadas/templates/admin/folds.html:272
-#: trazasytrazadas/templates/admin/folds.html:304
-#: trazasytrazadas/templates/admin/folds.html:343
-#: trazasytrazadas/templates/admin/folds.html:398
+#: trazasytrazadas/templates/admin/folds.html:282
+#: trazasytrazadas/templates/admin/folds.html:314
+#: trazasytrazadas/templates/admin/folds.html:353
+#: trazasytrazadas/templates/admin/folds.html:408
+#: trazasytrazadas/templates/admin/folds.html:448
 #: trazasytrazadas/templates/admin/user_detail.html:218
 #: trazasytrazadas/templates/admin/users.html:441
 #: trazasytrazadas/templates/collection.html:368
@@ -864,6 +725,11 @@ msgstr ""
 msgid "Cerrar sesión"
 msgstr ""
 
+#: trazasytrazadas/templates/base.html:352
+#: trazasytrazadas/templates/register.html:134
+msgid "Iniciar sesión"
+msgstr ""
+
 #: trazasytrazadas/templates/collection.html:18
 msgid "Vuelve al visor cartográfico para crear nuevas zonas."
 msgstr ""
@@ -924,14 +790,14 @@ msgstr ""
 msgid "ZIP"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:123
+#: trazasytrazadas/templates/admin/folds.html:133
 #: trazasytrazadas/templates/collection.html:100
 #: trazasytrazadas/templates/index.html:19
 #: trazasytrazadas/templates/index.html:20
 msgid "Estado"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:126
+#: trazasytrazadas/templates/admin/folds.html:136
 #: trazasytrazadas/templates/admin/users.html:222
 #: trazasytrazadas/templates/collection.html:101
 msgid "Acciones"
@@ -1080,8 +946,8 @@ msgstr ""
 msgid "Pausa el cálculo de trazas de esta colección."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:207
-#: trazasytrazadas/templates/admin/folds.html:298
+#: trazasytrazadas/templates/admin/folds.html:217
+#: trazasytrazadas/templates/admin/folds.html:308
 #: trazasytrazadas/templates/admin/user_detail.html:212
 #: trazasytrazadas/templates/admin/users.html:324
 #: trazasytrazadas/templates/admin/users.html:435
@@ -1158,10 +1024,10 @@ msgstr ""
 msgid "Cancela los cambios y cierra la ventana."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:258
-#: trazasytrazadas/templates/admin/folds.html:288
-#: trazasytrazadas/templates/admin/folds.html:334
-#: trazasytrazadas/templates/admin/folds.html:387
+#: trazasytrazadas/templates/admin/folds.html:268
+#: trazasytrazadas/templates/admin/folds.html:298
+#: trazasytrazadas/templates/admin/folds.html:344
+#: trazasytrazadas/templates/admin/folds.html:397
 #: trazasytrazadas/templates/admin/user_detail.html:204
 #: trazasytrazadas/templates/admin/user_edit.html:97
 #: trazasytrazadas/templates/admin/users.html:428
@@ -1466,8 +1332,17 @@ msgid ""
 "contraseña."
 msgstr ""
 
+#: trazasytrazadas/templates/login.html:47
+msgid "Usuario o correo electrónico"
+msgstr ""
+
 #: trazasytrazadas/templates/login.html:50
 msgid "Introduzca aquí su usuario o correo"
+msgstr ""
+
+#: trazasytrazadas/templates/login.html:66
+#: trazasytrazadas/templates/register.html:94
+msgid "Contraseña"
 msgstr ""
 
 #: trazasytrazadas/templates/login.html:69
@@ -1494,6 +1369,11 @@ msgstr ""
 msgid "Crea una cuenta para guardar zonas y acceder a la colección."
 msgstr ""
 
+#: trazasytrazadas/templates/login.html:94
+#: trazasytrazadas/templates/register.html:2
+msgid "Registrarse"
+msgstr ""
+
 #: trazasytrazadas/templates/profile.html:2
 msgid "Perfil"
 msgstr ""
@@ -1501,6 +1381,11 @@ msgstr ""
 #: trazasytrazadas/templates/profile.html:21
 #: trazasytrazadas/templates/profile.html:51
 msgid "Cambiar imagen de perfil"
+msgstr ""
+
+#: trazasytrazadas/templates/admin/user_detail.html:28
+#: trazasytrazadas/templates/profile.html:24
+msgid "Imagen de perfil"
 msgstr ""
 
 #: trazasytrazadas/templates/profile.html:58
@@ -1547,6 +1432,12 @@ msgstr ""
 #: trazasytrazadas/templates/admin/user_edit.html:58
 #: trazasytrazadas/templates/profile.html:179
 msgid "Actualiza el correo electrónico de acceso y contacto."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/user_edit.html:66
+#: trazasytrazadas/templates/profile.html:188
+#: trazasytrazadas/templates/register.html:58
+msgid "Teléfono (opcional)"
 msgstr ""
 
 #: trazasytrazadas/templates/admin/user_edit.html:68
@@ -1616,6 +1507,10 @@ msgstr ""
 msgid "Guarda esta imagen como nueva imagen de perfil."
 msgstr ""
 
+#: trazasytrazadas/templates/profile_image_confirm.html:46
+msgid "Guardar imagen"
+msgstr ""
+
 #: trazasytrazadas/templates/profile_image_confirm.html:55
 msgid "Descarta esta imagen y vuelve al perfil."
 msgstr ""
@@ -1653,6 +1548,10 @@ msgstr ""
 #: trazasytrazadas/templates/register.html:96
 #: trazasytrazadas/templates/register.html:112
 msgid "Introduzca aquí la contraseña"
+msgstr ""
+
+#: trazasytrazadas/templates/register.html:110
+msgid "Repetir contraseña"
 msgstr ""
 
 #: trazasytrazadas/templates/register.html:120
@@ -1903,322 +1802,360 @@ msgstr ""
 msgid "Trazas pendientes"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:30
+#: trazasytrazadas/templates/admin/folds.html:32
 msgid ""
 "Administra los modelos disponibles y selecciona cuál queda activo en el "
 "sistema."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:36
+#: trazasytrazadas/templates/admin/folds.html:38
 #, python-format
 msgid "%(count)s modelos"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:40
-#: trazasytrazadas/templates/admin/folds.html:239
+#: trazasytrazadas/templates/admin/folds.html:42
+#: trazasytrazadas/templates/admin/folds.html:249
 msgid "Abre el formulario para validar y añadir un nuevo modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:41
-#: trazasytrazadas/templates/admin/folds.html:240
+#: trazasytrazadas/templates/admin/folds.html:43
+#: trazasytrazadas/templates/admin/folds.html:250
 msgid "Añadir modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:51
+#: trazasytrazadas/templates/admin/folds.html:53
 msgid "Listado de modelos"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:53
+#: trazasytrazadas/templates/admin/folds.html:55
 msgid ""
 "Consulta los modelos disponibles, activa uno, renómbralos o añade nuevos "
 "modelos para validarlos en segundo plano."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:58
+#: trazasytrazadas/templates/admin/folds.html:60
 msgid "Modelo usado actualmente por el sistema para calcular trazas."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:59
+#: trazasytrazadas/templates/admin/folds.html:61
 #, python-format
 msgid "Activo: %(name)s"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:63
+#: trazasytrazadas/templates/admin/folds.html:65
 msgid "Todavía no hay ningún modelo activo para el cálculo de trazas."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:64
+#: trazasytrazadas/templates/admin/folds.html:66
 msgid "Sin modelo activo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:74
+#: trazasytrazadas/templates/admin/folds.html:76
 msgid "Subiendo modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:76
+#: trazasytrazadas/templates/admin/folds.html:78
 msgid "Preparando la subida del archivo..."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:103
+#: trazasytrazadas/templates/admin/folds.html:88
+msgid "Cancela la transferencia del archivo en curso."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:89
+msgid "Cancelar subida"
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:113
 msgid "No abandones esta página"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:106
+#: trazasytrazadas/templates/admin/folds.html:116
 msgid ""
 "Espera hasta que la subida termine. Si sales antes, el archivo puede "
 "cancelarse y el modelo no se guardará."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:121
+#: trazasytrazadas/templates/admin/folds.html:131
 msgid "Modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:122
+#: trazasytrazadas/templates/admin/folds.html:132
 msgid "Nombre"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:124
+#: trazasytrazadas/templates/admin/folds.html:134
 msgid "Validación"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:125
+#: trazasytrazadas/templates/admin/folds.html:135
 msgid "Fecha de creación"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:142
+#: trazasytrazadas/templates/admin/folds.html:152
 msgid "Activo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:147
-#: trazasytrazadas/templates/admin/folds.html:188
-#: trazasytrazadas/templates/admin/folds.html:450
-#: trazasytrazadas/templates/admin/folds.html:452
+#: trazasytrazadas/templates/admin/folds.html:157
+#: trazasytrazadas/templates/admin/folds.html:198
+#: trazasytrazadas/templates/admin/folds.html:466
+#: trazasytrazadas/templates/admin/folds.html:468
 msgid "Subiendo..."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:152
+#: trazasytrazadas/templates/admin/folds.html:162
 msgid "No activo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:160
+#: trazasytrazadas/templates/admin/folds.html:170
 msgid "Validado"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:165
-#: trazasytrazadas/templates/admin/folds.html:191
-#: trazasytrazadas/templates/admin/folds.html:443
+#: trazasytrazadas/templates/admin/folds.html:175
+#: trazasytrazadas/templates/admin/folds.html:201
+#: trazasytrazadas/templates/admin/folds.html:459
 msgid "Pendiente"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:177
+#: trazasytrazadas/templates/admin/folds.html:187
 msgid "Activa este modelo como principal del sistema."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:178
+#: trazasytrazadas/templates/admin/folds.html:188
 msgid "Activar"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:182
+#: trazasytrazadas/templates/admin/folds.html:192
 msgid "Este modelo está activo y no puede eliminarse directamente."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:182
+#: trazasytrazadas/templates/admin/folds.html:192
 msgid "En uso"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:185
+#: trazasytrazadas/templates/admin/folds.html:195
 msgid "El archivo físico del modelo no existe en la carpeta de modelos."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:185
+#: trazasytrazadas/templates/admin/folds.html:195
 msgid "Sin fichero"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:188
+#: trazasytrazadas/templates/admin/folds.html:198
 msgid "Este modelo se está subiendo y validando en segundo plano."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:191
+#: trazasytrazadas/templates/admin/folds.html:201
 msgid ""
 "Este modelo se está validando en segundo plano y todavía no puede "
 "activarse."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:197
+#: trazasytrazadas/templates/admin/folds.html:207
 msgid "Espera a que termine la validación para renombrar este modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:197
+#: trazasytrazadas/templates/admin/folds.html:207
 msgid "Renombra este modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:199
+#: trazasytrazadas/templates/admin/folds.html:209
 msgid "Renombrar"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:205
+#: trazasytrazadas/templates/admin/folds.html:215
 msgid "No se puede eliminar el modelo activo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:205
+#: trazasytrazadas/templates/admin/folds.html:215
 msgid "Espera a que termine la validación para eliminar este modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:205
+#: trazasytrazadas/templates/admin/folds.html:215
 msgid "Abre la confirmación para eliminar este modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:232
+#: trazasytrazadas/templates/admin/folds.html:242
 msgid "No se han encontrado modelos"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:234
+#: trazasytrazadas/templates/admin/folds.html:244
 msgid ""
 "Añade un modelo desde esta pantalla para validarlo antes de incorporarlo "
 "al sistema."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:249
+#: trazasytrazadas/templates/admin/folds.html:259
 msgid "Cambiar modelo activo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:250
+#: trazasytrazadas/templates/admin/folds.html:260
 msgid "Vas a activar este modelo como principal del sistema:"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:258
-#: trazasytrazadas/templates/admin/folds.html:288
+#: trazasytrazadas/templates/admin/folds.html:268
+#: trazasytrazadas/templates/admin/folds.html:298
 msgid "Cancela la acción y cierra la ventana."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:267
+#: trazasytrazadas/templates/admin/folds.html:277
 msgid "Confirma el cambio de modelo activo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:267
+#: trazasytrazadas/templates/admin/folds.html:277
 msgid "Confirmar"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:277
+#: trazasytrazadas/templates/admin/folds.html:287
 msgid "Eliminar modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:279
+#: trazasytrazadas/templates/admin/folds.html:289
 msgid ""
 "Esta acción eliminará el archivo del modelo y sus metadatos asociados. No"
 " se puede deshacer."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:297
+#: trazasytrazadas/templates/admin/folds.html:307
 msgid "Elimina definitivamente este modelo del sistema."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:309
+#: trazasytrazadas/templates/admin/folds.html:319
 msgid "Renombrar modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:310
+#: trazasytrazadas/templates/admin/folds.html:320
 msgid "Introduce un nuevo nombre para el modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:324
+#: trazasytrazadas/templates/admin/folds.html:329
+msgid "Nuevo nombre"
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:333
+#: trazasytrazadas/templates/admin/folds.html:370
+#: trazasytrazadas/templates/admin/folds.html:373
+msgid "Nombre del modelo"
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:334
 msgid "Escribe un nombre único para el modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:326
+#: trazasytrazadas/templates/admin/folds.html:336
 msgid ""
 "Puedes usar cualquier nombre único sin barras ni caracteres reservados "
 "del sistema."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:333
+#: trazasytrazadas/templates/admin/folds.html:343
 msgid "Cancela el cambio de nombre y cierra la ventana."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:338
+#: trazasytrazadas/templates/admin/folds.html:348
 msgid "Guarda el nuevo nombre del modelo."
 msgstr ""
 
 #: trazasytrazadas/templates/admin/folds.html:348
+msgid "Guardar nombre"
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:358
 msgid "Añadir nuevo modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:350
+#: trazasytrazadas/templates/admin/folds.html:360
 msgid ""
 "Selecciona el archivo serializado del modelo y asígnale un nombre. El "
 "sistema lo guardará y lo validará en segundo plano con una inferencia de "
 "prueba."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:364
+#: trazasytrazadas/templates/admin/folds.html:374
 msgid "Escribe un nombre único para identificar este modelo."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:366
+#: trazasytrazadas/templates/admin/folds.html:376
 msgid ""
 "Debe ser único. No puede contener rutas ni caracteres reservados del "
 "sistema."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:373
+#: trazasytrazadas/templates/admin/folds.html:381
+msgid "Archivo del modelo"
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:383
 msgid "Selecciona el archivo serializado del modelo que se va a validar."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:374
+#: trazasytrazadas/templates/admin/folds.html:384
 msgid "Aparecerá como subiendo y se validará en segundo plano."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:377
+#: trazasytrazadas/templates/admin/folds.html:387
 msgid "Validación en segundo plano"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:379
+#: trazasytrazadas/templates/admin/folds.html:389
 msgid ""
 "Tras guardar el archivo, el sistema comprobará en segundo plano que puede"
 " cargarse y ejecutar una inferencia de prueba."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:386
+#: trazasytrazadas/templates/admin/folds.html:396
 msgid "Cancela la subida del modelo y cierra la ventana."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:391
+#: trazasytrazadas/templates/admin/folds.html:401
 msgid "Guarda el archivo e inicia la validación en segundo plano."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:433
-msgid "Tu navegador no permite mostrar el progreso de subida."
+#: trazasytrazadas/templates/admin/folds.html:402
+msgid "Guardar y validar modelo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:436
-msgid "La subida del modelo sigue en curso. Si sales ahora, se cancelará."
-msgstr ""
-
-#: trazasytrazadas/templates/admin/folds.html:440
-msgid "La conexión se ha interrumpido durante la subida."
+#: trazasytrazadas/templates/admin/folds.html:443
+msgid "Cancelando subida..."
 msgstr ""
 
 #: trazasytrazadas/templates/admin/folds.html:444
-msgid "Modelo recibido. La validación continuará en segundo plano."
-msgstr ""
-
-#: trazasytrazadas/templates/admin/folds.html:447
-msgid "Guardando..."
-msgstr ""
-
-#: trazasytrazadas/templates/admin/folds.html:448
-msgid "Enviando archivo al servidor..."
+msgid "La subida se ha cancelado correctamente. No se ha guardado ningún modelo."
 msgstr ""
 
 #: trazasytrazadas/templates/admin/folds.html:449
+msgid "Tu navegador no permite mostrar el progreso de subida."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:452
+msgid "La subida del modelo sigue en curso. Si sales ahora, se cancelará."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:456
+msgid "La conexión se ha interrumpido durante la subida."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:460
+msgid "Modelo recibido. La validación continuará en segundo plano."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:463
+msgid "Guardando..."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:464
+msgid "Enviando archivo al servidor..."
+msgstr ""
+
+#: trazasytrazadas/templates/admin/folds.html:465
 msgid "Subiendo archivo..."
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:451
+#: trazasytrazadas/templates/admin/folds.html:467
 msgid "Subiendo"
 msgstr ""
 
-#: trazasytrazadas/templates/admin/folds.html:453
+#: trazasytrazadas/templates/admin/folds.html:469
 msgid "del archivo."
 msgstr ""
 

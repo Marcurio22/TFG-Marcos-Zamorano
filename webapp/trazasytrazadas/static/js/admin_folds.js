@@ -6,6 +6,7 @@
   const messages = config.messages || {};
   let refreshTimer = null;
   let uploadInProgress = false;
+  let activeUploadXhr = null;
 
   function message(key, fallback) {
     return messages[key] || fallback;
@@ -30,6 +31,73 @@
     }
   }
 
+  function dismissToast(alertEl) {
+    if (!alertEl) {
+      return;
+    }
+
+    alertEl.style.transition = "opacity 250ms ease";
+    alertEl.style.opacity = "0";
+    window.setTimeout(() => alertEl.remove(), 260);
+  }
+
+  function makeCloseIcon() {
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("viewBox", "0 0 20 20");
+    icon.setAttribute("fill", "currentColor");
+    icon.classList.add("w-4", "h-4");
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute(
+      "d",
+      "M6.28 5.22a.75.75 0 0 1 1.06 0L10 7.94l2.66-2.72"
+        + "a.75.75 0 1 1 1.08 1.04L11.08 9l2.66 2.74a.75.75"
+        + " 0 1 1-1.08 1.04L10 10.06l-2.66 2.72a.75.75 0 1"
+        + " 1-1.08-1.04L8.92 9 6.28 6.26a.75.75 0 0 1 0-1.04Z"
+    );
+
+    icon.appendChild(path);
+    return icon;
+  }
+
+  function showCancellationToast() {
+    const toastContainer = document.querySelector(
+      "[data-upload-toast-container]"
+    );
+    if (!toastContainer) {
+      return;
+    }
+
+    toastContainer.innerHTML = "";
+
+    const alertEl = document.createElement("div");
+    alertEl.className = "alert alert-info shadow-lg pointer-events-auto";
+
+    const text = document.createElement("span");
+    text.className = "text-sm sm:text-base";
+    text.textContent = message(
+      "cancelledToastMessage",
+      "La subida se ha cancelado correctamente. "
+        + "No se ha guardado ningún modelo."
+    );
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = "btn btn-sm btn-ghost ml-auto";
+    closeButton.setAttribute("aria-label", message("close", "Cerrar"));
+    closeButton.appendChild(makeCloseIcon());
+    closeButton.addEventListener("click", () => dismissToast(alertEl));
+
+    alertEl.append(text, closeButton);
+    toastContainer.appendChild(alertEl);
+
+    window.setTimeout(() => {
+      if (alertEl.isConnected) {
+        dismissToast(alertEl);
+      }
+    }, 5000);
+  }
+
   function showProgress(text) {
     const progressBox = document.querySelector("[data-model-upload-progress]");
     const progressText = document.querySelector("[data-upload-progress-text]");
@@ -39,6 +107,54 @@
 
     progressBox.classList.remove("hidden");
     progressText.textContent = text;
+  }
+
+  function setCancelButtonVisible(visible) {
+    const cancelButton = document.querySelector("[data-upload-cancel-button]");
+    if (!cancelButton) {
+      return;
+    }
+
+    cancelButton.classList.toggle("hidden", !visible);
+    cancelButton.disabled = !visible;
+  }
+
+  function setSpinnerVisible(visible) {
+    const spinner = document.querySelector("[data-upload-progress-spinner]");
+    if (!spinner) {
+      return;
+    }
+
+    spinner.classList.toggle("hidden", !visible);
+  }
+
+  function resetProgressUi() {
+    const progressBox = document.querySelector("[data-model-upload-progress]");
+    const progressBar = document.querySelector("[data-upload-progress-bar]");
+
+    if (progressBox) {
+      progressBox.classList.remove("hidden");
+    }
+
+    if (progressBar) {
+      progressBar.value = 0;
+    }
+
+    setSpinnerVisible(true);
+    setCancelButtonVisible(true);
+  }
+
+  function hideProgressUi() {
+    const progressBox = document.querySelector("[data-model-upload-progress]");
+    const progressBar = document.querySelector("[data-upload-progress-bar]");
+
+    if (progressBar) {
+      progressBar.value = 0;
+    }
+
+    if (progressBox) {
+      progressBox.classList.add("hidden");
+    }
   }
 
   function updateProgress(percent) {
@@ -56,13 +172,12 @@
 
   function finishProgress(text) {
     const progressBar = document.querySelector("[data-upload-progress-bar]");
-    const spinner = document.querySelector("[data-upload-progress-spinner]");
     if (progressBar) {
       progressBar.value = 100;
     }
-    if (spinner) {
-      spinner.classList.add("hidden");
-    }
+
+    setSpinnerVisible(false);
+    setCancelButtonVisible(false);
     showProgress(text);
   }
 
@@ -170,11 +285,43 @@
     }
   }
 
-  function handleUploadError(text, temporaryRow, submitButton, originalText) {
+  function clearActiveUpload() {
     uploadInProgress = false;
+    activeUploadXhr = null;
+    setSpinnerVisible(false);
+    setCancelButtonVisible(false);
+  }
+
+  function handleUploadError(text, temporaryRow, submitButton, originalText) {
+    clearActiveUpload();
     removeTemporaryRow(temporaryRow);
     restoreSubmitButton(submitButton, originalText);
     showProgress(text);
+  }
+
+  function handleUploadCancellation(temporaryRow, submitButton, originalText) {
+    clearActiveUpload();
+    removeTemporaryRow(temporaryRow);
+    restoreSubmitButton(submitButton, originalText);
+    hideProgressUi();
+    showCancellationToast();
+  }
+
+  function setupCancelUploadButton() {
+    const cancelButton = document.querySelector("[data-upload-cancel-button]");
+    if (!cancelButton) {
+      return;
+    }
+
+    cancelButton.addEventListener("click", () => {
+      if (!activeUploadXhr || !uploadInProgress) {
+        return;
+      }
+
+      cancelButton.disabled = true;
+      showProgress(message("cancelling", "Cancelando subida..."));
+      activeUploadXhr.abort();
+    });
   }
 
   function setupUploadForm() {
@@ -208,6 +355,8 @@
 
       closeDialog(uploadDialog);
       uploadInProgress = true;
+      activeUploadXhr = xhr;
+      resetProgressUi();
       showProgress(message("submitting", "Enviando archivo al servidor..."));
 
       xhr.open("POST", uploadForm.action);
@@ -239,7 +388,7 @@
           return;
         }
 
-        uploadInProgress = false;
+        clearActiveUpload();
         finishProgress(
           payload.message || message("received", "Modelo recibido.")
         );
@@ -259,12 +408,7 @@
       });
 
       xhr.addEventListener("abort", () => {
-        handleUploadError(
-          message("networkError", "La subida se ha cancelado."),
-          temporaryRow,
-          submitButton,
-          originalText
-        );
+        handleUploadCancellation(temporaryRow, submitButton, originalText);
       });
 
       xhr.send(formData);
@@ -336,6 +480,7 @@
     }
 
     setupUploadForm();
+    setupCancelUploadButton();
     setupActionModals();
   });
 })();
