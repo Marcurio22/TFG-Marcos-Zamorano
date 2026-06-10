@@ -396,7 +396,8 @@ python run.py
 
 Tras iniciar el servidor, la aplicación estará disponible en la siguiente dirección:
 
-\begin{infocmdbox}{Dirección local de la aplicación}	http://127.0.0.1:5000
+\begin{infocmdbox}{Dirección local de la aplicación}
+http://127.0.0.1:5000
 \end{infocmdbox}
 
 Desde esta URL se puede acceder a la interfaz principal de la aplicación, cargar imágenes, iniciar sesión, utilizar el visor cartográfico y acceder al resto de funcionalidades disponibles según el rol del usuario.
@@ -418,7 +419,7 @@ Durante el desarrollo local la aplicación puede ejecutarse mediante el servidor
 Conceptualmente, la aplicación podría arrancarse con el siguiente comando:
 
 \begin{dockerbox}{Arranque conceptual de Gunicorn}
-	gunicorn --config /app/docker/gunicorn.conf.py run:app
+gunicorn --config /app/docker/gunicorn.conf.py run:app
 \end{dockerbox}
 
 No obstante, en el despliegue normal este comando no se ejecuta manualmente, sino que lo lanza el contenedor \texttt{web} definido en Docker Compose. Este servicio se encarga de atender las peticiones HTTP de la aplicación, pero no debe procesar directamente colecciones pesadas. Para mantener un comportamiento estable con SQLite, se conserva \texttt{WEB\_CONCURRENCY=1}, mientras que la concurrencia HTTP ligera se gestiona mediante \textit{threads} configurados en Gunicorn.
