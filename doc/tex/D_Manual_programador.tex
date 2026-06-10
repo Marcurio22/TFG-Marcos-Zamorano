@@ -581,7 +581,6 @@ Dentro del servicio \texttt{web}, la comprobación básica de PyTorch puede real
 \begin{dockerbox}{Comprobación de PyTorch en el servicio web}
 docker compose exec -T web python - <<'PY'
 import torch
-
 print(torch.__version__)
 print(torch.version.cuda)
 print(torch.cuda.is_available())
@@ -715,7 +714,7 @@ PY
 docker compose exec web find /app/instance/profile_images -maxdepth 4 -type f
 	\end{dockerboxnf}
 	
-	\item \texttt{No space left on device}. Este error suele producirse cuando se han incluido modelos dentro de la imagen Docker, cuando \texttt{.dockerignore} no excluye correctamente \texttt{instance}, cuando se copia un entorno virtual dentro de la imagen o cuando existen construcciones antiguas de Docker ocupando espacio. Debe revisarse el fichero \texttt{.dockerignore}, que debería excluir, al menos:
+	\item \texttt{No space left on device}. Este error suele producirse cuando se han incluido modelos dentro de la imagen Docker, cuando \texttt{.dockerignore} no excluye correctamente \texttt{instance} o cuando se copia un entorno virtual dentro de la imagen. Debe revisarse el fichero \texttt{.dockerignore}, que debería excluir, al menos:
 	
 	\begin{infocmdboxnf}{Entradas recomendadas en .dockerignore}
 instance/

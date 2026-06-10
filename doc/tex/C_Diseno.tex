@@ -143,15 +143,17 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 \endgroup
 
 \begingroup
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.30}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.35}
+
+\vspace{1cm}
 
 \begin{longtable}{@{}
-		L{0.25\textwidth}
 		L{0.22\textwidth}
-		L{0.16\textwidth}
-		L{0.30\textwidth}
+		L{0.17\textwidth}
+		C{0.13\textwidth}
+		L{0.36\textwidth}
 		@{}}
 	
 	\toprule
@@ -168,6 +170,10 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 	\multicolumn{4}{r}{\small Continúa en la página siguiente} \\
 	\endfoot
 	
+	\bottomrule
+	
+	\caption{Diccionario de datos correspondiente a la tabla \textit{Parcela}.}
+	\label{tab:diccionario_parcela}
 	\endlastfoot
 	
 	\texttt{parcela\_id} 
@@ -182,62 +188,62 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 	
 	\texttt{tamano\_\allowbreak{}metros} 
 	& \texttt{DECIMAL(12,3)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Tamaño aproximado de la zona seleccionada, expresado en metros. \\
 	
 	\texttt{pto\_\allowbreak{}origen\_\allowbreak{}latitud} 
 	& \texttt{DECIMAL(10,8)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Latitud del punto inicial seleccionado en el visor. \\
 	
 	\texttt{pto\_\allowbreak{}origen\_\allowbreak{}longitud} 
 	& \texttt{DECIMAL(11,8)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Longitud del punto inicial seleccionado en el visor. \\
 	
 	\texttt{pto\_\allowbreak{}fin\_\allowbreak{}latitud} 
 	& \texttt{DECIMAL(10,8)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Latitud del punto final seleccionado en el visor. \\
 	
 	\texttt{pto\_\allowbreak{}fin\_\allowbreak{}longitud} 
 	& \texttt{DECIMAL(11,8)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Longitud del punto final seleccionado en el visor. \\
 	
 	\texttt{fuente\_id} 
 	& \texttt{VARCHAR(50)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Identificador técnico de la fuente cartográfica utilizada. \\
 	
 	\texttt{fuente\_\allowbreak{}nombre} 
 	& \texttt{VARCHAR(100)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Nombre legible de la fuente cartográfica. \\
 	
 	\texttt{resolucion\_\allowbreak{}solicitada} 
 	& \texttt{DECIMAL(10,3)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Resolución inicialmente solicitada para la descarga o visualización. \\
 	
 	\texttt{resolucion\_\allowbreak{}real} 
 	& \texttt{DECIMAL(10,3)} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Resolución finalmente utilizada por el sistema. \\
 	
 	\texttt{ancho\_\allowbreak{}tesela} 
 	& \texttt{INTEGER} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Anchura en píxeles de cada tesela generada. \\
 	
 	\texttt{alto\_\allowbreak{}tesela} 
 	& \texttt{INTEGER} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Altura en píxeles de cada tesela generada. \\
 	
 	\texttt{estado} 
 	& \texttt{ENUM} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Estado global de procesamiento de la parcela. \\
 	
 	\texttt{nombre\_\allowbreak{}coleccion} 
@@ -247,20 +253,15 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 	
 	\texttt{creado\_\allowbreak{}en} 
 	& \texttt{TIMESTAMP} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Fecha y hora de creación de la parcela. \\
 	
 	\texttt{actualizado\_\allowbreak{}en} 
 	& \texttt{TIMESTAMP} 
-	& \makecell[l]{NOT\\NULL} 
+	& \makecell[c]{NOT\\NULL} 
 	& Fecha y hora de la última modificación de la parcela. \\
 	
-	\bottomrule
-	\caption{Diccionario de datos correspondiente a la tabla \textit{Parcela}.}
-	\label{tab:diccionario_parcela}
-	
 \end{longtable}
-
 \endgroup
 
 \begingroup
@@ -494,7 +495,7 @@ A continuación se presenta el diccionario de datos de las tablas principales de
 
 En esta sección se describe el comportamiento dinámico de la aplicación a través de los principales flujos de interacción entre el usuario y el sistema. Para ello, se emplean diagramas de secuencia que permiten representar, de forma ordenada, las peticiones realizadas desde el navegador, la respuesta del servidor Flask, el acceso a la persistencia y la generación o visualización de resultados.
 
-\begin{figure}[p]
+\begin{figure}
 	\centering
 	\includegraphics[
 	width=\textwidth,
@@ -521,7 +522,7 @@ Esta interacción puede resumirse en:
 	\item Finalmente, el usuario puede descargar los resultados o borrar la imagen, en cuyo caso el servidor limpia la sesión y elimina los ficheros asociados.
 \end{enumerate}
 
-\begin{figure}[p]
+\begin{figure}[]
 	\centering
 	\includegraphics[
 	width=\textwidth,
@@ -548,7 +549,7 @@ Esta interacción puede resumirse en:
 	\item Desde la interfaz se puede consultar el estado del cálculo, pausar o reanudar el procesamiento y, cuando existan resultados, visualizar las trazas sobre el mapa.
 \end{enumerate}
 
-\begin{figure}[p]
+\begin{figure}
 	\centering
 	\includegraphics[
 	width=\textwidth,
@@ -575,7 +576,7 @@ Esta interacción puede resumirse en:
 	\item La aplicación permite descargar los resultados en un fichero ZIP y ejecutar acciones adicionales sobre la colección, actualizando tanto la base de datos como los artefactos almacenados en el sistema de ficheros.
 \end{enumerate}
 
-\begin{figure}[p]
+\begin{figure}
 	\centering
 	\includegraphics[
 	width=\textwidth,

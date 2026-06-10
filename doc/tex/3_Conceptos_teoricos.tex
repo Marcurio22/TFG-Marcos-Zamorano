@@ -30,32 +30,32 @@ Sobre estas representaciones, el sistema ejecuta tareas como clasificación, det
 	\label{fig:segmentation-example-pair}
 \end{figure}
 
-\subsection{Conceptos teóricos de la Segmentación Semántica}
+\section{Conceptos teóricos de la Segmentación Semántica}
 En esta sección se introducen los fundamentos teóricos que sustentan la segmentación semántica, abordándola desde la perspectiva del aprendizaje profundo y de las arquitecturas que permiten realizar predicción densa a nivel de píxel. Se describen los principios que rigen el uso de redes neuronales profundas, haciendo especial énfasis en el papel de las estructuras ultra-profundas y de los mecanismos que facilitan su entrenamiento, como las conexiones residuales y las \textit{skip connections}. Asimismo, se analizan los componentes operativos esenciales de los modelos de codificador-decodificador, incluyendo conceptos clave como \textit{kernels}, \textit{stride}, \textit{downsampling} y \textit{upsampling}, los cuales determinan el compromiso entre resolución espacial y riqueza semántica. Finalmente, se presentan las dos familias arquitectónicas predominantes en este ámbito, las redes neuronales convolucionales y los \textit{Vision Transformers}, destacando sus principios de funcionamiento y su relevancia en tareas de segmentación semántica de alta precisión.
 
 
-\subsubsection{Aprendizaje Profundo}
+\subsection{Aprendizaje Profundo}
 El Aprendizaje Profundo es un paradigma de \textit{machine learning} basado en el uso de redes neuronales convolucionales (CNN) o arquitecturas alternativas como los \textit{Transformers}, que han surgido como el enfoque dominante para el reconocimiento visual~\cite{he2016resnet, huang2018densenet}. 
 Funciona de la siguiente manera: un modelo muy flexible, formado por varias capas de operaciones con parámetros y funciones no lineales, aprende a extraer representaciones jerárquicas de los datos ajustando sus parámetros para minimizar el error en los ejemplos de entrenamiento.
 
 El éxito del Aprendizaje Profundo se atribuye a su capacidad para trabajar con arquitecturas muy grandes y profundas, con millones de parámetros, logrando avances significativos en el reconocimiento de imágenes~\cite{ronneberger2015unet, diezpastora2025trails, neloy2024autoencoders, he2016resnet}. 
 Este resuelve la necesidad de los sistemas de visión de extraer la representación de características más efectiva a partir de datos complejos~\cite{neloy2024autoencoders}, automatizando lo que antes requería el diseño manual de características.
 
-\subsubsection{Estructuras ultra-profundas}
+\subsection{Estructuras ultra-profundas}
 En el marco del Aprendizaje Profundo, la profundidad de las representaciones y de la red es de importancia crucial para muchas tareas de reconocimiento visual~\cite{he2016resnet, huang2018densenet}. Las arquitecturas modernas han superado significativamente las redes iniciales, con modelos que han rebasado la barrera de las cien capas~\cite{huang2018densenet}. Estas estructuras ultra-profundas buscan enriquecer los niveles de características mediante el aumento del número de capas apiladas~\cite{he2016resnet, huang2018densenet}.
 
 Sin embargo, el aumento de la profundidad introduce un desafío conocido como el problema de la degradación. Esta ocurre cuando, al aumentar las capas apiladas, la precisión del entrenamiento se deteriora. Teóricamente, un modelo más profundo no debería tener un error de entrenamiento mayor que su contraparte menos profunda. El hecho de que esto suceda indica que los algoritmos de optimización actuales tienen dificultades para encontrar soluciones que optimicen estas estructuras ultra-profundas~\cite{he2016resnet}. 
 
 Esto se debe a que, a medida que la información o el gradiente pasan por muchas capas, pueden desvanecerse antes de alcanzar el inicio o el final de la red~\cite{huang2018densenet}.
 
-\subsubsection{Predicción Densa (\textit{Dense prediction})}
+\subsection{Predicción Densa (\textit{Dense prediction})}
 La predicción densa es una formulación de inferencia estructurada en la que el sistema estima, para cada ubicación del dominio espacial de la entrada, una variable de salida perteneciente a un espacio de etiquetas o a un espacio continuo~\cite{zhang2022constructionautomation}. En visión por computador abarca tanto clasificación por elemento, como regresión por elemento, dando lugar a campos de salida con fuerte dependencia local y coherencia geométrica~\cite{zhao2017pspnet, lin2017fpn}. 
 
 Desde el punto de vista inductivo, estas tareas se benefician de la \textit{equivarianza traslacional} propia de arquitecturas totalmente convolucionales, del acoplamiento multi-escala para capturar contexto y del control explícito del \textit{output stride} para balancear resolución y campo receptivo~\cite{ liu2022convnext, khan2022transformersvision}. La naturaleza densa impone consideraciones de regularidad de frontera, conservación de detalles de alta frecuencia, manejo del desbalanceo de clases y robustez frente a los problemas introducidos por \textit{downsampling}~\cite{cai2023efficientvit, xiao2018upernet, ji2022automation}.
 
 Operativamente, la predicción densa se implementa con \textit{encoders–decoders} convolucionales que combinan \textit{downsampling} para agregar contexto y \textit{upsampling} para reconstruir resolución, asistidos por \textit{skip connections} por concatenación para preservar información de detalle~\cite{ronneberger2015unet, bala2025visiontranscoder, badrinarayanan2016segnet}.
 
-\subsubsection{Segmentación Semántica}
+\subsection{Segmentación Semántica}
 La segmentación semántica es una tarea de predicción densa en Visión por Computador cuyo objetivo es la clasificación a nivel de píxel~\cite{bala2025visiontranscoder, ji2022automation}, mediante la asignación de una etiqueta de clase semántica a cada píxel de una imagen de entrada. A diferencia de tareas como la clasificación, la segmentación semántica proporciona una comprensión completa del escenario, prediciendo así la categoría, ubicación y forma de cada elemento.
 
 Este proceso típicamente se implementa a través de una arquitectura de red neuronal profunda de codificador-decodificador, llamada \textit{encoder-decoder} de manera tradicional~\cite{ji2022automation, neloy2024autoencoders, bala2025visiontranscoder}.
@@ -69,43 +69,43 @@ Este proceso típicamente se implementa a través de una arquitectura de red neu
 	\item Salida y Optimización: La salida final es un mapa de segmentación que se alimenta a una capa \textit{Softmax} para asignar probabilidades de clasificación a cada píxel de forma independiente~\cite{ji2022automation, bala2025visiontranscoder, neloy2024autoencoders}, generando una predicción densa~\cite{neloy2024autoencoders, bala2025visiontranscoder}.
 \end{enumerate}
 
-\subsubsection{Kernel}
+\subsection{Kernel}
 En el ámbito de las redes neuronales, un \textit{kernel} es un conjunto de filtros con pesos aprendibles que constituyen el componente fundamental de las capas convolucionales para convertir datos de entrada en mapas de características~\cite{ji2022automation}. Operativamente, el \textit{kernel} se desliza sobre la entrada utilizando un \textit{stride}, realizando una operación matemática que produce una salida espacial encargada de capturar jerarquías de información, desde bordes simples hasta formas complejas~\cite{he2016resnet, ji2022automation, liu2022convnext}. Esta estrategia es intrínseca al procesamiento visual, permitiendo que las computaciones se compartan y que el sistema sea eficiente al manejar imágenes de alta resolución~\cite{liu2022convnext}.
 
 El diseño del \textit{kernel}, es una decisión arquitectónica crítica que determina el campo receptivo; por ejemplo, mientras que los \textit{kernels} de $3 \times 3$ son el estándar por su eficiencia en \textit{hardware}, modelos modernos han demostrado que los \textit{kernels} de $7 \times 7$ pueden capturar un contexto global mucho más amplio~\cite{liu2022convnext}. 
 
 Además de la extracción de características, el concepto de \textit{kernel} se extiende a funciones matemáticas de comparación, como el \textit{Central Kernel Alignment (CKA)}, que utiliza un \textit{kernel} lineal para medir la similitud de representación entre los espacios de embebido latente de diferentes arquitecturas~\cite{iana2024peeling}.
 
-\subsubsection{Stride}
+\subsection{Stride}
 El \textit{stride} es un parámetro crítico que define la magnitud del desplazamiento de un \textit{kernel} a medida que recorre los datos de entrada en una red neuronal~\cite{ji2022automation, dumoulin2018guide}. En las capas del codificador, el uso de un \textit{stride} mayor a uno constituye una técnica de \textit{downsampling} que reduce progresivamente la resolución espacial de los mapas de características~\cite{badrinarayanan2016segnet, ronneberger2015unet}. Esta operación permite que los píxeles resultantes abarquen un contexto de imagen de entrada más amplio, facilitando la extracción de características semánticas de alto nivel y mejorando la invarianza traslacional del modelo~\cite{ji2022automation, badrinarayanan2016segnet, liu2022convnext}.
 
 En el decodificador, el \textit{stride} es esencial para las operaciones de \textit{upsampling}, donde se utiliza para expandir representaciones comprimidas hacia mapas de alta resolución~\cite{ji2022automation, badrinarayanan2016segnet}. El tamaño final de la salida depende de la interacción matemática entre las dimensiones de entrada, el \textit{padding}, el tamaño del \textit{kernel} y el valor del \textit{stride} aplicado~\cite{ji2022automation, tan2019efficientnet}. La gestión precisa de este paso es vital para reconstruir con fidelidad la información espacial y asegurar una delineación precisa de los límites de los objetos en tareas de segmentación densa~\cite{ronneberger2015unet, howard2019mobilenetv3, bala2025visiontranscoder}.
 
-\subsubsection{Transformer}
+\subsection{Transformer}
 La arquitectura del \textit{Transformer} es un modelo de procesamiento de secuencias basado íntegramente en mecanismos de autoatención, eliminando la necesidad de recurrencia o convoluciones para capturar dependencias~\cite{vaswani2017attention, khan2022transformersvision}. A diferencia de las redes recurrentes que procesan elementos de forma secuencial, el \textit{Transformer} permite el procesamiento en paralelo de toda la secuencia, lo que facilita el modelado de relaciones de largo alcance y mejora significativamente la escalabilidad en grandes conjuntos de datos~\cite{khan2022transformersvision, mamba2023linear}. 
 
 Su estructura estándar se compone de un codificador y un decodificador que apilan múltiples bloques idénticos, cada uno equipado con capas de atención de múltiples cabezales y redes neuronales~\cite{vaswani2017attention, bala2025visiontranscoder}.
 
-\subsubsection{Mecanismos residuales}
+\subsection{Mecanismos residuales}
 
 Los mecanismos residuales introducen conexiones aditivas, conocidas como \textit{skip connections}, que permiten que la señal de entrada de un bloque se sume directamente a su salida. De este modo, el bloque no aprende una transformación completa, sino una corrección respecto a la señal original, formalizando la salida como la suma entre la entrada y una función residual aprendida~\cite{he2016resnet}. Este planteamiento facilita que la información fluya sin alteraciones innecesarias a través de la red y reduce la degradación del rendimiento a medida que aumenta la profundidad.
 
 Desde el punto de vista del entrenamiento, estas conexiones mejoran la propagación de gradientes durante la retropropagación y estabilizan el proceso de optimización, lo que permite entrenar redes considerablemente más profundas. Cuando las dimensiones de entrada y salida no coinciden, la conexión residual se implementa mediante proyecciones lineales; en otros casos, se emplean saltos de identidad directos que preservan completamente la señal original. En conjunto, estos mecanismos mantienen rutas de transmisión eficientes para la información y los gradientes, facilitando el aprendizaje de funciones complejas en arquitecturas profundas~\cite{srivastava2015highway}.
 
 
-\subsubsection{Skip Connections}
+\subsection{Skip Connections}
 Conexiones encargadas de mitigar la pérdida de información espacial que ocurre durante el \textit{downsampling} en el codificador~\cite{bala2025visiontranscoder}. Transfieren características de alta resolución desde las capas tempranas del codificador a las capas correspondientes del decodificador, fusionando las características codificadas con los detalles espaciales finos, siendo estos los límites y contornos, del inicio de la red~\cite{badrinarayanan2016segnet, ronneberger2015unet}. 
 
 Para lograr esto, se emplea una capa de concatenación que fusiona la salida de las capas convolucionales del \textit{encoder} con las capas de deconvolución del \textit{decoder}~\cite{ronneberger2015unet, ji2022automation}.
 
-\subsubsection{Upsampling}
+\subsection{Upsampling}
 El \textit{upsampling}, también denominado deconvolución, es la función principal del decodificador, definida como la operación de mapeo que transforma representaciones de características comprimidas de baja resolución en mapas de características de alta resolución espacial para la clasificación a nivel de píxel~\cite{badrinarayanan2016segnet, ji2022automation}. 
 
 Esto puede implementarse mediante interpolación, convolución transpuesta o decodificadores MLP~\cite{ji2022automation, cai2023efficientvit}. La implementación también puede optar por utilizar métodos sin aprendizaje, aunque esto puede resultar en un rendimiento inferior en comparación con los métodos que sí aprenden del entorno~\cite{badrinarayanan2016segnet}.
 
 Para preservar los contornos finos y garantizar la localización precisa, el decodificador se basa en la fusión de características de niveles previos del codificador mediante \textit{skip connections}~\cite{ronneberger2015unet, badrinarayanan2016segnet, bala2025visiontranscoder}.
 
-\subsubsection{Downsampling}
+\subsection{Downsampling}
 El \textit{downsampling} es una técnica fundamental utilizada en las redes neuronales convolucionales y en el \textit{encoder} de las arquitecturas de codificador-decodificador para transformar la información de entrada en una representación de características reducida de alto nivel~\cite{ji2022automation, badrinarayanan2016segnet}. 
 
 El propósito central de esta operación es doble: por un lado, aliviar la carga computacional y prevenir el \textit{overfitting}; por otro lado, lograr una mayor \textit{invarianza traslacional} sobre pequeños desplazamientos espaciales en la imagen de entrada, lo cual robustece la clasificación. Esto se realiza a costa de una pérdida progresiva de la resolución espacial en los mapas de características, lo cual reduce el detalle de los límites, un factor que debe compensarse en la fase de decodificación~\cite{badrinarayanan2016segnet, ronneberger2015unet, bala2025visiontranscoder}.
@@ -114,7 +114,7 @@ El mecanismo principal para lograr el submuestreo es la operación de \textit{ma
 
 Aunque las sucesivas capas de \textit{max-pooling} y submuestreo pueden lograr una mayor invarianza para una clasificación robusta, la contraparte es una pérdida progresiva de la resolución espacial en los mapas de características. Esta pérdida resulta en una representación cada vez más inexacta en cuanto al detalle de los límites de los objetos, lo cual es perjudicial para tareas de predicción densa, como la segmentación, donde la delineación precisa es vital~\cite{badrinarayanan2016segnet, bala2025visiontranscoder}. Sin embargo, el \textit{downsampling} tiene un beneficio inherente: logra que cada píxel en el mapa de características posterior abarque un contexto de imagen de entrada más grande.
 
-\subsubsection{Vision Transformer (ViT)}
+\subsection{Vision Transformer (ViT)}
 La arquitectura del \textit{Vision Transformer (ViT)} se erige como el paradigma dominante después de las CNN en tareas de reconocimiento visual~\cite{liu2022convnext, khan2022transformersvision, bala2025visiontranscoder}. Opera al inicio con una fase de tokenización no superpuesta, donde la imagen de entrada es segmentada en parches, aplanados, y proyectados linealmente mediante una transformación a un espacio embebido~\cite{bala2025visiontranscoder}. A estos \textit{embeddings} se les adjuntan codificaciones posicionales para conservar la información espacial~\cite{bala2025visiontranscoder}.
 
 Esta secuencia de \textit{tokens} enriquecida se introduce en un \textit{encoder} de \textit{Transformer} que consiste en múltiples bloques idénticos, equipados con el mecanismo de \textit{Multi-Head Self-Attention}. El \textit{self-attention} permite que cada \textit{token} capture relaciones de largo alcance y el contexto global con todos los demás \textit{tokens}, facilitando una interpretación más inclusiva de patrones intrincados en los datos~\cite{khan2022transformersvision, bala2025visiontranscoder}.
@@ -123,15 +123,15 @@ En tareas de segmentación semántica, los modelos basados en ViT se emplean hab
 
 La salida final se genera a través de una capa convolucional seguida de una activación \textit{Softmax}, proporcionando un mapa de probabilidades detallado para la clasificación a nivel de píxel~\cite{zhang2022constructionautomation, bala2025visiontranscoder}. 
 
-\subsection{No linealidades y capa de decisión}
+\section{No linealidades y capa de decisión}
 En este apartado se describen los mecanismos que permiten a una red neuronal pasar de combinar características de forma meramente lineal a tomar decisiones discriminativas útiles para la tarea de segmentación. Por un lado, las no linealidades introducidas por las funciones de activación determinan la capacidad expresiva del modelo y condicionan la estabilidad del entrenamiento, al regular cómo se propagan las señales y los gradientes a través de capas profundas. Por otro lado, la capa de decisión final transforma las salidas internas del modelo en predicciones interpretables, típicamente en forma de distribuciones de probabilidad por clase, lo que habilita la asignación coherente de etiquetas a cada píxel en escenarios de predicción densa~\cite{Goodfellow-et-al-2016}.
 
-\subsubsection{Función de activación}
+\subsection{Función de activación}
 Las funciones de activación son componentes esenciales de las redes neuronales, ya que introducen no linealidades tras las operaciones lineales de convolución o proyección. Gracias a estas no linealidades, la red es capaz de aproximar funciones complejas y aprender representaciones jerárquicas que capturan patrones visuales de distinta escala y complejidad~\cite{Goodfellow-et-al-2016}.
 
 Sin la aplicación de funciones de activación, la composición de múltiples capas lineales se reduciría a una única transformación lineal, limitando severamente la capacidad expresiva del modelo. Para prácticas de segmentación semántica, estas funciones permiten discriminar estructuras complejas y no lineales, como bordes irregulares o sendas difusas, contribuyendo a la coherencia espacial de las predicciones generadas~\cite{neloy2024autoencoders}.
 
-\subsubsection{Unidad Lineal Rectificada (ReLU)}
+\subsection{Unidad Lineal Rectificada (ReLU)}
 La Unidad Lineal Rectificada (\textit{ReLU}) es una función de activación no lineal definida por una relación simple que conserva los valores positivos de la entrada y anula los negativos: \begin{equation}
 	\mathrm{ReLU}(x) = \max(0, x)
 \end{equation}
@@ -140,7 +140,7 @@ Su simplicidad computacional y su comportamiento no saturante han favorecido su 
 
 Desde el punto de vista del entrenamiento, \textit{ReLU} contribuye a mitigar el problema del desvanecimiento del gradiente, facilitando una propagación más estable de la información durante la retropropagación. En arquitecturas de segmentación como U-Net o SegNet, se emplea de forma sistemática tras las convoluciones para introducir no linealidad sin comprometer la eficiencia, permitiendo el aprendizaje efectivo de patrones espaciales complejos~\cite{liu2022convnext, nair2010relu}.
 
-\subsubsection{Función Softmax}
+\subsection{Función Softmax}
 La función \textit{Softmax} se emplea habitualmente en la capa final de redes neuronales de clasificación y segmentación para transformar las salidas no normalizadas del modelo, conocidas como \textit{logits}, en una distribución de probabilidad: \begin{equation}
 	\mathrm{Softmax}(\mathbf{z})_k = \frac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}, \qquad k=1,\dots,K
 \end{equation}
@@ -149,43 +149,43 @@ Esta transformación garantiza que los valores resultantes sean no negativos y q
 
 En el contexto de la segmentación semántica, la función \textit{Softmax} se aplica de forma independiente a cada píxel, produciendo para cada uno de ellos un vector de probabilidades sobre las clases posibles. La etiqueta final asignada corresponde a la clase con mayor probabilidad, lo que da lugar a mapas de segmentación interpretables y coherentes. Este mecanismo resulta especialmente adecuado en problemas multiclase, donde es necesario modelar explícitamente la competencia entre clases en cada posición espacial de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}.
 
-\subsection{Consideraciones de generalización y propiedades espaciales}
+\section{Consideraciones de generalización y propiedades espaciales}
 En esta subsección se agrupan conceptos que determinan hasta qué punto un modelo de segmentación es fiable fuera del conjunto de entrenamiento y cómo conserva la estructura geométrica de la escena al producir predicciones densas. Por un lado, se revisa el \textit{overfitting} como riesgo central de generalización en aprendizaje profundo y las estrategias habituales para controlarlo durante el entrenamiento. Por otro lado, se introducen propiedades espaciales clave en visión por computador, en particular la invarianza y la equivarianza traslacional, que describen cómo debe comportarse el modelo ante desplazamientos en la imagen y explican por qué ciertas arquitecturas resultan especialmente adecuadas para mantener coherencia espacial en tareas de segmentación semántica~\cite{Goodfellow-et-al-2016, dumoulin2018guide, khan2022transformersvision}.
 
-\subsubsection{Invarianza traslacional}
+\subsection{Invarianza traslacional}
 La invarianza traslacional describe la capacidad de un modelo de visión por computador para reconocer una misma característica u objeto aunque aparezca desplazado a distintas posiciones dentro de la imagen. En el contexto de las redes neuronales convolucionales, esta propiedad permite que ciertos patrones visuales como bordes, texturas o estructuras se identifiquen de forma consistente con independencia de su localización exacta en la escena~\cite{ji2022automation}.
 
 Esta propiedad no surge de manera estricta en una sola capa, sino que se construye progresivamente a través de la combinación de convoluciones locales y operaciones de submuestreo mediante \textit{pooling} o \textit{downsampling}~\cite{dumoulin2018guide}. Las capas convolucionales comparten pesos en toda la imagen, lo que hace que un mismo filtro responda de igual manera ante un patrón dado, esté donde esté. A medida que se incrementa el campo receptivo en capas más profundas, la red integra información de regiones cada vez más amplias, reduciendo la sensibilidad a pequeños desplazamientos espaciales. En aplicaciones de clasificación y segmentación semántica, esta propiedad es clave para garantizar que la predicción asociada a un objeto o región no dependa de su posición absoluta dentro de la imagen~\cite{badrinarayanan2016segnet}.
 
-\subsubsection{Equivarianza traslacional}
+\subsection{Equivarianza traslacional}
 La equivarianza traslacional describe la propiedad por la cual una transformación aplicada a la entrada de un modelo se refleja de forma coherente en su salida. En el caso de traslaciones espaciales, esto implica que si un objeto se desplaza dentro de la imagen de entrada, la representación o predicción generada por el modelo se desplaza en la misma dirección y magnitud, preservando la correspondencia espacial entre entrada y salida~\cite{khan2022transformersvision}.
 
 En redes neuronales convolucionales, esta propiedad se deriva directamente de la operación de convolución y de la compartición de pesos, que garantizan que un mismo patrón visual active respuestas equivalentes en distintas posiciones de la imagen. En tareas de segmentación semántica, la equivarianza traslacional es esencial, ya que el objetivo no es únicamente reconocer la presencia de una clase, sino asignar una etiqueta correcta a cada píxel. Gracias a esta propiedad, los mapas de segmentación mantienen una alineación precisa con la geometría de la escena, permitiendo que las estructuras detectadas conserven su forma y localización relativas respecto a la imagen original~\cite{liu2022convnext}.
 
 En contraste con la invarianza traslacional, que busca reducir la sensibilidad del modelo a la posición absoluta de los objetos para favorecer el reconocimiento global, la equivarianza preserva explícitamente la información espacial. Ambas propiedades no son excluyentes, sino complementarias: mientras la invarianza resulta clave en tareas de clasificación, la equivarianza constituye un requisito fundamental en problemas de predicción densa, como la segmentación semántica, donde la coherencia espacial de la salida es crítica.
 
-\subsection{Arquitecturas de Segmentación Semántica}
+\section{Arquitecturas de Segmentación Semántica}
 En esta sección se presentan las principales arquitecturas de segmentación semántica empleadas en el ámbito de la visión por computador, las cuales materializan los principios teóricos descritos anteriormente mediante diseños de red específicos orientados a la predicción densa. Se analizan arquitecturas representativas basadas en esquemas de codificador-decodificador y en la agregación jerárquica de características, como \textit{U-Net}, \textit{Feature Pyramid Network} y \textit{UPerNet}, así como enfoques más recientes que incorporan mecanismos de atención global mediante \textit{Transformers}, como \textit{SegFormer}. Asimismo, se incluye \textit{PSPNet}, una arquitectura pionera en la integración explícita de contexto multi-escala a través de pirámides de agrupamiento. Cada una de estas arquitecturas introduce estrategias diferenciadas para capturar información semántica y preservar la coherencia espacial, constituyendo referentes fundamentales en el desarrollo y la evolución de los modelos de segmentación semántica.
 
 
-\subsubsection{U-Net}
+\subsection{U-Net}
 La red neuronal convolucional \textit{U-Net} constituye un paradigma fundamental en el ámbito de la segmentación densa debido a su capacidad para operar eficientemente con conjuntos de datos de entrenamiento limitados~\cite{ronneberger2015unet}. Esta arquitectura presenta una topología simétrica en forma de U que integra un codificador y un decodificador~\cite{ronneberger2015unet, Dimitrovski2024}. El codificador aplica sucesivamente convoluciones seguidas de unidades de activación lineal rectificada y operaciones de \textit{max-pooling} para la extracción de características contextuales y la reducción de la dimensionalidad espacial~\cite{ronneberger2015unet, ji2022automation}. Por su parte, el decodificador realiza procesos de \textit{upsampling} con el fin de recuperar la resolución original de la imagen~\cite{ronneberger2015unet, badrinarayanan2016segnet}. 
 
 El componente diferencial de este modelo reside en la implementación de conexiones de salto que concatenan mapas de características de alta resolución del codificador con las capas correspondientes del decodificador~\cite{ronneberger2015unet, diezpastora2025trails}. Dicho mecanismo permite la preservación de detalles espaciales que se degradan habitualmente durante el submuestreo, garantizando una localización precisa de los límites de los objetos en tareas críticas como la imagen médica o la teledetección~\cite{Dimitrovski2024}.
 
-\subsection{Autoencoder}
+\section{Autoencoder}
 Un \textit{autoencoder} es una arquitectura de red neuronal no supervisada cuyo objetivo es aprender una representación compacta de los datos de entrada sin utilizar etiquetas. La red se compone de dos partes claramente diferenciadas: un codificador, que transforma la entrada original de alta dimensionalidad en una representación latente de menor dimensión, y un decodificador, que reconstruye la entrada a partir de dicha representación minimizando el error de reconstrucción. Este esquema de compresión y reconstrucción obliga al modelo a retener la información más relevante de los datos, eliminando redundancias y atenuando el ruido~\cite{neloy2024autoencoders}.
 
 Desde un punto de vista práctico, el espacio latente aprendido por el \textit{autoencoder} recoge patrones estructurales y características salientes de los datos, lo que lo hace útil como etapa previa de extracción de características. En tareas de segmentación semántica, estas representaciones pueden emplearse para inicializar modelos más complejos o para aprender descriptores compactos que faciliten la posterior clasificación píxel a píxel~\cite{Goodfellow-et-al-2016}.
 
 Existen extensiones del \textit{autoencoder} clásico que refuerzan esta capacidad. Los \textit{Denoising Autoencoders} entrenan el modelo a partir de entradas degradadas, forzándolo a recuperar la señal original y mejorando así la robustez frente a perturbaciones. Por su parte, los \textit{autoencoders} variacionales introducen una formulación probabilística del espacio latente, lo que permite modelar la distribución de los datos y generar nuevas muestras coherentes. En todos los casos, el principio fundamental es el mismo: aprender una representación latente informativa que facilite tareas posteriores de análisis o decisión~\cite{neloy2024autoencoders, iana2024peeling}.
 
-\subsection{Evaluación experimental de la segmentación semántica}
+\section{Evaluación experimental de la segmentación semántica}
 En esta subsección se formaliza la evaluación experimental de un sistema de segmentación semántica, estableciendo un marco común para medir su rendimiento de manera reproducible y comparable~\cite{minaee2022segmentationSurvey,TahaHanbury2015}.
 
 Para ello, se definen las métricas de evaluación empleadas, combinando medidas de solapamiento, rendimiento temporal y propiedades geométricas derivadas de la máscara con el objetivo de caracterizar tanto la equivalencia entre segmentaciones como su impacto estructural sobre las trazas detectadas~\cite{gonzalez2008dip,zhang1984thinning}.
 
-\subsubsection{Métricas de evaluación}
+\subsection{Métricas de evaluación}
 
 Para analizar el comportamiento de un modelo de segmentación semántica no basta con observar visualmente las máscaras generadas, sino que resulta necesario cuantificar de forma objetiva sus aciertos y errores, especialmente cuando la clase de interés corresponde a estructuras finas, discontinuas o de bajo contraste, como las trazas de herbivoría. 
 
@@ -195,7 +195,7 @@ Adicionalmente, la evaluación puede formularse en términos de la matriz de con
 
 En la comparación realizada entre rutas de inferencia, las métricas de solapamiento se calculan entre la máscara obtenida al cargar el modelo mediante \texttt{pickle} y la adquirida al ejecutar la versión exportada a \textit{TorchScript}, sin emplear anotación externa~\cite{paszke2019pytorch}.
 
-\subsubsection{Intersección sobre la Unión (IoU)}
+\subsection{Intersección sobre la Unión (IoU)}
 La métrica de Intersección sobre la Unión (\textit{Intersection over Union}, IoU) mide el solapamiento relativo entre dos máscaras binarias. En esta comparativa se define como:
 \begin{equation}
 	\mathrm{IoU} = \frac{|M_{\text{pickle}} \cap M_{\text{torch}}|}{|M_{\text{pickle}} \cup M_{\text{torch}}|}
@@ -221,14 +221,14 @@ Desde un punto de vista geométrico, esta comparación puede interpretarse como 
 	\label{fig:iou-venn}
 \end{figure}
 
-\subsubsection{Coeficiente Dice}
+\subsection{Coeficiente Dice}
 El coeficiente \textit{Dice} es otra medida de solapamiento, especialmente utilizada en segmentación binaria, y en este contexto se calcula como:
 \begin{equation}
 	\mathrm{Dice} = \frac{2\,|M_{\text{pickle}} \cap M_{\text{torch}}|}{|M_{\text{pickle}}| + |M_{\text{torch}}|}
 \end{equation}
 Al igual que IoU, valores altos implican que ambas rutas de inferencia generan máscaras muy similares; no obstante, \textit{Dice} tiende a ser menos severo que IoU en casos de clases minoritarias~\cite{TahaHanbury2015,minaee2022segmentationSurvey}.
 
-\subsubsection{Métricas temporales de rendimiento}
+\subsection{Métricas temporales de rendimiento}
 Para evaluar la eficiencia práctica de cada enfoque se midieron tiempos de carga y tiempos de inferencia por \textit{fold} en el banco de pruebas. En particular:
 \begin{itemize}
 	\item Tiempo de carga (\texttt{load\_ms}): Tiempo necesario para cargar el modelo desde disco.
@@ -236,7 +236,7 @@ Para evaluar la eficiencia práctica de cada enfoque se midieron tiempos de carg
 	\item Desviación estándar (\texttt{infer\_ms\_std}): Variabilidad del tiempo de inferencia entre repeticiones, empleado para detectar fluctuaciones del sistema.
 \end{itemize}
 
-\subsubsection{Métricas geométricas derivadas de la máscara}
+\subsection{Métricas geométricas derivadas de la máscara}
 Además del solapamiento entre predicciones, se calcularon métricas simples sobre la máscara binaria para interpretar cuantitativamente la estructura de las trazas detectadas:
 \begin{itemize}
 	\item Área segmentada (\texttt{area\_px}): Número de píxeles clasificados como traza, interpretado como la extensión total detectada.

@@ -38,46 +38,46 @@ Este catálogo establece los requisitos del sistema en dos categorías complemen
 	\begin{itemize}
 		\item RF-03.1 Registro: el usuario anónimo debe poder crear una cuenta proporcionando los datos requeridos.
 		\item RF-03.2 Inicio de sesión: el usuario debe poder autenticarse mediante credenciales válidas para acceder a funcionalidades restringidas.
-		\item \textbf{RF-03.3 Cierre de sesión:} el usuario autenticado debe poder finalizar su sesión de forma explícita.
-		\item \textbf{RF-03.4 Administración de perfil:} el usuario autenticado debe poder consultar y actualizar la información básica de su perfil dentro de los límites establecidos por el sistema.
+		\item RF-03.3 Cierre de sesión: el usuario autenticado debe poder finalizar su sesión de forma explícita.
+		\item RF-03.4 Administración de perfil: el usuario autenticado debe poder consultar y actualizar la información básica de su perfil dentro de los límites establecidos por el sistema.
 	\end{itemize}
 	
-	\item \textbf{RF-04 Integración GIS:} la aplicación debe ofrecer un módulo cartográfico para trabajar sobre una zona geográfica seleccionada por el usuario autenticado.
+	\item RF-04 Integración GIS: la aplicación debe ofrecer un módulo cartográfico para trabajar sobre una zona geográfica seleccionada por el usuario autenticado.
 	\begin{itemize}
-		\item \textbf{RF-04.1 Acceso al módulo GIS:} el usuario autenticado debe poder acceder al visor y a las funcionalidades cartográficas disponibles.
-		\item \textbf{RF-04.2 Recorte de zona de interés:} el sistema debe permitir definir una zona de trabajo mediante una geometría válida, utilizada como delimitación operativa.
-		\item \textbf{RF-04.3 Visualización de trazas en la zona:} el sistema debe permitir representar las trazas asociadas a la zona seleccionada, una vez calculadas, manteniendo consistencia con la georreferenciación del visor.
+		\item RF-04.1 Acceso al módulo GIS: el usuario autenticado debe poder acceder al visor y a las funcionalidades cartográficas disponibles.
+		\item RF-04.2 Recorte de zona de interés: el sistema debe permitir definir una zona de trabajo mediante una geometría válida, utilizada como delimitación operativa.
+		\item RF-04.3 Visualización de trazas en la zona: el sistema debe permitir representar las trazas asociadas a la zona seleccionada, una vez calculadas, manteniendo consistencia con la georreferenciación del visor.
 	\end{itemize}
 	
-	\item \textbf{RF-05 Administración:} la aplicación debe incorporar un rol administrador con capacidades de gestión y configuración interna.
+	\item RF-05 Administración: la aplicación debe incorporar un rol administrador con capacidades de gestión y configuración interna.
 	\begin{itemize}
-		\item \textbf{RF-05.1 Administrar modelos:} el administrador debe poder gestionar la configuración del modelo de detección y segmentación, incluyendo la selección del modelo activo y la opción de añadir o eliminar más modelos operativos, tras ser validados por el sistema.
-		\item \textbf{RF-05.2 Gestionar usuarios:} el administrador debe poder consultar el listado de usuarios y ejecutar operaciones de gestión sobre sus cuentas conforme a las políticas del sistema.
+		\item RF-05.1 Administrar modelos: el administrador debe poder gestionar la configuración del modelo de detección y segmentación, incluyendo la selección del modelo activo y la opción de añadir o eliminar más modelos operativos, tras ser validados por el sistema.
+		\item RF-05.2 Gestionar usuarios: el administrador debe poder consultar el listado de usuarios y ejecutar operaciones de gestión sobre sus cuentas conforme a las políticas del sistema.
 	\end{itemize}
 \end{itemize}
 
 \subsection{Requisitos no funcionales}
 
 \begin{itemize}
-	\item \textbf{RNF-01 Usabilidad y consistencia de interfaz:} la aplicación debe ofrecer un flujo de uso claro, con retroalimentación explícita ante operaciones de cálculo, descarga y error, manteniendo coherencia visual entre pantallas.
+	\item RNF-01 Usabilidad y consistencia de interfaz: la aplicación debe ofrecer un flujo de uso claro, con retroalimentación explícita ante operaciones de cálculo, descarga y error, manteniendo coherencia visual entre pantallas.
 	
-	\item \textbf{RNF-02 Accesibilidad y compatibilidad:} la interfaz debe ser accesible desde navegador web y funcionar de forma consistente en navegadores modernos, evitando dependencias de tecnologías no soportadas.
+	\item RNF-02 Accesibilidad y compatibilidad: la interfaz debe ser accesible desde navegador web y funcionar de forma consistente en navegadores modernos, evitando dependencias de tecnologías no soportadas.
 	
-	\item \textbf{RNF-03 Seguridad de autenticación y autorización:} las funcionalidades restringidas deben requerir sesión autenticada, y el acceso a operaciones de administración debe estar limitado al rol administrador, evitando exposición de información sensible en pantallas o exportaciones.
+	\item RNF-03 Seguridad de autenticación y autorización: las funcionalidades restringidas deben requerir sesión autenticada, y el acceso a operaciones de administración debe estar limitado al rol administrador, evitando exposición de información sensible en pantallas o exportaciones.
 	
-	\item \textbf{RNF-04 Aislamiento y privacidad de datos:} los recursos persistidos, como zonas, imágenes y resultados, deben quedar asociados al usuario propietario, de modo que no sean accesibles por terceros sin permisos.
+	\item RNF-04 Aislamiento y privacidad de datos: los recursos persistidos, como zonas, imágenes y resultados, deben quedar asociados al usuario propietario, de modo que no sean accesibles por terceros sin permisos.
 	
-	\item \textbf{RNF-05 Robustez y tratamiento de errores:} el sistema debe validar entradas, rechazar archivos inválidos, controlar tamaños máximos de subida y manejar fallos durante la inferencia o la consulta de fuentes externas, informando al usuario y manteniendo el estado consistente.
+	\item RNF-05 Robustez y tratamiento de errores: el sistema debe validar entradas, rechazar archivos inválidos, controlar tamaños máximos de subida y manejar fallos durante la inferencia o la consulta de fuentes externas, informando al usuario y manteniendo el estado consistente.
 	
-	\item \textbf{RNF-06 Integridad y trazabilidad de persistencia:} la base de datos y el sistema de ficheros deben permanecer coherentes, garantizando correspondencia entre entradas y resultados, de modo que la aplicación pueda recuperar y representar correctamente el estado de cada operación.
+	\item RNF-06 Integridad y trazabilidad de persistencia: la base de datos y el sistema de ficheros deben permanecer coherentes, garantizando correspondencia entre entradas y resultados, de modo que la aplicación pueda recuperar y representar correctamente el estado de cada operación.
 	
-	\item \textbf{RNF-07 Rendimiento:} la visualización de trazas debe ser eficiente y evitar cargas innecesarias, y la inferencia debe ejecutarse de forma que el usuario reciba feedback de progreso y se minimicen bloqueos perceptibles.
+	\item RNF-07 Rendimiento: la visualización de trazas debe ser eficiente y evitar cargas innecesarias, y la inferencia debe ejecutarse de forma que el usuario reciba feedback de progreso y se minimicen bloqueos perceptibles.
 	
-	\item \textbf{RNF-08 Mantenibilidad, extensibilidad y testabilidad:} el sistema debe permitir evoluciones incrementales sin reescrituras globales, manteniendo contratos estables entre cliente y servidor, y disponiendo de pruebas que reduzcan el riesgo de regresión en funcionalidades críticas.
+	\item RNF-08 Mantenibilidad, extensibilidad y testabilidad: el sistema debe permitir evoluciones incrementales sin reescrituras globales, manteniendo contratos estables entre cliente y servidor, y disponiendo de pruebas que reduzcan el riesgo de regresión en funcionalidades críticas.
 	
-	\item \textbf{RNF-09 Internacionalización:} los textos visibles deben poder presentarse en más de un idioma mediante una estrategia centralizada de traducciones, manteniendo consistencia en plantillas y recursos del cliente.
+	\item RNF-09 Internacionalización: los textos visibles deben poder presentarse en más de un idioma mediante una estrategia centralizada de traducciones, manteniendo consistencia en plantillas y recursos del cliente.
 	
-	\item \textbf{RNF-10 Cumplimiento legal y licencias de datos:} la aplicación debe basar la adquisición y uso de datos geoespaciales en fuentes y términos de reutilización compatibles con el análisis automatizado, evitando dependencias de contenidos con restricciones incompatibles con el objetivo del proyecto.
+	\item RNF-10 Cumplimiento legal y licencias de datos: la aplicación debe basar la adquisición y uso de datos geoespaciales en fuentes y términos de reutilización compatibles con el análisis automatizado, evitando dependencias de contenidos con restricciones incompatibles con el objetivo del proyecto.
 \end{itemize}
 
 \section{Especificación de requisitos}
@@ -106,7 +106,7 @@ Esta distinción permite modelar de forma clara las responsabilidades y el alcan
 
 \subsection{Usuario Anónimo}
 
-El \textbf{Usuario Anónimo} representa a cualquier persona que accede a la aplicación sin haber iniciado sesión ni disponer de una cuenta registrada. 
+El Usuario Anónimo representa a cualquier persona que accede a la aplicación sin haber iniciado sesión ni disponer de una cuenta registrada. 
 Este actor tiene acceso a las funcionalidades básicas del sistema, orientadas a la demostración y uso general de la herramienta de detección.
 
 Concretamente, el Usuario Anónimo puede:
@@ -123,7 +123,7 @@ Este perfil permite el uso inmediato de la aplicación sin barreras de acceso, m
 
 \subsection{Usuario Registrado}
 
-El \textbf{Usuario Registrado} es un agente que dispone de una cuenta en el sistema y ha iniciado sesión correctamente. 
+El Usuario Registrado es un agente que dispone de una cuenta en el sistema y ha iniciado sesión correctamente. 
 Este actor hereda todas las capacidades del Usuario Anónimo y, adicionalmente, puede acceder a funcionalidades avanzadas que requieren autenticación.
 
 Además de las acciones disponibles para el Usuario Anónimo, el Usuario Registrado puede:
@@ -138,7 +138,7 @@ Este actor representa el perfil principal de uso de la aplicación, proporcionan
 
 \subsection{Administrador}
 
-El \textbf{Administrador} es un usuario registrado con privilegios adicionales orientados a la gestión y mantenimiento del sistema. 
+El Administrador es un usuario registrado con privilegios adicionales orientados a la gestión y mantenimiento del sistema. 
 Este actor hereda todas las capacidades del Usuario Registrado y dispone de permisos específicos para la configuración interna de la aplicación.
 
 Las funciones exclusivas del Administrador incluyen:
