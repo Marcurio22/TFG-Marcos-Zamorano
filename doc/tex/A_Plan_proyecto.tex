@@ -701,7 +701,7 @@ Finalmente, creé un fichero \texttt{README.md} con un formato más profesional,
 Como se observa en la Figura~\ref{fig:brsprint20}, el \textit{burndown} muestra un avance progresivo durante todo el \textit{sprint}. Aunque en los primeros días la línea de \textit{open points} se mantuvo algo por encima de la ideal, debido a que varias tareas de documentación requerían trabajo acumulado antes de poder cerrarse, el descenso se fue estabilizando conforme se completaron los principales apartados de memoria y anexos. En la parte final del \textit{sprint} se aprecia una bajada más marcada, coincidiendo con los días en los que acabé los exámenes finales, hasta completar todas las \textit{issues} el 1 de junio.
 
 \subsection{Sprint 21 - Despliegue y mejoras de calidad}
-El \textit{Sprint 21} se desarrolló del 2 al 8 de junio. Inicialmente estimé una dedicación de 27,5~horas, aunque durante el avance del \textit{sprint} surgieron nuevas \textit{issues} que elevaron la planificación total a 31,5~horas. Finalmente, la dedicación real fue de aproximadamente 32~horas. El objetivo principal de esta iteración fue realizar el despliegue de la aplicación, cerrar documentación técnica asociada al mismo y corregir distintas incidencias detectadas tanto en el servidor como en el análisis de calidad de SonarQube.
+El \textit{Sprint 21} se desarrolló del 2 al 8 de junio. Inicialmente estimé una dedicación de 27,5~horas, aunque durante el avance del \textit{sprint} surgieron nuevas \textit{issues} que elevaron la planificación total a 31,5~horas. Finalmente, la dedicación real fue de aproximadamente 32~horas. El objetivo principal de esta iteración fue realizar el despliegue de la aplicación, cerrar documentación técnica asociada al mismo y corregir distintas incidencias detectadas tanto en el servidor como en el análisis de calidad de SonarCloud.
 
 Los objetivos definidos para este \textit{sprint} fueron los siguientes:
 \begin{itemize}
@@ -711,10 +711,10 @@ Los objetivos definidos para este \textit{sprint} fueron los siguientes:
 	\item Redactar el tema de la licencia y crear el fichero \texttt{LICENSE.md}.
 	\item Cambiar todos los cuadros de comandos de la memoria.
 	\item Añadir los últimos \textit{tests} de Selenium y documentarlos.
-	\item Incorporar Selenium, Docker, Gunicorn y SonarQube en el apartado de herramientas.
+	\item Incorporar Selenium, Docker, Gunicorn y SonarCloud en el apartado de herramientas.
 	\item Redactar todo lo referente a Gunicorn y despliegue que todavía faltaba.
 	\item Arreglar las tablas de anexos.
-	\item Corregir problemas de SonarQube:
+	\item Corregir problemas de SonarCloud:
 	\begin{itemize}
 		\item \textit{Security Snapshots}.
 		\item \textit{Reliability}.
@@ -733,13 +733,13 @@ El primer día del \textit{sprint}, 2 de junio, lo dediqué a preparar la base d
 
 El 3 de junio cerré tareas de documentación y pruebas. Por un lado, arreglé las tablas de anexos para mantener un formato coherente. Por otro, añadí los últimos \textit{tests} de Selenium y los documenté, completando así la parte de pruebas funcionales sobre la interfaz.
 
-El 4 de junio fue uno de los días más importantes del \textit{sprint}, ya que terminé de ejecutar el despliegue de la aplicación. Durante este proceso también redacté el apartado relativo a la licencia y creé el fichero \texttt{LICENSE.md}. Además, incorporé Selenium, Docker, Gunicorn y SonarQube en el apartado de herramientas de la memoria, para que la documentación reflejase correctamente las tecnologías finalmente utilizadas. Ese mismo día surgieron dos incidencias no previstas: un problema con el uso de la GPU en el servidor y un \textit{bug} de concurrencia durante el despliegue. Ambas incidencias tuvieron que resolverse dentro del propio \textit{sprint}, ya que afectaban directamente al correcto funcionamiento de la aplicación desplegada.
+El 4 de junio fue uno de los días más importantes del \textit{sprint}, ya que terminé de ejecutar el despliegue de la aplicación. Durante este proceso también redacté el apartado relativo a la licencia y creé el fichero \texttt{LICENSE.md}. Además, incorporé Selenium, Docker, Gunicorn y SonarCloud en el apartado de herramientas de la memoria, para que la documentación reflejase correctamente las tecnologías finalmente utilizadas. Ese mismo día surgieron dos incidencias no previstas: un problema con el uso de la GPU en el servidor y un \textit{bug} de concurrencia durante el despliegue. Ambas incidencias tuvieron que resolverse dentro del propio \textit{sprint}, ya que afectaban directamente al correcto funcionamiento de la aplicación desplegada.
 
 El 5 de junio me centré en la memoria, cambiando todos los cuadros de comandos para homogeneizar su presentación y redactando las partes que todavía faltaban sobre Gunicorn y el despliegue. Esta documentación era necesaria para explicar correctamente cómo se había preparado el entorno de ejecución y qué papel desempeñaba cada componente dentro del servidor.
 
 El 6 de junio incorporé dos mejoras funcionales surgidas durante el avance del \textit{sprint}. La primera consistió en permitir que el usuario pudiese iniciar sesión tanto con su nombre de usuario como con su correo electrónico, haciendo el acceso más flexible. La segunda fue añadir un aviso cuando el usuario no hubiese seleccionado dos puntos en el visor, evitando así errores silenciosos y mejorando la retroalimentación de la interfaz.
 
-Finalmente, los días 7 y 8 de junio los dediqué principalmente a resolver incidencias detectadas por SonarQube. El día 7 corregí problemas asociados a \textit{Security Snapshots} y \textit{Reliability}, mientras que el día 8 cerré los \textit{Security Hotspots}. Con ello, el proyecto quedó en un estado más limpio desde el punto de vista de calidad de código y análisis estático.
+Finalmente, los días 7 y 8 de junio los dediqué principalmente a resolver incidencias detectadas por SonarCloud. El día 7 corregí problemas asociados a \textit{Security Snapshots} y \textit{Reliability}, mientras que el día 8 cerré los \textit{Security Hotspots}. Con ello, el proyecto quedó en un estado más limpio desde el punto de vista de calidad de código y análisis estático.
 
 \begin{figure}
 	\centering
@@ -749,6 +749,40 @@ Finalmente, los días 7 y 8 de junio los dediqué principalmente a resolver inci
 \end{figure}
 
 Como se observa en la Figura~\ref{fig:brsprint21}, el \textit{burndown} muestra un avance bastante constante durante todo el \textit{sprint}, adelantando ya el primer día a la línea ideal, debido a que cerré varias de las issues planificadas ese mismo día. Aunque surgieron varias tareas nuevas durante la semana, especialmente relacionadas con el despliegue y con incidencias del servidor, estas se fueron resolviendo dentro del propio periodo. La línea de \textit{open points} se mantuvo siempre por debajo de la ideal, reflejando que el cierre de tareas fue progresivo y que el \textit{sprint} pudo completarse correctamente el 8 de junio.
+
+\subsection{Sprint 22 - Cierre del TFG}
+El \textit{Sprint 22} correspondió al cierre final del TFG y abarcó del 8 al 10 de junio, aunque en la práctica terminé el trabajo durante la madrugada del 11 de junio, aproximadamente a la 1:10~a.m. Para este \textit{sprint} estimé una dedicación de 27~horas, y finalmente el tiempo empleado fue muy similar, manteniéndose en torno a esa cifra.
+
+Al tratarse de un \textit{sprint} de apenas tres días, no he considerado necesario incluir un \textit{burndown report} específico.
+
+Los objetivos definidos para este \textit{sprint} fueron los siguientes:
+\begin{itemize}
+	\item Cambiar imágenes para satisfacer derechos de autor.
+	\item Aplicar cambios sugeridos en la memoria.
+	\item Actualizar el fichero \texttt{README.md}.
+	\item Arreglar repetición de código detectada por SonarCloud.
+	\item Arreglar problemas de \textit{responsiveness}.
+	\item Redactar lo relativo al certificado SSL como línea futura.
+	\item Arreglar el diagrama de secuencia.
+	\item Redactar nuevos apartados de aspectos relevantes.
+	\item Revisar imágenes de memoria y anexos que ya no se utilizasen.
+	\item Aplicar cambios sugeridos en anexos.
+	\item Realizar la última actualización de idiomas.
+	\item Arreglar un problema de gestión del modelo en despliegue.
+	\item Revisar el fichero \texttt{coverage.xml}.
+	\item Revisar el fichero \texttt{pip freeze} y las dependencias finales.
+	\item Revisar y actualizar la documentación completa del código.
+\end{itemize}
+
+En primer lugar, cambié las imágenes de fondo de la aplicación para satisfacer correctamente cuestiones de derechos de autor. En paralelo, apliqué los cambios sugeridos por el tutor en la memoria, corrigiendo redacción, estructura y distintos detalles pendientes para dejar el documento más pulido de cara a la entrega final.
+
+A continuación, actualicé el fichero \texttt{README.md}, ajustándolo al estado final del proyecto y dejando más clara la información necesaria para su uso y ejecución. Después, corregí la repetición de código marcada por SonarCloud y arreglé problemas de \textit{responsiveness} en la aplicación, con el objetivo de mejorar la calidad del código y mantener una visualización adecuada en distintos tamaños de pantalla.
+
+Más tarde, redacté el apartado relativo al certificado SSL dentro de las líneas futuras, ya que se trata de una mejora necesaria para un despliegue en condiciones reales, pero que no pude llegar a completar por falta de tiempo. También realicé la última revisión de los diagramas de secuencia, redacté nuevos apartados para los aspectos relevantes y revisé las imágenes de memoria y anexos que ya no se utilizaban.
+
+El último día lo dediqué a cerrar los elementos más críticos que todavía quedaban pendientes. En primer lugar, terminé de aplicar los cambios sugeridos en los anexos y realicé las últimas traducciones de la aplicación. Después, cerré definitivamente el problema de gestión de modelos en despliegue, que había requerido más tiempo del esperado y que condicionó el cierre del \textit{sprint}. Debido a esta incidencia, no pude incorporar una funcionalidad que estaba prevista inicialmente: la recuperación de contraseña mediante correo electrónico, que quedó finalmente fuera del alcance del TFG.
+
+Finalmente, revisé el fichero \texttt{coverage.xml} y el resultado de \texttt{pip freeze} para asegurar que el \texttt{requirements.txt} quedase alineado con las dependencias finales del proyecto. Como última tarea, actualicé la documentación de todo el código de la aplicación, dejando los módulos y funciones más importantes correctamente comentados antes de dar por cerrado el trabajo.
 
 \section{Estudio de viabilidad}
 En este apartado se analiza la viabilidad del proyecto desde una doble perspectiva: económica, valorando los costes asociados a su desarrollo, despliegue y mantenimiento; y legal, revisando las licencias, condiciones de uso y obligaciones normativas que afectan a las tecnologías, datos y recursos empleados.
@@ -1002,13 +1036,14 @@ La Tabla~\ref{tab:licencias_software} recoge las principales dependencias y herr
 		\toprule
 		\textbf{Librería} & \textbf{Versión} & \textbf{Licencia} \\
 		\midrule
-		\textit{Python} & 3.12 & PSF \\
+		\textit{Python} & 3.13.0 & PSF \\
 		\textit{Flask} & 3.1.2 & BSD-3 \\
 		\textit{SQLAlchemy} & 2.0.49 & MIT \\
-		\textit{SQLite} & 3.45.0 & Dominio público \\
+		\textit{SQLite} & 3.45.3 & Dominio público \\
 		\textit{Jinja2} & 3.1.6 & BSD-3 \\
-		\textit{Tailwind CSS} & 3.4.17 & MIT \\
-		\textit{DaisyUI} & 4.12.24 & MIT \\
+		\textit{Tailwind CSS} & 4.3.0 & MIT \\
+		\textit{DaisyUI} & 5.5.23 & MIT \\
+		\textit{Leaflet } & 1.9.4 & BSD-2 \\
 		\textit{Selenium} & 4.38.0 & Apache-2.0 \\
 		\textit{Pytest} & 9.0.1 & MIT \\
 		\textit{Coverage.py} & 7.13.5 & Apache-2.0 \\
@@ -1018,7 +1053,7 @@ La Tabla~\ref{tab:licencias_software} recoge las principales dependencias y herr
 		\textit{Hugging Face Hub} & 1.3.4 & Apache-2.0 \\
 		\textit{ReportLab} & 4.5.0 & BSD \\
 		\textit{Gunicorn} & 23.0.0 & MIT \\
-		\textit{SonarQube Community Build} & 25.4 & LGPLv3 / SSAL v1.0 \\
+		\textit{SonarCloud Community Build} & 25.4 & LGPLv3 / SSAL v1.0 \\
 		\bottomrule
 	\end{tabularx}
 	
@@ -1026,9 +1061,9 @@ La Tabla~\ref{tab:licencias_software} recoge las principales dependencias y herr
 	\label{tab:licencias_software}
 \end{table}
 
-Para seleccionar la licencia del proyecto se ha partido del análisis de las dependencias empleadas y de sus condiciones de uso, resumidas previamente en la Tabla~\ref{tab:licencias_software}. La mayoría de las tecnologías utilizadas se distribuyen bajo licencias permisivas, principalmente MIT, BSD-3-Clause y Apache-2.0, lo que permite su uso en un contexto académico siempre que se respeten los avisos de copyright, las condiciones de redistribución y las obligaciones particulares de cada biblioteca. No obstante, al combinar distintas dependencias, resulta conveniente adoptar una licencia que no solo sea permisiva, sino que también cubra de forma clara las exigencias más completas presentes en el ecosistema utilizado.
+Para seleccionar la licencia del proyecto se ha partido del análisis de las dependencias empleadas y de sus condiciones de uso, resumidas previamente en la Tabla~\ref{tab:licencias_software}. La mayoría de las tecnologías utilizadas se distribuyen bajo licencias permisivas, principalmente MIT, BSD-2-Clause, BSD-3-Clause y Apache-2.0, lo que permite su uso en un contexto académico siempre que se respeten los avisos de copyright, las condiciones de redistribución y las obligaciones particulares de cada biblioteca. No obstante, al combinar distintas dependencias, resulta conveniente adoptar una licencia que no solo sea permisiva, sino que también cubra de forma clara las exigencias más completas presentes en el ecosistema utilizado.
 
-En este sentido, se ha descartado emplear una licencia excesivamente simple, como MIT, como licencia principal del proyecto, no porque sea incompatible con el desarrollo realizado, sino porque podría resultar insuficiente para reflejar algunas obligaciones presentes en dependencias más específicas. En particular, bibliotecas y herramientas del ámbito de aprendizaje profundo y modelos, como \texttt{timm} o componentes asociados al ecosistema de Hugging Face, utilizan licencias como Apache-2.0, que incorporan aspectos adicionales, entre ellos la concesión expresa de derechos de patente y la obligación de indicar modificaciones cuando proceda. Por tanto, para garantizar una mayor coherencia jurídica con las dependencias empleadas y evitar ambigüedades en la reutilización futura del código, se ha optado por publicar el proyecto bajo la licencia \textbf{Apache License 2.0}.
+En este sentido, se ha descartado emplear una licencia excesivamente simple, como MIT, como licencia principal del proyecto, no porque sea incompatible con el desarrollo realizado, sino porque podría resultar insuficiente para reflejar algunas obligaciones presentes en dependencias más específicas. En particular, bibliotecas y herramientas del ámbito de aprendizaje profundo y modelos, como \texttt{timm} o componentes asociados al ecosistema de Hugging Face, utilizan licencias como Apache-2.0, que incorporan aspectos adicionales, entre ellos la concesión expresa de derechos de patente y la obligación de indicar modificaciones cuando proceda. Por tanto, para garantizar una mayor coherencia jurídica con las dependencias empleadas y evitar ambigüedades en la reutilización futura del código, se ha optado por publicar el proyecto bajo la licencia: Apache License 2.0.
 
 La elección de Apache-2.0 resulta especialmente adecuada para este Trabajo Fin de Grado, ya que el proyecto se apoya de forma importante en técnicas de visión por computador, inferencia con modelos de segmentación y bibliotecas propias del ecosistema de \textit{deep learning}. Esta licencia permite el uso privado, académico y comercial del software, así como su modificación y redistribución, siempre que se incluya una copia de la licencia, se mantengan los avisos de copyright y se indiquen de forma clara las modificaciones realizadas sobre los archivos originales. Además, incorpora una concesión expresa de derechos de patente, aspecto relevante en proyectos que implementan o integran algoritmos de análisis de imágenes. Finalmente, la licencia limita la responsabilidad del autor frente a posibles daños derivados del uso del software, lo que resulta adecuado para un proyecto académico que puede servir como base para futuros desarrollos o investigaciones.
 

@@ -80,7 +80,7 @@ La aplicación permite trabajar tanto como usuario anónimo, como con una cuenta
 	\label{fig:manual_login}
 \end{figure}
 
-La pantalla de inicio de sesión, mostrada en la Figura~\ref{fig:manual_login}, permite acceder a la aplicación mediante un nombre de usuario y una contraseña. En esta misma vista se ofrece también la posibilidad de continuar como visitante, opción pensada para usuarios que desean probar el funcionamiento básico de la herramienta sin crear una cuenta. Además, desde esta pantalla se puede acceder al formulario de registro mediante el enlace \textit{Registrarse}.
+La pantalla de inicio de sesión, mostrada en la Figura~\ref{fig:manual_login}, permite acceder a la aplicación mediante un nombre de usuario, o un correo, y una contraseña. En esta misma vista se ofrece también la posibilidad de continuar como visitante, opción pensada para usuarios que desean probar el funcionamiento básico de la herramienta sin crear una cuenta. Además, desde esta pantalla se puede acceder al formulario de registro mediante el enlace \textit{Registrarse}.
 
 \begin{figure}[]
 	\centering
@@ -231,7 +231,6 @@ La Figura~\ref{fig:manual_trazas_mapa} muestra el resultado de volver al mapa de
 
 La colección también permite descargar los resultados en formato \texttt{ZIP}. Esta descarga incluye, para cada tesela procesada correctamente, la imagen original, el resultado generado y el fichero \texttt{JSON} de trazas. Si alguna tesela todavía no tiene las trazas calculadas, se descarga únicamente la imagen original correspondiente. Además, el fichero comprimido incorpora un \texttt{log.json} con información sobre las imágenes descargadas y las posibles descargas fallidas, siguiendo una estructura similar a la siguiente:
 
-\vspace{2 cm}
 \begin{jsonlogbox}{Resultado del proceso de descarga}
 	{
 		"descargadas": [
@@ -427,7 +426,18 @@ El modelo marcado como activo es el que utiliza la aplicación para realizar nue
 
 Para incorporar un nuevo modelo, el administrador debe pulsar el botón \textit{Añadir modelo}. A continuación, se abre el formulario mostrado en la Figura~\ref{fig:manual_anadir_modelo}, donde se solicita un nombre identificativo y el archivo correspondiente al modelo. El nombre debe ser único y no debe contener rutas ni caracteres reservados del sistema.
 
-Tras guardar el archivo, el modelo se introduce inicialmente con estado: subiendo... y se inicia su validación en segundo plano. Durante este proceso, la aplicación comprueba que el modelo puede cargarse y ejecutar una inferencia de prueba. Si la validación finaliza correctamente, el modelo pasa a figurar como validado y podrá ser activado por el administrador. Si la validación falla, el sistema informa del problema y el modelo no queda disponible para inferencia.
+Durante la subida del modelo, la interfaz incorpora un estado intermedio para informar al administrador del avance de la operación. Como se muestra en la Figura~\ref{fig:manual_subiendo_modelo}, al seleccionar un archivo y comenzar la transferencia se añade una fila temporal de modelo en estado \textit{subiendo} y se muestra un bloque informativo con una barra de progreso. Este porcentaje refleja el avance real del envío desde el navegador al servidor. Asimismo, se muestra un aviso indicando que no debe abandonarse la página hasta que finalice la subida, ya que, si el usuario sale antes de tiempo, la transferencia puede cancelarse y el modelo no llegar a guardarse correctamente.
+
+\begin{figure}[]
+	\centering
+	\includegraphics[width=\textwidth]{img/Subir_modelo}
+	\caption[Progreso de subida de modelo]{Progreso de subida de un modelo desde el panel de administración.}
+	\label{fig:manual_subiendo_modelo}
+\end{figure}
+
+Por otro lado, se ha incluido la opción \textit{Cancelar subida}, pensada para detener transferencias largas antes de que el archivo llegue completamente al servidor. Al pulsar este botón, el navegador aborta la petición de subida activa, elimina la fila temporal del modelo, oculta el bloque de progreso y muestra un mensaje de confirmación indicando que la operación se ha cancelado y que no se ha guardado ningún modelo. Esta cancelación afecta únicamente a la transferencia en curso; si el archivo ya se hubiera subido por completo y el servidor estuviera validando el modelo, dicha validación pertenecería a una fase posterior del flujo.
+
+Tras guardar el archivo, el modelo se introduce inicialmente con estado de validación: pendiente y esta se inicia en segundo plano. A lo largo de este proceso, la aplicación comprueba que el modelo puede cargarse y ejecutar una inferencia de prueba. Si la validación finaliza correctamente, el modelo pasa a figurar como validado y podrá ser activado por el administrador. Por el contrario, si esta falla, el sistema informa del problema y el modelo no queda disponible para inferencia.
 
 La opción de renombrado permite modificar el nombre visible de un modelo sin alterar su función dentro del sistema. Por su parte, la fecha de creación permite identificar cuándo fue incorporado cada modelo, facilitando el seguimiento de versiones y la gestión de distintos artefactos de segmentación. De este modo, el panel de administración ofrece un control centralizado sobre los modelos disponibles y sobre el modelo activo utilizado por la aplicación.
 

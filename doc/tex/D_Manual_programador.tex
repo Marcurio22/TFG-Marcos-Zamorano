@@ -94,68 +94,51 @@ Antes de describir los ficheros principales del repositorio, conviene presentar 
 Los ficheros y directorios principales que se encuentran al nivel raíz del proyecto son:
 
 \begin{itemize}
-	\item \textbf{\texttt{webapp/}:} directorio raíz de la aplicación web.
+	\item \texttt{webapp/}: directorio raíz de la aplicación web.
 	Contiene el punto de entrada de Flask, el código fuente, los recursos
 	estáticos, las plantillas y los ficheros propios de ejecución de la
 	aplicación.
 	
-	\item \textbf{\texttt{tests/}:} directorio que contiene la suite de
+	\item \texttt{tests/}: directorio que contiene la suite de
 	pruebas automáticas del sistema. Incluye pruebas funcionales, de
 	regresión, de integración y pruebas de navegador con Selenium.
 	
-	\item \textbf{\texttt{docker/}:} carpeta de soporte al despliegue. Incluye el script \texttt{entrypoint.sh}, encargado de preparar las carpetas necesarias y lanzar el comando final del contenedor, y el fichero \texttt{gunicorn.conf.py}, donde se define la configuración del servidor Gunicorn.
+	\item \texttt{docker/}: carpeta de soporte al despliegue. Incluye el script \texttt{entrypoint.sh}, encargado de preparar las carpetas necesarias y lanzar el comando final del contenedor, y el fichero \texttt{gunicorn.conf.py}, donde se define la configuración del servidor Gunicorn.
 	
-	\item \textbf{\texttt{instance/}:} directorio persistente de la aplicación. Contiene la base de datos SQLite, los modelos de inferencia, las colecciones, las imágenes subidas, las imágenes de perfil y los resultados generados. 
+	\item \texttt{instance/}: directorio persistente de la aplicación. Contiene la base de datos SQLite, los modelos de inferencia, las colecciones, las imágenes subidas, las imágenes de perfil y los resultados generados. 
 	
-	\item \textbf{\texttt{Dockerfile}:} fichero que define la imagen Docker de la aplicación.
+	\item \texttt{Dockerfile}: fichero que define la imagen Docker de la aplicación.
 	
-	\item \textbf{\texttt{docker-compose.yml}:} fichero de orquestación del
-	despliegue. Define los servicios principales.
+	\item \texttt{docker-compose.yml}: fichero de orquestación del despliegue. Define los servicios principales.
 	
-	\item \textbf{\texttt{.dockerignore}:} fichero utilizado para evitar que
-	ciertos recursos entren dentro de la imagen Docker. Excluye entornos
-	virtuales, cachés, informes de cobertura, datos persistentes, modelos,
-	bases de datos y otros archivos generados.
+	\item \texttt{.dockerignore}: fichero utilizado para evitar que ciertos recursos entren dentro de la imagen Docker. Excluye entornos virtuales, cachés, informes de cobertura, datos persistentes, modelos, bases de datos y otros archivos generados.
 	
-	\item \textbf{\texttt{.env.example}:} plantilla de configuración de entorno.
+	\item \texttt{.env.example}: plantilla de configuración de entorno.
 	
-	\item \textbf{\texttt{htmlcov/}:} informe HTML generado por
-	\textit{coverage}. No forma parte del código fuente de la aplicación,
-	sino que es un artefacto generado durante la validación.
+	\item \texttt{htmlcov/}: informe HTML generado por \textit{coverage}. No forma parte del código fuente de la aplicación, sino que es un artefacto generado durante la validación.
 	
-	\item \textbf{\texttt{pytest.ini}:} fichero de configuración de
-	\textit{pytest}. Define las rutas de búsqueda, el \textit{pythonpath}
-	del proyecto y los marcadores específicos utilizados en la suite.
+	\item \texttt{coverage.xml}: informe generado automáticamente por \texttt{coverage.py} y \texttt{pytest-cov} en formato XML. Resume qué líneas del código han sido ejecutadas durante la batería de pruebas.
 	
-	\item \textbf{\texttt{.coveragerc}:} fichero de configuración de
-	\textit{coverage}, utilizado para medir la cobertura sobre el paquete
-	principal de la aplicación.
+	\item \texttt{pytest.ini}: fichero de configuración de \textit{pytest}. Define las rutas de búsqueda, el \textit{pythonpath} del proyecto y los marcadores específicos utilizados en la suite.
 \end{itemize}
 
 Dentro de \texttt{webapp/} se encuentran los ficheros propios de la
 aplicación, entre los que destacan:
 
 \begin{itemize}
-	\item \textbf{\texttt{run.py}:} punto de entrada de la aplicación Flask.
+	\item \texttt{run.py}: punto de entrada de la aplicación Flask.
 	
-	\item \textbf{\texttt{requirements.txt}:} listado principal de
-	dependencias necesarias para instalar y ejecutar la aplicación.
+	\item \texttt{requirements.txt}: listado principal de dependencias necesarias para instalar y ejecutar la aplicación.
 	
-	\item \textbf{\texttt{requirements.freeze.txt}:} listado congelado de
-	dependencias del entorno, útil para reproducir instalaciones concretas.
+	\item \texttt{requirements.freeze.txt}: listado congelado de dependencias del entorno, útil para reproducir instalaciones concretas.
 	
-	\item \textbf{\texttt{requirements-selenium.txt}:} dependencias
-	opcionales necesarias para ejecutar las pruebas Selenium.
+	\item \texttt{requirements-selenium.txt}: dependencias opcionales necesarias para ejecutar las pruebas Selenium.
 	
-	\item \textbf{\texttt{babel.cfg}:} configuración utilizada por
-	Flask-Babel para localizar y extraer textos traducibles.
+	\item \texttt{babel.cfg}: configuración utilizada por Flask-Babel para localizar y extraer textos traducibles.
 	
-	\item \textbf{\texttt{messages.pot}:} plantilla base de traducciones
-	generada a partir de los textos extraídos.
+	\item \texttt{messages.pot}: plantilla base de traducciones generada a partir de los textos extraídos.
 	
-	\item \textbf{\texttt{trazasytrazadas/}:} paquete principal de código
-	fuente de la aplicación. Contiene la factoría de aplicación, los
-	\textit{blueprints}, modelos, formularios, lógica de colección, visor,
+	\item \texttt{trazasytrazadas/}: paquete principal de código fuente de la aplicación. Contiene la factoría de aplicación, los \textit{blueprints}, modelos, formularios, lógica de colección, visor,
 	inferencia, administración y procesamiento de trazas.
 \end{itemize}
 
@@ -304,7 +287,7 @@ Este fichero incluye las bibliotecas necesarias para ejecutar la aplicación Fla
 
 \subsection{Configuración de rutas de Python}
 
-El paquete principal de la aplicación se encuentra dentro de \texttt{webapp/trazasytrazadas}, mientras que la suite de pruebas se encuentra en el directorio \texttt{tests}, situado fuera de \texttt{webapp}. Para que las pruebas puedan localizar correctamente el paquete de la aplicación, el fichero \texttt{pytest.ini} incluye la siguiente configuración:
+El paquete principal de la aplicación se encuentra dentro de \\ \texttt{webapp/trazasytrazadas}, mientras que la suite de pruebas se encuentra en el directorio \texttt{tests}, situado fuera de \texttt{webapp}. Para que las pruebas puedan localizar correctamente el paquete de la aplicación, el fichero \texttt{pytest.ini} incluye la siguiente configuración:
 
 \begin{infocmdbox}{Configuración de rutas de Python}
 pythonpath = webapp
@@ -649,23 +632,29 @@ htmlcov/index.html
 
 Este directorio es un artefacto generado por las pruebas y no es necesario para ejecutar la aplicación, pero sirve como comprobación para validar toda la cobertura de los tests sobre el código real.
 
+\subsection{Integración continua y análisis de calidad}
+
+El proyecto incorpora un flujo de integración continua mediante GitHub Actions. Este flujo permite ejecutar automáticamente la suite de pruebas, generar el informe de cobertura en formato \texttt{coverage.xml} y enviar los resultados a SonarCloud para realizar el análisis estático de calidad del código. De este modo, la revisión de calidad no depende únicamente de una ejecución manual, sino que queda integrada dentro del repositorio y puede repetirse de forma controlada ante nuevos cambios.
+
+La configuración del análisis se centraliza en el fichero \\ \texttt{sonar-project.properties}, donde se define el alcance del código fuente analizado y las diferentes exclusiones. Esta configuración resulta importante para que SonarCloud evalúe principalmente el código real de la aplicación y no artefactos auxiliares, documentación, pruebas o ficheros generados. Además, debe prestarse especial atención al \textit{Quality Gate}, ya que constituye el criterio final que resume si el proyecto cumple los umbrales definidos de calidad, cobertura, duplicidad y mantenibilidad.
+
 \subsection{Problemas frecuentes}
 
 Durante la instalación, ejecución local o despliegue con Docker pueden aparecer algunos problemas habituales. A continuación se recogen los más relevantes y las comprobaciones recomendadas para diagnosticarlos.
 
 \begin{itemize}
-	\item \textbf{\texttt{ModuleNotFoundError: No module named 'trazasytrazadas'.}} Este error suele indicar que las pruebas se han ejecutado desde una ubicación incorrecta o que no se está aplicando la configuración de \texttt{pytest.ini}. Debe comprobarse que se ejecuta desde la raíz del repositorio y que existe la línea \texttt{pythonpath = webapp}.
+	\item \texttt{ModuleNotFoundError: No module named 'trazasytrazadas'.} Este error suele indicar que las pruebas se han ejecutado desde una ubicación incorrecta o que no se está aplicando la configuración de \texttt{pytest.ini}. Debe comprobarse que se ejecuta desde la raíz del repositorio y que existe la línea \texttt{pythonpath = webapp}.
 	
-	\item \textbf{No se encuentra Flask o alguna dependencia.} Normalmente se debe a que el entorno virtual no está activado o a que no se han instalado las dependencias. Debe activarse el entorno y ejecutar \texttt{pip install -r webapp/requirements.txt}.
+	\item No se encuentra Flask o alguna dependencia. Normalmente se debe a que el entorno virtual no está activado o a que no se han instalado las dependencias. Debe activarse el entorno y ejecutar \texttt{pip install -r webapp/requirements.txt}.
 	
-	\item \textbf{Docker no encuentra \texttt{docker-compose.yml}.} Este problema aparece cuando se ejecuta \texttt{docker compose} desde una carpeta que no corresponde a la raíz del proyecto. La raíz debe contener, entre otros elementos, \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{webapp/} y \texttt{docker/}. Para comprobar el estado de los servicios debe situarse primero en dicha carpeta:
+	\item Docker no encuentra \texttt{docker-compose.yml}. Este problema aparece cuando se ejecuta \texttt{docker compose} desde una carpeta que no corresponde a la raíz del proyecto. La raíz debe contener, entre otros elementos, \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{webapp/} y \texttt{docker/}. Para comprobar el estado de los servicios debe situarse primero en dicha carpeta:
 	
 	\begin{dockerboxnf}{Comprobación de servicios Docker}
 cd ~/trazasytrazadas
 docker compose ps
 	\end{dockerboxnf}
 	
-	\item \textbf{Los modelos aparecen como ``sin fichero''.} Las causas más habituales son que los modelos no estén ubicados en \texttt{instance/model}, que \texttt{SEG\_MODELS\_DIR} no apunte a \texttt{/app/instance/model}, que no se haya definido \texttt{FLASK\_INSTANCE\_PATH=/app/instance}, que se haya copiado la base de datos SQLite pero no los ficheros físicos de modelo, o que \texttt{SEG\_N\_FOLDS} no coincida con los modelos entregados. Puede comprobarse la configuración real dentro del contenedor mediante:
+	\item Los modelos aparecen como ``sin fichero''. Las causas más habituales son que los modelos no estén ubicados en \texttt{instance/model}, que \texttt{SEG\_MODELS\_DIR} no apunte a \texttt{/app/instance/model}, que no se haya definido \texttt{FLASK\_INSTANCE\_PATH=/app/instance}, que se haya copiado la base de datos SQLite pero no los ficheros físicos de modelo, o que \texttt{SEG\_N\_FOLDS} no coincida con los modelos entregados. Puede comprobarse la configuración real dentro del contenedor mediante:
 	
 	\begin{dockerboxnf}{Comprobación de rutas de modelos en el contenedor}
 docker compose exec -T web python - <<'PY'
@@ -763,9 +752,7 @@ PY
 	\begin{dockerboxnf}{Comprobación de GPU en el servidor}
 nvidia-smi
 	\end{dockerboxnf}
-	
-	Dentro del contenedor puede verificarse PyTorch mediante:
-	
+
 	\begin{dockerboxnf}{Comprobación de CUDA y PyTorch dentro del contenedor}
 docker compose exec -T web python - <<'PY'
 import torch
@@ -976,21 +963,22 @@ A continuación, los flujos validados con este entorno se documentan mediante ta
 		\textbf{Identificador} & CP6 \\
 		\textbf{Prioridad} & Media \\
 		\textbf{Fecha de ejecución} & 21/05/2026 \\
-		\textbf{Objetivo} & Probar la apertura del modal de generación del visor y el control de reinicio. \\
-		\textbf{Precondiciones} & Sin precondiciones. \\
-		\textbf{Postcondiciones} & Modal mostrado correctamente. \\
+		\textbf{Objetivo} & Probar la validación inicial del visor y la apertura del modal de generación. \\
+		\textbf{Precondiciones} & Visor abierto. \\
+		\textbf{Postcondiciones} & Validación inicial realizada y modal mostrado correctamente tras seleccionar una zona válida. \\
 		\midrule
 	\end{tabularx}
 	\begin{tabularx}{\textwidth}{p{0.8cm} p{3.2cm} X X p{1.3cm}}
 		\textbf{Paso} & \textbf{Entrada} & \textbf{Resultado esperado} & \textbf{Resultado obtenido} & \textbf{Estado} \\
 		\midrule
 		1 & Ruta del visor. & Se muestra el mapa y los controles superiores. & Se muestra el mapa y los controles superiores. & Éxito \\
-		2 & Botón \textit{Generar}. & Se abre el modal de generación de cuadrícula. & Se abre el modal de generación de cuadrícula. & Éxito \\
-		3 & Controles del visor. & El botón \textit{Reiniciar selección} aparece fuera del modal. & El botón \textit{Reiniciar selección} aparece fuera del modal. & Éxito \\
-		4 & Tooltip del botón de reinicio. & El tooltip indica que borra la selección. & El tooltip indica que borra la selección. & Éxito \\
+		2 & Botón \textit{Generar} sin selección. & Se muestra el aviso indicando que deben seleccionarse dos puntos y no se abre el modal. & Se muestra el aviso indicando que deben seleccionarse dos puntos y no se abre el modal. & Éxito \\
+		3 & Dos clics sobre el mapa. & Se marca un área rectangular en el mapa. & Se marca un área rectangular en el mapa. & Éxito \\
+		4 & Botón \textit{Generar} con selección válida. & Se abre el modal de generación de cuadrícula. & Se abre el modal de generación de cuadrícula. & Éxito \\
+		5 & Botón \textit{Reiniciar selección}. & Se eliminan los puntos y el área seleccionada. & Se eliminan los puntos y el área seleccionada. & Éxito \\
 		\bottomrule
 	\end{tabularx}
-	\caption{Caso de prueba 6: modal de generación y reinicio del visor.}
+	\caption{Caso de prueba 6: validación inicial y modal de generación del visor.}
 	\label{tab:cp6}
 \end{table}
 
