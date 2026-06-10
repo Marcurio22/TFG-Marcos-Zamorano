@@ -37,6 +37,8 @@ A partir del trabajo realizado, las líneas de mejora identificadas son las sigu
 	
 	\item También se plantea como trabajo futuro la incorporación de un sistema de notificaciones por correo electrónico. Este mecanismo permitiría avisar al usuario cuando finalice el procesamiento de una colección, especialmente en casos donde la segmentación de todas las teselas requiera varios minutos. Con ello se mejoraría la retroalimentación del sistema y se evitaría que el usuario tuviera que permanecer consultando manualmente el estado del proceso.
 	
+	\item Relacionado con el sistema de correo, también podría incorporarse un mecanismo de recuperación de contraseña. En caso de que un usuario olvidase sus credenciales, la aplicación podría enviar un enlace temporal de restablecimiento al correo electrónico con el que se registró, utilizando SMTP para gestionar el envío.
+	
 	\item Otra posible ampliación sería enriquecer el sistema de descarga de resultados, permitiendo exportar no solo las imágenes y los ficheros JSON de trazas, sino también informes automáticos en PDF o CSV con estadísticas agregadas de la colección, como número de teselas procesadas, longitud aproximada de trazas, área segmentada, errores detectados y modelo utilizado.
 	
 	\item Desde el punto de vista algorítmico, sería conveniente incorporar un módulo de evaluación asistida que permitiese comparar las trazas generadas con anotaciones manuales de referencia. Esto permitiría calcular métricas como \textit{IoU}, \textit{Dice}, \textit{accuracy}, \textit{recall} o $F_1$ sobre imágenes concretas, facilitando la validación de nuevos modelos y el análisis cuantitativo de su rendimiento en escenarios reales.

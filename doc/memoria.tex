@@ -367,7 +367,9 @@
     \noindent\LARGE
     Presentado por \@author{}\\ 
     en Universidad de Burgos --- \@date{}\\
-    Tutor: \@tutor{}\\
+    Tutores: \begin{tabular}[t]{@{}l@{}}
+    	\@tutor{}
+    \end{tabular}\\
   }%
   \end{center}%
   \null
@@ -380,7 +382,8 @@
 % Datos de portada
 \title{Aplicación web para el cálculo de trazas de herbivoría mediante visión por computador}
 \author{\nombre}
-\tutor{Álvar Arnaiz González y David Martínez Acha}
+\tutor{Álvar Arnaiz González \\
+	   David Martínez Acha}
 \date{\today}
 
 \begin{document}
@@ -449,7 +452,7 @@ D. David Martínez Acha
 
 \renewcommand*\abstractname{Descriptores}
 \begin{abstract}
-	visión por computador, segmentación semántica, aprendizaje profundo, trazas de herbivoría, ortoimágenes, teledetección.
+	Visión por computador, segmentación semántica, aprendizaje profundo, trazas de herbivoría, ortoimágenes, teledetección.
 \end{abstract}
 
 \clearpage
@@ -466,7 +469,7 @@ D. David Martínez Acha
 
 \renewcommand*\abstractname{Keywords}
 \begin{abstract}
-	computer vision, semantic segmentation, deep learning, herbivory trails, orthoimages, remote sensing.
+	Computer vision, semantic segmentation, deep learning, herbivory trails, orthoimages, remote sensing.
 \end{abstract}
 
 \clearpage

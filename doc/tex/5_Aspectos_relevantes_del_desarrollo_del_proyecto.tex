@@ -61,7 +61,7 @@ En rendimiento, TorchScript presenta en general tiempos de carga inferiores a \t
 		\bottomrule
 	\end{tabular*}
 	
-	\caption{Comparativa por \textit{fold} entre carga e inferencia usando modelos serializados con \texttt{pickle} y exportados a TorchScript.}
+	\caption[Comparativa entre \textit{pickle} y TorchScript]{Comparativa por \textit{fold} entre carga e inferencia usando modelos serializados con \texttt{pickle} y exportados a TorchScript.}
 	\label{tab:pickle_torch_comp}
 \end{table}
 
@@ -102,11 +102,13 @@ El segundo proceso asíncrono corresponde a la validación de modelos desde el p
 
 En conjunto, ambos procesos asíncronos refuerzan el rendimiento, la trazabilidad y la tolerancia a fallos del sistema, al permitir que las operaciones costosas continúen en segundo plano sin comprometer la respuesta inmediata de la interfaz.
 
-\section{Análisis de calidad de código con SonarQube}
+\section{Análisis de calidad de código con SonarCloud}
 
-Con el objetivo de revisar la calidad del código desarrollado, se ha utilizado SonarQube como herramienta de análisis estático. Esta herramienta permite detectar posibles problemas de mantenibilidad, duplicidad, complejidad, errores potenciales y vulnerabilidades, ofreciendo una visión complementaria a la batería de pruebas automatizadas. 
+Con el objetivo de revisar la calidad del código desarrollado, se ha utilizado SonarCloud como herramienta de análisis estático. Esta herramienta permite detectar posibles problemas de mantenibilidad, duplicidad, complejidad, errores potenciales y vulnerabilidades, ofreciendo una visión complementaria a la batería de pruebas automatizadas. 
 
 Su uso ha permitido identificar puntos de mejora en el código fuente y reforzar la calidad general del proyecto antes de su entrega final, especialmente en una aplicación que combina lógica web, procesamiento de imágenes, persistencia, JavaScript y ejecución de modelos.
+
+Como resultado del proceso de revisión, el proyecto alcanzó un \textit{Quality Gate} superado en SonarCloud, con cobertura superior al umbral exigido y duplicidad dentro de los límites establecidos.
 
 \section{Internacionalización de la interfaz}
 
@@ -121,6 +123,8 @@ También se ha incorporado protección frente a ataques CSRF, \textit{Cross-Site
 Para mitigar este riesgo, se ha activado protección CSRF global en Flask mediante \texttt{CSRFProtect}. Los formularios HTML incluyen el token de seguridad mediante \texttt{form.hidden\_tag()} o mediante un campo oculto \texttt{csrf\_token}, mientras que las peticiones realizadas desde JavaScript mediante \texttt{fetch()} incorporan el token en la cabecera \texttt{X-CSRFToken}.
 
 Se ha añadido incluso un manejador de error específico para informar al usuario de forma comprensible cuando el token falta, es incorrecto o ha caducado. En las pruebas automáticas generales esta protección puede desactivarse para centrarse en la lógica funcional, manteniendo la posibilidad de realizar pruebas específicas que verifiquen el rechazo de acciones sensibles cuando no se proporciona un token válido.
+
+Además de la protección CSRF, también se ha tenido en cuenta la seguridad en el acceso a recursos asociados al usuario, especialmente en el caso de las imágenes de perfil. Estas imágenes se sirven mediante rutas internas controladas, normalizando las rutas relativas y evitando que una URL manipulada pueda acceder a ficheros fuera del directorio permitido. De este modo, la aplicación no expone directamente rutas arbitrarias del sistema de ficheros y mantiene el acceso a estos recursos dentro de los límites previstos.
 
 \section{Despliegue contenerizado con Docker y Gunicorn}
 
