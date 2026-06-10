@@ -16,9 +16,17 @@ uploads/
 outputs/
 model/
 
-# Archivos de test
+# Archivos de test y cobertura
 .coverage
+.coverage.*
+**/.coverage
+**/.coverage.*
+coverage.xml
+**/coverage.xml
+htmlcov/
+**/htmlcov/
 .pytest_cache/
+**/.pytest_cache/
 
 # Archivos de VS Code
 .vscode/
